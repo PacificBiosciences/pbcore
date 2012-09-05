@@ -1,9 +1,13 @@
 from numpy.testing import assert_array_almost_equal as ARRAY_ALMOST_EQ
 from nose.tools import assert_equal as EQ
+from nose import SkipTest
+
 import numpy as np
+import bisect
 
 from pbcore import data
 from pbcore.io import CmpH5Reader
+import pbcore.io.rangeQueries as RQ
 
 class TestCmpH5Reader:
 
@@ -147,11 +151,21 @@ class TestCmpH5Reader:
              (13, '-', 'G'),
              (12, 'G', 'G')]
 
-
-        
-
-
-            
-            
-
     
+    def test_reads_in_range_bounds(self):
+        ## XXX : At the moment the rangeStart, rangeEnd are
+        ## inclusive. This is not-pythonic and should be changed.
+        EQ(len(self._inCmpH5.readsInRange(1, 0, 0)), 2)
+        EQ(all([ x.tStart == 0 for x in self._inCmpH5.readsInRange(1, 0, 0) ]), True)
+        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1050)), 0)
+        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1051)), 1)
+        EQ(len(self._inCmpH5.readsInRange(1, 0, 1e20)), len(self._inCmpH5))
+        
+        blockSize = np.random.randint(10, 500)
+        for j in range(0, self._inCmpH5.referenceInfo(1).Length, blockSize):
+            start = j 
+            end   = j + blockSize
+            oor   = [ read.tStart > end or read.tEnd < start for read in self._inCmpH5.readsInRange(1, start, end) ]
+            assert(not any(oor))
+        
+        

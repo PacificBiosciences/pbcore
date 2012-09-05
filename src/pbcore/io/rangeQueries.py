@@ -167,8 +167,7 @@ def getReadsInRange(cmpH5, coords, justIndices = False):
     overlap the range specfied by coords, where coords is a
     three-tuple composed of (refSeqID, rangeStart, rangeEnd).  Here,
     cmpH5 is an hdf5 object representing a pointer to a sorted cmp.h5
-    file. The sorting of a file can be obtained using the command line
-    tool sortCmpH5.py.
+    file.
     """
     if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
     return makeReadLocator(cmpH5, coords[0])(coords[1], coords[2], justIndices)
