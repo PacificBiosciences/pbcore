@@ -42,10 +42,9 @@ class TestBasH5Reader:
 
     def test_BasH5Reader_regionTableAccessors(self):
         # Test the region table accessors
-        ARRAY_EQ((334, 5), self.bas1.regionTable.shape)
+        ARRAY_EQ((334,), self.bas1.regionTable.shape)
 
         zmw = self.bas1[7]
-
         ARRAY_EQ(
             np.array([[   7,    1,    0,  299,   -1],
                       [   7,    1,  343,  991,   -1],
@@ -53,7 +52,7 @@ class TestBasH5Reader:
                       [   7,    0,  299,  343,  681],
                       [   7,    0,  991, 1032,  804],
                       [   7,    2,    0, 1578,    0]], dtype=np.int32),
-            zmw.regionTable)
+            zmw.regionTable.view(dtype=(np.int32, 5)))
 
         EQ((0, 1578),
            zmw.hqRegion())

@@ -3,27 +3,27 @@
 #
 # All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without 
+# Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright notice, this 
+# * Redistributions of source code must retain the above copyright notice, this
 #   list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright notice, 
-#   this list of conditions and the following disclaimer in the documentation 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
 #   and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its contributors 
-#   may be used to endorse or promote products derived from this software 
+# * Neither the name of Pacific Biosciences nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS CONTRIBUTORS 
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR ITS 
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+#
+# THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR ITS
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
@@ -73,31 +73,31 @@ _baseEncodingToInt = np.array(
      -1,   # 0101
      -1,   # 0110
      -1,   # 0111
-      4 ]) # 1000 
-    
+      4 ]) # 1000
+
 # These are 2D tables indexed by (readInt, refInt)
 _gusfieldTranscriptTable = \
     np.fromstring("ZDDDDZ"
                   "IMRRRZ"
                   "IRMRRZ"
-                  "IRRMRZ" 
-                  "IRRRMZ" 
+                  "IRRMRZ"
+                  "IRRRMZ"
                   "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
 _exonerateTranscriptTable = \
     np.fromstring("Z    Z"
                   " |   Z"
                   "  |  Z"
-                  "   | Z" 
-                  "    |Z" 
+                  "   | Z"
+                  "    |Z"
                   "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
 _exoneratePlusTranscriptTable = \
     np.fromstring("Z    Z"
                   " |***Z"
                   " *|**Z"
-                  " **|*Z" 
-                  " ***|Z" 
+                  " **|*Z"
+                  " ***|Z"
                   "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
-    
+
 def arrayFromDataset(ds, offsetBegin, offsetEnd):
     shape = (offsetEnd - offsetBegin,)
     a = np.ndarray(shape=shape, dtype=ds.dtype)
@@ -292,7 +292,7 @@ class CmpH5Alignment(object):
         readBaseInts = _baseEncodingToInt[alnArr >> 4]
         refBaseInts  = _baseEncodingToInt[alnArr  & 0b1111]
         return tbl[readBaseInts, refBaseInts].tostring()
-        
+
     def read(self, aligned=True, orientation="native"):
         return readFromAlignmentArray(self.alignmentArray(orientation),
                                       gapped=aligned,
@@ -391,7 +391,7 @@ class CmpH5Alignment(object):
 
 class ClippedCmpH5Alignment(CmpH5Alignment):
 
-    # We use these fields to shadow fields in the 
+    # We use these fields to shadow fields in the
     # alignment index row.
     __slots__ = [ "tStart",
                   "tEnd",
@@ -428,7 +428,7 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
         self.nMM  = alnMoveCounts["R"]
         self.nIns = alnMoveCounts["I"]
         self.nDel = alnMoveCounts["D"]
-            
+
 
 # ========================================
 # CmpH5 reader class
@@ -500,16 +500,17 @@ class CmpH5Reader(object):
                 self._referenceDict[record.MD5]  = record
 
         self._readLocatorById = {}
-        for refId in self.file["/RefGroup/ID"]:
-            self._readLocatorById[refId] = makeReadLocator(self, refId)
+        if self.isSorted:
+            for refId in self.file["/RefGroup/ID"]:
+                self._readLocatorById[refId] = makeReadLocator(self, refId)
 
         if self.readType == "CCS":
             self.numPasses = self.file["/AlnInfo/NumPasses"].value
 
         if "Barcode" in self.file["/AlnInfo"]:
-            barcodeIdToName = dict(zip(self.file["/BarcodeInfo/ID"], 
+            barcodeIdToName = dict(zip(self.file["/BarcodeInfo/ID"],
                                        self.file["/BarcodeInfo/Name"]))
-            self.barcode = map(barcodeIdToName.get, 
+            self.barcode = map(barcodeIdToName.get,
                                self.file["/AlnInfo/Barcode"].value[:,0])
 
     @property
@@ -552,7 +553,7 @@ class CmpH5Reader(object):
 
     def movieInfo(self, id):
         return self._movieDict[id]
-    
+
     def referenceInfo(self, key):
         """
         Key can be reference ID (integer), name (e.g. "ref000001"), or
@@ -561,7 +562,7 @@ class CmpH5Reader(object):
         return self._referenceDict[key]
 
     def readsInRange(self, refId, refStart, refEnd, justIndices=False):
-        assert self.isSorted
+        if not self.isSorted: raise Exception, "CmpH5 is not sorted"
         rowNumbers = self._readLocatorById[refId](refStart, refEnd, justIndices=True)
         if justIndices:
             return rowNumbers
@@ -606,6 +607,6 @@ class CmpH5Reader(object):
         if hasattr(self, "file") and self.file != None:
             self.file.close()
             self.file = None
-    
+
     def __del__(self):
         self.close()

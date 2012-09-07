@@ -65,13 +65,17 @@ ADAPTER_REGION = 0
 INSERT_REGION  = 1
 HQ_REGION      = 2
 
-# Region table column numbers
-HOLENUMBER_COLUMN  = 0
-REGIONTYPE_COLUMN  = 1
-REGIONSTART_COLUMN = 2
-REGIONEND_COLUMN   = 3
-REGIONSCORE_COLUMN = 4
+# This seems to be the magic incantation to get a RecArray that can be
+# indexed to yield a record that can then be accessed using dot
+# notation.
+def arrayToRecArray(dtype, arr):
+    return np.rec.array(arr, dtype=dtype).flatten()
 
+REGION_TABLE_DTYPE = [("holeNumber",  np.int32),
+                      ("regionType",  np.int32),
+                      ("regionStart", np.int32),
+                      ("regionEnd",   np.int32),
+                      ("regionScore", np.int32) ]
 
 def _makeQvAccessor(featureName):
     def f(self):
@@ -109,69 +113,73 @@ class Zmw(object):
 
     def adapterRegions(self):
         unclippedAdapterRegions = \
-           [ self.regionTable[rowNumber, (REGIONSTART_COLUMN, REGIONEND_COLUMN)]
-             for rowNumber in np.where(self.regionTable[:, REGIONTYPE_COLUMN] == ADAPTER_REGION)[0] ]
+           [ (region.regionStart, region.regionEnd)
+             for region in self.regionTable
+             if region.regionType == ADAPTER_REGION ]
         hqRegion = self.hqRegion()
         return removeNones([ intersectRanges(hqRegion, region)
                              for region in unclippedAdapterRegions ])
 
     def insertRegions(self):
         unclippedInsertRegions = \
-           [ self.regionTable[rowNumber, (REGIONSTART_COLUMN, REGIONEND_COLUMN)]
-             for rowNumber in np.where(self.regionTable[:, REGIONTYPE_COLUMN] == INSERT_REGION)[0] ]
+           [ (region.regionStart, region.regionEnd)
+             for region in self.regionTable
+             if region.regionType == INSERT_REGION ]
         hqRegion = self.hqRegion()
         return removeNones([ intersectRanges(hqRegion, region)
                              for region in unclippedInsertRegions ])
 
     def hqRegion(self):
-        isHqRegion  = (self.regionTable[:, REGIONTYPE_COLUMN] == HQ_REGION)
-        return tuple(self.regionTable[isHqRegion, (REGIONSTART_COLUMN, REGIONEND_COLUMN)])
+        hqRegions = [ (region.regionStart, region.regionEnd)
+                      for region in self.regionTable
+                      if region.regionType == HQ_REGION ]
+        assert len(hqRegions) == 1
+        return hqRegions[0]
 
     #
     # The following calls return one or more ZmwRead objects.
     #
-    def read(self, rStart=None, rEnd=None):
+    def read(self, readStart=None, readEnd=None):
         hqStart, hqEnd = self.hqRegion()
-        rStart = rStart or hqStart
-        rEnd   = rEnd   or hqEnd
-        if ((rStart > rEnd) or
-            (rStart < hqStart) or
-            (hqEnd  < rEnd)):
+        readStart = readStart or hqStart
+        readEnd   = readEnd   or hqEnd
+        if ((readStart > readEnd) or
+            (readStart < hqStart) or
+            (hqEnd  < readEnd)):
             raise IndexError, "Invalid slice of ZMW"
         else:
             return ZmwRead(self.basH5,
                            self.holeNumber,
-                           rStart, rEnd)
+                           readStart, readEnd)
 
     def subreads(self):
-        return [ self.read(rStart, rEnd)
-                 for (rStart, rEnd) in self.insertRegions() ]
+        return [ self.read(readStart, readEnd)
+                 for (readStart, readEnd) in self.insertRegions() ]
 
     def adapters(self):
-        return [ self.read(rStart, rEnd)
-                 for (rStart, rEnd) in self.adapterRegions() ]
+        return [ self.read(readStart, readEnd)
+                 for (readStart, readEnd) in self.adapterRegions() ]
 
 
 class ZmwRead(object):
     """
-    A ZmwRead represents the data features (basecalls as well as
-    pulse features) recorded from a subinterval of the span of the
-
+    A ZmwRead represents the data features (basecalls as well as pulse
+    features) recorded from the ZMW, delimited by readStart and readEnd.
     """
-    __slots__ = [ "basH5", "holeNumber", "rStart", "rEnd" ]
+    __slots__ = [ "basH5", "holeNumber", "readStart", "readEnd" ]
 
-    def __init__(self, basH5, holeNumber, rStart=None, rEnd=None):
+    def __init__(self, basH5, holeNumber, readStart=None, readEnd=None):
         self.basH5      = basH5
         self.holeNumber = holeNumber
-        self.rStart     = rStart
-        self.rEnd       = rEnd
+        self.readStart  = readStart
+        self.readEnd    = readEnd
 
     @property
     def readName(self):
         return "%s/%d/%d_%d" % (self.basH5.movieName,
                                 self.holeNumber,
-                                self.rStart,
-                                self.rEnd)
+                                self.readStart,
+                                self.readEnd)
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__,
@@ -179,15 +187,15 @@ class ZmwRead(object):
 
     def basecalls(self):
         baseOffset  = self.basH5._offsetsByHole[self.holeNumber][0]
-        offsetBegin = baseOffset + self.rStart
-        offsetEnd   = baseOffset + self.rEnd
+        offsetBegin = baseOffset + self.readStart
+        offsetEnd   = baseOffset + self.readEnd
         return arrayFromDataset(self.basH5.basecallsGroup["Basecall"],
                                 offsetBegin, offsetEnd).tostring()
 
     def qv(self, qvName):
         baseOffset  = self.basH5._offsetsByHole[self.holeNumber][0]
-        offsetBegin = baseOffset + self.rStart
-        offsetEnd   = baseOffset + self.rEnd
+        offsetBegin = baseOffset + self.readStart
+        offsetEnd   = baseOffset + self.readEnd
         return arrayFromDataset(self.basH5.basecallsGroup[qvName],
                                 offsetBegin, offsetEnd)
 
@@ -234,11 +242,11 @@ class BasH5ReaderBase(object):
 class BasH5Reader(BasH5ReaderBase):
     def __init__(self, filename):
         super(BasH5Reader, self).__init__(filename, "/PulseData/BaseCalls")
-        self.regionTable = self.file["/PulseData/Regions"].value
-        isHqRegion = self.regionTable[:, REGIONTYPE_COLUMN] == HQ_REGION
+        self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
+                                           self.file["/PulseData/Regions"].value)
+        isHqRegion = self.regionTable.regionType == HQ_REGION
         hqRegions  = self.regionTable[isHqRegion, :]
-        hqRegionLength = hqRegions[:, REGIONEND_COLUMN] - \
-                         hqRegions[:, REGIONSTART_COLUMN]
+        hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
         holeStatus  = self.basecallsGroup["ZMW/HoleStatus"].value
         self.sequencingZmws = \
             self.holeNumber[(holeStatus == SEQUENCING_ZMW) &
@@ -250,8 +258,8 @@ class BasH5Reader(BasH5ReaderBase):
     def __getitem__(self, holeNumber):
         if holeNumber in self.sequencingZmws:
             offsetStart, offsetEnd = self._offsetsByHole[holeNumber]
-            regionTableStartRow = bisect_left(self.regionTable[:, HOLENUMBER_COLUMN], holeNumber)
-            regionTableEndRow   = bisect_right(self.regionTable[:, HOLENUMBER_COLUMN], holeNumber,
+            regionTableStartRow = bisect_left(self.regionTable.holeNumber, holeNumber)
+            regionTableEndRow   = bisect_right(self.regionTable.holeNumber, holeNumber,
                                                lo=regionTableStartRow)
             return Zmw(self, holeNumber, regionTableStartRow, regionTableEndRow)
         else:

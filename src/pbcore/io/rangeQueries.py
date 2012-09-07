@@ -133,7 +133,8 @@ def makeReadLocator(cmpH5, refSeq):
     Return a function which can be called iteratively to find reads
     quickly. 
     """
-    offsets = cmpH5.file["/RefGroup/OffsetTable"].value 
+    if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
+    offsets = cmpH5.file["/RefGroup/OffsetTable"].value
     offStart, offEnd = offsets[offsets[:,0] == refSeq, 1:3].ravel()
     
     if (offEnd - offStart > 0):
@@ -144,7 +145,6 @@ def makeReadLocator(cmpH5, refSeq):
         returnEmpty = True
 
     def f(rangeStart, rangeEnd, justIndices = False):
-        if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
         if returnEmpty:
             ## This looks strange, but the idea is that a rowless matrix
             ## still has columns and these are what I want to preserve --
