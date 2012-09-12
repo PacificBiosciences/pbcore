@@ -550,6 +550,14 @@ class CmpH5Reader(object):
 
     def alignmentGroup(self, id):
         return self._alignmentGroupById[id]
+    
+    @property
+    def movieNames(self):
+        return set([mi.Name for mi in self._movieDict.values()])
+    
+    @property
+    def barcodeNames(self):
+        return self.file["/BarcodeInfo/Name"]
 
     def movieInfo(self, id):
         return self._movieDict[id]
