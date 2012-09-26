@@ -64,39 +64,40 @@ for (e, v) in _basemap.iteritems():
 for (e, v) in _cBasemap.iteritems():
     _cBasemapArray[e] = v
 
-_baseEncodingToInt = np.array(
-    [ 0,   # 0000
-      1,   # 0001
-      2,   # 0010
-     -1,   # 0011
-      3,   # 0100
-     -1,   # 0101
-     -1,   # 0110
-     -1,   # 0111
-      4 ]) # 1000
+_baseEncodingToInt = np.array([-1]*16)
+_baseEncodingToInt[0b0000] = 0
+_baseEncodingToInt[0b0001] = 1
+_baseEncodingToInt[0b0010] = 2
+_baseEncodingToInt[0b0100] = 3
+_baseEncodingToInt[0b1000] = 4
+_baseEncodingToInt[0b1111] = 5  # 'N' base
 
 # These are 2D tables indexed by (readInt, refInt)
+# 'N' base is never considered a mismatch.
 _gusfieldTranscriptTable = \
-    np.fromstring("ZDDDDZ"
-                  "IMRRRZ"
-                  "IRMRRZ"
-                  "IRRMRZ"
-                  "IRRRMZ"
-                  "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
+    np.fromstring("ZDDDDDZ"
+                  "IMRRRMZ"
+                  "IRMRRMZ"
+                  "IRRMRMZ"
+                  "IRRRMMZ"
+                  "IMMMMMZ"
+                  "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _exonerateTranscriptTable = \
-    np.fromstring("Z    Z"
-                  " |   Z"
-                  "  |  Z"
-                  "   | Z"
-                  "    |Z"
-                  "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
+    np.fromstring("Z     Z"
+                  " |   |Z"
+                  "  |  |Z"
+                  "   | |Z"
+                  "    ||Z"
+                  " |||||Z"
+                  "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _exoneratePlusTranscriptTable = \
-    np.fromstring("Z    Z"
-                  " |***Z"
-                  " *|**Z"
-                  " **|*Z"
-                  " ***|Z"
-                  "ZZZZZZ", dtype=np.uint8).reshape(6, 6)
+    np.fromstring("Z     Z"
+                  " |***|Z"
+                  " *|**|Z"
+                  " **|*|Z"
+                  " ***||Z"
+                  " |||||Z"
+                  "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 
 def arrayFromDataset(ds, offsetBegin, offsetEnd):
     shape = (offsetEnd - offsetBegin,)
