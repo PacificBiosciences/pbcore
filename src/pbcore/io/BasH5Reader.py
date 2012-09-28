@@ -30,7 +30,7 @@
 # Author: David Alexander
 
 
-__all__ = [ "BasH5Reader" ]
+__all__ = [ "BasH5Reader", "CCSBasH5Reader" ]
 
 import h5py, numpy as np, os.path
 from bisect import bisect_left, bisect_right
@@ -238,6 +238,23 @@ class BasH5ReaderBase(object):
     def __iter__(self):
         for holeNumber in self.sequencingZmws:
             yield self[holeNumber]
+
+class CCSBasH5Reader(BasH5ReaderBase):
+    def __init__(self, filename):
+        super(CCSBasH5Reader, self).__init__(filename, "/PulseData/ConsensusBaseCalls")
+        holeStatus  = self.basecallsGroup["ZMW/HoleStatus"].value
+        self.sequencingZmws = \
+            self.holeNumber[(holeStatus == SEQUENCING_ZMW) &
+                            (self.numEvent  >  0)]
+
+    def __getitem__(self, holeNumber):
+        if holeNumber in self.sequencingZmws:
+            ## I am grabbing the entire read here, where length is
+            ## computed as below.
+            offsetStart, offsetEnd = self._offsetsByHole[holeNumber]
+            return ZmwRead(self, holeNumber, 0, offsetEnd - offsetStart)
+        else:
+            return None
 
 class BasH5Reader(BasH5ReaderBase):
     def __init__(self, filename):

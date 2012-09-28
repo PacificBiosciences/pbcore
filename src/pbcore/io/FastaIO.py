@@ -35,9 +35,12 @@ __all__ = [ "FastaReader",
             "FastaEntry",
             "FastqEntry",
             "splitFasta",
-            "writeFastaEntry" ]
+            "writeFastaEntry",
+            "writeFastqEntry" ]
 
 import os
+import numpy as np
+
 from pbcore.model.Range import Range
 from ._utils import getFileHandle
 
@@ -129,7 +132,7 @@ class FastaEntry:
         if not name:
             name = "%s_%i_%i" % (self.name, seqRange.getStart(), seqRange.getEnd())
         return FastaEntry(name, self.sequence[seqRange.getStart():seqRange.getEnd()] )
-
+    
 
 class FastqReader:
     """
@@ -181,10 +184,18 @@ class FastqEntry:
         buffer.append( self.quality )
         return os.linesep.join(buffer)
     
+    @property
+    def asciiQvs(self):
+        assert self.quality.dtype == np.uint8
+        return np.minimum(33 + self.quality, 126).tostring()
+    
     def subseq(self, seqRange, name=None):
         if not name: 
             name = "%s_%i_%i" % (self.name, seqRange.start, seqRange.end)
-        return FastqEntry(name, self.sequence[seqRange.start : seqRange.end], self.quality[seqRange.start : seqRange.end])
+        return FastqEntry(name, self.sequence[seqRange.start : seqRange.end], 
+                          self.quality[seqRange.start : seqRange.end])
+    def trim(self, trim):
+        return self.subseq(Range(trim, len(self.sequence) - trim))
 
 
 def _prettyprint( sequence, width=70 ):
@@ -195,6 +206,12 @@ def writeFastaEntry( file, entry, width=70 ):
     file.write( '>%s%s%s%s' % ( entry.getTag(), os.linesep, \
                                _prettyprint(entry.sequence,width=width), \
                                os.linesep ) )
+
+def writeFastqEntry( file, entry, width=70 ):
+    file.write( '>%s%s%s%s%s%s' % (entry.name, os.linesep, 
+                                   _prettyprint(entry.sequence, width=width), 
+                                   os.linesep, 
+                                   _prettyprint(entry.asciiQvs), os.linesep))
 
 def splitFasta(fasta, nSplits):
     """
