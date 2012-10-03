@@ -79,4 +79,13 @@ class TestBasH5Reader:
         with assert_raises(IndexError):
             zmw.read(5000, 4000)
 
-
+    def test_BasH5Reader_ccs(self):
+        EQ(self.bas1[4006].ccsRead().basecalls(),
+           ''.join(['GGCGCACGGAGGAGCAAGCGTGACAGTCCCACGTCATGCCCGCCGACG',
+                    'ATATCGAGCTCGCGCTCACCGCCAGGGTGTGAAGTGAATTCACGGTGC',
+                    'CGCCGAAAGCTGGGCCGGCTTTCGTTCCTTCGCCGGTCAGGAGAAGGC',
+                    'GGACCCCGTCGTGGGCCATTCCGAGCCTGGAGACAGCGGTCGAAAAAG',
+                    'CCTTCGCCAAGCCGGTGGCCAAATGGTCGGCCAGCGAGAATCCGTGC']))
+    
+        
+        
