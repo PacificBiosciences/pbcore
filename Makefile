@@ -18,9 +18,9 @@ clean: doc-clean
 	rm -f nosetests.xml
 
 doc:
-	sphinx-apidoc -f -o doc/ src/ && cd doc/ && make html
+	sphinx-apidoc -o doc/ src/ && cd doc/ && make html
 doc-clean:
-	cd doc && rm -rf modules.rst pbcore.* _templates _static _build searchindex.js objects.inv
+	cd doc && rm -rf _templates _static _build searchindex.js objects.inv
 
 test:
 	nosetests --with-xunit tests -v

@@ -37,13 +37,23 @@ import logging
 from h5py import File
 import numpy as n
 
+#
+# These APIs are deprecated.  Please use `BasH5Reader` instead.
+#
+
+
 QVTYPES = ['SubstitutionQV', 'DeletionQV', 'InsertionQV', 'QualityValue']
 
 ###########
 # Core bas.h5 Data Group classes
 
 class BaseCallsDataGroup(object):
+    """
+    .. deprecated:
 
+        Use `BasH5Reader` instead.
+
+    """
     def __init__(self, bash5file, baseCallRoot, allowCaching=True):
         self.allowCaching = allowCaching
         self.baseCallType = 'Raw'
@@ -111,6 +121,12 @@ class BaseCallsDataGroup(object):
         return self._holeTypeDict[self.getStatusForZMW(hn)]
 
 class CCSBaseCallsDataGroup(BaseCallsDataGroup):
+    """
+    .. deprecated:
+
+        Use `BasH5Reader` instead.
+
+    """
 
     def __init__(self, bash5file, baseCallRoot):
         super(CCSBaseCallsDataGroup, self).__init__(bash5file, baseCallRoot)
@@ -139,7 +155,12 @@ class CCSBaseCallsDataGroup(BaseCallsDataGroup):
         return zip(start, start+nbases, directions)
 
 class RegionTable(object):
+    """
+    .. deprecated:
 
+        Use `BasH5Reader` instead.
+
+    """
     def __init__(self, bash5file, datagroup='/PulseData/Regions'):
         self.rgnDS = bash5file[datagroup]
         # [Adapter Insert HQRegion]
@@ -180,7 +201,13 @@ class RegionTable(object):
 # Core bas.h5 File handling classes
 
 class BasH5(object):
+    """
+    This class is deprecated.
 
+    .. deprecated:: 0.3.0
+        Use `BasH5Reader` instead.
+
+    """
     def __init__(self, filename, readType='Raw'):
         self._h5f = File(filename, 'r')
         self.rgnTable = RegionTable(self._h5f)

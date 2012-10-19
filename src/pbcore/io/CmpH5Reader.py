@@ -28,14 +28,15 @@
 #################################################################################$$
 
 # Author: David Alexander
-__all__ = [ "CmpH5Reader" ]
+__all__ = [ "CmpH5Reader",
+            "CmpH5Alignment" ]
 
 import h5py, numpy as np
 from bisect import bisect_left, bisect_right
 from collections import Counter
 from os.path import abspath, expanduser
-from .rangeQueries import makeReadLocator
-from ._utils import rec_join, drop_fields
+from pbcore.io.rangeQueries import makeReadLocator
+from pbcore.io._utils import rec_join, drop_fields
 
 # ========================================
 #  Data manipulation routines.
@@ -162,9 +163,52 @@ def _makePulseFeatureAccessor(featureName):
 
 class CmpH5Alignment(object):
     """
-    Access to all columns of a single row of the alignment index,
-    and on-demand access to the corresponding sequence and pulse
-    features.
+    A lightweight class representing a single alignment record in a
+    CmpH5 file, providing access to all columns of a single row of the
+    alignment index, and on-demand access to the corresponding
+    sequence and pulse features.
+
+    `CmpH5Alignment` objects are obtained by slicing a
+    `CmpH5Reader` object:
+
+    .. doctest::
+
+        >>> c[26]
+        CmpH5 alignment: +    1       7441       7699
+
+        >>> print c[26]
+        CmpH5 alignment: +    1       7441       7699
+        <BLANKLINE>
+        Read:        m110818_075520_42141_c100129202555500000315043109121112_s2_p0/1009/44_322
+        Reference:   ref000001
+        <BLANKLINE>
+        Read length: 278
+        Accuracy:    0.871
+        <BLANKLINE>
+          12345678901234567890123456789001223456789012345678890112345678990112344567890011
+          AACTGGTCACGGTCGTGGCACTGGTGAAG-CT-GCATACTGATGCACTT-CAC-GCCACGCG-GG-ATG-AACCTG-T-G
+          |||||||  ||||  ||||||||| |||| || ||||||||| |||||  ||| |||||||| || ||| |||||| | |
+          AACTGGT--CGGT--TGGCACTGG-GAAGCCTTGCATACTGA-GCACT-CCACGGCCACGCGGGGAATGAAACCTGGTGG
+        <BLANKLINE>
+        <BLANKLINE>
+          23456789012345678900123456678901234456789012345678901234566789011234556789012345
+          GCATTTGTGCTGCCGGGA-ACGGCG-TTTCGTGT-CTCTGCCGGTGTGGCAGCCGAA-ATGAC-AGAG-CGCGGCCTGGC
+          |||||||||||||||||| |||||| |||||| | |||||||||||||||||||||| ||||| |||| |||||||||||
+          GCATTTGTGCTGCCGGGAAACGGCGTTTTCGT-TCCTCTGCCGGTGTGGCAGCCGAAAATGACAAGAGCCGCGGCCTGGC
+        <BLANKLINE>
+        <BLANKLINE>
+          67899012345677890123456789901123456789901233456789012345678901234556778901223455
+          CAG-AATGCAAT-AACGGGAGGCGC-TG-TGGCTGAT-TTCG-ATAACCTGTTCGATGCTGCCAT-TG-CCCGC-GCC-G
+          ||| |||||||| |||||||||||| || |||||||| |||| |||||||||||||||||||||| || ||||| ||| |
+          CAGAAATGCAATAAACGGGAGGCGCTTGCTGGCTGATTTTCGAATAACCTGTTCGATGCTGCCATTTGACCCGCGGCCGG
+        <BLANKLINE>
+        <BLANKLINE>
+          6678901234567889012345667890123456789012345678
+          -ATGAAACGATAC-GCGGGTAC-ATGGGAACGTCAGCCACCATTAC
+           |||||||||||| |||||||| |||||||||||||||||||||||
+          AATGAAACGATACGGCGGGTACAATGGGAACGTCAGCCACCATTAC
+        <BLANKLINE>
+        <BLANKLINE>
 
     The `orientation` argument to some data access methods determines
     how reverse-strand alignments are returned to the user.  `.cmp.h5`
@@ -191,6 +235,14 @@ class CmpH5Alignment(object):
         self.rowNumber = rowNumber
 
     def clippedTo(self, refStart, refEnd):
+        """
+        Return a new `CmpH5Alignment` that refers to a subalignment of
+        this alignment, as induced by clipping to reference
+        coordinates `refStart` to `refEnd`.
+
+        .. warning::
+            This function takes time linear in the length of the alignment.
+        """
         # Caution: linear time in alignment length
         return ClippedCmpH5Alignment(self, refStart, refEnd)
 
@@ -208,12 +260,29 @@ class CmpH5Alignment(object):
 
     @property
     def readName(self):
+        """
+        Return the name of the read that was aligned, in standard
+        PacBio format.
+        """
         return "%s/%d/%d_%d" % (self.movieInfo.Name,
                                 self.HoleNumber,
                                 self.rStart,
                                 self.rEnd)
     @property
     def movieInfo(self):
+        """
+        Returns a record (extracted from the cmph5's `movieTable`)
+        containing information about the movie that the read was
+        extracted from.  This record should be accessed using
+        dot-notation, according to the column names documented in
+        `movieTable`.
+
+        .. doctest::
+
+            >>> mi = c[0].movieInfo
+            >>> mi.Name, mi.ID, mi.TimeScale
+            ('m110818_075520_42141_c100129202555500000315043109121112_s2_p0', 1, 1.0)
+        """
         return self.cmpH5.movieInfo(self.MovieID)
 
     @property
@@ -226,18 +295,30 @@ class CmpH5Alignment(object):
 
     @property
     def referenceStart(self):
+        """
+        The left bound of the alignment, in reference coordinates.
+        """
         return self.tStart
 
     @property
     def referenceEnd(self):
+        """
+        The right bound of the alignment, in reference coordinates.
+        """
         return self.tEnd
 
     @property
     def readStart(self):
+        """
+        The left bound of the alignment, in read coordinates (from the BAS.H5 file).
+        """
         return self.rStart
 
     @property
     def readEnd(self):
+        """
+        The right bound of the alignment, in read coordinates (from the BAS.H5 file).
+        """
         return self.rEnd
 
     @property
@@ -252,18 +333,6 @@ class CmpH5Alignment(object):
     def alignedLength(self):
         return self.Offset_end - self.Offset_begin
 
-    @property
-    def accuracy(self):
-        return 1 - float(self.nMM + self.nIns + self.nDel)/self.readLength
-
-    @property
-    def numPasses(self):
-        return self.cmpH5.numPasses[self.rowNumber]
-
-    @property
-    def barcode(self):
-        return self.cmpH5.barcode[self.rowNumber]
-
     def spansReferencePosition(self, pos):
         return self.tStart <= pos < self.tEnd
 
@@ -271,7 +340,35 @@ class CmpH5Alignment(object):
         assert start <= end
         return (self.tStart <= start <= end <= self.tEnd)
 
+    @property
+    def accuracy(self):
+        """
+        Return the accuracy of this alignment, calculated as
+        (#matchs / read length)
+
+        .. doctest::
+
+            >>> c[26].accuracy
+            0.87050359712230219
+        """
+        return 1 - float(self.nMM + self.nIns + self.nDel)/self.readLength
+
+    @property
+    def numPasses(self):
+        """
+        (CCS only) The number subreads that were used to produce this CCS read.
+        """
+        return self.cmpH5.numPasses[self.rowNumber]
+
+    @property
+    def barcode(self):
+        return self.cmpH5.barcode[self.rowNumber]
+
     def alignmentArray(self, orientation="native"):
+        """
+        Direct access to the raw, encoded aligment array, which is a
+        packed representation of the aligned read and reference.
+        """
         alnDs = self.alignmentGroup["AlnArray"]
         alnArray = arrayFromDataset(alnDs, self.Offset_begin, self.Offset_end)
         if self.isReverseStrand and (orientation == "genomic"):
@@ -282,6 +379,7 @@ class CmpH5Alignment(object):
     def transcript(self, orientation="native", style="gusfield"):
         """
         A text representation of the alignment moves (see Gusfield).
+        This can be useful in pretty-printing an alignment.
         """
         if style == "exonerate+":
             tbl = _exoneratePlusTranscriptTable
@@ -315,10 +413,10 @@ class CmpH5Alignment(object):
 
         Length of output array = length of alignment.
 
-        Example:
+        Example::
 
-          0123455567
-          GATTG--ACC
+            0123455567
+            GATTG--ACC
 
         """
         if aligned:
@@ -334,6 +432,9 @@ class CmpH5Alignment(object):
                 return np.arange(self.tStart, self.tEnd)
 
     def pulseFeature(self, featureName, aligned=True, orientation="native"):
+        """
+        Access a pulse feature by name.
+        """
         pulseDataset = self.alignmentGroup[featureName]
         pulseArray = arrayFromDataset(pulseDataset, self.Offset_begin, self.Offset_end)
         if self.isReverseStrand and orientation == "genomic":
@@ -436,15 +537,40 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
 #
 class CmpH5Reader(object):
     """
-    A fairly straightforward CmpH5Reader class.
+    The `CmpH5Reader` class is a lightweight and efficient API for
+    accessing PacBio ``cmp.h5`` alignment files.  Alignment records
+    can be obtained via random access (via Python indexing/slicing),
+    iteration, or range queries (via readsInRange).
+
+    .. testsetup:: *
+
+        from pbcore.io import CmpH5Reader
+        c = CmpH5Reader("/Users/dalexander/Data/aligned_reads_1.cmp.h5")
+        a0 = c[0]
+        a1 = c[1]
+
+    .. doctest::
+
+        >>> import pbcore.data                # For an example data file
+        >>> from pbcore.io import CmpH5Reader
+        >>> filename = pbcore.data.getCmpH5()["cmph5"]
+        >>> c = CmpH5Reader(filename)
+        >>> c[0]
+        CmpH5 alignment: -    1          0        290
+        >>> c[0:2]
+        [CmpH5 alignment: -    1          0        290, CmpH5 alignment: +    1          0        365]
+        >>> sum(aln.readLength for aln in c)
+        26103
+
     """
+
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
         self.file = h5py.File(self.filename, "r")
         rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
-        self.alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
-                                               .view(np.recarray)                   \
-                                               .flatten()
+        self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
+                                                .view(np.recarray)                   \
+                                                .flatten()
         def makeIdToGroupMapping(idDatasetPath, groupPathDatasetPath):
             return dict(zip(self.file[idDatasetPath],
                             [self.file[groupPath]
@@ -453,7 +579,7 @@ class CmpH5Reader(object):
 
         numMovies = len(self.file["/MovieInfo/ID"])
         hasFrameRate = ("FrameRate" in self.file["/MovieInfo"])
-        self.movieTable = np.rec.fromrecords(
+        self._movieTable = np.rec.fromrecords(
             zip(self.file["/MovieInfo/ID"],
                 self.file["/MovieInfo/Name"],
                 self.file["/MovieInfo/FrameRate"] if hasFrameRate else [np.nan] * numMovies,
@@ -464,11 +590,11 @@ class CmpH5Reader(object):
                    ("TimeScale", float)])
 
         self._movieDict = {}
-        for record in self.movieTable:
+        for record in self._movieTable:
             assert record.ID not in self._movieDict
             self._movieDict[record.ID] = record
 
-        referenceGroupTbl = np.rec.fromrecords(
+        _referenceGroupTbl = np.rec.fromrecords(
             zip(self.file["/RefGroup/ID"],
                 self.file["/RefGroup/RefInfoID"],
                 [path[1:] for path in self.file["/RefGroup/Path"]]),
@@ -476,7 +602,7 @@ class CmpH5Reader(object):
                    ("RefInfoID", int),
                    ("Name"     , object)])
 
-        referenceInfoTbl = np.rec.fromrecords(
+        _referenceInfoTbl = np.rec.fromrecords(
             zip(self.file["/RefInfo/ID"],
                 self.file["/RefInfo/FullName"],
                 self.file["/RefInfo/Length"],
@@ -486,11 +612,11 @@ class CmpH5Reader(object):
                    ("Length"   , int),
                    ("MD5"      , object)])
 
-        self.referenceTable = \
-            rec_join("RefInfoID", referenceGroupTbl, referenceInfoTbl, jointype="inner")
+        self._referenceTable = \
+            rec_join("RefInfoID", _referenceGroupTbl, _referenceInfoTbl, jointype="inner")
 
         self._referenceDict = {}
-        for record in self.referenceTable:
+        for record in self._referenceTable:
             if record.ID != -1:
                 assert record.ID != record.Name
                 assert record.ID    not in self._referenceDict \
@@ -514,29 +640,166 @@ class CmpH5Reader(object):
             self.barcode = map(barcodeIdToName.get,
                                self.file["/AlnInfo/Barcode"].value[:,0])
 
+    def __dir__(self):
+        return []
+
+    @property
+    def alignmentIndex(self):
+        """
+        Return the alignment index data structure, which is the
+        central data structure in the cmp.h5 file, as a numpy
+        recarray.
+
+        The `dtype` of the recarray is::
+
+            dtype([('AlnID', int),
+                   ('AlnGroupID', int),
+                   ('MovieID', int),
+                   ('RefGroupID', int),
+                   ('tStart', int),
+                   ('tEnd', int),
+                   ('RCRefStrand', int),
+                   ('HoleNumber', int),
+                   ('SetNumber', int),
+                   ('StrobeNumber', int),
+                   ('MoleculeID', int),
+                   ('rStart', int),
+                   ('rEnd', int),
+                   ('MapQV', int),
+                   ('nM', int),
+                   ('nMM', int),
+                   ('nIns', int),
+                   ('nDel', int),
+                   ('Offset_begin', int),
+                   ('Offset_end', int),
+                   ('nBackRead', int),
+                   ('nReadOverlap', int)])
+
+        Access to the alignment index is provided to allow users to
+        perform vectorized computations over all alignments in the file.
+
+        .. doctest::
+
+            >>> c.alignmentIndex.MapQV[0:10]
+            array([254, 254,   0, 254, 254, 254, 254, 254, 254, 254], dtype=uint32)
+
+        Alignment index fields are also exposed as fields of the
+        `CmpH5Reader` object, allowing a convenient shorthand.
+
+        .. doctest::
+
+            >>> c.MapQV[0:10]
+            array([254, 254,   0, 254, 254, 254, 254, 254, 254, 254], dtype=uint32)
+
+        The alignment index row for a given alignment can also be
+        accessed directly as a field of a `CmpH5Alignment` object
+
+        .. doctest::
+
+            >>> c[26].MapQV
+            254
+        """
+        return self._alignmentIndex
+
+    @property
+    def movieTable(self):
+        """
+        Return a numpy recarray summarizing source movies for the
+        reads in this file.
+
+        The `dtype` of this recarray is::
+
+            dtype([('ID', 'int'),
+                   ('Name', 'string'),
+                   ('FrameRate', 'float'),
+                   ('TimeScale', 'float')])
+
+        `TimeScale` is the factor to multiply time values (IPD,
+        PulseWidth) by in order to get times in seconds.  The
+        `FrameRate` field should *not* be used directly as it will be
+        NaN for pre-1.3 cmp.h5 files.
+        """
+        return self._movieTable
+
+    @property
+    def referenceTable(self):
+        """
+        .. _referenceTable:
+
+        Return a numpy recarray summarizing the references that were
+        aligned against.
+
+        The `dtype` of this recarray is::
+
+            dtype([('RefInfoID', int),
+                   ('ID', int),
+                   ('Name', string),
+                   ('FullName', string),
+                   ('Length', int),
+                   ('MD5', string)])
+
+        """
+        return self._referenceTable
+
     @property
     def readType(self):
+        """
+        Either "standard" or "CCS", indicating the type of reads that
+        were aligned to the reference.
+
+        .. doctest::
+
+            >>> c.readType
+            'standard'
+        """
         return self.file.attrs["ReadType"]
 
     @property
     def version(self):
+        """
+        The CmpH5 format version string.
+
+        .. doctest::
+
+            >>> c.version
+            '1.2.0.SF'
+        """
         return self.file.attrs["Version"]
 
     def versionAtLeast(self, minimalVersion):
+        """
+        Compare the file version to `minimalVersion`.
+
+        .. doctest::
+
+            >>> c.versionAtLeast("1.3.0")
+            False
+        """
         myVersionTuple = map(int, self.version.split(".")[:3])
         minimalVersionTuple = map(int, minimalVersion.split(".")[:3])
         return myVersionTuple >= minimalVersionTuple
 
     @property
     def primaryVersion(self):
+        """
+        The version of PacBio Primary Analysis software that produced
+        the ``bas.h5`` input file to the aligner.
+        """
         return self.file.attrs["PrimaryVersion"]
 
     def primaryVersionAtLeast(self, minimalVersion):
+        """
+        Compare ``primaryVersion`` to ``minimalVersion``
+        """
         myVersionTuple = map(int, self.primaryVersion.split("."))
         minimalVersionTuple = map(int, minimalVersion.split("."))
         return myVersionTuple >= minimalVersionTuple
 
     def softwareVersion(self, programName):
+        """
+        Return the version of program `programName` that processed
+        this file.
+        """
         filelog = dict(zip(self.file["/FileLog/Program"],
                            self.file["/FileLog/Version"]))
         return filelog.get(programName, None)
@@ -551,26 +814,74 @@ class CmpH5Reader(object):
 
     def alignmentGroup(self, id):
         return self._alignmentGroupById[id]
-    
+
     @property
     def movieNames(self):
         return set([mi.Name for mi in self._movieDict.values()])
-    
+
     @property
     def barcodeNames(self):
         return self.file["/BarcodeInfo/Name"]
 
     def movieInfo(self, id):
+        """
+        Access information about a movie whose reads are represented
+        in the file.
+
+        The returned value is a record from the :attr:`movieTable`
+
+        .. doctest::
+
+            >>> mi = c.movieInfo(1)
+            >>> mi.Name
+            'm110818_075520_42141_c100129202555500000315043109121112_s2_p0'
+            >>> mi.TimeScale
+            1.0
+
+        """
         return self._movieDict[id]
 
     def referenceInfo(self, key):
         """
+        Access information about a reference that was aligned against.
         Key can be reference ID (integer), name (e.g. "ref000001"), or
         MD5 sum hex string (e.g. "a1319ff90e994c8190a4fe6569d0822a").
+
+        The returned value is a record from the :ref:referenceTable .
+
+        .. doctest::
+
+            >>> ri = c.referenceInfo("ref000001")
+            >>> ri.FullName
+            'lambda_NEB3011'
+            >>> ri.MD5
+            'a1319ff90e994c8190a4fe6569d0822a'
+
         """
         return self._referenceDict[key]
 
     def readsInRange(self, refId, refStart, refEnd, justIndices=False):
+        """
+        Get a list of reads overlapping (i.e., intersecting---not
+        necessarily spanning) a given reference window.
+
+        If `justIndices` is ``False``, the list returned will contain
+        `CmpH5Alignment` objects.
+
+        If `justIndices` is ``True``, the list returned will contain
+        row numbers in the alignment index table.  Slicing the
+        `CmpH5Reader` object with these row numbers can be used to get
+        the corresponding `CmpH5Alignment` objects.
+
+        .. doctest::
+
+            >>> c.readsInRange(1, 0, 1000)
+            [CmpH5 alignment: -    1          0        290, CmpH5 alignment: +    1          0        365]
+            >>> rowNumbers = c.readsInRange(1, 0, 1000, justIndices=True)
+            >>> rowNumbers
+            array([0, 1], dtype=uint32)
+        """
+
         if not self.isSorted: raise Exception, "CmpH5 is not sorted"
         rowNumbers = self._readLocatorById[refId](refStart, refEnd, justIndices=True)
         if justIndices:
@@ -579,6 +890,17 @@ class CmpH5Reader(object):
             return self[rowNumbers]
 
     def hasPulseFeature(self, featureName):
+        """
+        Are the datasets for pulse feature `featureName` loaded in this file?
+
+        .. doctest::
+
+            >>> c.hasPulseFeature("InsertionQV")
+            True
+            >>> c.hasPulseFeature("MergeQV")
+            False
+
+        """
         return featureName in self._alignmentGroupById.values()[0].keys()
 
     def __repr__(self):
