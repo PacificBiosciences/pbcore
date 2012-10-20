@@ -146,12 +146,12 @@ def ungappedPulseArray(a):
 # Alignment record type
 #
 
-ALIGNMENT_INDEX_COLUMNS = ("AlnID", "AlnGroupID", "MovieID", "RefGroupID",
+ALIGNMENT_INDEX_COLUMNS = ["AlnID", "AlnGroupID", "MovieID", "RefGroupID",
                            "tStart", "tEnd", "RCRefStrand", "HoleNumber",
                            "SetNumber", "StrobeNumber", "MoleculeID",
                            "rStart", "rEnd", "MapQV", "nM", "nMM", "nIns",
                            "nDel", "Offset_begin", "Offset_end", "nBackRead",
-                           "nReadOverlap")
+                           "nReadOverlap"]
 
 ALIGNMENT_INDEX_DTYPE = [(COLUMN_NAME, np.uint32)
                          for COLUMN_NAME in ALIGNMENT_INDEX_COLUMNS]
@@ -490,6 +490,9 @@ class CmpH5Alignment(object):
         return cmp((self.RefGroupID, self.tStart, self.tEnd),
                    (other.RefGroupID, other.tStart, other.tEnd))
 
+    def __dir__(self):
+        # Special magic improving IPython completion
+        return ALIGNMENT_INDEX_COLUMNS
 
 class ClippedCmpH5Alignment(CmpH5Alignment):
 
@@ -563,7 +566,6 @@ class CmpH5Reader(object):
         26103
 
     """
-
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
         self.file = h5py.File(self.filename, "r")
@@ -640,8 +642,6 @@ class CmpH5Reader(object):
             self.barcode = map(barcodeIdToName.get,
                                self.file["/AlnInfo/Barcode"].value[:,0])
 
-    def __dir__(self):
-        return []
 
     @property
     def alignmentIndex(self):
@@ -941,3 +941,7 @@ class CmpH5Reader(object):
 
     def __del__(self):
         self.close()
+
+    def __dir__(self):
+        # Special magic improving IPython completion
+        return ALIGNMENT_INDEX_COLUMNS
