@@ -36,7 +36,7 @@ from bisect import bisect_left, bisect_right
 from collections import Counter
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
-from pbcore.io._utils import rec_join, drop_fields
+from pbcore.io._utils import rec_join
 
 # ========================================
 #  Data manipulation routines.
@@ -101,15 +101,21 @@ _exoneratePlusTranscriptTable = \
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 
 def arrayFromDataset(ds, offsetBegin, offsetEnd):
+    """
+    Extract a one-dimensional array from an HDF5 dataset.
+    """
     shape = (offsetEnd - offsetBegin,)
     a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape)
+    mspace = h5py.h5s.create_simple(shape) # pylint: disable=E1101
     fspace = ds.id.get_space()
     fspace.select_hyperslab((offsetBegin,), shape, (1,))
     ds.id.read(mspace, fspace, a)
     return a
 
 def readFromAlignmentArray(a, gapped=True, complement=False):
+    """
+    Decode the read component of an alignment array.
+    """
     if complement:
         r = _cBasemapArray[a >> 4]
     else:
@@ -119,6 +125,9 @@ def readFromAlignmentArray(a, gapped=True, complement=False):
     return  r.tostring()
 
 def referenceFromAlignmentArray(a, gapped=True, complement=False):
+    """
+    Decode the reference component of an alignment array.
+    """
     if complement:
         r = _cBasemapArray[a & 0b1111]
     else:
@@ -128,6 +137,9 @@ def referenceFromAlignmentArray(a, gapped=True, complement=False):
     return  r.tostring()
 
 def ungappedPulseArray(a):
+    """
+    Return a pulse array with encoded gaps removed.
+    """
     dtype = a.dtype
     if dtype == np.float32:
         return a[~np.isnan(a)]
@@ -327,20 +339,35 @@ class CmpH5Alignment(object):
 
     @property
     def referenceSpan(self):
+        """
+        The length along the reference implied by this alignment.
+        """
         return self.tEnd - self.tStart
 
     @property
     def readLength(self):
+        """
+        The length of the read.
+        """
         return self.alignedLength - self.nDel
 
     @property
     def alignedLength(self):
+        """
+        The length of the alignment.
+        """
         return self.Offset_end - self.Offset_begin
 
     def spansReferencePosition(self, pos):
+        """
+        Does the alignment span the given reference position?
+        """
         return self.tStart <= pos < self.tEnd
 
     def spansReferenceRange(self, start, end):
+        """
+        Does the alignment span the given reference range, in its entirety?
+        """
         assert start <= end
         return (self.tStart <= start <= end <= self.tEnd)
 
@@ -366,6 +393,9 @@ class CmpH5Alignment(object):
 
     @property
     def barcode(self):
+        """
+        (Barcoding only) The barcode for this alignment's read
+        """
         return self.cmpH5.barcode[self.rowNumber]
 
     def alignmentArray(self, orientation="native"):
@@ -397,12 +427,38 @@ class CmpH5Alignment(object):
         return tbl[readBaseInts, refBaseInts].tostring()
 
     def read(self, aligned=True, orientation="native"):
+        """
+        Return the read portion of the alignment as a string.
+
+        If `aligned` is true, the aligned representation is returned,
+        including gaps; otherwise the unaligned read basecalls are
+        returned.
+
+        If `orientation` is "native", the returned read bases are
+        presented in the order they were read by the sequencing
+        machine.  If `orientation` is "genomic", the returned read
+        bases are presented in such a way as to collate with the
+        forward strand of the reference---which requires reverse
+        complementation of reverse-strand reads.
+        """
         return readFromAlignmentArray(self.alignmentArray(orientation),
                                       gapped=aligned,
                                       complement=(self.isReverseStrand and
                                                   orientation == "genomic"))
 
     def reference(self, aligned=True, orientation="native"):
+        """
+        Return the read portion of the alignment as a string.
+
+        If `aligned` is true, the aligned representation of the
+        reference is returned, including gaps; otherwise the unaligned
+        reference bases are returned.
+
+        If `orientation` is "native", the reference is presented in
+        the order it is stored in the cmp.h5 file---for reverse-strand
+        reads, the reference is reverse-complemented.  If
+        `orientation` is "genomic", the forward strand reference is returned.
+        """
         return referenceFromAlignmentArray(self.alignmentArray(orientation),
                                            gapped=aligned,
                                            complement=(self.isReverseStrand and
@@ -418,7 +474,7 @@ class CmpH5Alignment(object):
         Length of output array = length of alignment
         """
         referenceNonGapMask = (self.alignmentArray(orientation) & 0b1111) != GAP
-        if self.isReverseStrand and orientation=="native":
+        if self.isReverseStrand and orientation == "native":
             return self.tEnd - 1 - np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
         else:
             return self.tStart + np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
@@ -433,7 +489,7 @@ class CmpH5Alignment(object):
         Length of output array = length of alignment
         """
         readNonGapMask = (self.alignmentArray(orientation) >> 4) != GAP
-        if self.isReverseStrand and orientation=="genomic":
+        if self.isReverseStrand and orientation == "genomic":
             return self.rEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
         else:
             return self.rStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
@@ -502,7 +558,10 @@ class CmpH5Alignment(object):
         return ALIGNMENT_INDEX_COLUMNS
 
 class ClippedCmpH5Alignment(CmpH5Alignment):
-
+    """
+    An alignment from a cmp.h5 file that has been clipped to specified
+    reference bounds using the `CmpH5Alignment.clippedTo` method.
+    """
     # We use these fields to shadow fields in the
     # alignment index row.
     __slots__ = [ "tStart",
@@ -591,12 +650,9 @@ class CmpH5Reader(object):
         self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
                                                 .view(np.recarray)                   \
                                                 .flatten()
-        def makeIdToGroupMapping(idDatasetPath, groupPathDatasetPath):
-            return dict(zip(self.file[idDatasetPath],
-                            [self.file[groupPath]
-                             for groupPath in self.file[groupPathDatasetPath]]))
-        self._alignmentGroupById  = makeIdToGroupMapping("/AlnGroup/ID", "/AlnGroup/Path")
-
+        self._alignmentGroupById = dict(zip(self.file["/AlnGroup/ID"],
+                                            [self.file[path]
+                                             for path in self.file["/AlnGroup/Path"]]))
         numMovies = len(self.file["/MovieInfo/ID"])
         hasFrameRate = ("FrameRate" in self.file["/MovieInfo"])
         self._movieTable = np.rec.fromrecords(
@@ -830,8 +886,8 @@ class CmpH5Reader(object):
     def isEmpty(self):
         return len(self.file["/AlnInfo"]) == 0
 
-    def alignmentGroup(self, id):
-        return self._alignmentGroupById[id]
+    def alignmentGroup(self, alnGroupId):
+        return self._alignmentGroupById[alnGroupId]
 
     @property
     def movieNames(self):
@@ -841,7 +897,7 @@ class CmpH5Reader(object):
     def barcodeNames(self):
         return self.file["/BarcodeInfo/Name"]
 
-    def movieInfo(self, id):
+    def movieInfo(self, movieId):
         """
         Access information about a movie whose reads are represented
         in the file.
@@ -857,7 +913,7 @@ class CmpH5Reader(object):
             1.0
 
         """
-        return self._movieDict[id]
+        return self._movieDict[movieId]
 
     def referenceInfo(self, key):
         """
@@ -900,7 +956,8 @@ class CmpH5Reader(object):
             array([0, 1], dtype=uint32)
         """
 
-        if not self.isSorted: raise Exception, "CmpH5 is not sorted"
+        if not self.isSorted:
+            raise Exception, "CmpH5 is not sorted"
         rowNumbers = self._readLocatorById[refId](refStart, refEnd, justIndices=True)
         if justIndices:
             return rowNumbers
