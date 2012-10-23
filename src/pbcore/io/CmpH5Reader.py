@@ -243,8 +243,12 @@ class CmpH5Alignment(object):
         .. warning::
             This function takes time linear in the length of the alignment.
         """
-        # Caution: linear time in alignment length
-        return ClippedCmpH5Alignment(self, refStart, refEnd)
+        if (refStart >= refEnd or
+            refStart >= self.tEnd or
+            refEnd   <= self.tStart):
+            raise IndexError, "Clipping query does not overlap alignment"
+        else:
+            return ClippedCmpH5Alignment(self, refStart, refEnd)
 
     @property
     def alignmentGroup(self):
@@ -404,32 +408,35 @@ class CmpH5Alignment(object):
                                            complement=(self.isReverseStrand and
                                                        orientation == "genomic"))
 
-    def referencePositions(self, aligned=True, orientation="native"):
+    def referencePositions(self, orientation="native"):
         """
         Returns an array of reference positions such that
         referencePositions[i] = reference position of the i'th column
         in the alignment.  Insertions are grouped with the following
         reference base, in the specified orientation.
 
-        Length of output array = length of alignment.
-
-        Example::
-
-            0123455567
-            GATTG--ACC
-
+        Length of output array = length of alignment
         """
-        if aligned:
-            referenceNonGapMask = (self.alignmentArray(orientation) & 0b1111) != GAP
-            if self.isReverseStrand and orientation=="native":
-                return self.tEnd - np.cumsum(referenceNonGapMask)
-            else:
-                return self.tStart + np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
+        referenceNonGapMask = (self.alignmentArray(orientation) & 0b1111) != GAP
+        if self.isReverseStrand and orientation=="native":
+            return self.tEnd - 1 - np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
         else:
-            if self.isReverseStrand and orientation=="native":
-                return np.arange(self.tEnd, self.tStart, -1) - 1
-            else:
-                return np.arange(self.tStart, self.tEnd)
+            return self.tStart + np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
+
+    def readPositions(self, orientation="native"):
+        """
+        Returns an array of read positions such that
+        readPositions[i] = read position of the i'th column
+        in the alignment.  Insertions are grouped with the following
+        read base, in the specified orientation.
+
+        Length of output array = length of alignment
+        """
+        readNonGapMask = (self.alignmentArray(orientation) >> 4) != GAP
+        if self.isReverseStrand and orientation=="genomic":
+            return self.rEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
+        else:
+            return self.rStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
 
     def pulseFeature(self, featureName, aligned=True, orientation="native"):
         """
@@ -467,9 +474,9 @@ class CmpH5Alignment(object):
         COLUMNS = 80
         val = ""
         val += repr(self) + "\n\n"
-        val += "Read:        " + self.readName          + "\n"
-        val += "Reference:   " + self.referenceName     + "\n\n"
-        val += "Read length: " + str(self.readLength)   + "\n"
+        val += "Read:        " + self.readName           + "\n"
+        val += "Reference:   " + self.referenceName      + "\n\n"
+        val += "Read length: " + str(self.readLength)    + "\n"
         val += "Accuracy:    " + "%0.3f" % self.accuracy + "\n"
 
         alignedRead = self.read()
@@ -500,6 +507,8 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
     # alignment index row.
     __slots__ = [ "tStart",
                   "tEnd",
+                  "rStart",
+                  "rEnd",
                   "Offset_begin",
                   "Offset_end",
                   "nM",
@@ -515,19 +524,28 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
         assert refStart <= refEnd
 
         super(ClippedCmpH5Alignment, self).__init__(aln.cmpH5, aln.rowNumber)
-        positions = aln.referencePositions(orientation="genomic")
-        clipStart = bisect_right(positions, refStart) - 1
-        clipEnd   = bisect_left(positions, refEnd)
+        refPositions = aln.referencePositions(orientation="genomic")
+        readPositions = aln.readPositions(orientation="genomic")
 
-        # overlay the bounds
+        # Clipping positions within the alignment array
+        clipStart = bisect_right(refPositions, refStart) - 1
+        clipEnd   = bisect_left(refPositions, refEnd)
+
+        # Overlay the new bounds.  The logic for setting rStart, rEnd
+        # is tragically complicated, due to the end-exclusive
+        # coordinate system.
         self.tStart = refStart
         self.tEnd   = refEnd
         if aln.isForwardStrand:
             self.Offset_begin = aln.Offset_begin + clipStart
             self.Offset_end   = aln.Offset_begin + clipEnd
+            self.rStart = readPositions[clipStart]
+            self.rEnd   = readPositions[clipEnd - 1] + 1
         else:
             self.Offset_begin = aln.Offset_end - clipEnd
             self.Offset_end   = aln.Offset_end - clipStart
+            self.rStart = readPositions[clipEnd - 1]
+            self.rEnd   = readPositions[clipStart] + 1
         alnMoveCounts = Counter(self.transcript(style="gusfield"))
         self.nM   = alnMoveCounts["M"]
         self.nMM  = alnMoveCounts["R"]

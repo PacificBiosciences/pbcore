@@ -1,4 +1,5 @@
-from numpy.testing import assert_array_almost_equal as ARRAY_ALMOST_EQ
+from numpy.testing import (assert_array_almost_equal as ARRAY_ALMOST_EQ,
+                           assert_array_equal        as ARRAY_EQ)
 from nose.tools import assert_equal as EQ
 from nose import SkipTest
 
@@ -73,10 +74,120 @@ class TestCmpH5Reader:
                           1.57332945,  4.46665573,  0.47999883,  0.18666621],
                         self.hit1.IPD(orientation="genomic", aligned=False)[:8])
 
-    def test_alignedTargetPositions(self):
-        ARRAY_ALMOST_EQ(self.hit0.referencePositions(orientation="genomic")[:20],
-                        [ 0,  1,  2,  3,  4,  5,  6,  7,  7,  8,
-                          9, 10, 11, 12, 13, 13, 14, 15, 16, 17])
+    def test_referencePositions(self):
+        # Native orientation on a fwd strand read
+        EQ([('G', 7466),
+            ('A', 7467),
+            ('A', 7468),
+            ('G', 7469),
+            ('-', 7470),
+            ('C', 7470),
+            ('T', 7471),
+            ('-', 7472),
+            ('G', 7472),
+            ('C', 7473)],
+           zip(self._inCmpH5[26].reference()[25:35],
+               self._inCmpH5[26].referencePositions()[25:35]))
+
+        # Genomic orientation on a fwd strand read
+        EQ([('G', 7466),
+            ('A', 7467),
+            ('A', 7468),
+            ('G', 7469),
+            ('-', 7470),
+            ('C', 7470),
+            ('T', 7471),
+            ('-', 7472),
+            ('G', 7472),
+            ('C', 7473)],
+           zip(self._inCmpH5[26].reference(orientation="genomic")[25:35],
+               self._inCmpH5[26].referencePositions(orientation="genomic")[25:35]))
+
+        # Test native orientation on a rev. strand read
+        EQ([('T', 8),
+            ('C', 7),
+            ('-', 6),
+            ('G', 6),
+            ('C', 5),
+            ('C', 4),
+            ('G', 3),
+            ('C', 2),
+            ('C', 1),
+            ('C', 0)],
+           zip(self._inCmpH5[0].reference()[-10:],
+               self._inCmpH5[0].referencePositions()[-10:]))
+
+        # Test genomic orientation on a rev. strand read
+        EQ([('G', 0),
+            ('G', 1),
+            ('G', 2),
+            ('C', 3),
+            ('G', 4),
+            ('G', 5),
+            ('C', 6),
+            ('-', 7),
+            ('G', 7),
+            ('A', 8)],
+           zip(self._inCmpH5[0].reference(orientation="genomic")[:10],
+               self._inCmpH5[0].referencePositions(orientation="genomic")[:10]))
+
+    def test_readPositions(self):
+        # Native orientation on a fwd strand read
+        EQ([('A', 44),
+            ('A', 45),
+            ('C', 46),
+            ('T', 47),
+            ('G', 48),
+            ('G', 49),
+            ('T', 50),
+            ('-', 51),
+            ('-', 51),
+            ('C', 51)],
+           zip(self._inCmpH5[26].read()[:10],
+               self._inCmpH5[26].readPositions()[:10]))
+
+        # Genomic orientation on a fwd strand read
+        EQ([('A', 44),
+            ('A', 45),
+            ('C', 46),
+            ('T', 47),
+            ('G', 48),
+            ('G', 49),
+            ('T', 50),
+            ('-', 51),
+            ('-', 51),
+            ('C', 51)],
+           zip(self._inCmpH5[26].read(orientation="genomic")[:10],
+               self._inCmpH5[26].readPositions(orientation="genomic")[:10]))
+
+        # Test native orientation on a rev. strand read
+        EQ([('T', 295),
+            ('C', 296),
+            ('C', 297),
+            ('G', 298),
+            ('-', 299),
+            ('C', 299),
+            ('G', 300),
+            ('C', 301),
+            ('C', 302),
+            ('C', 303)],
+           zip(self.hit0.read()[-10:],
+               self.hit0.readPositions()[-10:]))
+
+        # Test genomic orientation on a rev. strand read
+        EQ([('G', 303),
+            ('G', 302),
+            ('G', 301),
+            ('C', 300),
+            ('G', 299),
+            ('-', 298),
+            ('C', 298),
+            ('G', 297),
+            ('G', 296),
+            ('A', 295)],
+           zip(self.hit0.read(orientation="genomic")[:10],
+               self.hit0.readPositions(orientation="genomic")[:10]))
+
 
     def test_clipped_alignment(self):
         # Forward strand
