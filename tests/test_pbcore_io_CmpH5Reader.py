@@ -22,7 +22,7 @@ class TestCmpH5Reader:
         assert not self._inCmpH5.isEmpty
         assert self._inCmpH5.isSorted
         EQ(84, len(self._inCmpH5))
-        
+
     def test_strandOrientation(self):
         # Row 0 was a reverse-strand read;
         # row 1 was forward-strand.
@@ -30,7 +30,7 @@ class TestCmpH5Reader:
         assert not self.hit0.isForwardStrand
         assert self.hit1.isForwardStrand
         assert not self.hit1.isReverseStrand
-        
+
     def test_read(self):
         EQ("GGGCG-CGGACCTCCGCGG-",
            self.hit0.read(orientation="genomic")[:20])
@@ -41,20 +41,20 @@ class TestCmpH5Reader:
         EQ("GGGCGCGGACCTCCGCGGTT",
            self.hit0.read(orientation="genomic", aligned=False)[:20])
         EQ("GGGCGGCGACTCAGCCGGCG",
-           self.hit1.read(orientation="genomic", aligned=False)[:20])        
-        
+           self.hit1.read(orientation="genomic", aligned=False)[:20])
+
     def test_reference(self):
         EQ("GGGCGGC-GACCTC-GCGGG",
            self.hit0.reference(orientation="genomic")[:20])
         EQ("GGGCGGCGACCTC-G-CGG-",
            self.hit1.reference(orientation="genomic")[:20])
-        
+
     def test_reference_unaligned(self):
         EQ("GGGCGGCGACCTCGCGGGTT",
            self.hit0.reference(orientation="genomic", aligned=False)[:20])
         EQ("GGGCGGCGACCTCGCGGGTT",
            self.hit1.reference(orientation="genomic", aligned=False)[:20])
-        
+
     def test_ipd(self):
         ARRAY_ALMOST_EQ([ 0.1466663 ,  0.06666651,  0.0933331 ,  0.0133333 ,
                           0.49333212,      np.nan,  0.0133333 ,  0.0799998],
@@ -151,7 +151,7 @@ class TestCmpH5Reader:
              (13, '-', 'G'),
              (12, 'G', 'G')]
 
-    
+
     def test_reads_in_range_bounds(self):
         ## XXX : At the moment the rangeStart, rangeEnd are
         ## inclusive. This is not-pythonic and should be changed.
@@ -160,12 +160,10 @@ class TestCmpH5Reader:
         EQ(len(self._inCmpH5.readsInRange(1, 1000, 1050)), 0)
         EQ(len(self._inCmpH5.readsInRange(1, 1000, 1051)), 1)
         EQ(len(self._inCmpH5.readsInRange(1, 0, 1e20)), len(self._inCmpH5))
-        
+
         blockSize = np.random.randint(10, 500)
         for j in range(0, self._inCmpH5.referenceInfo(1).Length, blockSize):
-            start = j 
+            start = j
             end   = j + blockSize
             oor   = [ read.tStart > end or read.tEnd < start for read in self._inCmpH5.readsInRange(1, start, end) ]
             assert(not any(oor))
-        
-        
