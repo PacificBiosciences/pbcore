@@ -232,14 +232,14 @@ class TestCmpH5Reader:
         assert zip(a.referencePositions(), a.reference(), a.read())[296:307] == \
             [(20, 'A', 'A'),
              (19, 'A', 'A'),
-             (19, '-', 'A'),
+             (18, '-', 'A'),
              (18, 'A', 'A'),
              (17, 'C', '-'),
              (16, 'C', 'C'),
              (15, 'C', 'C'),
              (14, 'G', 'G'),
              (13, 'C', 'C'),
-             (13, '-', 'G'),
+             (12, '-', 'G'),
              (12, 'G', 'G')]
         ac1 = a.clippedTo(13, 19)
         assert zip(ac1.referencePositions(), ac1.reference(), ac1.read()) == \
@@ -252,14 +252,14 @@ class TestCmpH5Reader:
         ac2 = a.clippedTo(12, 20)
         assert zip(ac2.referencePositions(), ac2.reference(), ac2.read()) == \
             [(19, 'A', 'A'),
-             (19, '-', 'A'),
+             (18, '-', 'A'),
              (18, 'A', 'A'),
              (17, 'C', '-'),
              (16, 'C', 'C'),
              (15, 'C', 'C'),
              (14, 'G', 'G'),
              (13, 'C', 'C'),
-             (13, '-', 'G'),
+             (12, '-', 'G'),
              (12, 'G', 'G')]
 
 
