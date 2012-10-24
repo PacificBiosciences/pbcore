@@ -34,6 +34,7 @@ __all__ = [ "CmpH5Reader",
 import h5py, numpy as np
 from bisect import bisect_left, bisect_right
 from collections import Counter
+from itertools import groupby
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
 from pbcore.io._utils import rec_join
@@ -81,6 +82,14 @@ _gusfieldTranscriptTable = \
                   "IRMRRMZ"
                   "IRRMRMZ"
                   "IRRRMMZ"
+                  "IMMMMMZ"
+                  "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
+_cigarTranscriptTable = \
+    np.fromstring("ZDDDDDZ"
+                  "IMMMMMZ"
+                  "IMMMMMZ"
+                  "IMMMMMZ"
+                  "IMMMMMZ"
                   "IMMMMMZ"
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _exonerateTranscriptTable = \
@@ -419,12 +428,27 @@ class CmpH5Alignment(object):
             tbl = _exoneratePlusTranscriptTable
         elif style == "exonerate":
             tbl = _exonerateTranscriptTable
+        elif style == "cigar":
+            tbl = _cigarTranscriptTable
         else:
             tbl = _gusfieldTranscriptTable
         alnArr = self.alignmentArray(orientation)
         readBaseInts = _baseEncodingToInt[alnArr >> 4]
         refBaseInts  = _baseEncodingToInt[alnArr  & 0b1111]
         return tbl[readBaseInts, refBaseInts].tostring()
+
+    def cigar(self, orientation="native"):
+        """
+        Return the CIGAR string for the alignment in the given
+        orientation.
+        """
+        cigarTranscript = self.transcript(orientation, "cigar")
+        # Run length encoding: (done fairly naively---my attempts at
+        # doing this in numpy ended up being *slower*
+        collapsed = [(len(list(group)),name)
+                      for name, group in groupby(cigarTranscript)]
+        cigarString = ''.join([('%s%s') % el for el in collapsed])
+        return cigarString
 
     def read(self, aligned=True, orientation="native"):
         """
@@ -650,9 +674,17 @@ class CmpH5Reader(object):
         self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
                                                 .view(np.recarray)                   \
                                                 .flatten()
-        self._alignmentGroupById = dict(zip(self.file["/AlnGroup/ID"],
-                                            [self.file[path]
-                                             for path in self.file["/AlnGroup/Path"]]))
+
+        # This is the only sneaky part of this whole class.  We do not
+        # store the raw h5py group object; rather we cache a dict of {
+        # dataset_name -> dataset }.  This way we avoid B-tree
+        # scanning in basic data access.
+        self._alignmentGroupById = {}
+        for (alnGroupId, alnGroupPath) in zip(self.file["/AlnGroup/ID"],
+                                              self.file["/AlnGroup/Path"]):
+            alnGroup = self.file[alnGroupPath]
+            self._alignmentGroupById[alnGroupId] = dict(alnGroup.items())
+
         numMovies = len(self.file["/MovieInfo/ID"])
         hasFrameRate = ("FrameRate" in self.file["/MovieInfo"])
         self._movieTable = np.rec.fromrecords(

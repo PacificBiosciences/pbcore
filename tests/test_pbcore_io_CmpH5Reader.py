@@ -278,3 +278,15 @@ class TestCmpH5Reader:
             end   = j + blockSize
             oor   = [ read.tStart > end or read.tEnd < start for read in self._inCmpH5.readsInRange(1, start, end) ]
             assert(not any(oor))
+
+
+    def test_cigar(self):
+        EQ("6M2D12M1I10M1D21M1I2M2I7M1I2M1I10M1I4M1I11M1D1I4M1I1M1I36M1I4M2I1M" +
+           "1D2M1I9M1I15M1I9M1I4M9D9M1I2M1D16M1I20M1D4M1D8M3I12M1I2M2I7M1I4M1I" +
+           "1M1D4M1I6M1I1M1D5M",
+           self._inCmpH5[0].cigar())
+
+        EQ("5M1D1M1I6M1I4M1D1M1I4M1I7M2I2M1I12M3I8M1D4M1D20M1I16M1D2M1I9M9D4M1" +
+           "I9M1I15M1I9M1I2M1D1M2I4M1I36M1I1M1I4M1I1D11M1I4M1I10M1I2M1I7M2I2M1" +
+           "I21M1D10M1I12M2D6M",
+           self._inCmpH5[0].cigar(orientation="genomic"))
