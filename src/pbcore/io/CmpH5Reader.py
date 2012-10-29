@@ -414,7 +414,7 @@ class CmpH5Alignment(object):
         """
         alnDs = self.alignmentGroup["AlnArray"]
         alnArray = arrayFromDataset(alnDs, self.Offset_begin, self.Offset_end)
-        if self.isReverseStrand and (orientation == "genomic"):
+        if self.RCRefStrand and (orientation == "genomic"):
             return alnArray[::-1]
         else:
             return alnArray
@@ -467,7 +467,7 @@ class CmpH5Alignment(object):
         """
         return readFromAlignmentArray(self.alignmentArray(orientation),
                                       gapped=aligned,
-                                      complement=(self.isReverseStrand and
+                                      complement=(self.RCRefStrand and
                                                   orientation == "genomic"))
 
     def reference(self, aligned=True, orientation="native"):
@@ -485,7 +485,7 @@ class CmpH5Alignment(object):
         """
         return referenceFromAlignmentArray(self.alignmentArray(orientation),
                                            gapped=aligned,
-                                           complement=(self.isReverseStrand and
+                                           complement=(self.RCRefStrand and
                                                        orientation == "genomic"))
 
     def referencePositions(self, orientation="native"):
@@ -498,7 +498,7 @@ class CmpH5Alignment(object):
         Length of output array = length of alignment
         """
         referenceNonGapMask = (self.alignmentArray(orientation) & 0b1111) != GAP
-        if self.isReverseStrand and orientation == "native":
+        if self.RCRefStrand and orientation == "native":
             return self.tEnd - 1 - np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
         else:
             return self.tStart + np.hstack([0, np.cumsum(referenceNonGapMask[:-1])])
@@ -513,7 +513,7 @@ class CmpH5Alignment(object):
         Length of output array = length of alignment
         """
         readNonGapMask = (self.alignmentArray(orientation) >> 4) != GAP
-        if self.isReverseStrand and orientation == "genomic":
+        if self.RCRefStrand and orientation == "genomic":
             return self.rEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
         else:
             return self.rStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
@@ -524,7 +524,7 @@ class CmpH5Alignment(object):
         """
         pulseDataset = self.alignmentGroup[featureName]
         pulseArray = arrayFromDataset(pulseDataset, self.Offset_begin, self.Offset_end)
-        if self.isReverseStrand and orientation == "genomic":
+        if self.RCRefStrand and orientation == "genomic":
             alignedPulseArray = pulseArray[::-1]
         else:
             alignedPulseArray = pulseArray
