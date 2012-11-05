@@ -739,7 +739,7 @@ class CmpH5Reader(object):
             for refId in self.file["/RefGroup/ID"]:
                 self._readLocatorById[refId] = makeReadLocator(self, refId)
 
-        if self.readType == "CCS":
+        if "NumPasses" in self.file["/AlnInfo"]:
             self.numPasses = self.file["/AlnInfo/NumPasses"].value
 
         if "Barcode" in self.file["/AlnInfo"]:
