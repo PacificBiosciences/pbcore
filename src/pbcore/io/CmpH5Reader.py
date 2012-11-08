@@ -391,7 +391,7 @@ class CmpH5Alignment(object):
             >>> c[26].accuracy
             0.87050359712230219
         """
-        return 1 - float(self.nMM + self.nIns + self.nDel)/self.readLength
+        return float(self.nM)/self.readLength if (self.readLength > 0) else 0.
 
     @property
     def numPasses(self):
