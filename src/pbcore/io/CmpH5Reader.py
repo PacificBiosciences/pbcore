@@ -727,12 +727,14 @@ class CmpH5Reader(object):
         for record in self._referenceTable:
             if record.ID != -1:
                 assert record.ID != record.Name
-                assert record.ID    not in self._referenceDict \
-                    and record.Name not in self._referenceDict \
-                    and record.MD5  not in self._referenceDict
-                self._referenceDict[record.ID]   = record
-                self._referenceDict[record.Name] = record
-                self._referenceDict[record.MD5]  = record
+                assert record.ID        not in self._referenceDict \
+                    and record.Name     not in self._referenceDict \
+                    and record.FullName not in self._referenceDict \
+                    and record.MD5      not in self._referenceDict \
+                self._referenceDict[record.ID]       = record
+                self._referenceDict[record.Name]     = record
+                self._referenceDict[record.FullName] = record
+                self._referenceDict[record.MD5]      = record
 
         self._readLocatorById = {}
         if self.isSorted:
