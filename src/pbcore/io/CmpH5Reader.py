@@ -391,7 +391,11 @@ class CmpH5Alignment(object):
             >>> c[26].accuracy
             0.87050359712230219
         """
-        return float(self.nM)/self.readLength if (self.readLength > 0) else 0.
+        if self.readLength == 0:
+            return 0.
+        else:
+            return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+
 
     @property
     def numPasses(self):
@@ -983,8 +987,10 @@ class CmpH5Reader(object):
 
         .. doctest::
 
-            >>> c.readsInRange(1, 0, 1000)
-            [CmpH5 alignment: -    1          0        290, CmpH5 alignment: +    1          0        365]
+            >>> c.readsInRange(1, 0, 1000) # doctest: +NORMALIZE_WHITESPACE
+            [CmpH5 alignment: -    1          0        290,
+             CmpH5 alignment: +    1          0        365]
+
             >>> rowNumbers = c.readsInRange(1, 0, 1000, justIndices=True)
             >>> rowNumbers
             array([0, 1], dtype=uint32)
