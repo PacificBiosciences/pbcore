@@ -1006,7 +1006,9 @@ class CmpH5Reader(object):
 
     def hasPulseFeature(self, featureName):
         """
-        Are the datasets for pulse feature `featureName` loaded in this file?
+        Are the datasets for pulse feature `featureName` loaded in
+        this file?  Specifically, is it loaded for all movies within
+        this cmp.h5?
 
         .. doctest::
 
@@ -1016,7 +1018,8 @@ class CmpH5Reader(object):
             False
 
         """
-        return featureName in self._alignmentGroupById.values()[0].keys()
+        return all(featureName in alnGroup.keys()
+                   for alnGroup in self._alignmentGroupById.values())
 
     def __repr__(self):
         return "<CmpH5Reader for %s>" % self.filename
