@@ -1021,6 +1021,22 @@ class CmpH5Reader(object):
         return all(featureName in alnGroup.keys()
                    for alnGroup in self._alignmentGroupById.values())
 
+    def pulseFeaturesAvailable(self):
+        """
+        What pulse features are available in this cmp.h5 file?
+
+        .. doctest::
+
+            >>> c.pulseFeaturesAvailable()
+            [u'QualityValue', u'IPD', u'PulseWidth', u'InsertionQV', u'DeletionQV']
+
+        """
+        pulseFeaturesByMovie = [ alnGroup.keys()
+                                 for alnGroup in self._alignmentGroupById.values() ]
+        pulseFeaturesAvailableAsSet = set.intersection(*map(set, pulseFeaturesByMovie))
+        pulseFeaturesAvailableAsSet.discard("AlnArray")
+        return list(pulseFeaturesAvailableAsSet)
+
     def __repr__(self):
         return "<CmpH5Reader for %s>" % self.filename
 
