@@ -12,7 +12,6 @@ setup(
     zip_safe = False,
     install_requires=[
         'h5py >= 2.0.1',
-        'argparse >= 1.2.1',
         'numpy >= 1.6.0'
         ]
     )
