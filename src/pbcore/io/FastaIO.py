@@ -207,11 +207,17 @@ def writeFastaEntry( file, entry, width=70 ):
                                _prettyprint(entry.sequence,width=width), \
                                os.linesep ) )
 
+## XXX : this is all screwed up, I shouldn't be writing these
+## functions outside of the class.
 def writeFastqEntry( file, entry, width=70 ):
-    file.write( '>%s%s%s%s%s%s' % (entry.name, os.linesep, 
+    file.write( '@%s%s%s%s%s%s%s%s' % (entry.name, 
+                                    os.linesep, 
                                    _prettyprint(entry.sequence, width=width), 
                                    os.linesep, 
-                                   _prettyprint(entry.asciiQvs), os.linesep))
+                                    '+',
+                                    os.linesep,
+                                   _prettyprint(entry.asciiQvs), 
+                                    os.linesep))
 
 def splitFasta(fasta, nSplits):
     """
