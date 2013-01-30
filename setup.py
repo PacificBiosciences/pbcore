@@ -2,7 +2,7 @@ from setuptools import setup, Extension, find_packages
 
 setup(
     name = 'pbcore',
-    version='0.4.0',
+    version='0.5.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     license=open('LICENSES.txt').read(),

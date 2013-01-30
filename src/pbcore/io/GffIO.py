@@ -28,6 +28,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+# Author: David Alexander
+
 """
 I/O support for GFF3 files.
 
@@ -35,129 +37,183 @@ The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
 
-# Restrict our exports.
 __all__ = [ "Gff3Record",
             "GffReader",
-            "GffWriter",
-            "parseGffLine"  ]
+            "GffWriter" ]
 
-SEQUENCE_SOURCE = 'SMRT'
+from pbcore.io._utils import getFileHandle
+from collections import OrderedDict
+from copy import copy as shallow_copy
 
-from ._utils import getFileHandle
+class Gff3Record(object):
+    """
+    Class for GFF record, providing uniform access to standard
+    GFF fields and attributes.
 
-class Gff3Record:
-    """Models a record in a GFF3 file."""
-    def __init__(self, seqName=''):
-        self.seqid = seqName
-        self.source = '.'
-        self.type = '' 
-        self.start = 0
-        self.end = 0
-        self.score = 0.0
-        self.strand = '+'
-        self.phase = '.'
-        self.attributes = []
+      >> record = Gff3Record("chr1", 10, 11, "insertion",
+                            attributes=[("cat", "1"), ("dog", "2")])
+      >> record.start
+      10
+      >> record.dog
+      2
+      >> record.mouse = 3
+      >> del record.mouse
 
-    def put( self, key, value ):
-        self.attributes.append( (key, value) )
+    Attribute access using record.fieldName notation raises ValueError
+    if an attribute named fieldName doesn't exist.  Use
 
-    def getAttrVal(self, key):
-        """Returns a value for the given attribute key if found, otherwise None"""
-        val = [t[1] for t in self.attributes if t[0] == key]
-        if len(val) == 1:
-            return val[0]
-        else:
-            return None
+      >> record.attributes.get(fieldName, defaultValue)
 
-    def _getAttributeString( self ):
-        return ';'.join( [ '%s=%s' % (k,self._formatField(v)) \
-            for (k,v) in self.attributes ] )
+    to search for attribute with a default.
+
+    """
+    _GFF_COLUMNS = [ "seqid", "source", "type",
+                     "start", "end", "score",
+                     "strand", "phase", "attributes" ]
+
+    def __init__(self, seqid, start, end, type,
+                 score=".", strand=".", phase=".",
+                 source=".", attributes=[]):
+        self.seqid  = seqid
+        self.source = source
+        self.type   = type
+        self.start  = start
+        self.end    = end
+        self.score  = score
+        self.strand = strand
+        self.phase  = phase
+        self.attributes = OrderedDict(attributes)
+
+    def copy(self):
+        """
+        Return a shallow copy
+        """
+        return shallow_copy(self)
+
+    @classmethod
+    def fromString(cls, s):
+        """
+        Parse a string as a GFF record.
+        Trailing whitespace is ignored.
+        """
+        columns = s.rstrip().split("\t")
+        try:
+            assert len(columns) == len(cls._GFF_COLUMNS)
+            attributes = map(tupleFromGffAttribute, columns[-1].split(";"))
+            (_seqid, _source, _type, _start,
+             _end, _score, _strand, _phase)  = columns[:-1]
+            return Gff3Record(_seqid, int(_start), int(_end), _type,
+                              _score, _strand, _phase, _source, attributes)
+        except (AssertionError, ValueError):
+            raise ValueError("Could not interpret string as a Gff3Record")
 
     @staticmethod
     def _formatField(field):
-        if field == None:
-            return "."
-        elif type(field) == float:
+        if type(field) == float:
             return "%.2f" % field
         else:
             return "%s" % field
-    
+
     def __str__(self):
-        return "\t".join(map(self._formatField, (self.seqid, self.source, self.type, self.start, 
-                                                 self.end, self.score, self.strand, self.phase,
-                                                 self._getAttributeString())))
+        formattedAttributes = ";".join(
+            ("%s=%s" % (k, self._formatField(v))
+             for (k, v) in self.attributes.iteritems()))
+        formattedFixedColumns = "\t".join(
+            self._formatField(getattr(self, k))
+            for k in self._GFF_COLUMNS[:-1])
+        return "%s\t%s" % (formattedFixedColumns,
+                           formattedAttributes)
 
-def parseGffLine( line ):
-    values = line.split('\t')
-    record = Gff3Record()
-    try:
-        record.seqid = values[0]
-        record.source = values[1]
-        record.type  = values[2]
-        record.start = int(values[3])
-        record.end = int(values[4])
-        if values[5]=='.':
-            # this doesn't really keep with the semantics of GFF
-            # (but what kind of format specification allows float and null?)
-            record.score = 0.0
+    #
+    # Access to the attributes list using
+    # dot notation, providing a uniform
+    # interface.
+    #
+    def __getattr__(self, name):
+        if name in self.attributes:
+            return self.attributes[name]
         else:
-            record.score = float(values[5])
-        record.strand = values[6]
-        record.phase = values[7]
-        record.attributes = []
-        for kvPair in values[8].strip().split(';'):
-            vals = kvPair.split('=')
-            if len(vals)==2:
-                record.attributes.append( (vals[0], vals[1]) )
-        return record
-    except IndexError:
-        print >> sys.stderr, 'Unexpected GFF line format: %s' % values
+            raise AttributeError
+
+    def __setattr__(self, name, value):
+        if name in self._GFF_COLUMNS:
+            object.__setattr__(self, name, value)
+        else:
+            self.attributes[name] = value
+
+    def __delattr__(self, name):
+        del self.attributes[name]
 
 
-class GffReader:
+class GffReader(object):
+    """
+    A GFF file reader class
+    """
+    def _readHeaders(self):
+        headers = []
+        firstLine = None
+        for line in self.file:
+            if line.startswith("##"):
+                headers.append(line.rstrip())
+            else:
+                firstLine = line
+                break
+        return headers, firstLine
+
     def __init__(self, f):
         self.file = getFileHandle(f, "r")
-        self.seqMap = {}
-        self.headers = []
+        self.headers, self.firstLine = self._readHeaders()
 
-    def __iter__( self ):
+    def __iter__(self):
+        if self.firstLine:
+            yield Gff3Record.fromString(self.firstLine)
+            self.firstLine = None
         for line in self.file:
-            if line[0]=='#':
-                # Keep track of the headers!
-                self.headers.append(line)
-                splitFields  = line.replace('#', '').split(' ')
-                field = splitFields[0]
-                value = " ".join( splitFields[1:] )
-                if field == 'sequence-header':
-                    [internalTag, delim, externalTag] = value.strip().partition(' ')
-                    self.seqMap[internalTag] = externalTag
-                continue
-            record = parseGffLine( line[:-1] )
-            if record is None:
-                continue
-            yield record
+            yield Gff3Record.fromString(line)
 
-    def close( self ):
+    def close(self):
         self.file.close()
 
-class GffWriter:
-    """Simple class for producing a GFF3 file from python code"""
-    def __init__( self, f ):
-        self._outfile = getFileHandle(f, "w")
-        self.writeMetaData( 'gff-version', '3' )
 
-    def writeMetaData( self, key, value ):
-        # per the GFF3 spec: meta-data should be written as a
-        # space-delimited key-value pair, not tab-delimited
-        # (addresses bug 11270)
-        print >>self._outfile, '##%s %s' % ( key, value )
+class GffWriter(object):
+    """
+    A GFF file writer class
+    """
+    def __init__(self, f):
+        self.file = getFileHandle(f, "w")
+        self.writeHeader("##gff-version 3")
 
-    def writeRecord( self, record ):
+    def writeHeader(self, headerLine):
+        if not headerLine.startswith("##"):
+            raise ValueError("GFF headers must start with ##")
+        self.file.write("{0}\n".format(headerLine.rstrip()))
+
+    def writeRecord(self, record):
         assert isinstance(record, Gff3Record)
-        print >>self._outfile, str(record)
+        self.file.write("{0}\n".format(str(record)))
 
-    def writeLine(self, string):
-        print >>self._outfile, string
+    def close(self):
+        self.file.close()
 
+#
+# Utility functions
+#
 
+def floatValue(s):
+    try:
+        return float(s)
+    except:
+        return None
 
+def integerValue(s):
+    try:
+        return int(s)
+    except:
+        return None
+
+def grok(s):
+    return integerValue(s) or floatValue(s) or s
+
+def tupleFromGffAttribute(s):
+    k, v = s.split("=")
+    return k, grok(v)
