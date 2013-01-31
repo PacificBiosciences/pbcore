@@ -73,7 +73,7 @@ class Gff3Record(object):
 
     def __init__(self, seqid, start, end, type,
                  score=".", strand=".", phase=".",
-                 source=".", attributes=[]):
+                 source=".", attributes=()):
         self.seqid  = seqid
         self.source = source
         self.type   = type
