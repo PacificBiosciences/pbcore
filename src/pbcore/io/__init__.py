@@ -31,6 +31,7 @@
 from .BasH5Reader import *
 from .CmpH5Reader import *
 from .FastaIO import *
+from .FastqIO import *
 from .GffIO import *
 from .BedIO import *
 from .VcfIO import *

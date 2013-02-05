@@ -1,6 +1,31 @@
 from nose.tools import assert_equal
 from pbcore import data
-from pbcore.io import FastaReader
+from pbcore.io import FastaReader, FastaWriter, FastaRecord
+from StringIO import StringIO
+
+class TestFastaRecord:
+
+    def setup(self):
+        self.name = "chr1|blah|blah"
+        self.sequence = "GATTACA" * 20
+        self.expected__str__ =                                               \
+            ">chr1|blah|blah\n"                                              \
+            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
+            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
+            "ATTACAGATTACAGATTACA"
+        self.record = FastaRecord(self.name, self.sequence)
+
+    def test__init__(self):
+        assert_equal(self.name, self.record.name)
+        assert_equal(self.sequence, self.record.sequence)
+
+    def test__str__(self):
+        assert_equal(self.expected__str__, str(self.record))
+
+    def test_fromString(self):
+        recordFromString = FastaRecord.fromString(self.expected__str__)
+        assert_equal(self.name, recordFromString.name)
+        assert_equal(self.sequence, recordFromString.sequence)
 
 
 class TestFastaReader:
@@ -16,3 +41,24 @@ class TestFastaReader:
                      "AAGGTTGGTGACTTTGATTTTCCT",
                      entries[0].sequence)
 
+
+class TestFastaWriter:
+
+    def setup(self):
+        self.fasta1 = StringIO(
+            ">chr1|blah|blah\n"                                              \
+            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
+            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
+            "ATTACAGATTACAGATTACA\n")
+        self.fasta2 = StringIO(self.fasta1.getvalue() + "\n" +               \
+            ">chr2|blah|blah\n"                                              \
+            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
+            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
+            "ATTACAGATTACAGATTACA\n")
+
+    def test_writeFasta1(self):
+        f = StringIO()
+        w = FastaWriter(f)
+        for record in FastaReader(self.fasta1):
+            w.writeRecord(record)
+        assert_equal(self.fasta1.getvalue(), f.getvalue())

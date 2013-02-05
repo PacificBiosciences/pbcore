@@ -30,6 +30,7 @@
 
 from __future__ import absolute_import
 import gzip, numpy as np
+from cStringIO import StringIO
 
 def isFileLikeObject(o):
     return hasattr(o, "read") and hasattr(o, "write")
@@ -56,6 +57,27 @@ def getFileHandle(filenameOrFile, mode):
         return filenameOrFile
     else:
         raise Exception("Invalid type to getFileHandle")
+
+
+def splitFileContents(f, delimiter, BLOCKSIZE=8192):
+    """
+    Same semantics as f.read().split(delimiter), but with memory usage
+    determined by largest chunk rather than entire file size
+    """
+    remainder = StringIO()
+    while True:
+        block = f.read(BLOCKSIZE)
+        if not block:
+            break
+        parts = block.split(delimiter)
+        remainder.write(parts[0])
+        for part in parts[1:]:
+            yield remainder.getvalue()
+            remainder = StringIO()
+            remainder.write(part)
+    yield remainder.getvalue()
+
+
 
 # For reasons that are obscure to me, the recarray outer join
 # functionality in numpy's lib.recfunctions is broken as of numpy

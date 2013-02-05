@@ -28,212 +28,103 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-"""Classes and routines for simple FASTA parsing."""
+# Author: David Alexander
 
-__all__ = [ "FastaReader",
-            "FastqReader",
-            "FastaEntry",
-            "FastqEntry",
-            "splitFasta",
-            "writeFastaEntry",
-            "writeFastqEntry" ]
+"""
+I/O support for FASTA files.
+"""
 
-import os
-import numpy as np
+__all__ = [ "FastaRecord",
+            "FastaReader",
+            "FastaWriter" ]
 
-from pbcore.model.Range import Range
-from ._utils import getFileHandle
+from pbcore.io._utils import getFileHandle, splitFileContents
 
-class FastaReader:
+class FastaRecord(object):
     """
-    Parser for FASTA input from a filename or file-like object
+    A FastaRecord object models a named sequence in a FASTA file.
     """
-    DEFAULT_DELIMITER = '>'
-    
+    DELIMITER = ">"
+    COLUMNS   = 60
+
+    def __init__(self, name, sequence):
+        try:
+            assert "\n" not in name
+            assert "\n" not in sequence
+            assert self.DELIMITER not in sequence
+            self.name = name
+            self.sequence = sequence
+        except AssertionError:
+            raise ValueError("Invalid FASTA record data")
+
+    @classmethod
+    def fromString(cls, s):
+        """
+        Interprets a string as a FASTA record.  Does not make any
+        assumptions about wrapping of the sequence string.
+        """
+        try:
+            lines = s.split("\n")
+            assert len(lines) > 1
+            assert lines[0][0] == cls.DELIMITER
+            name = lines[0][1:]
+            sequence = "".join(lines[1:])
+            return FastaRecord(name, sequence)
+        except AssertionError:
+            raise ValueError("String not recognized as a valid FASTA record")
+
+    def __eq__(self, other):
+        return (self.name     == other.name and
+                self.sequence == other.sequence)
+
+    def __str__(self):
+        """
+        Output a string representation of this FASTA record, observing
+        standard conventions about sequence wrapping.
+        """
+        return (">%s\n" % self.name) + \
+            wrap(self.sequence, self.COLUMNS)
+
+
+class FastaReader(object):
+    """
+    Reader for FASTA files, usable as a one-shot iterator over
+    FastaRecord objects.  Agnostic about line wrapping.
+    """
+    DELIMITER = ">"
+
     def __init__(self, f):
         self.file = getFileHandle(f, "r")
-        self.delimiter = self.DEFAULT_DELIMITER
-
-    def setDelimiter(self, delimiter):
-        self.delimiter = delimiter
 
     def __iter__(self):
-        name = ''
-        seqBuffer = []
-        for line in self.file:
-            if len(line)<1: continue
-            if line[0]=='#' and self.delimiter!='#': continue
-            line = line.rstrip()
-            if len(line)==0: continue
-            if line[0]==self.delimiter:
-                if len(seqBuffer)>0:
-                    yield FastaEntry( name, "".join(seqBuffer) )
-                seqBuffer = []
-                if len(line)==1:
-                    name = ''
-                else:
-                    name = line[1:]
-            else:
-                seqBuffer.append( line )
-        if len(seqBuffer)>0:
-            yield FastaEntry( name, "".join(seqBuffer) )
-    
-class FastaEntry:
+        try:
+            parts = splitFileContents(self.file, ">")
+            assert "" == next(parts)
+            for part in parts:
+                yield FastaRecord.fromString(">" + part)
+        except AssertionError:
+            raise ValueError("Invalid FASTA file")
+
+
+class FastaWriter(object):
     """
-    Storage class for modeling a named sequence stored in a FASTA file.
-    Supports 'extended-FASTA' notation for key-value annotations.
-    """
-    def __init__(self, name, sequence):
-        self.sequence = sequence
-        self.raw_name = name
-        self.__processAnnotations(name)
-
-    def getAnnotation(self,key):
-        if key in self._annotations:
-            return self._annotations[key]
-        return None
-
-    def getTag(self):
-        if len(self._annotations)==0:
-            return self.name
-        tag = '%s|%s' % ( self.name, \
-            '|'.join(['%s=%s'%(k,v) for k,v in self._annotations.iteritems()] ) )
-        return tag
-
-    def __processAnnotations(self, tag):
-        """
-        Processes extended syntax for entry names of the form
-         >readName|key1=value1|key2=value2|...
-        """
-        self._annotations = {}
-        if tag.find('|')<0:
-            self.name = tag
-            return
-        pairs = tag.split( '|' )
-        self.name = pairs[0]
-        for pair in pairs[1:]:
-            if '=' not in pair:
-                self.name = '%s|%s' % ( self.name, pair )
-                continue
-            values = pair.split('=')
-            if len(values)==2:
-                self._annotations[ values[0] ] = values[1]
-        # revert to traditional model if this tag doesn't have kv pairs
-        if len(self._annotations)==0:
-            self.name = tag
-
-    def __str__( self ):
-        buffer = []
-        buffer.append( ">" + self.getTag() )
-        buffer.append( _prettyprint(self.sequence) )
-        return os.linesep.join(buffer)
-    
-    def subseq(self, seqRange, name=None):
-        if not name:
-            name = "%s_%i_%i" % (self.name, seqRange.getStart(), seqRange.getEnd())
-        return FastaEntry(name, self.sequence[seqRange.getStart():seqRange.getEnd()] )
-    
-
-class FastqReader:
-    """
-    Parser for FASTQ input from a filename or file-like object
+    A FASTA file writer class
     """
     def __init__(self, f):
-        self.file = getFileHandle(f, "r")
-        
-    def __iter__( self ):
-        qualFlag = False
-        seqBuffer = []
-        qualBuffer = []
-        name = ""
-        for line in self.file:
-            line = line.rstrip()
-            if len(line)==0: continue
-            if line[0]=="@" and len(seqBuffer) == len(qualBuffer):
-                if len(seqBuffer)>0:
-                    yield FastqEntry( name, "".join(seqBuffer), "".join(qualBuffer) )
-                qualFlag = False
-                seqBuffer = []
-                qualBuffer = []
-                if len(line)==1:
-                    name = ''
-                else:
-                    name = line[1:]
-            elif (line[0] == "+" and len(qualBuffer) == 0 and not qualFlag):
-                qualFlag = True
-            else:
-                if (qualFlag):
-                    qualBuffer.append( line )
-                else:
-                    seqBuffer.append( line )
-        if len(seqBuffer)>0:
-            yield FastqEntry( name, "".join(seqBuffer), "".join(qualBuffer) )
+        self.file = getFileHandle(f, "w")
+
+    def writeRecord(self, record):
+        assert isinstance(record, FastaRecord)
+        self.file.write(str(record))
+        self.file.write("\n")
+
+    def close(self):
+        self.file.close()
 
 
-class FastqEntry:
-    def __init__( self, name, sequence, quality ):
-        self.name = name
-        self.sequence = sequence
-        self.quality = quality
-
-    def __str__( self ):
-        buffer = []
-        buffer.append( "@" + self.name )
-        buffer.append( self.sequence )
-        buffer.append( "+" + self.name )
-        buffer.append( self.quality )
-        return os.linesep.join(buffer)
-    
-    @property
-    def asciiQvs(self):
-        assert self.quality.dtype == np.uint8
-        return np.minimum(33 + self.quality, 126).tostring()
-    
-    def subseq(self, seqRange, name=None):
-        if not name: 
-            name = "%s_%i_%i" % (self.name, seqRange.start, seqRange.end)
-        return FastqEntry(name, self.sequence[seqRange.start : seqRange.end], 
-                          self.quality[seqRange.start : seqRange.end])
-    def trim(self, trim):
-        return self.subseq(Range(trim, len(self.sequence) - trim))
-
-
-def _prettyprint( sequence, width=70 ):
-    return os.linesep.join( \
-        [ sequence[i:i+width] for i in xrange(0,len(sequence),width) ] )
-
-def writeFastaEntry( file, entry, width=70 ):
-    file.write( '>%s%s%s%s' % ( entry.getTag(), os.linesep, \
-                               _prettyprint(entry.sequence,width=width), \
-                               os.linesep ) )
-
-## XXX : this is all screwed up, I shouldn't be writing these
-## functions outside of the class.
-def writeFastqEntry( file, entry, width=70 ):
-    file.write( '@%s%s%s%s%s%s%s%s' % (entry.name, 
-                                    os.linesep, 
-                                   _prettyprint(entry.sequence, width=width), 
-                                   os.linesep, 
-                                    '+',
-                                    os.linesep,
-                                   _prettyprint(entry.asciiQvs), 
-                                    os.linesep))
-
-def splitFasta(fasta, nSplits):
-    """
-    Splits fasta into nSplits files and return their absolute paths
-    """
-    reader = FastaReader(fasta)
-    n = int(nSplits)
-
-    basePath = os.path.basename( fasta )
-    fileNames = [ "%i.%s" % (i, basePath) for i in range(n) ]
-    fhs = map(lambda x: open(x,"w"), fileNames)
-    for idx, entry in enumerate(reader):
-        fileIdx = idx % n
-        print >>fhs[fileIdx], str( entry )
-    del reader
-    for fh in fhs: fh.close()
-    splits = map(lambda x: os.path.abspath(x), fileNames)
-    return splits
-
+##
+## Utility functions
+##
+def wrap(s, columns):
+    return "\n".join(s[start:start+columns]
+                     for start in xrange(0, len(s), columns))
