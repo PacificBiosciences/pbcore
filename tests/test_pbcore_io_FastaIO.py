@@ -27,6 +27,10 @@ class TestFastaRecord:
         assert_equal(self.name, recordFromString.name)
         assert_equal(self.sequence, recordFromString.sequence)
 
+    def test_md5(self):
+        assert_equal("67fc75ce599ed0ca1fc8ed2dcbccc95d",
+                     self.record.md5)
+
 
 class TestFastaReader:
 
@@ -40,6 +44,8 @@ class TestFastaReader:
                      "TTGGGAATTTGGAAATTACCTATGTGCAGAGGAATTATGATCTTTCCTTCTTA"
                      "AAGGTTGGTGACTTTGATTTTCCT",
                      entries[0].sequence)
+        assert_equal("e3912e9ceacd6538ede8c1b2adda7423",
+                     entries[0].md5)
 
 
 class TestFastaWriter:

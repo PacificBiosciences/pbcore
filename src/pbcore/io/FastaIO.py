@@ -31,7 +31,7 @@
 # Author: David Alexander
 
 """
-I/O support for FASTA files.
+Streaming I/O support for FASTA files.
 """
 
 __all__ = [ "FastaRecord",
@@ -39,6 +39,7 @@ __all__ = [ "FastaRecord",
             "FastaWriter" ]
 
 from pbcore.io._utils import getFileHandle, splitFileContents
+import md5
 
 class FastaRecord(object):
     """
@@ -52,10 +53,23 @@ class FastaRecord(object):
             assert "\n" not in name
             assert "\n" not in sequence
             assert self.DELIMITER not in sequence
-            self.name = name
-            self.sequence = sequence
+            self._name = name
+            self._sequence = sequence
+            self._md5 = md5.md5(self.sequence).hexdigest()
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def sequence(self):
+        return self._sequence
+
+    @property
+    def md5(self):
+        return self._md5
 
     @classmethod
     def fromString(cls, s):
@@ -88,8 +102,8 @@ class FastaRecord(object):
 
 class FastaReader(object):
     """
-    Reader for FASTA files, usable as a one-shot iterator over
-    FastaRecord objects.  Agnostic about line wrapping.
+    Streaming reader for FASTA files, useable as a one-shot iterator
+    over FastaRecord objects.  Agnostic about line wrapping.
     """
     DELIMITER = ">"
 
