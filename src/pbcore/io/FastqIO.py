@@ -132,6 +132,14 @@ class FastqReader(object):
                               lines[1][:-1],
                               qualityString=lines[3][:-1])
 
+    def close(self):
+        self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
 
 class FastqWriter(object):
@@ -148,6 +156,12 @@ class FastqWriter(object):
 
     def close(self):
         self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
 
 ##

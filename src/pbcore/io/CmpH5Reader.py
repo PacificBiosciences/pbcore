@@ -1074,6 +1074,12 @@ class CmpH5Reader(object):
             self.file.close()
             self.file = None
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def __del__(self):
         self.close()
 

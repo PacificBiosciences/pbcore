@@ -174,6 +174,12 @@ class GffReader(object):
     def close(self):
         self.file.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
 
 class GffWriter(object):
     """
@@ -194,6 +200,14 @@ class GffWriter(object):
 
     def close(self):
         self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+
 
 #
 # Utility functions

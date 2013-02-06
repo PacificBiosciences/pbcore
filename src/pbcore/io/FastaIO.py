@@ -119,6 +119,15 @@ class FastaReader(object):
         except AssertionError:
             raise ValueError("Invalid FASTA file")
 
+    def close(self):
+        self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
 
 class FastaWriter(object):
     """
@@ -131,6 +140,12 @@ class FastaWriter(object):
         assert isinstance(record, FastaRecord)
         self.file.write(str(record))
         self.file.write("\n")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
 
     def close(self):
         self.file.close()
