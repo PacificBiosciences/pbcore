@@ -427,8 +427,8 @@ class ReferenceContig(object):
         reader = FastaReader(path)
 
         for entry in reader:
-            # only support reference repositories where the fasta 'raw_name' (ie the normal fasta header) exactly matches the reference repo header 
-            if entry.raw_name == self.header:
+            # only support reference repositories where the fasta 'raw_name' (ie the normal fasta header) exactly matches the reference repo header
+            if entry.name == self.header:
                 # Read this sequence, close the reader and return
                 sequence = entry.sequence
                 del reader
