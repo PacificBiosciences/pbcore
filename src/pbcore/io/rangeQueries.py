@@ -81,16 +81,16 @@ def leftmostBinSearch(vec, val):
 def getOverlappingRanges(tStart, tEnd, nBack, nOverlap, rangeStart, rangeEnd):
     """
     Return indices overlapping the range defined by [rangeStart,
-    rangeEnd]. Here tStart, tEnd, nBack, nOverlap are vectors of
+    rangeEnd). Here tStart, tEnd, nBack, nOverlap are vectors of
     length n sorted according to tStart and tEnd. The vectors nBack
     and nOverlap are typically produced by computeIndices[DP].
     """
-    assert(rangeEnd >= rangeStart and 
+    assert(rangeEnd > rangeStart and
            len(tStart) == len(tEnd) == len(nBack) == len(nOverlap))
 
-    lM = leftmostBinSearch(tStart, rangeStart) 
+    lM = leftmostBinSearch(tStart, rangeStart)
     lM = lM - nBack[lM]
-    rM = rightmostBinSearch(tStart, rangeEnd + .5)
+    rM = rightmostBinSearch(tStart, rangeEnd - .5)
 
     assert(rM >= lM and rM >= 0 and lM >= 0)
 
@@ -118,14 +118,14 @@ def projectIntoRange(tStart, tEnd, rangeStart, rangeEnd):
     """
     assert(len(tStart) == len(tEnd))
 
-    res = n.array([0] * (rangeEnd - rangeStart + 1))
+    res = n.array([0] * (rangeEnd - rangeStart))
 
     for i in range(0, len(tStart)):
         s = max(rangeStart, tStart[i]) - rangeStart
-        e = min(rangeEnd, tEnd[i] - 1) - rangeStart
+        e = min(rangeEnd, tEnd[i]) - rangeStart
 
-        if (e >= s):
-            res[s:(1 + e)] = res[s:(1 + e)] + 1
+        if (e > s):
+            res[s:e] = res[s:e] + 1
     return(res)
 
 def makeReadLocator(cmpH5, refSeq):
@@ -174,7 +174,7 @@ def getReadsInRange(cmpH5, coords, justIndices = False):
 
 def getCoverageInRange(cmpH5, coords, rowNumbers=None):
     """
-    Return a vector of length: coords[2] - coords[1] + 1 where each
+    Return a vector of length: coords[2] - coords[1] where each
     element represents the number of reads overlapping that position
     in the cmp.h5 file.
     """
@@ -182,8 +182,7 @@ def getCoverageInRange(cmpH5, coords, rowNumbers=None):
     if rowNumbers==None:
         rowNumbers  = getReadsInRange(cmpH5, coords, justIndices=True)
     if (len(rowNumbers))==0:
-        return n.array([0]*(coords[2] - coords[1] + 1))
+        return n.array([0]*(coords[2] - coords[1]))
     else:
         return(projectIntoRange(cmpH5.tStart[rowNumbers], cmpH5.tEnd[rowNumbers], coords[1], coords[2]))
     
-

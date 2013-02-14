@@ -264,21 +264,11 @@ class TestCmpH5Reader:
 
 
     def test_reads_in_range_bounds(self):
-        ## XXX : At the moment the rangeStart, rangeEnd are
-        ## inclusive. This is not-pythonic and should be changed.
-        EQ(len(self._inCmpH5.readsInRange(1, 0, 0)), 2)
-        EQ(all([ x.tStart == 0 for x in self._inCmpH5.readsInRange(1, 0, 0) ]), True)
-        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1050)), 0)
-        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1051)), 1)
+        EQ(len(self._inCmpH5.readsInRange(1, 0, 1)), 2)
+        EQ(all([ x.tStart == 0 for x in self._inCmpH5.readsInRange(1, 0, 1) ]), True)
+        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1051)), 0)
+        EQ(len(self._inCmpH5.readsInRange(1, 1000, 1052)), 1)
         EQ(len(self._inCmpH5.readsInRange(1, 0, 1e20)), len(self._inCmpH5))
-
-        blockSize = np.random.randint(10, 500)
-        for j in range(0, self._inCmpH5.referenceInfo(1).Length, blockSize):
-            start = j
-            end   = j + blockSize
-            oor   = [ read.tStart > end or read.tEnd < start for read in self._inCmpH5.readsInRange(1, start, end) ]
-            assert(not any(oor))
-
 
     def test_cigar(self):
         EQ("6M2D12M1I10M1D21M1I2M2I7M1I2M1I10M1I4M1I11M1D1I4M1I1M1I36M1I4M2I1M" +
