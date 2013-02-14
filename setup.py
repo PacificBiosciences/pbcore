@@ -1,4 +1,9 @@
 from setuptools import setup, Extension, find_packages
+import sys
+
+if sys.version_info < (2, 7, 0):
+    print "pbcore requires Python 2.7"
+    sys.exit(-1)
 
 setup(
     name = 'pbcore',
