@@ -672,9 +672,9 @@ class CmpH5Reader(object):
         26103
 
     """
-    def __init__(self, filename):
+    def __init__(self, filename, mode = 'r'):
         self.filename = abspath(expanduser(filename))
-        self.file = h5py.File(self.filename, "r")
+        self.file = h5py.File(self.filename, mode)
         rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
         self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
                                                 .view(np.recarray)                   \
