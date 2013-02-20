@@ -692,16 +692,31 @@ class CmpH5Reader(object):
             self._alignmentGroupById[alnGroupId] = dict(alnGroup.items())
 
         numMovies = len(self.file["/MovieInfo/ID"])
-        hasFrameRate = ("FrameRate" in self.file["/MovieInfo"])
+
+        if "FrameRate" in self.file["/MovieInfo"]:
+            frameRate = self.file["/MovieInfo/FrameRate"].value
+            timeScale = 1.0/frameRate
+        else:
+            frameRate = [np.nan] * numMovies
+            timeScale = [1.0] * numMovies
+
+        if "SequencingChemistry" in self.file["/MovieInfo"]:
+            sequencingChemistry = self.file["/MovieInfo/SequencingChemistry"].value
+        else:
+            sequencingChemistry = ["unknown"] * numMovies
+
+
         self._movieTable = np.rec.fromrecords(
             zip(self.file["/MovieInfo/ID"],
                 self.file["/MovieInfo/Name"],
-                self.file["/MovieInfo/FrameRate"] if hasFrameRate else [np.nan] * numMovies,
-                1.0/self.file["/MovieInfo/FrameRate"].value if hasFrameRate else [1.0] * numMovies),
-            dtype=[("ID"       , int),
-                   ("Name"     , object),
-                   ("FrameRate", float),
-                   ("TimeScale", float)])
+                frameRate,
+                timeScale,
+                sequencingChemistry),
+            dtype=[("ID"                  , int),
+                   ("Name"                , object),
+                   ("FrameRate"           , float),
+                   ("TimeScale"           , float),
+                   ("SequencingChemistry" , object)])
 
         self._movieDict = {}
         for record in self._movieTable:
