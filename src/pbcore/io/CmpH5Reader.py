@@ -666,8 +666,9 @@ class CmpH5Reader(object):
         >>> c = CmpH5Reader(filename)
         >>> c[0]
         CmpH5 alignment: -    1          0        290
-        >>> c[0:2]
-        [CmpH5 alignment: -    1          0        290, CmpH5 alignment: +    1          0        365]
+        >>> c[0:2]  # doctest: +NORMALIZE_WHITESPACE
+        [CmpH5 alignment: -    1          0        290,
+         CmpH5 alignment: +    1          0        365]
         >>> sum(aln.readLength for aln in c)
         26103
 
