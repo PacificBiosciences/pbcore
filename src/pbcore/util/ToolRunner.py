@@ -31,16 +31,13 @@
 import argparse
 import logging
 
-__version__ = 'Unknown Version' 
-
 class PBToolRunner(object):
-
     @staticmethod
     def getLogFormat(): 
         return '%(asctime)s [%(levelname)s] %(message)s'
 
     def getVersion(self):
-        return __version__
+        raise NotImplementedError()
 
     def __init__(self, description):
         self._parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
