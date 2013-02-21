@@ -1,7 +1,7 @@
 from setuptools import setup, Extension, find_packages
 import sys
 
-if (not "version" in sys.argv) and sys.version_info < (2, 7, 0):
+if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
     print "pbcore requires Python 2.7"
     sys.exit(-1)
 
