@@ -71,13 +71,14 @@ class PBToolRunner(object):
         self.parseArgs()
         self.setupLogging()
         self.validateArgs()
-        self.run()
+        # return the results of run, because this will often go
+        # directly into sys.exit.
+        return self.run()
 
     def run(self):
-        pass
+        raise NotImplementedError()
 
 class PBMultiToolRunner(PBToolRunner):
-
     def _setMainParser(self):
         self.parser = argparse.ArgumentParser(add_help=False)
 
