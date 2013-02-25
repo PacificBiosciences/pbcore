@@ -741,11 +741,11 @@ class CmpH5Reader(object):
                    ("Length"   , int),
                    ("MD5"      , object)])
 
-        self._referenceTable = \
+        self._referenceInfoTable = \
             rec_join("RefInfoID", _referenceGroupTbl, _referenceInfoTbl, jointype="inner")
 
         self._referenceDict = {}
-        for record in self._referenceTable:
+        for record in self._referenceInfoTable:
             if record.ID != -1:
                 assert record.ID != record.Name
                 assert record.ID        not in self._referenceDict \
@@ -851,9 +851,9 @@ class CmpH5Reader(object):
         return self._movieTable
 
     @property
-    def referenceTable(self):
+    def referenceInfoTable(self):
         """
-        .. _referenceTable:
+        .. _referenceInfoTable:
 
         Return a numpy recarray summarizing the references that were
         aligned against.
@@ -868,7 +868,16 @@ class CmpH5Reader(object):
                    ('MD5', string)])
 
         """
-        return self._referenceTable
+        return self._referenceInfoTable
+
+
+    def localReferenceIdMapping(self):
+        """
+        Interface used by `pbcore.io.ReferenceTable`;
+        provides a dict of MD5 -> local contig id
+        """
+        return { record.MD5 : record.ID
+                 for record in  self.referenceInfoTable }
 
     @property
     def readType(self):
@@ -976,7 +985,7 @@ class CmpH5Reader(object):
         Key can be reference ID (integer), name (e.g. "ref000001"), or
         MD5 sum hex string (e.g. "a1319ff90e994c8190a4fe6569d0822a").
 
-        The returned value is a record from the :ref:referenceTable .
+        The returned value is a record from the :ref:referenceInfoTable .
 
         .. doctest::
 
