@@ -1,4 +1,4 @@
-.PHONY: clean doc
+.PHONY: clean doc doc-clean tests check test install build bdist
 
 build:
 	python setup.py build
@@ -24,3 +24,6 @@ doc-clean:
 
 test:
 	nosetests --with-xunit tests -v
+
+tests: test
+check: test
