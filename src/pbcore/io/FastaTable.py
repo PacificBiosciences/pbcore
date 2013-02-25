@@ -41,11 +41,20 @@ class FastaTable(object):
     """
     A random access API for accessing FastaRecords by
       - MD5;
+      - name;
       - order loaded from file
     """
     def __init__(self, fastaFile):
         self._records = list(FastaReader(fastaFile))
-        self._recordsByMD5 = { r.md5 : r for r in self._records }
+        self._initializeLookupTables(self._records)
+
+    def _initializeLookupTables(self, fastaRecords):
+        self._recordsByMD5 = { r.md5 : r for r in fastaRecords }
+        self._recordsByName = { r.name : r for r in fastaRecords }
+        if not (len(fastaRecords) ==
+                len(self._recordsByMD5) ==
+                len(self._recordsByName)):
+            raise ValueError("Error in FASTA file---duplicate headers or sequences?")
 
     def __getitem__(self, pos):
         """
@@ -66,6 +75,11 @@ class FastaTable(object):
         """
         return self._recordsByMD5[md5]
 
+    def byName(self, name):
+        """
+        FastaRecord, by sequence name.  Exception if not found.
+        """
+        return self._recordsByName[name]
 
 class ReferenceContigRecord(FastaRecord):
     """
@@ -104,8 +118,12 @@ class ReferenceTable(FastaTable):
             localId = mapping.get(fastaRecord.md5)
             if localId:
                 self._records.append(ReferenceContigRecord(fastaRecord, localId))
-        self._recordsByMD5 = { r.md5 : r for r in self._records }
-        self._recordsByLocalId = { r.localId : r for r in self._records }
+        self._initializeLookupTables(self._records)
+
+
+    def _initializeLookupTables(self, referenceContigRecords):
+        super(ReferenceTable, self)._initializeLookupTables(referenceContigRecords)
+        self._recordsByLocalId = { r.localId : r for r in referenceContigRecords }
 
     def byLocalId(self, localId):
         """
@@ -116,6 +134,12 @@ class ReferenceTable(FastaTable):
 
     def localIdToName(self, localId):
         """
-        Convenience name lookup routine.  Exception if not found
+        Convenience localId -> name routine.  Exception if not found.
         """
         return self.byLocalId(localId).name
+
+    def nameToLocalId(self, name):
+        """
+        Convenience name -> localId function.  Exception if not found.
+        """
+        return self.byName(name).localId
