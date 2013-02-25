@@ -297,11 +297,11 @@ class CmpH5Alignment(object):
     @property
     def movieInfo(self):
         """
-        Returns a record (extracted from the cmph5's `movieTable`)
+        Returns a record (extracted from the cmph5's `movieInfoTable`)
         containing information about the movie that the read was
         extracted from.  This record should be accessed using
         dot-notation, according to the column names documented in
-        `movieTable`.
+        `movieInfoTable`.
 
         .. doctest::
 
@@ -706,7 +706,7 @@ class CmpH5Reader(object):
             sequencingChemistry = ["unknown"] * numMovies
 
 
-        self._movieTable = np.rec.fromrecords(
+        self._movieInfoTable = np.rec.fromrecords(
             zip(self.file["/MovieInfo/ID"],
                 self.file["/MovieInfo/Name"],
                 frameRate,
@@ -719,7 +719,7 @@ class CmpH5Reader(object):
                    ("SequencingChemistry" , object)])
 
         self._movieDict = {}
-        for record in self._movieTable:
+        for record in self._movieInfoTable:
             assert record.ID not in self._movieDict
             self._movieDict[record.ID] = record
 
@@ -831,7 +831,7 @@ class CmpH5Reader(object):
         return self._alignmentIndex
 
     @property
-    def movieTable(self):
+    def movieInfoTable(self):
         """
         Return a numpy recarray summarizing source movies for the
         reads in this file.
@@ -848,7 +848,7 @@ class CmpH5Reader(object):
         `FrameRate` field should *not* be used directly as it will be
         NaN for pre-1.3 cmp.h5 files.
         """
-        return self._movieTable
+        return self._movieInfoTable
 
     @property
     def referenceInfoTable(self):
@@ -966,7 +966,7 @@ class CmpH5Reader(object):
         Access information about a movie whose reads are represented
         in the file.
 
-        The returned value is a record from the :attr:`movieTable`
+        The returned value is a record from the :attr:`movieInfoTable`
 
         .. doctest::
 
