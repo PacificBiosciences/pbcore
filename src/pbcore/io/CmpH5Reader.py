@@ -982,8 +982,9 @@ class CmpH5Reader(object):
     def referenceInfo(self, key):
         """
         Access information about a reference that was aligned against.
-        Key can be reference ID (integer), name (e.g. "ref000001"), or
-        MD5 sum hex string (e.g. "a1319ff90e994c8190a4fe6569d0822a").
+        Key can be reference ID (integer), name ("ref000001"), full
+        name (e.g. "lambda_NEB3011"), or MD5 sum hex string
+        (e.g. "a1319ff90e994c8190a4fe6569d0822a").
 
         The returned value is a record from the :ref:referenceInfoTable .
 
