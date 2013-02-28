@@ -5,6 +5,7 @@ from nose import SkipTest
 
 import numpy as np
 import bisect
+import h5py
 
 from pbcore import data
 from pbcore.io import CmpH5Reader
@@ -17,6 +18,11 @@ class TestCmpH5Reader:
         self._inCmpH5 = CmpH5Reader(cmpH5Filename)
         self.hit0 = self._inCmpH5[0]
         self.hit1 = self._inCmpH5[1]
+
+    def test_openFromH5File(self):
+        cmpH5Filename = data.getCmpH5()["cmph5"]
+        c = CmpH5Reader(h5py.File(cmpH5Filename, "r"))
+        EQ("1.2.0.SF", c.version)
 
     def test_basicCmpH5Operations(self):
         assert self._inCmpH5.version == "1.2.0.SF"

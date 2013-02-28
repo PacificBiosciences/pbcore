@@ -1,4 +1,4 @@
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_raises
 from StringIO import StringIO
 from pbcore.io import GffWriter, Gff3Record, GffReader
 from pbcore import data
@@ -26,6 +26,29 @@ class TestGff3Record:
     def test_fromString(self):
         newRecord = Gff3Record.fromString(str(self.record))
         assert_equal(str(self.record),  str(newRecord))
+
+    def test_get(self):
+        """
+        Verify field access behavior
+        """
+        record = self.record
+        record.dog = 3
+        record.cat = 4
+        record.mouse = 5
+        record.start = 100
+        record.end = 110
+
+        assert_equal(3, record.dog)
+        assert_equal(100, record.start)
+        with assert_raises(AttributeError):
+            record.god
+
+        assert_equal(3, record.get("dog"))
+        assert_equal(None, record.get("god"))
+        assert_equal(100, record.get("start", 100))
+
+
+
 
 class TestGffReader:
     def setup(self):

@@ -673,9 +673,15 @@ class CmpH5Reader(object):
         26103
 
     """
-    def __init__(self, filename):
-        self.filename = abspath(expanduser(filename))
-        self.file = h5py.File(self.filename, "r")
+    def __init__(self, filenameOrH5File):
+        if isinstance(filenameOrH5File, h5py.File):
+            if filenameOrH5File.mode != "r":
+                raise ValueError("HDF5 files used by CmpH5Reader must be opened read-only!")
+            self.filename = filenameOrH5File.filename
+            self.file = filenameOrH5File
+        else:
+            self.filename = abspath(expanduser(filenameOrH5File))
+            self.file = h5py.File(self.filename, "r")
         rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
         self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
                                                 .view(np.recarray)                   \

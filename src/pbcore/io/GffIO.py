@@ -62,10 +62,13 @@ class Gff3Record(object):
     Attribute access using record.fieldName notation raises ValueError
     if an attribute named fieldName doesn't exist.  Use
 
-      >> record.attributes.get(fieldName, defaultValue)
+      >> record.get(fieldName)
 
-    to search for attribute with a default.
+    to fetch a field or attribute with None default or
 
+      >> record.get(fieldName, defaultValue)
+
+    to fetch the field or attribute with a custom default.
     """
     _GFF_COLUMNS = [ "seqid", "source", "type",
                      "start", "end", "score",
@@ -127,7 +130,8 @@ class Gff3Record(object):
     #
     # Access to the attributes list using
     # dot notation, providing a uniform
-    # interface.
+    # interface.  Exception if attribute
+    # not found.
     #
     def __getattr__(self, name):
         if name in self.attributes:
@@ -143,6 +147,12 @@ class Gff3Record(object):
 
     def __delattr__(self, name):
         del self.attributes[name]
+
+    #
+    # Access without exceptions.
+    #
+    def get(self, name, default=None):
+        return getattr(self, name, default)
 
 
 class GffReader(object):
