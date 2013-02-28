@@ -7,7 +7,7 @@ if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
 
 setup(
     name = 'pbcore',
-    version='0.5.0',
+    version='0.6.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     license=open('LICENSES.txt').read(),
