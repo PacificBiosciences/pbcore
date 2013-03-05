@@ -950,7 +950,7 @@ class CmpH5Reader(object):
 
     @property
     def isSorted(self):
-        return "Index" in self.file.attrs
+        return "OffsetTable" in self.file["/RefGroup"]
 
     @property
     def isEmpty(self):
