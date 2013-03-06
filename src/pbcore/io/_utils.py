@@ -31,6 +31,7 @@
 from __future__ import absolute_import
 import gzip, numpy as np
 from cStringIO import StringIO
+from os.path import abspath, expanduser
 
 def isFileLikeObject(o):
     return hasattr(o, "read") and hasattr(o, "write")
@@ -49,10 +50,11 @@ def getFileHandle(filenameOrFile, mode):
     assert mode in ("r", "w")
 
     if isinstance(filenameOrFile, str):
-        if filenameOrFile.endswith(".gz"):
-            return gzip.open(filenameOrFile, mode)
+        filename = abspath(expanduser(filenameOrFile))
+        if filename.endswith(".gz"):
+            return gzip.open(filename, mode)
         else:
-            return open(filenameOrFile, mode)
+            return open(filename, mode)
     elif isFileLikeObject(filenameOrFile):
         return filenameOrFile
     else:
