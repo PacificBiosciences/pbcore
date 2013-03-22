@@ -68,3 +68,10 @@ class TestFastaWriter:
         for record in FastaReader(self.fasta1):
             w.writeRecord(record)
         assert_equal(self.fasta1.getvalue(), f.getvalue())
+
+    def test_writeFasta2(self):
+        f = StringIO()
+        w = FastaWriter(f)
+        for record in FastaReader(self.fasta1):
+            w.writeRecord(record.name, record.sequence)
+        assert_equal(self.fasta1.getvalue(), f.getvalue())

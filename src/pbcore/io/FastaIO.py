@@ -136,8 +136,20 @@ class FastaWriter(object):
     def __init__(self, f):
         self.file = getFileHandle(f, "w")
 
-    def writeRecord(self, record):
-        assert isinstance(record, FastaRecord)
+    def writeRecord(self, *args):
+        """
+        Write a FASTA record to the file.
+        If given one argument, it is interpreted as a FastaRecord.
+        Given two arguments, they are interpreted as the name and the sequence.
+        """
+        if len(args) not in (1, 2):
+            raise ValueError
+        if len(args) == 1:
+            record = args[0]
+            assert isinstance(record, FastaRecord)
+        else:
+            name, sequence = args
+            record = FastaRecord(name, sequence)
         self.file.write(str(record))
         self.file.write("\n")
 

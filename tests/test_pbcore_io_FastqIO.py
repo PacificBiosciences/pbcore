@@ -110,3 +110,10 @@ class TestFastqWriter:
         for record in FastqReader(self.fastq2):
             w.writeRecord(record)
         assert_equal(self.fastq2.getvalue(), f.getvalue())
+
+    def test_writeFastq3(self):
+        f = StringIO()
+        w = FastqWriter(f)
+        for record in FastqReader(self.fastq2):
+            w.writeRecord(record.name, record.sequence, record.quality)
+        assert_equal(self.fastq2.getvalue(), f.getvalue())

@@ -149,8 +149,20 @@ class FastqWriter(object):
     def __init__(self, f):
         self.file = getFileHandle(f, "w")
 
-    def writeRecord(self, record):
-        assert isinstance(record, FastqRecord)
+    def writeRecord(self, *args):
+        """
+        Write a FASTQ record to the file.
+        If given one argument, it is interpreted as a FastaRecord.
+        Given two arguments, they are interpreted as the name, sequence, and quality.
+        """
+        if len(args) not in (1, 3):
+            raise ValueError
+        if len(args) == 1:
+            record = args[0]
+            assert isinstance(record, FastqRecord)
+        else:
+            name, sequence, quality = args
+            record = FastqRecord(name, sequence, quality)
         self.file.write(str(record))
         self.file.write("\n")
 
