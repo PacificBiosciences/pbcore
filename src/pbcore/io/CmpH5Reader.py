@@ -381,6 +381,20 @@ class CmpH5Alignment(object):
         assert start <= end
         return (self.tStart <= start <= end <= self.tEnd)
 
+    def overlapsReferenceRange(self, start, end):
+        """
+        Does the alignment overlap the given reference interval?
+        """
+        assert start <= end
+        return (self.tStart < end) and (self.tEnd > start)
+
+    def containedInReferenceRange(self, start, end):
+        """
+        Is the alignment wholly contained within a given reference interval?
+        """
+        assert start <= end
+        return (start <= self.tStart <= self.tEnd <= end)
+
     @property
     def accuracy(self):
         """
