@@ -1,0 +1,1029 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pbcore.io Package &mdash; pbcore 0.6.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.6.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pbcore 0.6.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">pbcore 0.6.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="pbcore-io-package">
+<h1>pbcore.io Package<a class="headerlink" href="#pbcore-io-package" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">pbcore.io</span></tt> package provides a number of lightweight interfaces
+to PacBio data files and other standard bioinformatics file formats.
+Preferred usage is to import classes directly from the <tt class="docutils literal"><span class="pre">pbcore.io</span></tt>
+package, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">CmpH5Reader</span>
+</pre></div>
+</div>
+<p>The classes within <tt class="docutils literal"><span class="pre">pbcore.io</span></tt> adhere to a few conventions, in order
+to provide a uniform API:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">Each data file type is thought of as a container of a <cite>Record</cite>
+type; all <cite>Reader</cite> classes support streaming access, and
+<cite>CmpH5Reader</cite> and <cite>BasH5Reader</cite> additionally provide random-access
+to alignments/reads.</p>
+</li>
+<li><p class="first">The constructor argument needed to instantiate <cite>Reader</cite> and
+<cite>Writer</cite> objects can be either a filename (which can be suffixed
+by &#8221;.gz&#8221; for all but the h5 file types) or an open file handle.
+The reader/writer classes will do what you would expect.</p>
+</li>
+<li><p class="first">The reader/writer classes all support the context manager idiom.
+Meaning, if you write:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">with</span> <span class="n">CmpH5Reader</span><span class="p">(</span><span class="s">&quot;aligned_reads.cmp.h5&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span>
+    <span class="k">print</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>the <cite>CmpH5Reader</cite> object will be automatically closed after the
+block within the &#8220;with&#8221; statement is executed.</p>
+</li>
+</ul>
+</div></blockquote>
+<div class="section" id="bas-h5-format-pacbio-basecalls-file">
+<h2><cite>bas.h5</cite> Format (PacBio basecalls file)<a class="headerlink" href="#bas-h5-format-pacbio-basecalls-file" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>bas.h5</cite> file format is a container format for PacBio reads, built
+on top of the HDF5 standard.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In contrast to GFF, for example, the <cite>bas.h5</cite> read coordinate
+system is 0-based and start-inclusive/end-exclusive, i.e. the same
+convention as Python and the C++ STL.</p>
+</div>
+<dl class="class">
+<dt id="pbcore.io.BasH5Reader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BasH5Reader</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pbcore.io.BasH5Reader.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.movieName">
+<tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.movieName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.BasH5IO.BasH5">
+<em class="property">class </em><tt class="descclassname">pbcore.io.BasH5IO.</tt><tt class="descname">BasH5</tt><big>(</big><em>filename</em>, <em>readType='Raw'</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.BasH5" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is deprecated.</p>
+<p class="deprecated">
+<span class="versionmodified">Deprecated since version 0.3.0: </span>Use <cite>BasH5Reader</cite> instead.</p>
+<dl class="method">
+<dt id="pbcore.io.BasH5IO.BasH5.getSequencingZMWs">
+<tt class="descname">getSequencingZMWs</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.BasH5.getSequencingZMWs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5IO.BasH5.getZMWs">
+<tt class="descname">getZMWs</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.BasH5.getZMWs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cmp-h5-format-pacbio-alignment-file">
+<h2><cite>cmp.h5</cite> format (PacBio alignment file)<a class="headerlink" href="#cmp-h5-format-pacbio-alignment-file" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>cmp.h5</cite> file format is an alignment format built on top of the HDF5
+standard.  It is a simple container format for PacBio alignment records.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In contrast to GFF, for example, all <cite>cmp.h5</cite> coordinate systems
+(refererence, read) are 0-based and start-inclusive/end-exclusive,
+i.e. the same convention as Python and the C++ STL.</p>
+</div>
+<dl class="class">
+<dt id="pbcore.io.CmpH5Reader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">CmpH5Reader</tt><big>(</big><em>filenameOrH5File</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <cite>CmpH5Reader</cite> class is a lightweight and efficient API for
+accessing PacBio <tt class="docutils literal"><span class="pre">cmp.h5</span></tt> alignment files.  Alignment records
+can be obtained via random access (via Python indexing/slicing),
+iteration, or range queries (via readsInRange).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pbcore.data</span>                <span class="c"># For an example data file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">CmpH5Reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="n">pbcore</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getCmpH5</span><span class="p">()[</span><span class="s">&quot;cmph5&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span> <span class="o">=</span> <span class="n">CmpH5Reader</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">CmpH5 alignment: -    1          0        290</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>  
+<span class="go">[CmpH5 alignment: -    1          0        290,</span>
+<span class="go"> CmpH5 alignment: +    1          0        365]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">sum</span><span class="p">(</span><span class="n">aln</span><span class="o">.</span><span class="n">readLength</span> <span class="k">for</span> <span class="n">aln</span> <span class="ow">in</span> <span class="n">c</span><span class="p">)</span>
+<span class="go">26103</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.alignmentGroup">
+<tt class="descname">alignmentGroup</tt><big>(</big><em>alnGroupId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.alignmentIndex">
+<tt class="descname">alignmentIndex</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentIndex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the alignment index data structure, which is the
+central data structure in the cmp.h5 file, as a numpy
+recarray.</p>
+<p>The <cite>dtype</cite> of the recarray is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;AlnID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;AlnGroupID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;MovieID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;RefGroupID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;tStart&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;tEnd&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;RCRefStrand&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;HoleNumber&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;SetNumber&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;StrobeNumber&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;MoleculeID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;rStart&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;rEnd&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;MapQV&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nM&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nMM&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nIns&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nDel&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;Offset_begin&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;Offset_end&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nBackRead&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;nReadOverlap&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p>Access to the alignment index is provided to allow users to
+perform vectorized computations over all alignments in the file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">alignmentIndex</span><span class="o">.</span><span class="n">MapQV</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">array([254, 254,   0, 254, 254, 254, 254, 254, 254, 254], dtype=uint32)</span>
+</pre></div>
+</div>
+<p>Alignment index fields are also exposed as fields of the
+<cite>CmpH5Reader</cite> object, allowing a convenient shorthand.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">MapQV</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">10</span><span class="p">]</span>
+<span class="go">array([254, 254,   0, 254, 254, 254, 254, 254, 254, 254], dtype=uint32)</span>
+</pre></div>
+</div>
+<p>The alignment index row for a given alignment can also be
+accessed directly as a field of a <cite>CmpH5Alignment</cite> object</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">MapQV</span>
+<span class="go">254</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.barcodeNames">
+<tt class="descname">barcodeNames</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcodeNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.hasPulseFeature">
+<tt class="descname">hasPulseFeature</tt><big>(</big><em>featureName</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.hasPulseFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Are the datasets for pulse feature <cite>featureName</cite> loaded in
+this file?  Specifically, is it loaded for all movies within
+this cmp.h5?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">hasPulseFeature</span><span class="p">(</span><span class="s">&quot;InsertionQV&quot;</span><span class="p">)</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">hasPulseFeature</span><span class="p">(</span><span class="s">&quot;MergeQV&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.isEmpty">
+<tt class="descname">isEmpty</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.isEmpty" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.isSorted">
+<tt class="descname">isSorted</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.isSorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.localReferenceIdMapping">
+<tt class="descname">localReferenceIdMapping</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.localReferenceIdMapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interface used by <cite>pbcore.io.ReferenceTable</cite>;
+provides a dict of MD5 -&gt; local contig id</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.movieInfo">
+<tt class="descname">movieInfo</tt><big>(</big><em>movieId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access information about a movie whose reads are represented
+in the file.</p>
+<p>The returned value is a record from the <tt class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">movieInfo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">Name</span>
+<span class="go">&#39;m110818_075520_42141_c100129202555500000315043109121112_s2_p0&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">TimeScale</span>
+<span class="go">1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.movieInfoTable">
+<tt class="descname">movieInfoTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfoTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numpy recarray summarizing source movies for the
+reads in this file.</p>
+<p>The <cite>dtype</cite> of this recarray is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="s">&#39;string&#39;</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;FrameRate&#39;</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;TimeScale&#39;</span><span class="p">,</span> <span class="s">&#39;float&#39;</span><span class="p">)])</span>
+</pre></div>
+</div>
+<p><cite>TimeScale</cite> is the factor to multiply time values (IPD,
+PulseWidth) by in order to get times in seconds.  The
+<cite>FrameRate</cite> field should <em>not</em> be used directly as it will be
+NaN for pre-1.3 cmp.h5 files.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.movieNames">
+<tt class="descname">movieNames</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieNames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.primaryVersion">
+<tt class="descname">primaryVersion</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.primaryVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>The version of PacBio Primary Analysis software that produced
+the <tt class="docutils literal"><span class="pre">bas.h5</span></tt> input file to the aligner.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.primaryVersionAtLeast">
+<tt class="descname">primaryVersionAtLeast</tt><big>(</big><em>minimalVersion</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.primaryVersionAtLeast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare <tt class="docutils literal"><span class="pre">primaryVersion</span></tt> to <tt class="docutils literal"><span class="pre">minimalVersion</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.pulseFeaturesAvailable">
+<tt class="descname">pulseFeaturesAvailable</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.pulseFeaturesAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>What pulse features are available in this cmp.h5 file?</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">pulseFeaturesAvailable</span><span class="p">()</span>
+<span class="go">[u&#39;QualityValue&#39;, u&#39;IPD&#39;, u&#39;PulseWidth&#39;, u&#39;InsertionQV&#39;, u&#39;DeletionQV&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.readType">
+<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.readType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Either &#8220;standard&#8221; or &#8220;CCS&#8221;, indicating the type of reads that
+were aligned to the reference.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">readType</span>
+<span class="go">&#39;standard&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.readsInRange">
+<tt class="descname">readsInRange</tt><big>(</big><em>refId</em>, <em>refStart</em>, <em>refEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of reads overlapping (i.e., intersecting&#8212;not
+necessarily spanning) a given reference window.</p>
+<p>If <cite>justIndices</cite> is <tt class="docutils literal"><span class="pre">False</span></tt>, the list returned will contain
+<cite>CmpH5Alignment</cite> objects.</p>
+<p>If <cite>justIndices</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, the list returned will contain
+row numbers in the alignment index table.  Slicing the
+<cite>CmpH5Reader</cite> object with these row numbers can be used to get
+the corresponding <cite>CmpH5Alignment</cite> objects.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">readsInRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> 
+<span class="go">[CmpH5 alignment: -    1          0        290,</span>
+<span class="go"> CmpH5 alignment: +    1          0        365]</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rowNumbers</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">readsInRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="n">justIndices</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rowNumbers</span>
+<span class="go">array([0, 1], dtype=uint32)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.referenceInfo">
+<tt class="descname">referenceInfo</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access information about a reference that was aligned against.
+Key can be reference ID (integer), name (&#8220;ref000001&#8221;), full
+name (e.g. &#8220;lambda_NEB3011&#8221;), or MD5 sum hex string
+(e.g. &#8220;a1319ff90e994c8190a4fe6569d0822a&#8221;).</p>
+<p>The returned value is a record from the :ref:referenceInfoTable .</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ri</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">referenceInfo</span><span class="p">(</span><span class="s">&quot;ref000001&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ri</span><span class="o">.</span><span class="n">FullName</span>
+<span class="go">&#39;lambda_NEB3011&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ri</span><span class="o">.</span><span class="n">MD5</span>
+<span class="go">&#39;a1319ff90e994c8190a4fe6569d0822a&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.referenceInfoTable">
+<tt class="descname">referenceInfoTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfoTable" title="Permalink to this definition">¶</a></dt>
+<dd><p id="referenceinfotable">Return a numpy recarray summarizing the references that were
+aligned against.</p>
+<p>The <cite>dtype</cite> of this recarray is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;RefInfoID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;FullName&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;Length&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;MD5&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">)])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.softwareVersion">
+<tt class="descname">softwareVersion</tt><big>(</big><em>programName</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.softwareVersion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the version of program <cite>programName</cite> that processed
+this file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.version">
+<tt class="descname">version</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>The CmpH5 format version string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">version</span>
+<span class="go">&#39;1.2.0.SF&#39;</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.versionAtLeast">
+<tt class="descname">versionAtLeast</tt><big>(</big><em>minimalVersion</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.versionAtLeast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare the file version to <cite>minimalVersion</cite>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">versionAtLeast</span><span class="p">(</span><span class="s">&quot;1.3.0&quot;</span><span class="p">)</span>
+<span class="go">False</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.CmpH5Alignment">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">CmpH5Alignment</tt><big>(</big><em>cmph5</em>, <em>rowNumber</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment" title="Permalink to this definition">¶</a></dt>
+<dd><p>A lightweight class representing a single alignment record in a
+CmpH5 file, providing access to all columns of a single row of the
+alignment index, and on-demand access to the corresponding
+sequence and pulse features.</p>
+<p><cite>CmpH5Alignment</cite> objects are obtained by slicing a
+<cite>CmpH5Reader</cite> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+<span class="go">CmpH5 alignment: +    1       7441       7699</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+<span class="go">CmpH5 alignment: +    1       7441       7699</span>
+
+<span class="go">Read:        m110818_075520_42141_c100129202555500000315043109121112_s2_p0/1009/44_322</span>
+<span class="go">Reference:   ref000001</span>
+
+<span class="go">Read length: 278</span>
+<span class="go">Accuracy:    0.871</span>
+
+<span class="go">  12345678901234567890123456789001223456789012345678890112345678990112344567890011</span>
+<span class="go">  AACTGGTCACGGTCGTGGCACTGGTGAAG-CT-GCATACTGATGCACTT-CAC-GCCACGCG-GG-ATG-AACCTG-T-G</span>
+<span class="go">  |||||||  ||||  ||||||||| |||| || ||||||||| |||||  ||| |||||||| || ||| |||||| | |</span>
+<span class="go">  AACTGGT--CGGT--TGGCACTGG-GAAGCCTTGCATACTGA-GCACT-CCACGGCCACGCGGGGAATGAAACCTGGTGG</span>
+
+
+<span class="go">  23456789012345678900123456678901234456789012345678901234566789011234556789012345</span>
+<span class="go">  GCATTTGTGCTGCCGGGA-ACGGCG-TTTCGTGT-CTCTGCCGGTGTGGCAGCCGAA-ATGAC-AGAG-CGCGGCCTGGC</span>
+<span class="go">  |||||||||||||||||| |||||| |||||| | |||||||||||||||||||||| ||||| |||| |||||||||||</span>
+<span class="go">  GCATTTGTGCTGCCGGGAAACGGCGTTTTCGT-TCCTCTGCCGGTGTGGCAGCCGAAAATGACAAGAGCCGCGGCCTGGC</span>
+
+
+<span class="go">  67899012345677890123456789901123456789901233456789012345678901234556778901223455</span>
+<span class="go">  CAG-AATGCAAT-AACGGGAGGCGC-TG-TGGCTGAT-TTCG-ATAACCTGTTCGATGCTGCCAT-TG-CCCGC-GCC-G</span>
+<span class="go">  ||| |||||||| |||||||||||| || |||||||| |||| |||||||||||||||||||||| || ||||| ||| |</span>
+<span class="go">  CAGAAATGCAATAAACGGGAGGCGCTTGCTGGCTGATTTTCGAATAACCTGTTCGATGCTGCCATTTGACCCGCGGCCGG</span>
+
+
+<span class="go">  6678901234567889012345667890123456789012345678</span>
+<span class="go">  -ATGAAACGATAC-GCGGGTAC-ATGGGAACGTCAGCCACCATTAC</span>
+<span class="go">   |||||||||||| |||||||| |||||||||||||||||||||||</span>
+<span class="go">  AATGAAACGATACGGCGGGTACAATGGGAACGTCAGCCACCATTAC</span>
+</pre></div>
+</div>
+<p>The <cite>orientation</cite> argument to some data access methods determines
+how reverse-strand alignments are returned to the user.  <cite>.cmp.h5</cite>
+files natively encode reverse strand reads in read-order,
+uncomplemented, with the <em>reference</em> reverse-complemented.  Most
+analysis applications will want to use the data in this order,
+which we term the <em>NATIVE</em> orientation.</p>
+<p>Some applications that involve collating or displaying the reads
+aligned to the reference genome want the reference to be presented
+in its genomic order, and the <em>read</em> to be reverse-complemented.
+We term this <em>GENOMIC</em> orientation.</p>
+<p>Methods prefixed with <em>aligned</em> return data (bases or features)
+that include gaps, which are encoded according to the data type.
+Methods not prefixed with <em>aligned</em> excise the gaps.</p>
+<p>Sequence and pulse features are not cached.</p>
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.DeletionQV">
+<tt class="descname">DeletionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.DeletionTag">
+<tt class="descname">DeletionTag</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.IPD">
+<tt class="descname">IPD</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.IPD" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.InsertionQV">
+<tt class="descname">InsertionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.MergeQV">
+<tt class="descname">MergeQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.MergeQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.PulseWidth">
+<tt class="descname">PulseWidth</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.PulseWidth" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.QualityValue">
+<tt class="descname">QualityValue</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.QualityValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.SubstitutionQV">
+<tt class="descname">SubstitutionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.accuracy">
+<tt class="descname">accuracy</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.accuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the accuracy of this alignment, calculated as
+(#matchs / read length)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">accuracy</span>
+<span class="go">0.87050359712230219</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.alignedLength">
+<tt class="descname">alignedLength</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignedLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the alignment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.alignmentArray">
+<tt class="descname">alignmentArray</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignmentArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Direct access to the raw, encoded aligment array, which is a
+packed representation of the aligned read and reference.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.alignmentGroup">
+<tt class="descname">alignmentGroup</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignmentGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.barcode">
+<tt class="descname">barcode</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.barcode" title="Permalink to this definition">¶</a></dt>
+<dd><p>(Barcoding only) The barcode for this alignment&#8217;s read</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.cigar">
+<tt class="descname">cigar</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.cigar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the CIGAR string for the alignment in the given
+orientation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.clippedTo">
+<tt class="descname">clippedTo</tt><big>(</big><em>refStart</em>, <em>refEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.clippedTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <cite>CmpH5Alignment</cite> that refers to a subalignment of
+this alignment, as induced by clipping to reference
+coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This function takes time linear in the length of the alignment.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.cmpH5">
+<tt class="descname">cmpH5</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.cmpH5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.containedInReferenceRange">
+<tt class="descname">containedInReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.containedInReferenceRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the alignment wholly contained within a given reference interval?</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.isForwardStrand">
+<tt class="descname">isForwardStrand</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.isReverseStrand">
+<tt class="descname">isReverseStrand</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.movieInfo">
+<tt class="descname">movieInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a record (extracted from the cmph5&#8217;s <cite>movieInfoTable</cite>)
+containing information about the movie that the read was
+extracted from.  This record should be accessed using
+dot-notation, according to the column names documented in
+<cite>movieInfoTable</cite>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">movieInfo</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">mi</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">mi</span><span class="o">.</span><span class="n">TimeScale</span>
+<span class="go">(&#39;m110818_075520_42141_c100129202555500000315043109121112_s2_p0&#39;, 1, 1.0)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.numPasses">
+<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.numPasses" title="Permalink to this definition">¶</a></dt>
+<dd><p>(CCS only) The number subreads that were used to produce this CCS read.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.overlapsReferenceRange">
+<tt class="descname">overlapsReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.overlapsReferenceRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the alignment overlap the given reference interval?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.pulseFeature">
+<tt class="descname">pulseFeature</tt><big>(</big><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access a pulse feature by name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.read">
+<tt class="descname">read</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.read" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the read portion of the alignment as a string.</p>
+<p>If <cite>aligned</cite> is true, the aligned representation is returned,
+including gaps; otherwise the unaligned read basecalls are
+returned.</p>
+<p>If <cite>orientation</cite> is &#8220;native&#8221;, the returned read bases are
+presented in the order they were read by the sequencing
+machine.  If <cite>orientation</cite> is &#8220;genomic&#8221;, the returned read
+bases are presented in such a way as to collate with the
+forward strand of the reference&#8212;which requires reverse
+complementation of reverse-strand reads.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.readEnd">
+<tt class="descname">readEnd</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readEnd" title="Permalink to this definition">¶</a></dt>
+<dd><p>The right bound of the alignment, in read coordinates (from the BAS.H5 file).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.readLength">
+<tt class="descname">readLength</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readLength" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length of the read.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.readName">
+<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the read that was aligned, in standard
+PacBio format.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.readPositions">
+<tt class="descname">readPositions</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readPositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of read positions such that
+readPositions[i] = read position of the i&#8217;th column
+in the alignment.  Insertions are grouped with the following
+read base, in the specified orientation.</p>
+<p>Length of output array = length of alignment</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.readStart">
+<tt class="descname">readStart</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readStart" title="Permalink to this definition">¶</a></dt>
+<dd><p>The left bound of the alignment, in read coordinates (from the BAS.H5 file).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.reference">
+<tt class="descname">reference</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the read portion of the alignment as a string.</p>
+<p>If <cite>aligned</cite> is true, the aligned representation of the
+reference is returned, including gaps; otherwise the unaligned
+reference bases are returned.</p>
+<p>If <cite>orientation</cite> is &#8220;native&#8221;, the reference is presented in
+the order it is stored in the cmp.h5 file&#8212;for reverse-strand
+reads, the reference is reverse-complemented.  If
+<cite>orientation</cite> is &#8220;genomic&#8221;, the forward strand reference is returned.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.referenceEnd">
+<tt class="descname">referenceEnd</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceEnd" title="Permalink to this definition">¶</a></dt>
+<dd><p>The right bound of the alignment, in reference coordinates.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.referenceInfo">
+<tt class="descname">referenceInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.referenceName">
+<tt class="descname">referenceName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.referencePositions">
+<tt class="descname">referencePositions</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referencePositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of reference positions such that
+referencePositions[i] = reference position of the i&#8217;th column
+in the alignment.  Insertions are grouped with the following
+reference base, in the specified orientation.</p>
+<p>Length of output array = length of alignment</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.referenceSpan">
+<tt class="descname">referenceSpan</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceSpan" title="Permalink to this definition">¶</a></dt>
+<dd><p>The length along the reference implied by this alignment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.referenceStart">
+<tt class="descname">referenceStart</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceStart" title="Permalink to this definition">¶</a></dt>
+<dd><p>The left bound of the alignment, in reference coordinates.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.rowNumber">
+<tt class="descname">rowNumber</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.rowNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.spansReferencePosition">
+<tt class="descname">spansReferencePosition</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.spansReferencePosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the alignment span the given reference position?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.spansReferenceRange">
+<tt class="descname">spansReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.spansReferenceRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does the alignment span the given reference range, in its entirety?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Alignment.transcript">
+<tt class="descname">transcript</tt><big>(</big><em>orientation='native'</em>, <em>style='gusfield'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.transcript" title="Permalink to this definition">¶</a></dt>
+<dd><p>A text representation of the alignment moves (see Gusfield).
+This can be useful in pretty-printing an alignment.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="fasta-format">
+<h2>FASTA Format<a class="headerlink" href="#fasta-format" title="Permalink to this headline">¶</a></h2>
+<p>FASTA is a standard format for sequence data.</p>
+<dl class="class">
+<dt id="pbcore.io.FastaRecord">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaRecord</tt><big>(</big><em>name</em>, <em>sequence</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>A FastaRecord object models a named sequence in a FASTA file.</p>
+<dl class="classmethod">
+<dt id="pbcore.io.FastaRecord.fromString">
+<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaRecord.fromString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interprets a string as a FASTA record.  Does not make any
+assumptions about wrapping of the sequence string.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastaRecord.md5">
+<tt class="descname">md5</tt><a class="headerlink" href="#pbcore.io.FastaRecord.md5" title="Permalink to this definition">¶</a></dt>
+<dd><p>The MD5 checksum (hex digest) of <cite>sequence</cite></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastaRecord.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pbcore.io.FastaRecord.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the sequence in the FASTA file, equal to the entire
+FASTA header following the &#8216;&gt;&#8217; character</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastaRecord.sequence">
+<tt class="descname">sequence</tt><a class="headerlink" href="#pbcore.io.FastaRecord.sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sequence for the record as present in the FASTA file.
+(Newlines are removed but otherwise no sequence normalization
+is performed).</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.FastaReader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Streaming reader for FASTA files, useable as a one-shot iterator
+over FastaRecord objects.  Agnostic about line wrapping.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">fr</span> <span class="o">=</span> <span class="n">FastaReader</span><span class="p">(</span><span class="s">&quot;input.fasta.gz&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">fr</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">sequence</span><span class="p">),</span> <span class="n">record</span><span class="o">.</span><span class="n">md5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.FastaWriter">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A FASTA file writer class</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">FastaWriter</span><span class="p">(</span><span class="s">&quot;output.fasta.gz&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">writer</span><span class="o">.</span><span class="n">writeRecord</span><span class="p">(</span><span class="s">&quot;dog&quot;</span><span class="p">,</span> <span class="s">&quot;GATTACA&quot;</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">writer</span><span class="o">.</span><span class="n">writeRecord</span><span class="p">(</span><span class="s">&quot;cat&quot;</span><span class="p">,</span> <span class="s">&quot;CATTACA&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(Notice that underlying file will be automatically closed after
+exit from the <cite>with</cite> block.)</p>
+<dl class="method">
+<dt id="pbcore.io.FastaWriter.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying file handle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.FastaWriter.writeRecord">
+<tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a FASTA record to the file.  If given one argument, it is
+interpreted as a <tt class="docutils literal"><span class="pre">FastaRecord</span></tt>.  Given two arguments, they
+are interpreted as the name and the sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="fastq-format">
+<h2>FASTQ Format<a class="headerlink" href="#fastq-format" title="Permalink to this headline">¶</a></h2>
+<p>FASTQ is a standard format for sequence data with associated quality scores.</p>
+<dl class="class">
+<dt id="pbcore.io.FastqRecord">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqRecord</tt><big>(</big><em>name</em>, <em>sequence</em>, <em>quality=None</em>, <em>qualityString=None</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <tt class="docutils literal"><span class="pre">FastqRecord</span></tt> object models a named sequence and its quality
+values in a FASTQ file.  For reference consult <a class="reference external" href="http://en.wikipedia.org/wiki/FASTQ_format">Wikipedia&#8217;s FASTQ
+entry</a>. We adopt the Sanger encoding convention, allowing the
+encoding of QV values in [0, 93] using ASCII 33 to 126. We only
+support FASTQ files in the four-line convention (unwrapped).
+Wrapped FASTQ files are generally considered a bad idea as the &#64;,
++ delimiters can also appear in the quality string, thus parsing
+cannot be done safely.</p>
+<dl class="classmethod">
+<dt id="pbcore.io.FastqRecord.fromString">
+<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqRecord.fromString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Interprets a string as a FASTQ record. Only supports four-line
+format, as wrapped FASTQs can&#8217;t easily be safely parsed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastqRecord.name">
+<tt class="descname">name</tt><a class="headerlink" href="#pbcore.io.FastqRecord.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name of the sequence in the FASTQ file</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastqRecord.quality">
+<tt class="descname">quality</tt><a class="headerlink" href="#pbcore.io.FastqRecord.quality" title="Permalink to this definition">¶</a></dt>
+<dd><p>The quality values, as an array of integers</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastqRecord.qualityString">
+<tt class="descname">qualityString</tt><a class="headerlink" href="#pbcore.io.FastqRecord.qualityString" title="Permalink to this definition">¶</a></dt>
+<dd><p>The quality values as an ASCII-encoded string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.FastqRecord.sequence">
+<tt class="descname">sequence</tt><a class="headerlink" href="#pbcore.io.FastqRecord.sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>The sequence for the record as present in the FASTQ file.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.FastqReader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader for FASTQ files, useable as a one-shot iterator over
+FastqRecord objects.  FASTQ files must follow the four-line
+convention.</p>
+<dl class="method">
+<dt id="pbcore.io.FastqReader.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastqReader.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying filehandle</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.FastqWriter">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A FASTQ file writer class</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">FastqWriter</span><span class="p">(</span><span class="s">&quot;output.fq.gz&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="n">writer</span><span class="o">.</span><span class="n">writeRecord</span><span class="p">(</span><span class="s">&quot;dog&quot;</span><span class="p">,</span> <span class="s">&quot;GATTACA&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">35</span><span class="p">]</span><span class="o">*</span><span class="mi">7</span><span class="p">)</span>
+<span class="gp">... </span>    <span class="n">writer</span><span class="o">.</span><span class="n">writeRecord</span><span class="p">(</span><span class="s">&quot;cat&quot;</span><span class="p">,</span> <span class="s">&quot;CATTACA&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">35</span><span class="p">]</span><span class="o">*</span><span class="mi">7</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>(Notice that underlying file will be automatically closed after
+exit from the <cite>with</cite> block.)</p>
+<dl class="method">
+<dt id="pbcore.io.FastqWriter.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Close the underlying file handle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.FastqWriter.writeRecord">
+<tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a FASTQ record to the file.  If given one argument, it is
+interpreted as a <tt class="docutils literal"><span class="pre">FastqRecord</span></tt>.  Given three arguments, they
+are interpreted as the name, sequence, and quality.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="gff-format-version-3">
+<h2>GFF Format (Version 3)<a class="headerlink" href="#gff-format-version-3" title="Permalink to this headline">¶</a></h2>
+<p>The GFF format is an open and flexible standard for representing genomic features.</p>
+<dl class="class">
+<dt id="pbcore.io.Gff3Record">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">Gff3Record</tt><big>(</big><em>seqid</em>, <em>start</em>, <em>end</em>, <em>type</em>, <em>score='.'</em>, <em>strand='.'</em>, <em>phase='.'</em>, <em>source='.'</em>, <em>attributes=()</em><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for GFF record, providing uniform access to standard
+GFF fields and attributes.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">record</span> <span class="o">=</span> <span class="n">Gff3Record</span><span class="p">(</span><span class="s">&quot;chr1&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="s">&quot;insertion&quot;</span><span class="p">,</span>
+<span class="gp">... </span>                    <span class="n">attributes</span><span class="o">=</span><span class="p">[(</span><span class="s">&quot;foo&quot;</span><span class="p">,</span> <span class="s">&quot;1&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s">&quot;bar&quot;</span><span class="p">,</span> <span class="s">&quot;2&quot;</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">start</span>
+<span class="go">10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">foo</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">baz</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">record</span><span class="o">.</span><span class="n">baz</span>
+</pre></div>
+</div>
+<p>Attribute access using record.fieldName notation raises <tt class="docutils literal"><span class="pre">ValueError</span></tt>
+if an attribute named fieldName doesn&#8217;t exist.  Use:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fieldName</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to fetch a field or attribute with None default or:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fieldName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to fetch the field or attribute with a custom default.</p>
+<dl class="method">
+<dt id="pbcore.io.Gff3Record.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a shallow copy</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="pbcore.io.Gff3Record.fromString">
+<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record.fromString" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a string as a GFF record.
+Trailing whitespace is ignored.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.GffReader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">GffReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.GffReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A GFF file reader class</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.GffWriter">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">GffWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.GffWriter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A GFF file writer class</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pbcore.io Package</a><ul>
+<li><a class="reference internal" href="#bas-h5-format-pacbio-basecalls-file"><cite>bas.h5</cite> Format (PacBio basecalls file)</a></li>
+<li><a class="reference internal" href="#cmp-h5-format-pacbio-alignment-file"><cite>cmp.h5</cite> format (PacBio alignment file)</a></li>
+<li><a class="reference internal" href="#fasta-format">FASTA Format</a></li>
+<li><a class="reference internal" href="#fastq-format">FASTQ Format</a></li>
+<li><a class="reference internal" href="#gff-format-version-3">GFF Format (Version 3)</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pbcore.io.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">pbcore 0.6.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011-2013, Pacific Biosciences.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,299 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>util Package &mdash; pbcore 0.6.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.6.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pbcore 0.6.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">pbcore 0.6.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="util-package">
+<h1>util Package<a class="headerlink" href="#util-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-pbcore.util.Process">
+<span id="process-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">Process</span></tt> Module<a class="headerlink" href="#module-pbcore.util.Process" title="Permalink to this headline">¶</a></h2>
+<p>Useful functions for interacting with processes.</p>
+<dl class="function">
+<dt id="pbcore.util.Process.backticks">
+<tt class="descclassname">pbcore.util.Process.</tt><tt class="descname">backticks</tt><big>(</big><em>cmd</em>, <em>merge_stderr=True</em><big>)</big><a class="headerlink" href="#pbcore.util.Process.backticks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulates the perl backticks (``) command with error-handling support
+Returns ( command output as sequence of strings, error code, error message )</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pbcore.util.RecArray">
+<span id="recarray-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">RecArray</span></tt> Module<a class="headerlink" href="#module-pbcore.util.RecArray" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pbcore.util.RecArray.addColumnToRecArray">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">addColumnToRecArray</tt><big>(</big><em>baseRec</em>, <em>newArray</em>, <em>newColumn</em>, <em>tail=True</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.addColumnToRecArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new record array based on baseRec with an
+extra column of name = newColumn i.e. (&#8216;PolRate&#8217;,&#8217;&lt;f8&#8217;)
+and values = newArray.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.dropColumnFromRecArray">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">dropColumnFromRecArray</tt><big>(</big><em>baseRec</em>, <em>columnNames</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.dropColumnFromRecArray" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new record array based on baseRec with the columns
+present in the columnNames list removed.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.fixCSV">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">fixCSV</tt><big>(</big><em>inFN</em>, <em>outFN</em>, <em>delim='</em>, <em>'</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.fixCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove CSV rows that do not have the same number of columns as
+the header.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.getHeader">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">getHeader</tt><big>(</big><em>inFN</em>, <em>delim='</em>, <em>'</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.getHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the header of a CSV as a list of column names.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.getRecArrayFromCSV">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">getRecArrayFromCSV</tt><big>(</big><em>incsv</em>, <em>columnType=</em><span class="optional">[</span><span class="optional">]</span>, <em>standardDtype=False</em>, <em>caseSensitive=False</em>, <em>sanitize=False</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.getRecArrayFromCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a record array from an input csv file. For &#8216;strangely&#8217;
+formatted CSVs need the column type provided as a list of tuples. In
+the absence of a columnType, if standardDtype == True, all string 
+fields will have <tt class="docutils literal"><span class="pre">numpy.dtype('|S100')</span></tt> associated with them i.e.
+all string fields will be set to max length 100. caseSensitive == True
+preserves the case of the column headers. sanatize=True removes characters
+that are know to cause n.recfromcsv to error out (USE WITH CAUTION!)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.hstackRecArrays">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">hstackRecArrays</tt><big>(</big><em>r1</em>, <em>r2</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.hstackRecArrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontal stack record arrays fixing mismatches in str field lengths
+between the 2 dtypes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.printCSV">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">printCSV</tt><big>(</big><em>data</em>, <em>filename</em>, <em>delim='</em>, <em>'</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.printCSV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a record array to a CSV file.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.RecArray.printCSV_PR">
+<tt class="descclassname">pbcore.util.RecArray.</tt><tt class="descname">printCSV_PR</tt><big>(</big><em>data</em>, <em>filename</em>, <em>delim='</em>, <em>'</em><big>)</big><a class="headerlink" href="#pbcore.util.RecArray.printCSV_PR" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a record array to a CSV file using string formatting.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pbcore.util.Timing">
+<span id="timing-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">Timing</span></tt> Module<a class="headerlink" href="#module-pbcore.util.Timing" title="Permalink to this headline">¶</a></h2>
+<p>Useful classes and functions for monitoring resource consumption (time and memory)</p>
+<dl class="class">
+<dt id="pbcore.util.Timing.Timer">
+<em class="property">class </em><tt class="descclassname">pbcore.util.Timing.</tt><tt class="descname">Timer</tt><a class="headerlink" href="#pbcore.util.Timing.Timer" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pbcore.util.Timing.Timer.endTask">
+<tt class="descname">endTask</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.Timing.Timer.endTask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.Timing.Timer.getTaskDuration">
+<tt class="descname">getTaskDuration</tt><big>(</big><em>taskName</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.Timer.getTaskDuration" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.Timing.Timer.report">
+<tt class="descname">report</tt><big>(</big><em>out</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.Timer.report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.Timing.Timer.startTask">
+<tt class="descname">startTask</tt><big>(</big><em>taskName</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.Timer.startTask" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.util.Timing.TimingResult">
+<em class="property">class </em><tt class="descclassname">pbcore.util.Timing.</tt><tt class="descname">TimingResult</tt><big>(</big><em>taskName</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.TimingResult" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pbcore.util.Timing.TimingResult.tick">
+<tt class="descname">tick</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.Timing.TimingResult.tick" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.Timing.TimingResult.tock">
+<tt class="descname">tock</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.Timing.TimingResult.tock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.Timing.memory">
+<tt class="descclassname">pbcore.util.Timing.</tt><tt class="descname">memory</tt><big>(</big><em>since=0.0</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.memory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return virtual memory usage in bytes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.Timing.resident">
+<tt class="descclassname">pbcore.util.Timing.</tt><tt class="descname">resident</tt><big>(</big><em>since=0.0</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.resident" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return resident memory usage in bytes.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.util.Timing.stacksize">
+<tt class="descclassname">pbcore.util.Timing.</tt><tt class="descname">stacksize</tt><big>(</big><em>since=0.0</em><big>)</big><a class="headerlink" href="#pbcore.util.Timing.stacksize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return stack size in bytes.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pbcore.util.ToolRunner">
+<span id="toolrunner-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">ToolRunner</span></tt> Module<a class="headerlink" href="#module-pbcore.util.ToolRunner" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pbcore.util.ToolRunner.PBMultiToolRunner">
+<em class="property">class </em><tt class="descclassname">pbcore.util.ToolRunner.</tt><tt class="descname">PBMultiToolRunner</tt><big>(</big><em>description</em><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBMultiToolRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pbcore.util.ToolRunner.PBToolRunner" title="pbcore.util.ToolRunner.PBToolRunner"><tt class="xref py py-class docutils literal"><span class="pre">pbcore.util.ToolRunner.PBToolRunner</span></tt></a></p>
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBMultiToolRunner.getSubParsers">
+<tt class="descname">getSubParsers</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBMultiToolRunner.getSubParsers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.util.ToolRunner.PBToolRunner">
+<em class="property">class </em><tt class="descclassname">pbcore.util.ToolRunner.</tt><tt class="descname">PBToolRunner</tt><big>(</big><em>description</em><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="staticmethod">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.getLogFormat">
+<em class="property">static </em><tt class="descname">getLogFormat</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.getLogFormat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.getVersion">
+<tt class="descname">getVersion</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.getVersion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.parseArgs">
+<tt class="descname">parseArgs</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.parseArgs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.setupLogging">
+<tt class="descname">setupLogging</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.setupLogging" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.util.ToolRunner.PBToolRunner.validateArgs">
+<tt class="descname">validateArgs</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.util.ToolRunner.PBToolRunner.validateArgs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to validate args</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">util Package</a><ul>
+<li><a class="reference internal" href="#module-pbcore.util.Process"><tt class="docutils literal"><span class="pre">Process</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pbcore.util.RecArray"><tt class="docutils literal"><span class="pre">RecArray</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pbcore.util.Timing"><tt class="docutils literal"><span class="pre">Timing</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-pbcore.util.ToolRunner"><tt class="docutils literal"><span class="pre">ToolRunner</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/pbcore.util.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">pbcore 0.6.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011-2013, Pacific Biosciences.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
