@@ -31,16 +31,8 @@
 # Author: David Alexander
 
 """
-I/O support for FASTQ files (Sanger style).
-
-We support FASTQ files in the four-line convention (unwrapped).
-Wrapped FASTQ files are generally considered a bad idea as the @, +
-delimiters can also appear in the quality string.
-
-See:
-  http://en.wikipedia.org/wiki/FASTQ_format
+I/O support for FASTQ files
 """
-
 
 __all__ = [ "FastqRecord",
             "FastqReader",
@@ -55,8 +47,16 @@ import numpy as np, re
 
 class FastqRecord(object):
     """
-    A FastqRecord object models a named sequence and its quality
-    values in a FASTQ file.  We adopt the Sanger conventions, that
+    A ``FastqRecord`` object models a named sequence and its quality
+    values in a FASTQ file.  For reference consult `Wikipedia's FASTQ
+    entry`_. We adopt the Sanger encoding convention, allowing the
+    encoding of QV values in [0, 93] using ASCII 33 to 126. We only
+    support FASTQ files in the four-line convention (unwrapped).
+    Wrapped FASTQ files are generally considered a bad idea as the @,
+    + delimiters can also appear in the quality string, thus parsing
+    cannot be done safely.
+
+    .. _Wikipedia's FASTQ entry: http://en.wikipedia.org/wiki/FASTQ_format
     """
     DELIMITER1 = "@"
     DELIMITER2 = "+"
@@ -65,22 +65,47 @@ class FastqRecord(object):
         try:
             assert "\n" not in name
             assert "\n" not in sequence
-            self.name = name
-            self.sequence = sequence
+            self._name = name
+            self._sequence = sequence
 
             # Only one of quality, qualityString should be provided
             assert (quality == None) != (qualityString == None)
             if quality != None:
-                self.quality = quality
+                self._quality = quality
             else:
-                self.quality = qvsFromAscii(qualityString)
+                self._quality = qvsFromAscii(qualityString)
             assert len(self.sequence) == len(self.quality)
         except AssertionError:
             raise ValueError("Invalid FASTQ record data")
 
+
+    @property
+    def name(self):
+        """
+        The name of the sequence in the FASTQ file
+        """
+        return self._name
+
+    @property
+    def sequence(self):
+        """
+        The sequence for the record as present in the FASTQ file.
+        """
+        return self._sequence
+
+    @property
+    def quality(self):
+        """
+        The quality values, as an array of integers
+        """
+        return self._quality
+
     @property
     def qualityString(self):
-        return asciiFromQvs(self.quality)
+        """
+        The quality values as an ASCII-encoded string
+        """
+        return asciiFromQvs(self._quality)
 
     @classmethod
     def fromString(cls, s):
@@ -123,9 +148,16 @@ class FastqReader(object):
     convention.
     """
     def __init__(self, f):
+        """
+        Prepare for iteration through the FASTQ file (provided by filename
+        or open file handle).
+        """
         self.file = getFileHandle(f, "r")
 
     def __iter__(self):
+        """
+        One-shot iteration support
+        """
         while True:
             lines = [next(self.file) for i in xrange(4)]
             yield FastqRecord(lines[0][1:-1],
@@ -133,6 +165,9 @@ class FastqReader(object):
                               qualityString=lines[3][:-1])
 
     def close(self):
+        """
+        Close the underlying filehandle
+        """
         self.file.close()
 
     def __enter__(self):
@@ -145,15 +180,30 @@ class FastqReader(object):
 class FastqWriter(object):
     """
     A FASTQ file writer class
+
+    Example:
+
+    .. doctest::
+
+        >>> with FastqWriter("output.fq.gz") as writer:
+        ...     writer.writeRecord("dog", "GATTACA", [35]*7)
+        ...     writer.writeRecord("cat", "CATTACA", [35]*7)
+
+    (Notice that underlying file will be automatically closed after
+    exit from the `with` block.)
     """
     def __init__(self, f):
+        """
+        Prerpare for writing FASTQ records to ``f``, which can be a
+        filename or an open file handle.
+        """
         self.file = getFileHandle(f, "w")
 
     def writeRecord(self, *args):
         """
-        Write a FASTQ record to the file.
-        If given one argument, it is interpreted as a FastaRecord.
-        Given two arguments, they are interpreted as the name, sequence, and quality.
+        Write a FASTQ record to the file.  If given one argument, it is
+        interpreted as a ``FastqRecord``.  Given three arguments, they
+        are interpreted as the name, sequence, and quality.
         """
         if len(args) not in (1, 3):
             raise ValueError
@@ -167,6 +217,9 @@ class FastqWriter(object):
         self.file.write("\n")
 
     def close(self):
+        """
+        Close the underlying file handle.
+        """
         self.file.close()
 
     def __enter__(self):

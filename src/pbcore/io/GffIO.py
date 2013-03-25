@@ -50,23 +50,25 @@ class Gff3Record(object):
     Class for GFF record, providing uniform access to standard
     GFF fields and attributes.
 
-      >> record = Gff3Record("chr1", 10, 11, "insertion",
-                            attributes=[("cat", "1"), ("dog", "2")])
-      >> record.start
-      10
-      >> record.dog
-      2
-      >> record.mouse = 3
-      >> del record.mouse
+    .. doctest::
 
-    Attribute access using record.fieldName notation raises ValueError
-    if an attribute named fieldName doesn't exist.  Use
+        >>> record = Gff3Record("chr1", 10, 11, "insertion",
+        ...                     attributes=[("foo", "1"), ("bar", "2")])
+        >>> record.start
+        10
+        >>> record.foo
+        1
+        >>> record.baz = 3
+        >>> del record.baz
 
-      >> record.get(fieldName)
+    Attribute access using record.fieldName notation raises ``ValueError``
+    if an attribute named fieldName doesn't exist.  Use::
 
-    to fetch a field or attribute with None default or
+        >>> record.get(fieldName)
 
-      >> record.get(fieldName, defaultValue)
+    to fetch a field or attribute with None default or::
+
+        >>> record.get(fieldName, defaultValue)
 
     to fetch the field or attribute with a custom default.
     """

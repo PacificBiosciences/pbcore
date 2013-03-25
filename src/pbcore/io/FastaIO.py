@@ -61,14 +61,26 @@ class FastaRecord(object):
 
     @property
     def name(self):
+        """
+        The name of the sequence in the FASTA file, equal to the entire
+        FASTA header following the '>' character
+        """
         return self._name
 
     @property
     def sequence(self):
+        """
+        The sequence for the record as present in the FASTA file.
+        (Newlines are removed but otherwise no sequence normalization
+        is performed).
+        """
         return self._sequence
 
     @property
     def md5(self):
+        """
+        The MD5 checksum (hex digest) of `sequence`
+        """
         return self._md5
 
     @classmethod
@@ -104,6 +116,16 @@ class FastaReader(object):
     """
     Streaming reader for FASTA files, useable as a one-shot iterator
     over FastaRecord objects.  Agnostic about line wrapping.
+
+    Example:
+
+    .. doctest::
+
+        >>> fr = FastaReader("input.fasta.gz")
+        >>> for record in fr:
+        ...     print record.name, len(record.sequence), record.md5
+        >>> fr.close()
+
     """
     DELIMITER = ">"
 
@@ -132,15 +154,26 @@ class FastaReader(object):
 class FastaWriter(object):
     """
     A FASTA file writer class
+
+    Example:
+
+    .. doctest::
+
+        >>> with FastaWriter("output.fasta.gz") as writer:
+        ...     writer.writeRecord("dog", "GATTACA")
+        ...     writer.writeRecord("cat", "CATTACA")
+
+    (Notice that underlying file will be automatically closed after
+    exit from the `with` block.)
     """
     def __init__(self, f):
         self.file = getFileHandle(f, "w")
 
     def writeRecord(self, *args):
         """
-        Write a FASTA record to the file.
-        If given one argument, it is interpreted as a FastaRecord.
-        Given two arguments, they are interpreted as the name and the sequence.
+        Write a FASTA record to the file.  If given one argument, it is
+        interpreted as a ``FastaRecord``.  Given two arguments, they
+        are interpreted as the name and the sequence.
         """
         if len(args) not in (1, 2):
             raise ValueError
@@ -160,6 +193,9 @@ class FastaWriter(object):
         self.close()
 
     def close(self):
+        """
+        Close the underlying file handle.
+        """
         self.file.close()
 
 

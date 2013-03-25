@@ -9,12 +9,12 @@ The `pbcore` package provides the essential python modules for
 proecessing PacBio RS (data).  The package currently contains three
 major sub-packages:
 
-    (1) ``pbcore.io``: 
+    (1) ``pbcore.io``:
 
          Provides various IO modules that contain data access objects
          for various sequencing related file types. Specifically, the
-         io packages provides support for accessing compare H5
-         (cmp.h5) and base H5 (bas.h5) files.
+         io packages provides support for accessing alignment (cmp.h5)
+         and basecall (bas.h5) files.
 
     (2) ``pbcore.model``:
 
