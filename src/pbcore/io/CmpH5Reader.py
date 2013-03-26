@@ -178,6 +178,12 @@ ALIGNMENT_INDEX_COLUMNS = ["AlnID", "AlnGroupID", "MovieID", "RefGroupID",
 ALIGNMENT_INDEX_DTYPE = [(COLUMN_NAME, np.uint32)
                          for COLUMN_NAME in ALIGNMENT_INDEX_COLUMNS]
 
+
+OFFSET_TABLE_DTYPE = [ ("ID",       np.uint32),
+                       ("StartRow", np.uint32),
+                       ("EndRow",   np.uint32) ]
+
+
 def _makePulseFeatureAccessor(featureName):
     def f(self, aligned=True, orientation="native"):
         return self.pulseFeature(featureName, aligned, orientation)
@@ -764,6 +770,16 @@ class CmpH5Reader(object):
         self._referenceInfoTable = \
             rec_join("RefInfoID", _referenceGroupTbl, _referenceInfoTbl, jointype="inner")
 
+        if self.isSorted:
+            _offsetTable = self.file["/RefGroup/OffsetTable"].value \
+                              .view(dtype=OFFSET_TABLE_DTYPE)       \
+                              .view(np.recarray)                    \
+                              .flatten()
+            self._referenceInfoTable = rec_join("ID",
+                                                self._referenceInfoTable,
+                                                _offsetTable,
+                                                jointype="inner")
+
         self._referenceDict = {}
         for record in self._referenceInfoTable:
             if record.ID != -1:
@@ -885,8 +901,11 @@ class CmpH5Reader(object):
                    ('Name', string),
                    ('FullName', string),
                    ('Length', int),
-                   ('MD5', string)])
+                   ('MD5', string),
+                   ('StartRow', int),
+                   ('EndRow', int) ])
 
+        (the last two columns are omitted for unsorted `cmp.h5` files).
         """
         return self._referenceInfoTable
 
