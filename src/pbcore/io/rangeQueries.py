@@ -107,26 +107,23 @@ def getOverlappingRanges(tStart, tEnd, nBack, nOverlap, rangeStart, rangeEnd):
                 continue
         return(idxs[toKeep])
 
-
-def projectIntoRange(tStart, tEnd, rangeStart, rangeEnd):
+def projectIntoRange(tStart, tEnd, winStart, winEnd):
     """
-    Here, I project reads into the range defined by [rangeStart,
-    rangeEnd]. Coverage can be most efficiently calculated by first
-    obtaining all reads overlapping the range using the
+    Find coverage in the range [winStart, winEnd) implied by tStart,
+    tEnd vectors.  Coverage can be most efficiently calculated by
+    first obtaining all reads overlapping the range using the
     getOverlappingRanges function then projecting them into the same
-    or smaller range.
+    or smaller range
     """
     assert(len(tStart) == len(tEnd))
-
-    res = n.array([0] * (rangeEnd - rangeStart))
-
-    for i in range(0, len(tStart)):
-        s = max(rangeStart, tStart[i]) - rangeStart
-        e = min(rangeEnd, tEnd[i]) - rangeStart
-
-        if (e > s):
-            res[s:e] = res[s:e] + 1
-    return(res)
+    res = n.zeros(shape=winEnd-winStart, dtype=n.uint)
+    # Clip to window and translate.
+    # Be careful to avoid underflow!
+    tStart_ = n.clip(tStart, winStart, winEnd) - winStart
+    tEnd_   = n.clip(tEnd,   winStart, winEnd) - winStart
+    for (s, e) in zip(tStart_, tEnd_):
+        res[s:e] += 1
+    return res
 
 def makeReadLocator(cmpH5, refSeq):
     """
