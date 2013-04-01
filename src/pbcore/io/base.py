@@ -28,35 +28,74 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-__all__ = [ "BedRecord",
-            "BedWriter" ]
+# Base classes for readers and writers.
+# Author: David Alexander
 
-from ._utils import getFileHandle
+from __future__ import absolute_import
+import gzip
+from os.path import abspath, expanduser
 
-class BedRecord:
-    """Models a record in a BED file format"""
-    def __init__(self, chrom='', chromStart = 0, chromEnd = 0, name = '', score = -1.00, strand = '+'):
-        self.chrom = chrom
-        self.chromStart = chromStart
-        self.chromEnd = chromEnd
-        self.name = name
-        self.score = score
-        self.strand = strand
-           
-    def __str__(self):
-        return '%s\t%d\t%d\t%s\t%.3f\t%s' % \
-            (self.chrom, self.chromStart, self.chromEnd, self.name, \
-              self.score, self.strand)
-              
-class BedWriter:
-    """Outputs BED annotation track file"""
+def isFileLikeObject(o):
+    return hasattr(o, "read") and hasattr(o, "write")
+
+def getFileHandle(filenameOrFile, mode):
+    """
+    Given a filename not ending in ".gz", open the file with the
+    appropriate mode.
+
+    Given a filename ending in ".gz", return a filehandle to the
+    unzipped stream.
+
+    Given a file object, return it unless the mode is incorrect--in
+    that case, raise an exception.
+    """
+    assert mode in ("r", "w")
+
+    if isinstance(filenameOrFile, str):
+        filename = abspath(expanduser(filenameOrFile))
+        if filename.endswith(".gz"):
+            return gzip.open(filename, mode)
+        else:
+            return open(filename, mode)
+    elif isFileLikeObject(filenameOrFile):
+        return filenameOrFile
+    else:
+        raise Exception("Invalid type to getFileHandle")
+
+class ReaderBase(object):
     def __init__(self, f):
+        """
+        Prepare for iteration through the records in the file
+        """
+        self.file = getFileHandle(f, "r")
+
+    def close(self):
+        """
+        Close the underlying file
+        """
+        self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+class WriterBase(object):
+    def __init__(self, f):
+        """
+        Prepare for output to the file
+        """
         self.file = getFileHandle(f, "w")
 
-    def writeHeader(self, name, description, useScore):
-        print >> self.file, 'track name=%s description="%s" useScore=%d' \
-            % (name, description, useScore)
+    def close(self):
+        """
+        Close the underlying file
+        """
+        self.file.close()
 
-    def writeRecord(self, record):
-        print >> self.file, str(record)
+    def __enter__(self):
+        return self
 
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()

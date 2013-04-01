@@ -41,7 +41,7 @@ __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
 
-from pbcore.io._utils import getFileHandle
+from .base import ReaderBase, WriterBase
 from collections import OrderedDict
 from copy import copy as shallow_copy
 
@@ -157,7 +157,7 @@ class Gff3Record(object):
         return getattr(self, name, default)
 
 
-class GffReader(object):
+class GffReader(ReaderBase):
     """
     A GFF file reader class
     """
@@ -173,7 +173,7 @@ class GffReader(object):
         return headers, firstLine
 
     def __init__(self, f):
-        self.file = getFileHandle(f, "r")
+        super(GffReader, self).__init__(f)
         self.headers, self.firstLine = self._readHeaders()
 
     def __iter__(self):
@@ -183,22 +183,13 @@ class GffReader(object):
         for line in self.file:
             yield Gff3Record.fromString(line)
 
-    def close(self):
-        self.file.close()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-
-class GffWriter(object):
+class GffWriter(WriterBase):
     """
     A GFF file writer class
     """
     def __init__(self, f):
-        self.file = getFileHandle(f, "w")
+        super(GffWriter, self).__init__(f)
         self.writeHeader("##gff-version 3")
 
     def writeHeader(self, headerLine):
@@ -209,17 +200,6 @@ class GffWriter(object):
     def writeRecord(self, record):
         assert isinstance(record, Gff3Record)
         self.file.write("{0}\n".format(str(record)))
-
-    def close(self):
-        self.file.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-
 
 #
 # Utility functions

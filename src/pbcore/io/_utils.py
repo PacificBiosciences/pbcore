@@ -29,37 +29,8 @@
 #################################################################################
 
 from __future__ import absolute_import
-import gzip, numpy as np
+import numpy as np
 from cStringIO import StringIO
-from os.path import abspath, expanduser
-
-def isFileLikeObject(o):
-    return hasattr(o, "read") and hasattr(o, "write")
-
-def getFileHandle(filenameOrFile, mode):
-    """
-    Given a filename not ending in ".gz", open the file with the
-    appropriate mode.
-
-    Given a filename ending in ".gz", return a filehandle to the
-    unzipped stream.
-
-    Given a file object, return it unless the mode is incorrect--in
-    that case, raise an exception.
-    """
-    assert mode in ("r", "w")
-
-    if isinstance(filenameOrFile, str):
-        filename = abspath(expanduser(filenameOrFile))
-        if filename.endswith(".gz"):
-            return gzip.open(filename, mode)
-        else:
-            return open(filename, mode)
-    elif isFileLikeObject(filenameOrFile):
-        return filenameOrFile
-    else:
-        raise Exception("Invalid type to getFileHandle")
-
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):
     """

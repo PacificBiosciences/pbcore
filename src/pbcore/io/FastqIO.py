@@ -40,7 +40,7 @@ __all__ = [ "FastqRecord",
             "qvsFromAscii",
             "asciiFromQvs" ]
 
-from pbcore.io._utils import getFileHandle, splitFileContents
+from .base import ReaderBase, WriterBase
 from cStringIO import StringIO
 import numpy as np, re
 
@@ -141,19 +141,12 @@ class FastqRecord(object):
                           self.DELIMITER2,
                           self.qualityString])
 
-class FastqReader(object):
+class FastqReader(ReaderBase):
     """
     Reader for FASTQ files, useable as a one-shot iterator over
     FastqRecord objects.  FASTQ files must follow the four-line
     convention.
     """
-    def __init__(self, f):
-        """
-        Prepare for iteration through the FASTQ file (provided by filename
-        or open file handle).
-        """
-        self.file = getFileHandle(f, "r")
-
     def __iter__(self):
         """
         One-shot iteration support
@@ -164,20 +157,8 @@ class FastqReader(object):
                               lines[1][:-1],
                               qualityString=lines[3][:-1])
 
-    def close(self):
-        """
-        Close the underlying filehandle
-        """
-        self.file.close()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-
-class FastqWriter(object):
+class FastqWriter(WriterBase):
     """
     A FASTQ file writer class
 
@@ -192,13 +173,6 @@ class FastqWriter(object):
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
     """
-    def __init__(self, f):
-        """
-        Prerpare for writing FASTQ records to ``f``, which can be a
-        filename or an open file handle.
-        """
-        self.file = getFileHandle(f, "w")
-
     def writeRecord(self, *args):
         """
         Write a FASTQ record to the file.  If given one argument, it is
@@ -215,18 +189,6 @@ class FastqWriter(object):
             record = FastqRecord(name, sequence, quality)
         self.file.write(str(record))
         self.file.write("\n")
-
-    def close(self):
-        """
-        Close the underlying file handle.
-        """
-        self.file.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
 
 
 ##

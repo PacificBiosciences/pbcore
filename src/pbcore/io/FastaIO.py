@@ -38,7 +38,8 @@ __all__ = [ "FastaRecord",
             "FastaReader",
             "FastaWriter" ]
 
-from pbcore.io._utils import getFileHandle, splitFileContents
+from .base import ReaderBase, WriterBase
+from ._utils import splitFileContents
 import md5
 
 class FastaRecord(object):
@@ -112,7 +113,7 @@ class FastaRecord(object):
             wrap(self.sequence, self.COLUMNS)
 
 
-class FastaReader(object):
+class FastaReader(ReaderBase):
     """
     Streaming reader for FASTA files, useable as a one-shot iterator
     over FastaRecord objects.  Agnostic about line wrapping.
@@ -129,9 +130,6 @@ class FastaReader(object):
     """
     DELIMITER = ">"
 
-    def __init__(self, f):
-        self.file = getFileHandle(f, "r")
-
     def __iter__(self):
         try:
             parts = splitFileContents(self.file, ">")
@@ -141,17 +139,8 @@ class FastaReader(object):
         except AssertionError:
             raise ValueError("Invalid FASTA file")
 
-    def close(self):
-        self.file.close()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-
-class FastaWriter(object):
+class FastaWriter(WriterBase):
     """
     A FASTA file writer class
 
@@ -166,9 +155,6 @@ class FastaWriter(object):
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
     """
-    def __init__(self, f):
-        self.file = getFileHandle(f, "w")
-
     def writeRecord(self, *args):
         """
         Write a FASTA record to the file.  If given one argument, it is
@@ -185,18 +171,6 @@ class FastaWriter(object):
             record = FastaRecord(name, sequence)
         self.file.write(str(record))
         self.file.write("\n")
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def close(self):
-        """
-        Close the underlying file handle.
-        """
-        self.file.close()
 
 
 ##

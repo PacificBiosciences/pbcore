@@ -34,6 +34,4 @@ from .FastaIO import *
 from .FastqIO import *
 from .FastaTable import *
 from .GffIO import *
-from .BedIO import *
-from .VcfIO import *
 from .ReferenceEntry import *
