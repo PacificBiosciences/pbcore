@@ -8,10 +8,10 @@ Installation:
 
 Requirements:
 -------------
-  - Python 2.7
-  - h5py >= 2.0
-  - numpy >= 1.6.0
+- Python 2.7
+- h5py >= 2.0
+- numpy >= 1.6.0
 
 Documentation:
 --------------
-  http://pacificbiosciences.github.com/pbcore
+http://pacificbiosciences.github.com/pbcore
