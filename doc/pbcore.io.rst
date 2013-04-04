@@ -1,5 +1,5 @@
-pbcore.io Package
-=================
+pbcore.io
+=========
 
 The ``pbcore.io`` package provides a number of lightweight interfaces
 to PacBio data files and other standard bioinformatics file formats.

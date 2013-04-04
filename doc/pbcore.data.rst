@@ -1,11 +1,10 @@
-data Package
-============
+pbcore.data
+===========
 
-:mod:`data` Package
--------------------
+:mod:`pbcore.data`
+------------------
 
 .. automodule:: pbcore.data
     :members:
     :undoc-members:
     :show-inheritance:
-

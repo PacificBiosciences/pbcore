@@ -1,5 +1,5 @@
-util Package
-============
+pbcore.util
+===========
 
 :mod:`Process` Module
 ---------------------

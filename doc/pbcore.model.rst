@@ -1,2 +1,2 @@
-model Package
-=============
+pbcore.model
+============
