@@ -210,6 +210,10 @@ class ZmwRead(object):
 
 
 class CCSZmwRead(ZmwRead):
+    """
+    Class providing access to the CCS (circular consensus sequencing)
+    data calculated for a ZMW.
+    """
     def _getBasecallsGroup(self):
         return self.basH5.ccsBasecallsGroup
     def _getOffsets(self):
@@ -228,6 +232,65 @@ def _makeOffsetsDataStructure(h5Group):
     return dict(zip(holeNumber, offsets))
 
 class BasH5Reader(object):
+    """
+    The `BasH5Reader` provides access to the basecall and pulse metric
+    data encoded in PacBio bas.h5 files.  To access data using a
+    `BasH5Reader`, the standard idiom is:
+
+    1. Index into the `BasH5Reader` using the ZMW hole number to get a `Zmw` object::
+
+       >>> from pbcore.io import BasH5Reader
+       >>> b = BasH5Reader("myMovie.bas.h5")
+       >>> zmw8 = b[8]
+
+    2. Extract `ZmwRead` objects from the `Zmw` object by:
+
+       - Using the `.subreads()` method to extract the subreads,
+         which are the subintervals of the raw read corresponding to
+         the SMRTbell insert::
+
+           >>> subreads = zmw8.subreads()
+           >>> print subreads
+           [<ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881>,
+            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398>,
+            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873>,
+            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354>,
+            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495>]
+
+       - Using the `.ccsRead()` method to extract the CCS
+         (consensus) read, which is a consensus sequence
+         precomputed from the subreads.  Note that CCS data is
+         not available for every sequencing ZMW hole, for example
+         some holes have too few subreads for the computation of
+         a consensus::
+
+           >>> zmw8.ccsRead()
+           <CCSZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/ccs>
+
+       - Use the `.read()` method to get the full raw read, or
+         `.read(start, end)` to extract a custom subinterval.
+
+           >>> zmw8.read()
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_5495>
+           >>> zmw8.read(3390, 3400)
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3390_3400>
+
+    3. With a `ZmwRead` object in hand, extract the desired
+       basecalls and pulse metrics::
+
+         >>> subreads[0].readName
+         "m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881"
+         >>> subreads[0].basecalls()
+         "AGCCCCGTCGAGAACATACAGGTGGCCAATTTCACAGCCTCTTGCCTGGGCGATCCCGAACATCGCACCGGA..."
+         >>> subreads[0].InsertionQV()
+         array([12, 12, 10,  2,  7, 14, 13, 18, 15, 16, 16, 15, 10, 12,  3, 14, ...])
+
+    Note that not every ZMW on a chip produces useable sequencing
+    data.  The `BasH5Reader` has a propery `sequencingZmws` is a list
+    of the hole numbers where useable sequence was recorded.
+    Iteration over the `BasH5Reader` object allows you to iterate over
+    the `Zmw` objects providing useable sequence.
+    """
     def __init__(self, filename):
         self.filename = filename
         self.file = h5py.File(self.filename, "r")
@@ -247,10 +310,16 @@ class BasH5Reader(object):
         holeStatus  = self.basecallsGroup["ZMW/HoleStatus"].value
 
         ## XXX: this might want to be parametrizeable in the constructure.
-        self.sequencingZmws = \
+        self._sequencingZmws = \
             self.basecallsGroup["ZMW/HoleNumber"][(holeStatus == SEQUENCING_ZMW)             &
                                                   (self.basecallsGroup["ZMW/NumEvent"] >  0) &
                                                   (hqRegionLength >  0)]
+    @property
+    def sequencingZmws(self):
+        """
+        A list of the hole numbers that produced useable sequence data
+        """
+        return self._sequencingZmws
 
     def __getitem__(self, holeNumber):
         if holeNumber in self.sequencingZmws:
