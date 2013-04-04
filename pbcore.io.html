@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -7,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pbcore.io Package &mdash; pbcore 0.6.0 documentation</title>
+    <title>pbcore.io &mdash; pbcore 0.6.0 documentation</title>
     
     <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -45,8 +46,8 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="pbcore-io-package">
-<h1>pbcore.io Package<a class="headerlink" href="#pbcore-io-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pbcore-io">
+<h1>pbcore.io<a class="headerlink" href="#pbcore-io" title="Permalink to this headline">¶</a></h1>
 <p>The <tt class="docutils literal"><span class="pre">pbcore.io</span></tt> package provides a number of lightweight interfaces
 to PacBio data files and other standard bioinformatics file formats.
 Preferred usage is to import classes directly from the <tt class="docutils literal"><span class="pre">pbcore.io</span></tt>
@@ -92,7 +93,72 @@ convention as Python and the C++ STL.</p>
 <dl class="class">
 <dt id="pbcore.io.BasH5Reader">
 <em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BasH5Reader</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
+<dd><p>The <cite>BasH5Reader</cite> provides access to the basecall and pulse metric
+data encoded in PacBio bas.h5 files.  To access data using a
+<cite>BasH5Reader</cite>, the standard idiom is:</p>
+<ol class="arabic">
+<li><p class="first">Index into the <cite>BasH5Reader</cite> using the ZMW hole number to get a <cite>Zmw</cite> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">BasH5Reader</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">b</span> <span class="o">=</span> <span class="n">BasH5Reader</span><span class="p">(</span><span class="s">&quot;myMovie.bas.h5&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Extract <cite>ZmwRead</cite> objects from the <cite>Zmw</cite> object by:</p>
+<ul>
+<li><p class="first">Using the <cite>.subreads()</cite> method to extract the subreads,
+which are the subintervals of the raw read corresponding to
+the SMRTbell insert:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subreads</span> <span class="o">=</span> <span class="n">zmw8</span><span class="o">.</span><span class="n">subreads</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">subreads</span>
+<span class="go">[&lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881&gt;,</span>
+<span class="go"> &lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398&gt;,</span>
+<span class="go"> &lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873&gt;,</span>
+<span class="go"> &lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354&gt;,</span>
+<span class="go"> &lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495&gt;]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Using the <cite>.ccsRead()</cite> method to extract the CCS
+(consensus) read, which is a consensus sequence
+precomputed from the subreads.  Note that CCS data is
+not available for every sequencing ZMW hole, for example
+some holes have too few subreads for the computation of
+a consensus:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span><span class="o">.</span><span class="n">ccsRead</span><span class="p">()</span>
+<span class="go">&lt;CCSZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/ccs&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Use the <cite>.read()</cite> method to get the full raw read, or
+<cite>.read(start, end)</cite> to extract a custom subinterval.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="go">&lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_5495&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">3390</span><span class="p">,</span> <span class="mi">3400</span><span class="p">)</span>
+<span class="go">&lt;ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3390_3400&gt;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p class="first">With a <cite>ZmwRead</cite> object in hand, extract the desired
+basecalls and pulse metrics:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">subreads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">readName</span>
+<span class="go">&quot;m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subreads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">basecalls</span><span class="p">()</span>
+<span class="go">&quot;AGCCCCGTCGAGAACATACAGGTGGCCAATTTCACAGCCTCTTGCCTGGGCGATCCCGAACATCGCACCGGA...&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">subreads</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">InsertionQV</span><span class="p">()</span>
+<span class="go">array([12, 12, 10,  2,  7, 14, 13, 18, 15, 16, 16, 15, 10, 12,  3, 14, ...])</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Note that not every ZMW on a chip produces useable sequencing
+data.  The <cite>BasH5Reader</cite> has a propery <cite>sequencingZmws</cite> is a list
+of the hole numbers where useable sequence was recorded.
+Iteration over the <cite>BasH5Reader</cite> object allows you to iterate over
+the <cite>Zmw</cite> objects providing useable sequence.</p>
+<dl class="method">
 <dt id="pbcore.io.BasH5Reader.close">
 <tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.close" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -100,6 +166,156 @@ convention as Python and the C++ STL.</p>
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.movieName">
 <tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.movieName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.sequencingZmws">
+<tt class="descname">sequencingZmws</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.sequencingZmws" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the hole numbers that produced useable sequence data</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.BasH5Reader.Zmw">
+<em class="property">class </em><tt class="descclassname">pbcore.io.BasH5Reader.</tt><tt class="descname">Zmw</tt><big>(</big><em>basH5</em>, <em>holeNumber</em>, <em>regionTableStartRow</em>, <em>regionTableEndRow</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw" title="Permalink to this definition">¶</a></dt>
+<dd><p>A Zmw represents all data from a ZMW (zero-mode waveguide) hole
+within a bas.h5 movie file.  Accessor methods provide convenient
+access to the read (or subreads), and to the region table entries
+for this hole.</p>
+<p>Note that access is only permitted to data within the &#8220;HQ region&#8221;
+defined by the upstream Primary analysis; intervals are clipped to
+the bounds defined by the HQ region.</p>
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.adapterRegions">
+<tt class="descname">adapterRegions</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapterRegions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.adapters">
+<tt class="descname">adapters</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.Zmw.basH5">
+<tt class="descname">basH5</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.basH5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.ccsRead">
+<tt class="descname">ccsRead</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.ccsRead" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.Zmw.holeNumber">
+<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.holeNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.hqRegion">
+<tt class="descname">hqRegion</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.hqRegion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.insertRegions">
+<tt class="descname">insertRegions</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.insertRegions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.read">
+<tt class="descname">read</tt><big>(</big><em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.Zmw.regionTable">
+<tt class="descname">regionTable</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.regionTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.Zmw.regionTableEndRow">
+<tt class="descname">regionTableEndRow</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.regionTableEndRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.Zmw.regionTableStartRow">
+<tt class="descname">regionTableStartRow</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.regionTableStartRow" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.Zmw.subreads">
+<tt class="descname">subreads</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.subreads" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.BasH5Reader.ZmwRead">
+<em class="property">class </em><tt class="descclassname">pbcore.io.BasH5Reader.</tt><tt class="descname">ZmwRead</tt><big>(</big><em>basH5</em>, <em>holeNumber</em>, <em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead" title="Permalink to this definition">¶</a></dt>
+<dd><p>A ZmwRead represents the data features (basecalls as well as pulse
+features) recorded from the ZMW, delimited by readStart and readEnd.</p>
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.DeletionQV">
+<tt class="descname">DeletionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.DeletionTag">
+<tt class="descname">DeletionTag</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.InsertionQV">
+<tt class="descname">InsertionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.MergeQV">
+<tt class="descname">MergeQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.MergeQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.QualityValue">
+<tt class="descname">QualityValue</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.QualityValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.SubstitutionQV">
+<tt class="descname">SubstitutionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.basH5">
+<tt class="descname">basH5</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.basH5" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.basecalls">
+<tt class="descname">basecalls</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.basecalls" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.holeNumber">
+<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.holeNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.qv">
+<tt class="descname">qv</tt><big>(</big><em>qvName</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.qv" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.readEnd">
+<tt class="descname">readEnd</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readEnd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.readName">
+<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BasH5Reader.ZmwRead.readStart">
+<tt class="descname">readStart</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -372,9 +588,12 @@ aligned against.</p>
        <span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">),</span>
        <span class="p">(</span><span class="s">&#39;FullName&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">),</span>
        <span class="p">(</span><span class="s">&#39;Length&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
-       <span class="p">(</span><span class="s">&#39;MD5&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">)])</span>
+       <span class="p">(</span><span class="s">&#39;MD5&#39;</span><span class="p">,</span> <span class="n">string</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;StartRow&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span>
+       <span class="p">(</span><span class="s">&#39;EndRow&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="p">])</span>
 </pre></div>
 </div>
+<p>(the last two columns are omitted for unsorted <cite>cmp.h5</cite> files).</p>
 </dd></dl>
 
 <dl class="method">
@@ -805,12 +1024,6 @@ over FastaRecord objects.  Agnostic about line wrapping.</p>
 <p>(Notice that underlying file will be automatically closed after
 exit from the <cite>with</cite> block.)</p>
 <dl class="method">
-<dt id="pbcore.io.FastaWriter.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the underlying file handle.</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="pbcore.io.FastaWriter.writeRecord">
 <tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a FASTA record to the file.  If given one argument, it is
@@ -874,12 +1087,6 @@ format, as wrapped FASTQs can&#8217;t easily be safely parsed.</p>
 <dd><p>Reader for FASTQ files, useable as a one-shot iterator over
 FastqRecord objects.  FASTQ files must follow the four-line
 convention.</p>
-<dl class="method">
-<dt id="pbcore.io.FastqReader.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastqReader.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the underlying filehandle</p>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="class">
@@ -894,12 +1101,6 @@ convention.</p>
 </div>
 <p>(Notice that underlying file will be automatically closed after
 exit from the <cite>with</cite> block.)</p>
-<dl class="method">
-<dt id="pbcore.io.FastqWriter.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter.close" title="Permalink to this definition">¶</a></dt>
-<dd><p>Close the underlying file handle.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="pbcore.io.FastqWriter.writeRecord">
 <tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
@@ -977,7 +1178,7 @@ Trailing whitespace is ignored.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">pbcore.io Package</a><ul>
+<li><a class="reference internal" href="#">pbcore.io</a><ul>
 <li><a class="reference internal" href="#bas-h5-format-pacbio-basecalls-file"><cite>bas.h5</cite> Format (PacBio basecalls file)</a></li>
 <li><a class="reference internal" href="#cmp-h5-format-pacbio-alignment-file"><cite>cmp.h5</cite> format (PacBio alignment file)</a></li>
 <li><a class="reference internal" href="#fasta-format">FASTA Format</a></li>

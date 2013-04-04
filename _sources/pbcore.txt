@@ -1,6 +1,14 @@
 pbcore Package
 ==============
 
+:mod:`pbcore` Package
+---------------------
+
+.. automodule:: pbcore
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 Subpackages
 -----------
 

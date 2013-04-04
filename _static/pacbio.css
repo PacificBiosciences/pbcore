@@ -10,10 +10,13 @@
 body {
     font-family: Arial, sans-serif;
     font-size: 100%;
-    background-color: #111;
+    background-color: #555;
     color: #555;
     margin: 0;
     padding: 0;
+    min-width: 500px;
+    max-width: 956px;
+    margin: 0 auto;
 }
 
 div.documentwrapper {
@@ -27,6 +30,7 @@ div.bodywrapper {
 
 hr{
     border: 1px solid #B1B4B6;
+    
 }
  
 div.document {
@@ -36,29 +40,30 @@ div.document {
 div.body {
     background-color: #ffffff;
     color: #3E4349;
-    padding: 0 30px 30px 30px;
+    padding: 30px 30px 30px 30px;
     font-size: 0.8em;
 }
  
 div.footer {
     color: #555;
 	background-color: #fff;
-    width: 100%;
     padding: 13px 0;
     text-align: center;
     font-size: 75%;
+
 }
- 
 div.footer a {
     color: #444;
     text-decoration: underline;
 }
  
 div.related {
-    background: #8A8C8F url(headerGradient.jpg);
+    background: #fff url(headerGradient.jpg);
     line-height: 80px;
     color: #fff;
     font-size: 0.80em;
+    height: 79px;
+    z-index: -1;
 }
 
 div.related ul {
