@@ -49,6 +49,13 @@ on top of the HDF5 standard.
     :members:
     :undoc-members:
 
+.. autoclass:: pbcore.io.BasH5Reader.Zmw
+    :members:
+    :undoc-members:
+
+.. autoclass:: pbcore.io.BasH5Reader.ZmwRead
+    :members:
+    :undoc-members:
 
 .. autoclass:: pbcore.io.BasH5IO.BasH5
     :members:

@@ -85,13 +85,14 @@ def _makeQvAccessor(featureName):
 
 class Zmw(object):
     """
-    A Zmw represents all data from a Zmw hole within a BasH5 movie
-    file.  Accessor methods provide convenient access to the read (or
-    subreads), and to the region table entries for this hole.
+    A Zmw represents all data from a ZMW (zero-mode waveguide) hole
+    within a bas.h5 movie file.  Accessor methods provide convenient
+    access to the read (or subreads), and to the region table entries
+    for this hole.
 
     Note that access is only permitted to data within the "HQ region"
-    defined by Primary; intervals are clipped to the bounds defined by
-    the HQ region.
+    defined by the upstream Primary analysis; intervals are clipped to
+    the bounds defined by the HQ region.
     """
     __slots__ = [ "basH5", "holeNumber",
                   "regionTableStartRow", "regionTableEndRow" ]
