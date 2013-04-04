@@ -38,7 +38,7 @@ from collections import Counter
 from itertools import groupby
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
-from pbcore.io._utils import rec_join
+from pbcore.io._utils import rec_join, arrayFromDataset
 
 # ========================================
 #  Data manipulation routines.
@@ -109,18 +109,6 @@ _exoneratePlusTranscriptTable = \
                   " ***||Z"
                   " |||||Z"
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
-
-def arrayFromDataset(ds, offsetBegin, offsetEnd):
-    """
-    Extract a one-dimensional array from an HDF5 dataset.
-    """
-    shape = (offsetEnd - offsetBegin,)
-    a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape) # pylint: disable=E1101
-    fspace = ds.id.get_space()
-    fspace.select_hyperslab((offsetBegin,), shape, (1,))
-    ds.id.read(mspace, fspace, a)
-    return a
 
 def readFromAlignmentArray(a, gapped=True, complement=False):
     """

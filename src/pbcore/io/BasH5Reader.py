@@ -35,15 +35,7 @@ __all__ = [ "BasH5Reader" ]
 
 import h5py, numpy as np, os.path
 from bisect import bisect_left, bisect_right
-
-def arrayFromDataset(ds, offsetBegin, offsetEnd):
-    shape = (offsetEnd - offsetBegin,)
-    a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape)
-    fspace = ds.id.get_space()
-    fspace.select_hyperslab((offsetBegin,), shape, (1,))
-    ds.id.read(mspace, fspace, a)
-    return a
+from ._utils import arrayFromDataset
 
 def intersectRanges(r1, r2):
     b1, e1 = r1
