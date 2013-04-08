@@ -20,7 +20,7 @@ class TestBasH5Reader:
                   4004, 4005, 4006, 4007, 4009],
                  self.bas1.sequencingZmws)
         for zmw in self.bas1:
-            assert len(zmw.subreads()) > 0
+            assert len(zmw.subreads) > 0
 
     def test_BasH5Reader_basecallsVsCmpH5(self):
         aln = self.cmpH5[2]
@@ -52,19 +52,16 @@ class TestBasH5Reader:
                       [   7,    2,    0, 1578,    0]], dtype=np.int32),
             zmw.regionTable.view(dtype=(np.int32, 5)))
 
-        EQ((0, 1578),
-           zmw.hqRegion())
-        EQ([(299, 343), (991, 1032)],
-           zmw.adapterRegions())
-        EQ([(0, 299), (343, 991), (1032, 1578)],
-           zmw.insertRegions())
+        EQ((0, 1578), zmw.hqRegion)
+        EQ([(299, 343), (991, 1032)], zmw.adapterRegions)
+        EQ([(0, 299), (343, 991), (1032, 1578)], zmw.insertRegions)
 
     def test_BasH5Reader_invalidRangeUsage(self):
         # Make sure that attempts to access an invalid data range from
         # a ZMW (i.e., outside the HQ region) throw an exception.
 
         zmw = self.bas1[8]
-        EQ((3381, 5495), zmw.hqRegion())
+        EQ((3381, 5495), zmw.hqRegion)
 
         # This is OK.
         zmw.read(4000, 5000)
@@ -78,7 +75,7 @@ class TestBasH5Reader:
             zmw.read(5000, 4000)
 
     def test_BasH5Reader_ccs(self):
-        EQ(self.bas1[4006].ccsRead().basecalls(),
+        EQ(self.bas1[4006].ccsRead.basecalls(),
            ''.join(['GGCGCACGGAGGAGCAAGCGTGACAGTCCCACGTCATGCCCGCCGACG',
                     'ATATCGAGCTCGCGCTCACCGCCAGGGTGTGAAGTGAATTCACGGTGC',
                     'CGCCGAAAGCTGGGCCGGCTTTCGTTCCTTCGCCGGTCAGGAGAAGGC',

@@ -86,42 +86,44 @@ class Zmw(object):
     defined by the upstream Primary analysis; intervals are clipped to
     the bounds defined by the HQ region.
     """
-    __slots__ = [ "baxH5", "holeNumber", "index",
-                  "regionTableStartRow", "regionTableEndRow" ]
+    __slots__ = [ "baxH5", "holeNumber", "index" ]
 
-    def __init__(self, baxH5, holeNumber, regionTableStartRow, regionTableEndRow):
+    def __init__(self, baxH5, holeNumber):
         self.baxH5               = baxH5
         self.holeNumber          = holeNumber
         self.index               = self.baxH5._holeNumberToIndex[holeNumber]
-        self.regionTableStartRow = regionTableStartRow
-        self.regionTableEndRow   = regionTableEndRow
 
     @property
     def regionTable(self):
-        return self.baxH5.regionTable[self.regionTableStartRow:self.regionTableEndRow]
+        regionTableStartRow = bisect_left(self.baxH5.regionTable.holeNumber, self.holeNumber)
+        regionTableEndRow   = bisect_right(self.baxH5.regionTable.holeNumber, self.holeNumber,
+                                           lo=regionTableStartRow)
+        return self.baxH5.regionTable[regionTableStartRow:regionTableEndRow]
 
     #
     # The following calls return one or more intervals ( (int, int) ).
     # All intervals are clipped to the hqRegion.
     #
+    @property
     def adapterRegions(self):
         unclippedAdapterRegions = \
            [ (region.regionStart, region.regionEnd)
              for region in self.regionTable
              if region.regionType == ADAPTER_REGION ]
-        hqRegion = self.hqRegion()
+        hqRegion = self.hqRegion
         return removeNones([ intersectRanges(hqRegion, region)
                              for region in unclippedAdapterRegions ])
 
+    @property
     def insertRegions(self):
         unclippedInsertRegions = \
            [ (region.regionStart, region.regionEnd)
              for region in self.regionTable
              if region.regionType == INSERT_REGION ]
-        hqRegion = self.hqRegion()
+        hqRegion = self.hqRegion
         return removeNones([ intersectRanges(hqRegion, region)
                              for region in unclippedInsertRegions ])
-
+    @property
     def hqRegion(self):
         hqRegions = [ (region.regionStart, region.regionEnd)
                       for region in self.regionTable
@@ -129,19 +131,29 @@ class Zmw(object):
         assert len(hqRegions) == 1
         return hqRegions[0]
 
-    def predictedAccuracy(self):
+    @property
+    def readScore(self):
         """
-        Return a prediction of the accuracy (between 0 and 1) of the
+        Return the "read score", a prediction of the accuracy (between 0 and 1) of the
         basecalls from this ZMW, from the `ReadScore` dataset in the
         file
         """
-        return self.baxH5._predictedAccuracies[self.index]
+        return self.baxH5._readScores[self.index]
+
+    @property
+    def productivity(self):
+        """
+        Return the 'productivity' of this ZMW, which is the estimated
+        number of polymerase reactions taking place within it.  For
+        example, a doubly-loaded ZMW would have productivity 2.
+        """
+        return self.baxH5._productivities[self.index]
 
     #
     # The following calls return one or more ZmwRead objects.
     #
     def read(self, readStart=None, readEnd=None):
-        hqStart, hqEnd = self.hqRegion()
+        hqStart, hqEnd = self.hqRegion
         readStart = readStart or hqStart
         readEnd   = readEnd   or hqEnd
         if ((readStart > readEnd) or
@@ -151,14 +163,16 @@ class Zmw(object):
         else:
             return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
+    @property
     def subreads(self):
         return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.insertRegions() ]
+                 for (readStart, readEnd) in self.insertRegions ]
 
+    @property
     def adapters(self):
         return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.adapterRegions() ]
-
+                 for (readStart, readEnd) in self.adapterRegions ]
+    @property
     def ccsRead(self):
         baseOffset  = self.baxH5._ccsOffsetsByHole[self.holeNumber]
         if (baseOffset[1] - baseOffset[0]) <= 0:
@@ -263,7 +277,8 @@ class BaxH5Reader(object):
         holeNumbers = self.file["/PulseData/BaseCalls/ZMW/HoleNumber"].value
         self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
 
-        self._predictedAccuracies = self._basecallsGroup["ZMWMetrics/ReadScore"]
+        self._readScores     = self._basecallsGroup["ZMWMetrics/ReadScore"]
+        self._productivities = self._basecallsGroup["ZMWMetrics/Productivity"]
 
         ## now init region table.
         self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
@@ -286,14 +301,7 @@ class BaxH5Reader(object):
         return self._sequencingZmws
 
     def __getitem__(self, holeNumber):
-        if holeNumber in self.sequencingZmws:
-            offsetStart, offsetEnd = self._offsetsByHole[holeNumber]
-            regionTableStartRow = bisect_left(self.regionTable.holeNumber, holeNumber)
-            regionTableEndRow   = bisect_right(self.regionTable.holeNumber, holeNumber,
-                                               lo=regionTableStartRow)
-            return Zmw(self, holeNumber, regionTableStartRow, regionTableEndRow)
-        else:
-            return None
+        return Zmw(self, holeNumber)
 
     @property
     def movieName(self):
