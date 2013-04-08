@@ -28,8 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-# Author: David Alexander
-
+# Authors: David Alexander, Jim Bullard
 
 __all__ = [ "BasH5Reader" ]
 
@@ -87,12 +86,13 @@ class Zmw(object):
     defined by the upstream Primary analysis; intervals are clipped to
     the bounds defined by the HQ region.
     """
-    __slots__ = [ "basH5", "holeNumber",
+    __slots__ = [ "basH5", "holeNumber", "index",
                   "regionTableStartRow", "regionTableEndRow" ]
 
     def __init__(self, basH5, holeNumber, regionTableStartRow, regionTableEndRow):
         self.basH5               = basH5
         self.holeNumber          = holeNumber
+        self.index               = self.basH5._holeNumberToIndex[holeNumber]
         self.regionTableStartRow = regionTableStartRow
         self.regionTableEndRow   = regionTableEndRow
 
@@ -128,6 +128,14 @@ class Zmw(object):
                       if region.regionType == HQ_REGION ]
         assert len(hqRegions) == 1
         return hqRegions[0]
+
+    def predictedAccuracy(self):
+        """
+        Return a prediction of the accuracy (between 0 and 1) of the
+        basecalls from this ZMW, from the `ReadScore` dataset in the
+        file
+        """
+        return self.basH5._predictedAccuracies[self.index]
 
     #
     # The following calls return one or more ZmwRead objects.
@@ -249,6 +257,11 @@ class BaxH5Reader(object):
 
         self._ccsBasecallsGroup = self.file['/PulseData/ConsensusBaseCalls']
         self._ccsOffsetsByHole = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
+
+        holeNumbers = self.file["/PulseData/BaseCalls/ZMW/HoleNumber"].value
+        self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
+
+        self._predictedAccuracies = self._basecallsGroup["ZMWMetrics/ReadScore"]
 
         ## now init region table.
         self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
