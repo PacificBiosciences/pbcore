@@ -277,8 +277,8 @@ class BaxH5Reader(object):
         holeNumbers = self.file["/PulseData/BaseCalls/ZMW/HoleNumber"].value
         self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
 
-        self._readScores     = self._basecallsGroup["ZMWMetrics/ReadScore"]
-        self._productivities = self._basecallsGroup["ZMWMetrics/Productivity"]
+        self._readScores     = self._basecallsGroup["ZMWMetrics/ReadScore"].value
+        self._productivities = self._basecallsGroup["ZMWMetrics/Productivity"].value
 
         ## now init region table.
         self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
