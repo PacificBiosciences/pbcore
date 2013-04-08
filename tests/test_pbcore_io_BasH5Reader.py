@@ -1,5 +1,6 @@
-from numpy.testing import assert_array_equal as ARRAY_EQ
 from nose.tools import assert_equal as EQ, assert_raises
+from numpy.testing import (assert_array_equal as ARRAY_EQ,
+                           assert_almost_equal as APPROX)
 import numpy as np
 
 from pbcore import data
@@ -81,6 +82,9 @@ class TestBasH5Reader:
                     'CGCCGAAAGCTGGGCCGGCTTTCGTTCCTTCGCCGGTCAGGAGAAGGC',
                     'GGACCCCGTCGTGGGCCATTCCGAGCCTGGAGACAGCGGTCGAAAAAG',
                     'CCTTCGCCAAGCCGGTGGCCAAATGGTCGGCCAGCGAGAATCCGTGC']))
-    
-        
-        
+
+    def test_BasH5Reader_productivity(self):
+        EQ(1, self.bas1[4006].productivity)
+
+    def test_BasH5Reader_readScore(self):
+        APPROX(0.7822426, self.bas1[4006].readScore)
