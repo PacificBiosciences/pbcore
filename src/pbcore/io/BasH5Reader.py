@@ -86,19 +86,19 @@ class Zmw(object):
     defined by the upstream Primary analysis; intervals are clipped to
     the bounds defined by the HQ region.
     """
-    __slots__ = [ "basH5", "holeNumber", "index",
+    __slots__ = [ "baxH5", "holeNumber", "index",
                   "regionTableStartRow", "regionTableEndRow" ]
 
-    def __init__(self, basH5, holeNumber, regionTableStartRow, regionTableEndRow):
-        self.basH5               = basH5
+    def __init__(self, baxH5, holeNumber, regionTableStartRow, regionTableEndRow):
+        self.baxH5               = baxH5
         self.holeNumber          = holeNumber
-        self.index               = self.basH5._holeNumberToIndex[holeNumber]
+        self.index               = self.baxH5._holeNumberToIndex[holeNumber]
         self.regionTableStartRow = regionTableStartRow
         self.regionTableEndRow   = regionTableEndRow
 
     @property
     def regionTable(self):
-        return self.basH5.regionTable[self.regionTableStartRow:self.regionTableEndRow]
+        return self.baxH5.regionTable[self.regionTableStartRow:self.regionTableEndRow]
 
     #
     # The following calls return one or more intervals ( (int, int) ).
@@ -135,7 +135,7 @@ class Zmw(object):
         basecalls from this ZMW, from the `ReadScore` dataset in the
         file
         """
-        return self.basH5._predictedAccuracies[self.index]
+        return self.baxH5._predictedAccuracies[self.index]
 
     #
     # The following calls return one or more ZmwRead objects.
@@ -149,7 +149,7 @@ class Zmw(object):
             (hqEnd  < readEnd)):
             raise IndexError, "Invalid slice of ZMW"
         else:
-            return ZmwRead(self.basH5, self.holeNumber, readStart, readEnd)
+            return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
     def subreads(self):
         return [ self.read(readStart, readEnd)
@@ -160,11 +160,11 @@ class Zmw(object):
                  for (readStart, readEnd) in self.adapterRegions() ]
 
     def ccsRead(self):
-        baseOffset  = self.basH5._ccsOffsetsByHole[self.holeNumber]
+        baseOffset  = self.baxH5._ccsOffsetsByHole[self.holeNumber]
         if (baseOffset[1] - baseOffset[0]) <= 0:
             return None
         else:
-            return CCSZmwRead(self.basH5, self.holeNumber, 0,
+            return CCSZmwRead(self.baxH5, self.holeNumber, 0,
                               baseOffset[1] - baseOffset[0])
 
 class ZmwRead(object):
@@ -172,23 +172,23 @@ class ZmwRead(object):
     A ZmwRead represents the data features (basecalls as well as pulse
     features) recorded from the ZMW, delimited by readStart and readEnd.
     """
-    __slots__ = [ "basH5", "holeNumber", "readStart", "readEnd" ]
+    __slots__ = [ "baxH5", "holeNumber", "readStart", "readEnd" ]
 
-    def __init__(self, basH5, holeNumber, readStart=None, readEnd=None):
-        self.basH5        = basH5
+    def __init__(self, baxH5, holeNumber, readStart=None, readEnd=None):
+        self.baxH5        = baxH5
         self.holeNumber   = holeNumber
         self.readStart    = readStart
         self.readEnd      = readEnd
 
     def _getBasecallsGroup(self):
-        return self.basH5._basecallsGroup
+        return self.baxH5._basecallsGroup
 
     def _getOffsets(self):
-        return self.basH5._offsetsByHole
+        return self.baxH5._offsetsByHole
 
     @property
     def readName(self):
-        return "%s/%d/%d_%d" % (self.basH5.movieName,
+        return "%s/%d/%d_%d" % (self.baxH5.movieName,
                                 self.holeNumber,
                                 self.readStart,
                                 self.readEnd)
@@ -225,14 +225,14 @@ class CCSZmwRead(ZmwRead):
     data calculated for a ZMW.
     """
     def _getBasecallsGroup(self):
-        return self.basH5._ccsBasecallsGroup
+        return self.baxH5._ccsBasecallsGroup
 
     def _getOffsets(self):
-        return self.basH5._ccsOffsetsByHole
+        return self.baxH5._ccsOffsetsByHole
 
     @property
     def readName(self):
-        return "%s/%d/ccs" % (self.basH5.movieName, self.holeNumber)
+        return "%s/%d/ccs" % (self.baxH5.movieName, self.holeNumber)
 
 def _makeOffsetsDataStructure(h5Group):
     numEvent   = h5Group["ZMW/NumEvent"].value
