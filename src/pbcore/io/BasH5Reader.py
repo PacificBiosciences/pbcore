@@ -33,8 +33,9 @@
 
 __all__ = [ "BasH5Reader" ]
 
-import h5py, numpy as np, os.path
+import h5py, numpy as np, os.path as op
 from bisect import bisect_left, bisect_right
+from operator import getitem
 from ._utils import arrayFromDataset
 
 def intersectRanges(r1, r2):
@@ -172,7 +173,8 @@ class ZmwRead(object):
         self.readEnd      = readEnd
 
     def _getBasecallsGroup(self):
-        return self.basH5.basecallsGroup
+        return self.basH5._basecallsGroup
+
     def _getOffsets(self):
         return self.basH5._offsetsByHole
 
@@ -215,7 +217,8 @@ class CCSZmwRead(ZmwRead):
     data calculated for a ZMW.
     """
     def _getBasecallsGroup(self):
-        return self.basH5.ccsBasecallsGroup
+        return self.basH5._ccsBasecallsGroup
+
     def _getOffsets(self):
         return self.basH5._ccsOffsetsByHole
 
@@ -230,6 +233,75 @@ def _makeOffsetsDataStructure(h5Group):
     beginOffset = np.hstack(([0], endOffset[0:-1]))
     offsets = zip(beginOffset, endOffset)
     return dict(zip(holeNumber, offsets))
+
+
+class BaxH5Reader(object):
+    """
+    The `BaxH5Reader` class provides access to bax.h5 file and
+    single-part bas.h5 files.
+    """
+    def __init__(self, filename):
+        self.filename = op.abspath(op.expanduser(filename))
+        self.file = h5py.File(self.filename, "r")
+
+        self._basecallsGroup = self.file["/PulseData/BaseCalls"]
+        self._offsetsByHole = _makeOffsetsDataStructure(self._basecallsGroup)
+
+        self._ccsBasecallsGroup = self.file['/PulseData/ConsensusBaseCalls']
+        self._ccsOffsetsByHole = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
+
+        ## now init region table.
+        self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
+                                           self.file["/PulseData/Regions"].value)
+        isHqRegion = self.regionTable.regionType == HQ_REGION
+        hqRegions  = self.regionTable[isHqRegion, :]
+        hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
+        holeStatus  = self._basecallsGroup["ZMW/HoleStatus"].value
+
+        ## XXX: this might want to be parametrizeable in the constructure.
+        self._sequencingZmws = \
+            self._basecallsGroup["ZMW/HoleNumber"][(holeStatus == SEQUENCING_ZMW)              &
+                                                   (self._basecallsGroup["ZMW/NumEvent"] >  0) &
+                                                   (hqRegionLength >  0)]
+    @property
+    def sequencingZmws(self):
+        """
+        A list of the hole numbers that produced useable sequence data
+        """
+        return self._sequencingZmws
+
+    def __getitem__(self, holeNumber):
+        if holeNumber in self.sequencingZmws:
+            offsetStart, offsetEnd = self._offsetsByHole[holeNumber]
+            regionTableStartRow = bisect_left(self.regionTable.holeNumber, holeNumber)
+            regionTableEndRow   = bisect_right(self.regionTable.holeNumber, holeNumber,
+                                               lo=regionTableStartRow)
+            return Zmw(self, holeNumber, regionTableStartRow, regionTableEndRow)
+        else:
+            return None
+
+    @property
+    def movieName(self):
+        return op.basename(self.filename).split('.')[0]
+
+    def __len__(self):
+        return len(self.sequencingZmws)
+
+    def close(self):
+        if hasattr(self, "file") and self.file != None:
+            self.file.close()
+            self.file = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def __iter__(self):
+        for holeNumber in self.sequencingZmws:
+            yield self[holeNumber]
+
 
 class BasH5Reader(object):
     """
@@ -292,48 +364,32 @@ class BasH5Reader(object):
     the `Zmw` objects providing useable sequence.
     """
     def __init__(self, filename):
-        self.filename = filename
+        self.filename = op.abspath(op.expanduser(filename))
         self.file = h5py.File(self.filename, "r")
+        # Is this a multi-part or single-part?
+        if self.file.get("MultiPart"):
+            directory = op.dirname(self.filename)
+            self._parts = [ BaxH5Reader(op.join(directory, fn))
+                            for fn in self.file["/MultiPart/Parts"] ]
+            self._holeLookupVector = self.file["/MultiPart/HoleLookup"][:,1]
+            self._holeLookup = self._holeLookupVector.__getitem__
+        else:
+            self._parts = [ BaxH5Reader(self.filename) ]
+            self._holeLookup = (lambda holeNumber: 1)
+        self._sequencingZmws = np.concatenate([ part.sequencingZmws
+                                                for part in self._parts ])
 
-        self.basecallsGroup = self.file["/PulseData/BaseCalls"]
-        self._offsetsByHole = _makeOffsetsDataStructure(self.basecallsGroup)
+    @property
+    def parts(self):
+        return self._parts
 
-        self.ccsBasecallsGroup = self.file['/PulseData/ConsensusBaseCalls']
-        self._ccsOffsetsByHole = _makeOffsetsDataStructure(self.ccsBasecallsGroup)
-
-        ## now init region table.
-        self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
-                                           self.file["/PulseData/Regions"].value)
-        isHqRegion = self.regionTable.regionType == HQ_REGION
-        hqRegions  = self.regionTable[isHqRegion, :]
-        hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
-        holeStatus  = self.basecallsGroup["ZMW/HoleStatus"].value
-
-        ## XXX: this might want to be parametrizeable in the constructure.
-        self._sequencingZmws = \
-            self.basecallsGroup["ZMW/HoleNumber"][(holeStatus == SEQUENCING_ZMW)             &
-                                                  (self.basecallsGroup["ZMW/NumEvent"] >  0) &
-                                                  (hqRegionLength >  0)]
     @property
     def sequencingZmws(self):
-        """
-        A list of the hole numbers that produced useable sequence data
-        """
         return self._sequencingZmws
 
-    def __getitem__(self, holeNumber):
-        if holeNumber in self.sequencingZmws:
-            offsetStart, offsetEnd = self._offsetsByHole[holeNumber]
-            regionTableStartRow = bisect_left(self.regionTable.holeNumber, holeNumber)
-            regionTableEndRow   = bisect_right(self.regionTable.holeNumber, holeNumber,
-                                               lo=regionTableStartRow)
-            return Zmw(self, holeNumber, regionTableStartRow, regionTableEndRow)
-        else:
-            return None
-
-    @property
-    def movieName(self):
-        return os.path.basename(self.filename).split('.')[0]
+    def __iter__(self):
+        for holeNumber in self.sequencingZmws:
+            yield self[holeNumber]
 
     def __len__(self):
         return len(self.sequencingZmws)
@@ -349,7 +405,29 @@ class BasH5Reader(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def __del__(self):
+    def __getitem__(self, holeNumber):
+        part = self.parts[self._holeLookup(holeNumber)-1]
+        return part[holeNumber]
+
+    @property
+    def movieName(self):
+        # FIXME: better to use the name in /ScanData/RunInfo/MovieName
+        return op.basename(self.filename).split('.')[0]
+
+    def __len__(self):
+        return len(self.sequencingZmws)
+
+    def close(self):
+        if hasattr(self, "file") and self.file != None:
+            self.file.close()
+            self.file = None
+        for part in self.parts:
+            part.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
     def __iter__(self):
