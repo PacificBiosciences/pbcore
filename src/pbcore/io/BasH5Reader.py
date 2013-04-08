@@ -428,9 +428,27 @@ class BasH5Reader(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
-    def __getitem__(self, holeNumber):
+    def _getitemScalar(self, holeNumber):
         part = self.parts[self._holeLookup(holeNumber)-1]
         return part[holeNumber]
+
+    def __getitem__(self, holeNumbers):
+        if (isinstance(holeNumbers, int) or
+            issubclass(type(holeNumbers), np.integer)):
+            return self._getitemScalar(holeNumbers)
+        elif isinstance(holeNumbers, slice):
+            return [ self._getitemScalar(r)
+                     for r in xrange(*holeNumbers.indices(len(self)))]
+        elif isinstance(holeNumbers, list) or isinstance(holeNumbers, np.ndarray):
+            if len(holeNumbers) == 0:
+                return []
+            else:
+                entryType = type(holeNumbers[0])
+                if entryType == int or issubclass(entryType, np.integer):
+                    return [ self._getitemScalar(r) for r in holeNumbers ]
+                elif entryType == bool or issubclass(entryType, np.bool_):
+                    return [ self._getitemScalar(r) for r in np.flatnonzero(holeNumbers) ]
+        raise TypeError, "Invalid type for BasH5Reader slicing"
 
     @property
     def movieName(self):
