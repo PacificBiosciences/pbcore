@@ -211,6 +211,8 @@ class ZmwRead(object):
         return arrayFromDataset(self._getBasecallsGroup()[qvName],
                                 offsetBegin, offsetEnd)
 
+    IPD            = _makeQvAccessor("IPD")
+    PulseWidth     = _makeQvAccessor("PulseWidth")
     QualityValue   = _makeQvAccessor("QualityValue")
     InsertionQV    = _makeQvAccessor("InsertionQV")
     DeletionQV     = _makeQvAccessor("DeletionQV")
