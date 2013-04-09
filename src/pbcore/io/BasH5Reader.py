@@ -181,6 +181,12 @@ class Zmw(object):
             return CCSZmwRead(self.baxH5, self.holeNumber, 0,
                               baseOffset[1] - baseOffset[0])
 
+    def __repr__(self):
+        zmwName = "%s/%d" % (self.baxH5.movieName,
+                             self.holeNumber)
+        return "<Zmw: %s>" % zmwName
+
+
 class ZmwRead(object):
     """
     A ZmwRead represents the data features (basecalls as well as pulse
@@ -474,3 +480,6 @@ class BasH5Reader(object):
     def __iter__(self):
         for holeNumber in self.sequencingZmws:
             yield self[holeNumber]
+
+    def __repr__(self):
+        return "<BasH5Reader: %s>" % op.basename(self.filename)
