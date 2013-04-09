@@ -5,9 +5,13 @@ if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
     print "pbcore requires Python 2.7"
     sys.exit(-1)
 
+globals = {}
+execfile("src/pbcore/__init__.py", globals)
+__VERSION__ = globals["__VERSION__"]
+
 setup(
     name = 'pbcore',
-    version='0.6.0',
+    version=__VERSION__,
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     license=open('LICENSES.txt').read(),
