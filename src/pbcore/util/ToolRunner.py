@@ -28,8 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-import argparse
-import logging
+import argparse, cProfile, logging, pstats
 
 class PBToolRunner(object):
     @staticmethod
@@ -49,6 +48,8 @@ class PBToolRunner(object):
         self._parser.add_argument('-d', '--debug', action='store_true', dest='debug', default=False, 
                                  help='turn on progress monitoring to stdout and keep temp files [%(default)s]')
         self._parser.add_argument('-v', '--version', action='version', version= '%(prog)s ' + self.getVersion())
+
+        self._parser.add_argument("--profile", action="store_true", help="Print runtime profile at exit")
 
     def _setMainParser(self):
         self.parser = self._parser
@@ -71,9 +72,13 @@ class PBToolRunner(object):
         self.parseArgs()
         self.setupLogging()
         self.validateArgs()
-        # return the results of run, because this will often go
-        # directly into sys.exit.
-        return self.run()
+        if self.args.profile:
+            l = locals()
+            cProfile.runctx("_rv=self.run()", globals(), l, "profile.out")
+            pstats.Stats("profile.out").sort_stats("time").print_stats(20)
+            return l["_rv"]
+        else:
+            return self.run()
 
     def run(self):
         raise NotImplementedError()
