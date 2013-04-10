@@ -88,3 +88,11 @@ class TestBasH5Reader:
 
     def test_BasH5Reader_readScore(self):
         APPROX(0.7822426, self.bas1[4006].readScore)
+
+    def test_ZmwRead_len(self):
+        EQ(1126, len(self.bas1[4006].read().basecalls()))
+        EQ(1126, len(self.bas1[4006].read()))
+        EQ(464, len(self.bas1[4006].subreads[0].basecalls()))
+        EQ(464, len(self.bas1[4006].subreads[0]))
+        EQ(239, len(self.bas1[4006].ccsRead.basecalls()))
+        EQ(239, len(self.bas1[4006].ccsRead))
