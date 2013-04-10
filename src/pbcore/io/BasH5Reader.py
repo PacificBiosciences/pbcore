@@ -221,6 +221,9 @@ class ZmwRead(object):
         return "<%s: %s>" % (self.__class__.__name__,
                              self.readName)
 
+    def __len__(self):
+        return self.readEnd - self.readStart
+
     def basecalls(self):
         baseOffset  = self._getOffsets()[self.holeNumber][0]
         offsetBegin = baseOffset + self.readStart
