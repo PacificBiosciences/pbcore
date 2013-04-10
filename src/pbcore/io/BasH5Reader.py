@@ -207,6 +207,10 @@ class ZmwRead(object):
         return self.baxH5._offsetsByHole
 
     @property
+    def zmw(self):
+        return self.baxH5[self.holeNumber]
+
+    @property
     def readName(self):
         return "%s/%d/%d_%d" % (self.baxH5.movieName,
                                 self.holeNumber,
