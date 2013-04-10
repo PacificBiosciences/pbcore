@@ -61,7 +61,7 @@ HQ_REGION      = 2
 # This seems to be the magic incantation to get a RecArray that can be
 # indexed to yield a record that can then be accessed using dot
 # notation.
-def arrayToRecArray(dtype, arr):
+def toRecArray(dtype, arr):
     return np.rec.array(arr, dtype=dtype).flatten()
 
 REGION_TABLE_DTYPE = [("holeNumber",  np.int32),
@@ -148,6 +148,15 @@ class Zmw(object):
         example, a doubly-loaded ZMW would have productivity 2.
         """
         return self.baxH5._productivities[self.index]
+
+
+    @property
+    def numPasses(self):
+        """
+        Return the number of passes (forward + back) across the SMRTbell
+        insert, used to forming the CCS consensus.
+        """
+        return self.baxH5._ccsNumPasses[self.index]
 
     #
     # The following calls return one or more ZmwRead objects.
@@ -280,32 +289,40 @@ class BaxH5Reader(object):
     def __init__(self, filename):
         self.filename = op.abspath(op.expanduser(filename))
         self.file = h5py.File(self.filename, "r")
-
+        #
+        # Load the basics
+        #
         self._basecallsGroup = self.file["/PulseData/BaseCalls"]
-        self._offsetsByHole = _makeOffsetsDataStructure(self._basecallsGroup)
-
-        self._ccsBasecallsGroup = self.file['/PulseData/ConsensusBaseCalls']
-        self._ccsOffsetsByHole = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
-
-        holeNumbers = self.file["/PulseData/BaseCalls/ZMW/HoleNumber"].value
-        self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
-
+        self._offsetsByHole  = _makeOffsetsDataStructure(self._basecallsGroup)
         self._readScores     = self._basecallsGroup["ZMWMetrics/ReadScore"].value
         self._productivities = self._basecallsGroup["ZMWMetrics/Productivity"].value
 
-        ## now init region table.
-        self.regionTable = arrayToRecArray(REGION_TABLE_DTYPE,
-                                           self.file["/PulseData/Regions"].value)
-        isHqRegion = self.regionTable.regionType == HQ_REGION
-        hqRegions  = self.regionTable[isHqRegion, :]
+        holeNumbers = self._basecallsGroup["ZMW/HoleNumber"].value
+        self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
+
+        #
+        # Region table
+        #
+        self.regionTable = toRecArray(REGION_TABLE_DTYPE,
+                                      self.file["/PulseData/Regions"].value)
+        isHqRegion     = self.regionTable.regionType == HQ_REGION
+        hqRegions      = self.regionTable[isHqRegion, :]
         hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
-        holeStatus  = self._basecallsGroup["ZMW/HoleStatus"].value
+        holeStatus     = self._basecallsGroup["ZMW/HoleStatus"].value
 
         ## XXX: this might want to be parametrizeable in the constructure.
         self._sequencingZmws = \
-            self._basecallsGroup["ZMW/HoleNumber"][(holeStatus == SEQUENCING_ZMW)              &
-                                                   (self._basecallsGroup["ZMW/NumEvent"] >  0) &
-                                                   (hqRegionLength >  0)]
+            holeNumbers[(holeStatus == SEQUENCING_ZMW)              &
+                        (self._basecallsGroup["ZMW/NumEvent"] >  0) &
+                        (hqRegionLength >  0)]
+        #
+        # CCS stuff
+        #
+        self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
+        self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
+        self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
+
+
     @property
     def sequencingZmws(self):
         """
@@ -318,7 +335,7 @@ class BaxH5Reader(object):
 
     @property
     def movieName(self):
-        return op.basename(self.filename).split('.')[0]
+        return op.basename(self.filename).split(".")[0]
 
     def __len__(self):
         return len(self.sequencingZmws)
@@ -466,7 +483,7 @@ class BasH5Reader(object):
     @property
     def movieName(self):
         # FIXME: better to use the name in /ScanData/RunInfo/MovieName
-        return op.basename(self.filename).split('.')[0]
+        return op.basename(self.filename).split(".")[0]
 
     def __len__(self):
         return len(self.sequencingZmws)
