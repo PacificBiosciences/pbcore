@@ -123,11 +123,10 @@ class Zmw(object):
                              for region in unclippedInsertRegions ])
     @property
     def hqRegion(self):
-        hqRegions = [ (region.regionStart, region.regionEnd)
-                      for region in self.regionTable
-                      if region.regionType == HQ_REGION ]
-        assert len(hqRegions) == 1
-        return hqRegions[0]
+        rt = self.regionTable
+        hqRow = rt[rt.regionType == HQ_REGION][0]
+        return hqRow.regionStart, hqRow.regionEnd
+
 
     @property
     def readScore(self):
