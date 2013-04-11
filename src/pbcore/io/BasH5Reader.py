@@ -86,7 +86,7 @@ class Zmw(object):
     defined by the upstream Primary analysis; intervals are clipped to
     the bounds defined by the HQ region.
     """
-    __slots__ = [ "baxH5", "holeNumber", "index" ]
+    __slots__ = [ "baxH5", "holeNumber", "index"]
 
     def __init__(self, baxH5, holeNumber):
         self.baxH5               = baxH5
@@ -95,10 +95,8 @@ class Zmw(object):
 
     @property
     def regionTable(self):
-        regionTableStartRow = bisect_left(self.baxH5.regionTable.holeNumber, self.holeNumber)
-        regionTableEndRow   = bisect_right(self.baxH5.regionTable.holeNumber, self.holeNumber,
-                                           lo=regionTableStartRow)
-        return self.baxH5.regionTable[regionTableStartRow:regionTableEndRow]
+        startRow, endRow = self.baxH5._regionTableIndex[self.holeNumber]
+        return self.baxH5.regionTable[startRow:endRow]
 
     #
     # The following calls return one or more intervals ( (int, int) ).
@@ -280,6 +278,15 @@ def _makeOffsetsDataStructure(h5Group):
     offsets = zip(beginOffset, endOffset)
     return dict(zip(holeNumber, offsets))
 
+def _makeRegionTableIndex(regionTableHoleNumbers):
+    #  returns a dict: holeNumber -> (startRow, endRow)
+    diffs = np.ediff1d(regionTableHoleNumbers,
+                       to_begin=[1], to_end=[1])
+    changepoints = np.flatnonzero(diffs)
+    startsAndEnds = zip(changepoints[:-1],
+                        changepoints[1:])
+    return dict(zip(np.unique(regionTableHoleNumbers),
+                    startsAndEnds))
 
 class BaxH5Reader(object):
     """
@@ -305,6 +312,7 @@ class BaxH5Reader(object):
         #
         self.regionTable = toRecArray(REGION_TABLE_DTYPE,
                                       self.file["/PulseData/Regions"].value)
+        self._regionTableIndex = _makeRegionTableIndex(self.regionTable.holeNumber)
         isHqRegion     = self.regionTable.regionType == HQ_REGION
         hqRegions      = self.regionTable[isHqRegion, :]
         hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
