@@ -57,6 +57,10 @@ on top of the HDF5 standard.
     :members:
     :undoc-members:
 
+.. autoclass:: pbcore.io.BasH5IO.BasH5
+    :members:
+    :undoc-members:
+
 
 `cmp.h5` format (PacBio alignment file)
 ---------------------------------------
