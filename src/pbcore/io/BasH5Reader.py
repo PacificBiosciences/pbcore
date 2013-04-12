@@ -488,17 +488,6 @@ class BasH5Reader(object):
     def __len__(self):
         return len(self.sequencingZmws)
 
-    def close(self):
-        if hasattr(self, "file") and self.file != None:
-            self.file.close()
-            self.file = None
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
     def _getitemScalar(self, holeNumber):
         part = self.parts[self._holeLookup(holeNumber)-1]
         return part[holeNumber]
