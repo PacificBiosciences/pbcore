@@ -147,11 +147,11 @@ class Zmw(object):
         return self.baxH5._productivities[self.index]
 
 
-    def getZmwMetric(self, name):
+    def zmwMetric(self, name):
         """
         Return the value of metric 'name' from the ZMW metrics.
         """
-        return self.baxH5.getZmwMetric(name, self.index)
+        return self.baxH5.zmwMetric(name, self.index)
 
     def listZmwMetrics(self):
         """
@@ -382,7 +382,7 @@ class BaxH5Reader(object):
     def listZmwMetrics(self):
         return self._basecallsGroup["ZMWMetrics"].keys()
 
-    def getZmwMetric(self, name, index):
+    def zmwMetric(self, name, index):
         # we are going to cache these lazily because it is very likely
         # that if one ZMW asked for the metric others aren't far
         # behind.
