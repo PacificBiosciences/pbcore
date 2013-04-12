@@ -59,7 +59,7 @@ class PBToolRunner(object):
     # Methods below should not be overriden
     #
     def __init__(self, description):
-        self._setupParsers()
+        self._setupParsers(description)
         self.parser.add_argument(
             "--verbose", "-v",
             dest="verbosity", action="count",
@@ -74,7 +74,7 @@ class PBToolRunner(object):
             "--debug", action="store_true",
             help="Run within a debugger session")
 
-    def _setupParsers(self):
+    def _setupParsers(self, description):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
                                               description=description)
 
@@ -105,6 +105,6 @@ class PBToolRunner(object):
             return self.run()
 
 class PBMultiToolRunner(PBToolRunner):
-    def _setupParsers(self):
+    def _setupParsers(self, description):
         self.parser = argparse.ArgumentParser(add_help=False)
         self.subParsers = self.parser.add_subparsers(dest="subCommand")
