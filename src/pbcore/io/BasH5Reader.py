@@ -147,6 +147,18 @@ class Zmw(object):
         return self.baxH5._productivities[self.index]
 
 
+    def getZmwMetric(self, name):
+        """
+        Return the value of metric 'name' from the ZMW metrics.
+        """
+        return self.baxH5.getZmwMetric(name, self.index)
+
+    def listZmwMetrics(self):
+        """
+        List the available ZMW metrics for this bax.h5 file.
+        """
+        return self.baxH5.listZmwMetrics()
+
     @property
     def numPasses(self):
         """
@@ -329,6 +341,11 @@ class BaxH5Reader(object):
         self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
         self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
 
+        #
+        # ZMW metric cache -- probably want to move prod and readScore
+        # here.
+        # 
+        self.__metricCache = {}
 
     @property
     def sequencingZmws(self):
@@ -361,6 +378,23 @@ class BaxH5Reader(object):
     def __iter__(self):
         for holeNumber in self.sequencingZmws:
             yield self[holeNumber]
+
+    def listZmwMetrics(self):
+        return self._basecallsGroup["ZMWMetrics"].keys()
+
+    def getZmwMetric(self, name, index):
+        # we are going to cache these lazily because it is very likely
+        # that if one ZMW asked for the metric others aren't far
+        # behind.
+        if name not in self.__metricCache:
+            k = "/".join(("ZMWMetrics", name))
+            self.__metricCache[name] = self._basecallsGroup[k].value
+
+        v = self.__metricCache[name]
+        if len(v.shape) > 1:
+            return v[index,]
+        else:
+            return v[index]
 
 
 class BasH5Reader(object):
