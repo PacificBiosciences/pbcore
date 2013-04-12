@@ -29,50 +29,74 @@
 #################################################################################
 
 import argparse, cProfile, logging, pstats
+try:
+    import ipdb as pdb
+except:
+    import pdb
+
+
+LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
+
 
 class PBToolRunner(object):
-    @staticmethod
-    def getLogFormat(): 
-        return '%(asctime)s [%(levelname)s] %(message)s'
 
+    #
+    # Interface to be overridden in subclasses (client code)
+    #
     def getVersion(self):
         raise NotImplementedError()
 
-    def __init__(self, description):
-        self._parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
-                                               description=description)
-        self._setMainParser()
+    def run(self):
+        raise NotImplementedError()
 
-        self._parser.add_argument('-i', '--info', action='store_true', dest='info', default=False, 
-                                 help='turn on progress monitoring to stdout [%(default)s]')
-        self._parser.add_argument('-d', '--debug', action='store_true', dest='debug', default=False, 
-                                 help='turn on progress monitoring to stdout and keep temp files [%(default)s]')
-        self._parser.add_argument('-v', '--version', action='version', version= '%(prog)s ' + self.getVersion())
-
-        self._parser.add_argument("--profile", action="store_true", help="Print runtime profile at exit")
-
-    def _setMainParser(self):
-        self.parser = self._parser
-
-    def parseArgs(self):
-        self.args = self._parser.parse_args()
-    
-    def setupLogging(self):
-        logLevel = logging.INFO if self.args.info else logging.WARN
-        logLevel = logging.DEBUG if self.args.debug else logLevel
-        logging.basicConfig(level=logLevel, format=self.getLogFormat())
-        
     def validateArgs(self):
         '''
         Method to validate args
         '''
         pass
 
+    #
+    # Methods below should not be overriden
+    #
+    def __init__(self, description):
+        self._setupParsers()
+        self.parser.add_argument(
+            "--verbose", "-v",
+            dest="verbosity", action="count",
+            help="Set the verbosity level")
+        self.parser.add_argument(
+            '--version',
+            action='version', version= '%(prog)s ' + self.getVersion())
+        self.parser.add_argument(
+            "--profile", action="store_true",
+            help="Print runtime profile at exit")
+        self.parser.add_argument(
+            "--debug", action="store_true",
+            help="Run within a debugger session")
+
+    def _setupParsers(self):
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+                                              description=description)
+
+    def _parseArgs(self):
+        self.args = self.parser.parse_args()
+
+    def _setupLogging(self):
+        if self.args.verbosity >= 2:
+            logLevel = logging.DEBUG
+        elif self.args.verbosity == 1:
+            logLevel = logging.INFO
+        else:
+            logLevel = logging.WARN
+        logging.basicConfig(level=logLevel, format=LOG_FORMAT)
+
     def start(self):
-        self.parseArgs()
-        self.setupLogging()
+        self._parseArgs()
+        self._setupLogging()
         self.validateArgs()
-        if self.args.profile:
+        if self.args.debug:
+            return pdb.runeval("self.run()", globals(), locals())
+        elif self.args.profile:
             l = locals()
             cProfile.runctx("_rv=self.run()", globals(), l, "profile.out")
             pstats.Stats("profile.out").sort_stats("time").print_stats(20)
@@ -80,14 +104,7 @@ class PBToolRunner(object):
         else:
             return self.run()
 
-    def run(self):
-        raise NotImplementedError()
-
 class PBMultiToolRunner(PBToolRunner):
-    def _setMainParser(self):
+    def _setupParsers(self):
         self.parser = argparse.ArgumentParser(add_help=False)
-
-    def getSubParsers(self):
-        return self._parser.add_subparsers(dest='subName') 
-
-
+        self.subParsers = self.parser.add_subparsers(dest="subCommand")
