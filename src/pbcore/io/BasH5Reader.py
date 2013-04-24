@@ -411,26 +411,24 @@ class BasH5Reader(object):
 
     2. Extract `ZmwRead` objects from the `Zmw` object by:
 
-       - Using the `.subreads()` method to extract the subreads,
-         which are the subintervals of the raw read corresponding to
-         the SMRTbell insert::
+       - Using the `.subreads` property to extract the subreads, which
+         are the subintervals of the raw read corresponding to the
+         SMRTbell insert::
 
-           >>> subreads = zmw8.subreads()
-           >>> print subreads
+           >>> print zmw8.subreads
            [<ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881>,
             <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398>,
             <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873>,
             <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354>,
             <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495>]
 
-       - Using the `.ccsRead()` method to extract the CCS
-         (consensus) read, which is a consensus sequence
-         precomputed from the subreads.  Note that CCS data is
-         not available for every sequencing ZMW hole, for example
-         some holes have too few subreads for the computation of
-         a consensus::
+       - Using the `.ccsRead` property to extract the CCS (consensus)
+         read, which is a consensus sequence precomputed from the
+         subreads.  Note that CCS data is not available for every
+         sequencing ZMW hole, for example some holes have too few
+         subreads for the computation of a consensus::
 
-           >>> zmw8.ccsRead()
+           >>> zmw8.ccsRead
            <CCSZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/ccs>
 
        - Use the `.read()` method to get the full raw read, or
