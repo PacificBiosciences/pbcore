@@ -4,7 +4,7 @@ pbcore Package
 :mod:`pbcore` Package
 ---------------------
 
-.. automodule:: pbcore
+.. automodule:: pbcore.__init__
     :members:
     :undoc-members:
     :show-inheritance:
