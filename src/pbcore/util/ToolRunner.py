@@ -106,5 +106,5 @@ class PBToolRunner(object):
 
 class PBMultiToolRunner(PBToolRunner):
     def _setupParsers(self, description):
-        self.parser = argparse.ArgumentParser(add_help=False, description=description)
+        self.parser = argparse.ArgumentParser(description=description)
         self.subParsers = self.parser.add_subparsers(dest="subCommand")
