@@ -1,4 +1,4 @@
-.PHONY: clean doc doc-clean tests check test install build bdist
+.PHONY: clean doc doc-clean tests check test install build bdist gh-pages
 
 build:
 	python setup.py build
@@ -27,3 +27,14 @@ test:
 
 tests: test
 check: test
+
+GH_PAGES_SOURCES = src doc
+
+gh-pages:
+	git checkout gh-pages
+	rm -rf _static _sources *.js *.html *.inv
+	git checkout master $(GH_PAGES_SOURCES)
+	cd doc && make html
+	mv -fv doc/_build/html/* .
+	rm -rf $(GH_PAGES_SOURCES)
+	git add --all && git commit -m "Automatic update of gh-pages branch" && git checkout master
