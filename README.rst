@@ -4,7 +4,7 @@ data files and writing bioinformatics applications.
 
 Installation:
 -------------
-  % python setup.py install
+    % python setup.py install
 
 Requirements:
 -------------
@@ -14,4 +14,4 @@ Requirements:
 
 Documentation:
 --------------
-http://pacificbiosciences.github.com/pbcore
+http://pacificbiosciences.github.io/pbcore/
