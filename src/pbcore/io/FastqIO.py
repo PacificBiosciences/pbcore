@@ -127,9 +127,15 @@ class FastqRecord(object):
             raise ValueError("String not recognized as a valid FASTQ record")
 
     def __eq__(self, other):
-        return (self.name     == other.name and
-                self.sequence == other.sequence and
-                np.array_equiv(self.quality, other.quality))
+        if isinstance(other, self.__class__):
+            return (self.name     == other.name and
+                    self.sequence == other.sequence and
+                    np.array_equiv(self.quality, other.quality))
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __str__(self):
         """

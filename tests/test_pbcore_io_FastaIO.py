@@ -1,4 +1,4 @@
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true, assert_false
 from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord
 from StringIO import StringIO
@@ -30,6 +30,20 @@ class TestFastaRecord:
     def test_md5(self):
         assert_equal("67fc75ce599ed0ca1fc8ed2dcbccc95d",
                      self.record.md5)
+
+    def test_eq(self):
+        name = 'r1'
+        seq = 'ACGT'
+        r1 = FastaRecord(name, seq)
+        r2 = FastaRecord(name, seq)
+        assert_true(r1 == r2)
+
+    def test_not_equal(self):
+        r1 = FastaRecord('r1', 'ACGT')
+        r2 = FastaRecord('r2', 'ACGT')
+        r3 = FastaRecord('r1', 'ACGT')
+        assert_true(r1 != r2)
+        assert_false(r1 != r3)
 
 
 class TestFastaReader:

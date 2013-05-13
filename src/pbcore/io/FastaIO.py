@@ -101,8 +101,14 @@ class FastaRecord(object):
             raise ValueError("String not recognized as a valid FASTA record")
 
     def __eq__(self, other):
-        return (self.name     == other.name and
-                self.sequence == other.sequence)
+        if isinstance(other, self.__class__):
+            return (self.name     == other.name and
+                    self.sequence == other.sequence)
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __str__(self):
         """

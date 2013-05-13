@@ -1,4 +1,4 @@
-from nose.tools import assert_equal
+from nose.tools import assert_equal, assert_true, assert_false
 from numpy.testing import assert_array_equal
 from pbcore import data
 from StringIO import StringIO
@@ -56,6 +56,23 @@ class TestFastqRecord:
         assert_equal(self.name, recordFromString.name)
         assert_equal(self.sequence, recordFromString.sequence)
         assert_array_equal(self.quality, recordFromString.quality)
+
+    def test_eq(self):
+        name = 'r1'
+        seq = 'ACGT'
+        qvs = list(xrange(10, 10 + len(seq)))
+        r1 = FastqRecord(name, seq, qvs)
+        r2 = FastqRecord(name, seq, qvs)
+        assert_true(r1 == r2)
+        assert_false(r1 != r2)
+
+    def test_not_equal(self):
+        name = 'r1'
+        seq = 'ACGT'
+        qvs = list(xrange(10, 10 + len(seq)))
+        r1 = FastqRecord(name, seq, qvs)
+        r2 = FastqRecord('r2', seq, qvs)
+        assert_true(r1 != r2)
 
 
 class TestFastqReader:
