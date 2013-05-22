@@ -75,7 +75,7 @@ class PBToolRunner(object):
             help="Run within a debugger session")
 
     def _setupParsers(self, description):
-        self.parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter,
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
                                               description=description)
 
     def _parseArgs(self):
@@ -106,5 +106,6 @@ class PBToolRunner(object):
 
 class PBMultiToolRunner(PBToolRunner):
     def _setupParsers(self, description):
-        self.parser = argparse.ArgumentParser(description=description)
+        self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                              description=description)
         self.subParsers = self.parser.add_subparsers(dest="subCommand")
