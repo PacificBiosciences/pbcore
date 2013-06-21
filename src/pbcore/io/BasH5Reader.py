@@ -329,7 +329,11 @@ class BaxH5Reader(object):
         hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
         holeStatus     = self._basecallsGroup["ZMW/HoleStatus"].value
 
-        ## XXX: this might want to be parametrizeable in the constructure.
+        #
+        # Sequencing ZMWs - Note: this differs from Primary's
+        # definition. To obtain those values, one would use the
+        # `allSequencingZmws` property.
+        #
         self._sequencingZmws = \
             holeNumbers[(holeStatus == SEQUENCING_ZMW)              &
                         (self._basecallsGroup["ZMW/NumEvent"] >  0) &
@@ -354,6 +358,19 @@ class BaxH5Reader(object):
         """
         return self._sequencingZmws
 
+    @property
+    def allSequencingZmws(self):
+        """
+        A list of the hole numbers that are capable of producing
+        sequencing data. This differs from the `sequencingZmws` in
+        that zmws are not filtered according to their HQ status. This
+        number is fixed per chip, whereas the `sequencingZmws` depends
+        on things such as loading.
+        """
+        hStatus = self._basecallsGroup["ZMW/HoleStatus"].value
+        hNumber = self._basecallsGroup["ZMW/HoleNumber"].value
+        return hNumber[hStatus == SEQUENCING_ZMW]
+    
     def __getitem__(self, holeNumber):
         return Zmw(self, holeNumber)
 
@@ -478,6 +495,11 @@ class BasH5Reader(object):
     @property
     def sequencingZmws(self):
         return self._sequencingZmws
+
+    @property
+    def allSequencingZmws(self):
+        return np.concatenate([ part.allSequencingZmws
+                                for part in self._parts ])
 
     def __iter__(self):
         for holeNumber in self.sequencingZmws:
