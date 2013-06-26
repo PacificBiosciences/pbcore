@@ -20,7 +20,6 @@ setup(
     package_data = {'pbcore': ['data/*.h5', 'data/*.gff3', 'data/*.fasta'] },
     zip_safe = False,
     install_requires=[
-        'h5py >= 2.0.1',
-        'numpy >= 1.6.0'
-        ]
-    )
+        'numpy >= 1.6.0',
+        'h5py >= 2.0.1'
+    ])
