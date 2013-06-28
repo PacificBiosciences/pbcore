@@ -97,14 +97,11 @@ def getOverlappingRanges(tStart, tEnd, nBack, nOverlap, rangeStart, rangeEnd):
     if (lM == rM):
         return(n.array([], dtype = "uint32"))
     else:
-        idxs   = n.array(range(lM, rM), dtype = "uint32")
-        toKeep = n.array([True]*len(idxs))
-
-        for i in range(0, len(idxs)):
-            if (tEnd[idxs[i]] <= rangeStart):
-                toKeep[i] = False
-            else:
-                continue
+        # We only keep the reads in the range lM .. rM that
+        # actually overlap the range, as determined by
+        # tEnd > rangeStart
+        idxs   = n.arange(lM, rM, dtype = "uint32")   # lM .. rM
+        toKeep = tEnd[idxs] > rangeStart
         return(idxs[toKeep])
 
 def projectIntoRange(tStart, tEnd, winStart, winEnd):
