@@ -416,9 +416,18 @@ class CmpH5Alignment(object):
     @property
     def barcode(self):
         """
-        (Barcoding only) The barcode for this alignment's read
+        The barcode ID (integer key) for this alignment's read
+        Behavior undefined if file is not barcoded.
         """
-        return self.cmpH5.barcode[self.rowNumber]
+        return self.cmpH5.barcodes[self.rowNumber]
+
+    @property
+    def barcodeName(self):
+        """
+        The barcode name (string) for this alignment's read
+        Behavior undefined if file is not barcoded.
+        """
+        return self.cmpH5.barcodeName[self.barcode]
 
     def alignmentArray(self, orientation="native"):
         """
@@ -790,10 +799,13 @@ class CmpH5Reader(object):
             self.numPasses = self.file["/AlnInfo/NumPasses"].value
 
         if "Barcode" in self.file["/AlnInfo"]:
-            barcodeIdToName = dict(zip(self.file["/BarcodeInfo/ID"],
-                                       self.file["/BarcodeInfo/Name"]))
-            self.barcode = map(barcodeIdToName.get,
-                               self.file["/AlnInfo/Barcode"].value[:,0])
+            # Build forward and backwards id<->label lookup tables
+            self._barcodeName  = dict(zip(self.file["/BarcodeInfo/ID"],
+                                          self.file["/BarcodeInfo/Name"]))
+            self._barcode      = dict(zip(self.file["/BarcodeInfo/Name"],
+                                          self.file["/BarcodeInfo/ID"]))
+            # Barcode ID per row
+            self._barcodes = self.file["/AlnInfo/Barcode"].value[:,0]
 
 
     @property
@@ -974,6 +986,10 @@ class CmpH5Reader(object):
         return "OffsetTable" in self.file["/RefGroup"]
 
     @property
+    def isBarcoded(self):
+        return "Barcode" in self.file["/AlnInfo"]
+
+    @property
     def isEmpty(self):
         return len(self.file["/AlnInfo"]) == 0
 
@@ -983,10 +999,6 @@ class CmpH5Reader(object):
     @property
     def movieNames(self):
         return set([mi.Name for mi in self._movieDict.values()])
-
-    @property
-    def barcodeNames(self):
-        return self.file["/BarcodeInfo/Name"]
 
     def movieInfo(self, movieId):
         """
@@ -1090,6 +1102,32 @@ class CmpH5Reader(object):
         pulseFeaturesAvailableAsSet = set.intersection(*map(set, pulseFeaturesByMovie))
         pulseFeaturesAvailableAsSet.discard("AlnArray")
         return list(pulseFeaturesAvailableAsSet)
+
+    @property
+    def barcode(self):
+        """
+        Returns a dict mapping of barcode name to integer barcode.
+        Behavior undefined if file is not barcoded.
+        """
+        return self._barcode
+
+    @property
+    def barcodeName(self):
+        """
+        Returns a dict mapping of barcode integer id to name.
+        Behavior undefined if file is not barcoded.
+        """
+        return self._barcodeName
+
+    @property
+    def barcodes(self):
+        """
+        Returns an array of barcode integer ids, of the same length as the
+        alignment array.
+
+        Behavior undefined if file is not barcoded.
+        """
+        return self._barcodes
 
     def __repr__(self):
         return "<CmpH5Reader for %s>" % self.filename
