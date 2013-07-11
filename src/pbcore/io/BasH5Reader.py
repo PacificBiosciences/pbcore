@@ -341,9 +341,10 @@ class BaxH5Reader(object):
         #
         # CCS stuff
         #
-        self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
-        self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
-        self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
+        if "ConsensusBaseCalls" in self.file["/PulseData"].keys():
+            self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
+            self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
+            self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
 
         #
         # ZMW metric cache -- probably want to move prod and readScore
