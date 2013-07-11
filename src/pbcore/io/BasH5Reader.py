@@ -308,14 +308,29 @@ class BaxH5Reader(object):
         self.filename = op.abspath(op.expanduser(filename))
         self.file = h5py.File(self.filename, "r")
         #
-        # Load the basics
+        # Raw base calls?
         #
-        self._basecallsGroup = self.file["/PulseData/BaseCalls"]
-        self._offsetsByHole  = _makeOffsetsDataStructure(self._basecallsGroup)
-        self._readScores     = self._basecallsGroup["ZMWMetrics/ReadScore"].value
-        self._productivities = self._basecallsGroup["ZMWMetrics/Productivity"].value
+        if "BaseCalls" in self.file["/PulseData"]:
+            self._basecallsGroup = self.file["/PulseData/BaseCalls"]
+            self._mainBasecallsGroup = self._basecallsGroup
+            self._offsetsByHole  = _makeOffsetsDataStructure(self._basecallsGroup)
+            hasRawBaseCalls = True
+        else:
+            hasRawBaseCalls = False
+        #
+        # CCS base calls?
+        #
+        if "ConsensusBaseCalls" in self.file["/PulseData"].keys():
+            self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
+            if not hasRawBaseCalls:
+                self._mainBasecallsGroup = self._ccsBasecallsGroup
+            self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
+            self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
 
-        holeNumbers = self._basecallsGroup["ZMW/HoleNumber"].value
+        self._readScores     = self._mainBasecallsGroup["ZMWMetrics/ReadScore"].value
+        self._productivities = self._mainBasecallsGroup["ZMWMetrics/Productivity"].value
+
+        holeNumbers = self._mainBasecallsGroup["ZMW/HoleNumber"].value
         self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
 
         #
@@ -327,7 +342,7 @@ class BaxH5Reader(object):
         isHqRegion     = self.regionTable.regionType == HQ_REGION
         hqRegions      = self.regionTable[isHqRegion, :]
         hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
-        holeStatus     = self._basecallsGroup["ZMW/HoleStatus"].value
+        holeStatus     = self._mainBasecallsGroup["ZMW/HoleStatus"].value
 
         #
         # Sequencing ZMWs - Note: this differs from Primary's
@@ -335,16 +350,9 @@ class BaxH5Reader(object):
         # `allSequencingZmws` property.
         #
         self._sequencingZmws = \
-            holeNumbers[(holeStatus == SEQUENCING_ZMW)              &
-                        (self._basecallsGroup["ZMW/NumEvent"] >  0) &
+            holeNumbers[(holeStatus == SEQUENCING_ZMW)                  &
+                        (self._mainBasecallsGroup["ZMW/NumEvent"] >  0) &
                         (hqRegionLength >  0)]
-        #
-        # CCS stuff
-        #
-        if "ConsensusBaseCalls" in self.file["/PulseData"].keys():
-            self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
-            self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
-            self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
 
         #
         # ZMW metric cache -- probably want to move prod and readScore
@@ -368,10 +376,10 @@ class BaxH5Reader(object):
         number is fixed per chip, whereas the `sequencingZmws` depends
         on things such as loading.
         """
-        hStatus = self._basecallsGroup["ZMW/HoleStatus"].value
-        hNumber = self._basecallsGroup["ZMW/HoleNumber"].value
+        hStatus = self._mainBasecallsGroup["ZMW/HoleStatus"].value
+        hNumber = self._mainBasecallsGroup["ZMW/HoleNumber"].value
         return hNumber[hStatus == SEQUENCING_ZMW]
-    
+
     def __getitem__(self, holeNumber):
         return Zmw(self, holeNumber)
 
@@ -406,7 +414,7 @@ class BaxH5Reader(object):
         # behind.
         if name not in self.__metricCache:
             k = "/".join(("ZMWMetrics", name))
-            self.__metricCache[name] = self._basecallsGroup[k].value
+            self.__metricCache[name] = self._mainBasecallsGroup[k].value
 
         v = self.__metricCache[name]
         if len(v.shape) > 1:
