@@ -34,7 +34,7 @@ __all__ = [ "CmpH5Reader",
 
 import h5py, numpy as np
 from bisect import bisect_left, bisect_right
-from collections import Counter
+from collections import Counter, OrderedDict
 from itertools import groupby
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
@@ -800,10 +800,10 @@ class CmpH5Reader(object):
 
         if "Barcode" in self.file["/AlnInfo"]:
             # Build forward and backwards id<->label lookup tables
-            self._barcodeName  = dict(zip(self.file["/BarcodeInfo/ID"],
-                                          self.file["/BarcodeInfo/Name"]))
-            self._barcode      = dict(zip(self.file["/BarcodeInfo/Name"],
-                                          self.file["/BarcodeInfo/ID"]))
+            self._barcodeName = OrderedDict(zip(self.file["/BarcodeInfo/ID"],
+                                                self.file["/BarcodeInfo/Name"]))
+            self._barcode     = OrderedDict(zip(self.file["/BarcodeInfo/Name"],
+                                                self.file["/BarcodeInfo/ID"]))
             # Barcode ID per row
             self._barcodes = self.file["/AlnInfo/Barcode"].value[:,0]
 
