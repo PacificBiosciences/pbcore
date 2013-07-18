@@ -781,14 +781,16 @@ class CmpH5Reader(object):
         for record in self._referenceInfoTable:
             if record.ID != -1:
                 assert record.ID != record.Name
-                assert record.ID        not in self._referenceDict \
-                    and record.Name     not in self._referenceDict \
-                    and record.FullName not in self._referenceDict \
-                    and record.MD5      not in self._referenceDict
-                self._referenceDict[record.ID]       = record
-                self._referenceDict[record.Name]     = record
-                self._referenceDict[record.FullName] = record
-                self._referenceDict[record.MD5]      = record
+                if (record.ID       in self._referenceDict or
+                    record.Name     in self._referenceDict or
+                    record.FullName in self._referenceDict or
+                    record.MD5      in self._referenceDict):
+                    raise ValueError, "Duplicate reference contig sequence or identifier"
+                else:
+                    self._referenceDict[record.ID]       = record
+                    self._referenceDict[record.Name]     = record
+                    self._referenceDict[record.FullName] = record
+                    self._referenceDict[record.MD5]      = record
 
         self._readLocatorById = {}
         if self.isSorted:
