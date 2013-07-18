@@ -314,18 +314,21 @@ class BaxH5Reader(object):
             self._basecallsGroup = self.file["/PulseData/BaseCalls"]
             self._mainBasecallsGroup = self._basecallsGroup
             self._offsetsByHole  = _makeOffsetsDataStructure(self._basecallsGroup)
-            hasRawBaseCalls = True
+            self.hasRawBasecalls = True
         else:
-            hasRawBaseCalls = False
+            self.hasRawBasecalls = False
         #
         # CCS base calls?
         #
         if "ConsensusBaseCalls" in self.file["/PulseData"].keys():
             self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
-            if not hasRawBaseCalls:
+            if not self.hasRawBasecalls:
                 self._mainBasecallsGroup = self._ccsBasecallsGroup
             self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
             self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
+            self.hasConsensusBasecalls = True
+        else:
+            self.hasConsensusBasecalls = False
 
         self._readScores     = self._mainBasecallsGroup["ZMWMetrics/ReadScore"].value
         self._productivities = self._mainBasecallsGroup["ZMWMetrics/Productivity"].value
@@ -509,6 +512,14 @@ class BasH5Reader(object):
     def allSequencingZmws(self):
         return np.concatenate([ part.allSequencingZmws
                                 for part in self._parts ])
+
+    @property
+    def hasConsensusBasecalls(self):
+        return all(part.hasConsensusBasecalls for part in self._parts)
+
+    @property
+    def hasRawBasecalls(self):
+        return all(part.hasRawBasecalls for part in self._parts)
 
     def __iter__(self):
         for holeNumber in self.sequencingZmws:
