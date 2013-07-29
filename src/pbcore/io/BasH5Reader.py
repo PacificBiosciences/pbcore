@@ -124,9 +124,13 @@ class Zmw(object):
     @property
     def hqRegion(self):
         rt = self.regionTable
-        hqRow = rt[rt.regionType == HQ_REGION][0]
-        return hqRow.regionStart, hqRow.regionEnd
-
+        hqRows = rt[rt.regionType == HQ_REGION]
+        if len(hqRows) == 1:
+            hqRow = hqRows[0]
+            return hqRow.regionStart, hqRow.regionEnd
+        else:
+            # Broken region table, bug 23585
+            return 0, 0
 
     @property
     def readScore(self):
@@ -354,6 +358,23 @@ class BaxH5Reader(object):
         self._regionTableIndex = _makeRegionTableIndex(self.regionTable.holeNumber)
         isHqRegion     = self.regionTable.regionType == HQ_REGION
         hqRegions      = self.regionTable[isHqRegion, :]
+
+        if len(hqRegions) != len(holeNumbers):
+            # Bug 23585: pre-2.1 primary had a bug where a bas file
+            # could get a broken region table, lacking an HQ region
+            # entry for a ZMW.  This happened fairly rarely, mostly on
+            # very long traces.  Workaround here is to rebuild HQ
+            # regions table with empty HQ region entries for those
+            # ZMWs.
+            hqRegions_ = toRecArray(REGION_TABLE_DTYPE,
+                                    np.zeros(shape=len(holeNumbers),
+                                             dtype=REGION_TABLE_DTYPE))
+            hqRegions_.holeNumber = holeNumbers
+            for record in hqRegions:
+                hn = record.holeNumber
+                hqRegions_[self._holeNumberToIndex[hn]] = record
+            hqRegions = hqRegions_
+
         hqRegionLength = hqRegions.regionEnd - hqRegions.regionStart
         holeStatus     = self._mainBasecallsGroup["ZMW/HoleStatus"].value
 
