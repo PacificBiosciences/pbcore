@@ -268,14 +268,19 @@ class ZmwRead(object):
         return arrayFromDataset(self._getBasecallsGroup()[qvName],
                                 offsetBegin, offsetEnd)
 
-    IPD            = _makeQvAccessor("IPD")
-    PulseWidth     = _makeQvAccessor("PulseWidth")
+    PreBaseFrames  = _makeQvAccessor("PreBaseFrames")
+    IPD            = _makeQvAccessor("PreBaseFrames")
+
+    WidthInFrames  = _makeQvAccessor("WidthInFrames")
+    PulseWidth     = _makeQvAccessor("WidthInFrames")
+
     QualityValue   = _makeQvAccessor("QualityValue")
     InsertionQV    = _makeQvAccessor("InsertionQV")
     DeletionQV     = _makeQvAccessor("DeletionQV")
     DeletionTag    = _makeQvAccessor("DeletionTag")
     MergeQV        = _makeQvAccessor("MergeQV")
     SubstitutionQV = _makeQvAccessor("SubstitutionQV")
+    SubstitutionTag = _makeQvAccessor("SubstitutionTag")
 
 
 class CCSZmwRead(ZmwRead):
