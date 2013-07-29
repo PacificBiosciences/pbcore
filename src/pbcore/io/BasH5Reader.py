@@ -182,9 +182,7 @@ class Zmw(object):
         hqStart, hqEnd = self.hqRegion
         readStart = hqStart if readStart is None else readStart
         readEnd   = hqEnd if readEnd is None else readEnd
-        if ((readStart > readEnd) or
-            (readStart < hqStart) or
-            (hqEnd  < readEnd)):
+        if readStart > readEnd:
             raise IndexError, "Invalid slice of ZMW"
         else:
             return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
