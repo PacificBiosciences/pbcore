@@ -63,24 +63,6 @@ class TestBasH5Reader:
         EQ([(299, 343), (991, 1032)], zmw.adapterRegions)
         EQ([(0, 299), (343, 991), (1032, 1578)], zmw.insertRegions)
 
-    def test_BasH5Reader_invalidRangeUsage(self):
-        # Make sure that attempts to access an invalid data range from
-        # a ZMW (i.e., outside the HQ region) throw an exception.
-
-        zmw = self.bas1[8]
-        EQ((3381, 5495), zmw.hqRegion)
-
-        # This is OK.
-        zmw.read(4000, 5000)
-
-        # These raise an exception.
-        with assert_raises(IndexError):
-            zmw.read(0, 10)
-        with assert_raises(IndexError):
-            zmw.read(5400, 5500)
-        with assert_raises(IndexError):
-            zmw.read(5000, 4000)
-
     def test_BasH5Reader_ccs(self):
         EQ(self.bas1[4006].ccsRead.basecalls(),
            ''.join(['GGCGCACGGAGGAGCAAGCGTGACAGTCCCACGTCATGCCCGCCGACG',
