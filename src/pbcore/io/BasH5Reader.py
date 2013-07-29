@@ -180,8 +180,8 @@ class Zmw(object):
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         hqStart, hqEnd = self.hqRegion
-        readStart = readStart or hqStart
-        readEnd   = readEnd   or hqEnd
+        readStart = hqStart if readStart is None else readStart
+        readEnd   = hqEnd if readEnd is None else readEnd
         if ((readStart > readEnd) or
             (readStart < hqStart) or
             (hqEnd  < readEnd)):
