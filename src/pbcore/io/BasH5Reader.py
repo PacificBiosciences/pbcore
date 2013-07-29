@@ -165,12 +165,16 @@ class Zmw(object):
         Return the number of passes (forward + back) across the SMRTbell
         insert, used to forming the CCS consensus.
         """
+        if not self.baxH5.hasConsensusBasecalls:
+            raise ValueError, "No CCS reads in this file"
         return self.baxH5._ccsNumPasses[self.index]
 
     #
     # The following calls return one or more ZmwRead objects.
     #
     def read(self, readStart=None, readEnd=None):
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
         hqStart, hqEnd = self.hqRegion
         readStart = readStart or hqStart
         readEnd   = readEnd   or hqEnd
@@ -183,15 +187,21 @@ class Zmw(object):
 
     @property
     def subreads(self):
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
                  for (readStart, readEnd) in self.insertRegions ]
 
     @property
     def adapters(self):
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
                  for (readStart, readEnd) in self.adapterRegions ]
     @property
     def ccsRead(self):
+        if not self.baxH5.hasConsensusBasecalls:
+            raise ValueError, "No CCS reads in this file"
         baseOffset  = self.baxH5._ccsOffsetsByHole[self.holeNumber]
         if (baseOffset[1] - baseOffset[0]) <= 0:
             return None
@@ -312,7 +322,6 @@ class BaxH5Reader(object):
         #
         if "BaseCalls" in self.file["/PulseData"]:
             self._basecallsGroup = self.file["/PulseData/BaseCalls"]
-            self._mainBasecallsGroup = self._basecallsGroup
             self._offsetsByHole  = _makeOffsetsDataStructure(self._basecallsGroup)
             self.hasRawBasecalls = True
         else:
@@ -322,13 +331,14 @@ class BaxH5Reader(object):
         #
         if "ConsensusBaseCalls" in self.file["/PulseData"].keys():
             self._ccsBasecallsGroup = self.file["/PulseData/ConsensusBaseCalls"]
-            if not self.hasRawBasecalls:
-                self._mainBasecallsGroup = self._ccsBasecallsGroup
             self._ccsOffsetsByHole  = _makeOffsetsDataStructure(self._ccsBasecallsGroup)
             self._ccsNumPasses      = self._ccsBasecallsGroup["Passes/NumPasses"]
             self.hasConsensusBasecalls = True
         else:
             self.hasConsensusBasecalls = False
+
+        self._mainBasecallsGroup = self._basecallsGroup if self.hasRawBasecalls \
+                                   else self._ccsBasecallsGroup
 
         self._readScores     = self._mainBasecallsGroup["ZMWMetrics/ReadScore"].value
         self._productivities = self._mainBasecallsGroup["ZMWMetrics/Productivity"].value
