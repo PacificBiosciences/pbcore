@@ -41,9 +41,10 @@ BC_DS_ALL_PATH    = "BarcodeCalls/all"
 
 class LabeledZmw(object):
     """A scored ZMW represents a ZMW object and its corresponding
-    barcode scores."""
+    barcode scores. Some fields are considered optional"""
     def __init__(self, holeNumber, nScored, bestIdx, bestScore, 
-                 secondBestIdx, secondBestScore, allScores):
+                 secondBestIdx = -1, secondBestScore = 0, 
+                 allScores = None):
         self._holeNumber = holeNumber
         self._nScored = nScored
         self._bestIdx = bestIdx
@@ -53,6 +54,7 @@ class LabeledZmw(object):
         self._allScores = allScores
 
     def toBestRecord(self):
+        """Return a summary record suitable for storage"""
         return (self.holeNumber, self.nScored, self.bestIdx, 
                 self.bestScore, self.secondBestIdx, self.secondBestScore)
     
@@ -96,7 +98,9 @@ class LabeledZmw(object):
 
 def writeBarcodeH5(labeledZmws, labeler, outFile, 
                    writeExtendedInfo = False):
-    """Write a barcode file from a list of labeled ZMWs"""
+    """Write a barcode file from a list of labeled ZMWs. In addition
+    to labeledZmws, this function takes a
+    pbtools.pbbarcode.BarcodeLabeler."""
     bestScores = map(lambda z: z.toBestRecord(), labeledZmws)
     outDta = n.vstack(bestScores)
     outH5 = h5.File(outFile, 'a')
@@ -142,94 +146,9 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
         allDS.attrs['barcodes'] = n.array(labeler.barcodeNames, dtype = h5.new_vlen(str))
         allDS.attrs['columnNames'] = n.array(['holeNumber', 'adapter', 'barcodeIdx', 'score'], 
                                              dtype = h5.new_vlen(str))
-
+    # close the file at the very end.
     outH5.close()
 
-#
-# The reader interface
-#
-def create(movieName):
-    # XXX : Detecting multi-part; pretty ugly. 
-    if os.path.exists(movieName + '.bc.h5'):
-        logging.debug("Instantiating BarcodeH5Reader")
-        return BarcodeH5Reader(movieName + '.bc.h5')
-    else:
-        logging.debug("Instantiating MPBarcodeReader")
-        # XXX : that 1,2,3 needs to be fixed
-        parts = map(lambda z : '.'.join((movieName, str(z), 'bc.h5')), [1,2,3])
-        logging.debug("Trying to load parts:" + '\n'.join(parts))
-        parts = filter(lambda p : os.path.exists(p), parts)
-
-        if parts:
-            return MPBarcodeH5Reader(parts)
-        else:
-            raise Exception("Unable to instantiate a BarcodeH5Reader")
-
-class MPBarcodeH5Reader(object):
-    def __init__(self, fnames):
-        self.parts = map(BarcodeH5Reader, fnames)
-        def rng(x):
-            return (n.min(x), n.max(x))
-        # these aren't the ranges of ZMWs, but the ranges for the
-        # scored ZMWs.
-        self.bins = map(lambda z : rng(z.bestDS[:,0]), self.parts)
-
-    def choosePart(self, holeNumber):
-        for i,b in enumerate(self.bins):
-            if holeNumber >= b[0] and holeNumber <= b[1]:
-                return self.parts[i]
-        # Return None meaning the zmw is ouf of the range of
-        # the scored ZMWs for all parts.
-        return None
-
-    @property
-    def barcodeLabels(self):
-        return self.parts[0].barcodeLabels
-    @property
-    def scoreMode(self):
-        return self.parts[0].scoreMode
-    
-    def labeledZmwFromHoleNumber(self, holeNumber):
-        """Returns a LabeledZmw object from the holeNumber"""
-        part = self.choosePart(holeNumber)
-        if part:
-            return part.labeledZmwFromHoleNumber(holeNumber)
-        else:
-            raise KeyError("holeNumber: %d not labeled" % holeNumber)
-    
-    def labeledZmwsFromBarcodeLabel(self, bcLabel):
-        return reduce(lambda x,y: x+y, 
-                      map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel), 
-                          self.parts))
-    
-    
-    # def getBarcodeTupleForZMW(self, holeNumber):
-    #     part = self.choosePart(holeNumber)
-    #     if part:
-    #         return part.getBarcodeTupleForZMW(holeNumber)
-    #     else:
-    #         # I have not scored this alignment, therefore we return the
-    #         # NULL tuple
-    #         return self.parts[0].nullBarcodeTuple()
-
-    # def getExtendedBarcodeInfoForZMW(self, holeNumber):
-    #     part = self.choosePart(holeNumber)
-    #     if part:
-    #         return part.getExtendedBarcodeInfoForZMW(holeNumber)
-    #     else:
-    #         return None
-
-    # def getZMWsForBarcode(self, barcodeName):
-    #     raise NotImplementedError("Directly use BarcodeH5Reader for this task")
-    
-    # def getBarcodeLabels(self):
-    #     return self.parts[0].getBarcodeLabels()
-    # def getScoreMode(self):
-    #     return self.parts[0].getScoreMode()
-    # def nullBarcodeTuple(self):
-    #     return self.parts[0].nullBarcodeTuple()
-    
-    
 class BarcodeH5Reader(object):
     def __init__(self, fname):
         self.h5File = h5.File(fname, 'r')
@@ -237,7 +156,7 @@ class BarcodeH5Reader(object):
 
         self._scoreMode = self.bestDS.attrs['scoreMode']
         self._barcodeLabels = self.bestDS.attrs['barcodes']
-        
+        self._movieName = self.bestDS.attrs['movieName']
         # zmw => LabeledZmw
         labeledZmws = [LabeledZmw.fromBestRecord(self.bestDS[i,:]) for i in 
                        xrange(0, self.bestDS.shape[0])]
@@ -246,46 +165,21 @@ class BarcodeH5Reader(object):
         # barcode => LabeledZmws
         self.bcLabelToLabeledZmws = {l:[] for l in self.barcodeLabels}
         for lZmw in self.labeledZmws.values():
-            # XXX : why doesn't LabeledZmw have a .bestLabel?
             d = self.bcLabelToLabeledZmws[self.barcodeLabels[lZmw.bestIdx]]
             d.append(lZmw)
 
-        # from IPython import embed; embed()
-        
-        # ## note: I hack off the ZMW.
-        # self.holeNumberToBC = dict(zip(self.bestDS[:,0],
-        #                                self.bestDS[:,1:self.bestDS.shape[1]]))
-             
-        # ## init the bcLabels according to the scoreMode. 
-        # if self.scoreMode == 'symmetric':
-        #     bcLabels = [makeBCLabel(a, b) for a,b in zip(self.barcodes, self.barcodes)]
-            
-        # elif self.scoreMode == 'paired':
-        #     bcLabels = [makeBCLabel(self.barcodes[i], self.barcodes[i+1]) 
-        #                 for i in xrange(0, len(self.barcodes), 2)]
-        # else:
-        #     raise Exception("Unknown scoreMode in BarcodeH5Reader:" + self.scoreMode)
-        # ## add the null.
-        # bcLabels.append(NULL_BARCODE)
-
-        # ## initialize the labels and the label map.
-        # self.bcLabels   = bcLabels
-        # self.labelToIdx = dict([(v,k) for (k,v) in enumerate(self.bcLabels)])
-
-        # ## it is a little confusing because, given a scoreMode then
-        # ## there is a new indexing system.
-        # self.scoreModeIdx = n.array([self.getBarcodeTupleForZMW(hn)[0] 
-        #                              for hn in self.bestDS[:,0]])
-
-        # ## This will be used if we are using the extended "All" dataset.
-        # self.mapToAll = None
-
+    @property
+    def holeNumbers(self):
+        return self.labeledZmws.keys()
     @property
     def barcodeLabels(self):
         return self._barcodeLabels
     @property
     def scoreMode(self):
         return self._scoreMode
+    @property 
+    def movieName(self):
+        return self._movieName
     
     def labeledZmwFromHoleNumber(self, holeNumber):
         """Returns a LabeledZmw object from the holeNumber"""
@@ -300,59 +194,66 @@ class BarcodeH5Reader(object):
         barcode."""
         return self.bcLabelToLabeledZmws[bcLabel]
 
+class MPBarcodeH5Reader(object):
+    def __init__(self, parts):
+        self._parts = parts
+        def rng(x):
+            return (n.min(x), n.max(x))
+        # these aren't the ranges of ZMWs, but the ranges for the
+        # scored ZMWs.
+        self._bins = map(lambda z : z.holeNumbers, self._parts)
 
-    # def getBarcodeTupleForZMW(self, holeNumber):
-    #     try:
-    #         d = self.holeNumberToBC[holeNumber]
-    #         if self.scoreMode == 'symmetric':
-    #             return (d[1], d[2], d[0])
-    #         elif self.scoreMode == 'paired':
-    #             return (d[1]/2, d[2], d[0])
-    #         else:
-    #             raise Exception("Unknown scoreMode in BarcodeH5Reader:" + 
-    #                             self.scoreMode)
-    #     except:
-    #         return self.nullBarcodeTuple()
+    def choosePart(self, holeNumber):
+        for i,b in enumerate(self._bins):
+            if holeNumber >= b[0] and holeNumber <= b[1]:
+                return self._parts[i]
+        # Return None meaning the zmw is ouf of the range of
+        # the scored ZMWs for all parts.
+        return None
 
-
-    # def nullBarcodeTuple(self):
-    #     return (len(self.bcLabels) - 1, 0, 0)
-
-    # def getExtendedBarcodeInfoForZMW(self, holeNumber):
-    #     # we'll do this on demand
-    #     if not self.mapToAll:
-    #         self.mapToAll = {}
-    #         self.bcAllDS  = self.h5File[BC_DS_ALL_PATH][:]
-    #         for r in xrange(0, self.bcAllDS.shape[0]):
-    #             z = self.bcAllDS[r, 0]
-    #             if not z in self.mapToAll:
-    #                 self.mapToAll[z] = (r, r)
-    #             else:
-    #                 self.mapToAll[z] = (self.mapToAll[z][0], r)
-
-    #     if holeNumber in self.mapToAll:
-    #         extents = self.mapToAll[holeNumber]
-    #         return self.bcAllDS[extents[0]:(extents[1]+1),:]
-    #     else:
-    #         return None
-
+    @property
+    def barcodeLabels(self):
+        return self._parts[0].barcodeLabels
+    @property
+    def scoreMode(self):
+        return self._parts[0].scoreMode
     
+    def labeledZmwFromHoleNumber(self, holeNumber):
+        """Returns a LabeledZmw object from the holeNumber"""
+        part = self.choosePart(holeNumber)
+        if part:
+            return part.labeledZmwFromHoleNumber(holeNumber)
+        else:
+            raise KeyError("holeNumber: %d not labeled" % holeNumber)
+    
+    def labeledZmwsFromBarcodeLabel(self, bcLabel):
+        return reduce(lambda x,y: x+y, 
+                      map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel), 
+                          self.parts))
 
-    # def getZMWsForBarcode(self, barcodeName):
-    #     """Returns all the ZMWs that had barcodeName mapping to it,
-    #     throws a BarcodeIdxException if there aren't any ZMWs for this
-    #     barcode."""
-    #     bcID = self.labelToIdx[barcodeName]
-    #     msk = bcID == self.scoreModeIdx
-       
-    #     # if msk is all false then it won't return a 0-row data
-    #     # structure. Furthermore, I can't return None because then
-    #     # 'if' isn't happy because in some cases it is an array and in
-    #     # others it is None. Have to raise an Exception.
-    #     if n.any(msk):
-    #         return self.bestDS[msk,:]
-    #     else:
-    #         raise BarcodeIdxException()
+class BarcodeH5Fofn(object):
+    def __init__(self, inputFofn):
+        self._bcH5s = [BarcodeH5Reader(fname) for fname in 
+                       open(inputFofn).read().splitlines()]
+        self._byMovie = {}
+        for bc in self._bcH5s:
+            if bc.movieName not in self._byMovie:
+                self._byMovie[bc.movieName] = [bc]
+            else:
+                self._byMovie[bc.movieName].append(bc)
+        
+        self.mpReaders = {movieName:MPBarcodeH5Reader(parts) for movieName,parts in
+                          self._byMovie.iteritems()}
+    
+    def readerForMovie(self, movieName):
+        """Return a BarcodeH5Reader for a movieName"""
+        return self.mpReaders[movieName]
 
+    @property
+    def barcodeLabels(self):
+        return self._bcH5s[0].barcodeLabels
 
-
+    @property
+    def scoreMode(self):
+        return self._bcH5s[0].scoreMode
+    
