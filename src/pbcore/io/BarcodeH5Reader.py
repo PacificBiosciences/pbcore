@@ -201,7 +201,7 @@ class MPBarcodeH5Reader(object):
             return (n.min(x), n.max(x))
         # these aren't the ranges of ZMWs, but the ranges for the
         # scored ZMWs.
-        self._bins = map(lambda z : z.holeNumbers, self._parts)
+        self._bins = map(lambda z : rng(z.holeNumbers), self._parts)
 
     def choosePart(self, holeNumber):
         for i,b in enumerate(self._bins):
