@@ -611,3 +611,9 @@ class BasH5Reader(object):
 
     def __repr__(self):
         return "<BasH5Reader: %s>" % op.basename(self.filename)
+
+
+    # Make cursor classes available
+    Zmw        = Zmw
+    ZmwRead    = ZmwRead
+    CCSZmwRead = CCSZmwRead
