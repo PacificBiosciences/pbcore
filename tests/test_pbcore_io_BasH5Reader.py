@@ -150,14 +150,7 @@ class TestBasH5Reader_20:
 
         nose.tools.assert_equal(reader.movieName, MOVIE_NAME_20)
         
-        # Verify that open means open and .close() means closed
-        with nose.tools.assert_raises(IOError):
-            f = h5py.File(self.bash5_filename, 'r+')
-            f.close()
-
         reader.close()
-        f = h5py.File(self.bash5_filename, 'r+')
-        f.close()
 
     def test_constructor_baxh5(self):
         """Verify that BasH5Reader can open the bax.h5 file and sets attributes
@@ -180,14 +173,7 @@ class TestBasH5Reader_20:
 
             nose.tools.assert_equal(reader.movieName, MOVIE_NAME_20)
         
-            # Verify that open means open and .close() means closed
-            with nose.tools.assert_raises(IOError):
-                f = h5py.File(filename, 'r+')
-                f.close()
-
             reader.close()
-            f = h5py.File(filename, 'r+')
-            f.close()
 
     def test_hole_lookup(self):
         """Test that the bas.h5 file points to the correct bax.h5 file when 
@@ -195,7 +181,7 @@ class TestBasH5Reader_20:
         
         hole_number_to_filename = {}
         for filename in self.baxh5_filenames: 
-            f = h5py.File(filename)
+            f = h5py.File(filename, 'r')
             for hole_number in f['PulseData/BaseCalls/ZMW/HoleNumber']:
                 hole_number_to_filename[hole_number] = filename
             f.close()
@@ -215,7 +201,7 @@ class TestBasH5Reader_20:
         """Test that productivities are set correctly for the ZMW objects."""
         productivities = {}
         for filename in self.baxh5_filenames:
-            f = h5py.File(filename)
+            f = h5py.File(filename, 'r')
             hn_to_prod = dict(zip(f["PulseData/BaseCalls/ZMW/HoleNumber"],
                                   f["PulseData/BaseCalls/ZMWMetrics/Productivity"]))
             productivities.update(hn_to_prod)
