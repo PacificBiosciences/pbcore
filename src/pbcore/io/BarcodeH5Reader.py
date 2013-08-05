@@ -227,9 +227,9 @@ class MPBarcodeH5Reader(object):
             raise KeyError("holeNumber: %d not labeled" % holeNumber)
     
     def labeledZmwsFromBarcodeLabel(self, bcLabel):
-        return reduce(lambda x,y: x+y, 
+        return reduce(lambda x,y: x + y, 
                       map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel), 
-                          self.parts))
+                          self._parts))
 
 class BarcodeH5Fofn(object):
     def __init__(self, inputFofn):
@@ -242,7 +242,8 @@ class BarcodeH5Fofn(object):
             else:
                 self._byMovie[bc.movieName].append(bc)
         
-        self.mpReaders = {movieName:MPBarcodeH5Reader(parts) for movieName,parts in
+        self.mpReaders = {movieName: parts[0] if len(parts) == 1 else \
+                              MPBarcodeH5Reader(parts) for movieName, parts in
                           self._byMovie.iteritems()}
     
     def readerForMovie(self, movieName):
