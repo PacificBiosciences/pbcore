@@ -30,7 +30,8 @@
 
 # Authors: David Alexander, Jim Bullard
 
-__all__ = [ "BasH5Reader" ]
+__all__ = [ "BasH5Reader" ,
+            "BaxH5Reader" ]
 
 import h5py, numpy as np, os.path as op
 from bisect import bisect_left, bisect_right
