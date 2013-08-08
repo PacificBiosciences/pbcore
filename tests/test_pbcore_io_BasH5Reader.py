@@ -10,8 +10,6 @@ import pbcore.data
 import pbcore.io
 
 
-MOVIE_NAME_14 = "m110818_075520_42141_c100129202555500000315043109121112_s1_p0"
-MOVIE_NAME_20 = "m130522_092457_42208_c100497142550000001823078008081323_s1_p0"
 
 
 class TestBasH5Reader_14:
@@ -29,7 +27,7 @@ class TestBasH5Reader_14:
         sequencingZmws, and finds the subreads for each Zmw.
         """
 
-        nose.tools.assert_equal(MOVIE_NAME_14, self.bas1.movieName)
+        nose.tools.assert_equal(pbcore.data.MOVIE_NAME_14, self.bas1.movieName)
         numpy.testing.assert_array_equal([   7,    8,    9, 1000, 1006, 1007, 
                                           2001, 2003, 2007, 2008, 3004, 3006, 
                                           3008, 4004, 4005, 4006, 4007, 4009],
@@ -53,11 +51,11 @@ class TestBasH5Reader_14:
         """
 
         aln = self.cmpH5[2]
-        nose.tools.assert_equal(os.path.join(MOVIE_NAME_14, "2001", "3580_3922"),
+        nose.tools.assert_equal(os.path.join(pbcore.data.MOVIE_NAME_14, "2001", "3580_3922"),
                                 aln.readName)
 
         zmwRead = self.bas1[2001].read(3580, 3922)
-        nose.tools.assert_equal(os.path.join(MOVIE_NAME_14, "2001", "3580_3922"),
+        nose.tools.assert_equal(os.path.join(pbcore.data.MOVIE_NAME_14, "2001", "3580_3922"),
                                 zmwRead.readName)
         
         # Verify that the bases and a couple of quality values are the same
@@ -123,10 +121,8 @@ class TestBasH5Reader_20:
     def __init__(self):
         """Get the full paths to the bas and bax.h5 files."""
 
-        self.bash5_filename = pbcore.data._getAbsPath(MOVIE_NAME_20 + '.bas.h5')
-        self.baxh5_filenames = [pbcore.data._getAbsPath('.'.join((MOVIE_NAME_20,
-                                                        str(k), 'bax.h5'))) 
-                                                for k in range(1,4)]
+        self.bash5_filename = pbcore.data.getBasH5_v20()
+        self.baxh5_filenames = pbcore.data.getBaxH5_v20()
 
 
     def test_constructor_bash5(self):
@@ -148,7 +144,7 @@ class TestBasH5Reader_20:
         nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                         len(reader.allSequencingZmws))
 
-        nose.tools.assert_equal(reader.movieName, MOVIE_NAME_20)
+        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
         
         reader.close()
 
@@ -171,7 +167,7 @@ class TestBasH5Reader_20:
             nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                             len(reader.allSequencingZmws))
 
-            nose.tools.assert_equal(reader.movieName, MOVIE_NAME_20)
+            nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
         
             reader.close()
 
