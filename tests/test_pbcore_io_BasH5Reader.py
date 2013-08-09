@@ -1,4 +1,4 @@
-import imp
+import inspect
 import os
 
 import h5py
@@ -9,8 +9,9 @@ import numpy.testing
 import pbcore.data
 import pbcore.io
 
-
-
+BASH5READER_MODULE = inspect.getmodule(pbcore.io.BasH5Reader)
+ZMW_CLASS = BASH5READER_MODULE.Zmw
+ZMWREAD_CLASS = BASH5READER_MODULE.ZmwRead
 
 class TestBasH5Reader_14:
     """Tests of BasH5Reader against a 1.4 bas.h5 file, no multipart with
@@ -113,68 +114,53 @@ class TestBasH5Reader_14:
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead.basecalls()))
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead))
 
-class TestBasH5Reader_20:
-    """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a 
-    bas.h5 file and three bas.h5 files. The bax.h5 files also contain CCS.
-    """
 
-    def __init__(self):
-        """Get the full paths to the bas and bax.h5 files."""
+class CommonMultiPartTests(object):
 
-        self.bash5_filename = pbcore.data.getBasH5_v20()
-        self.baxh5_filenames = pbcore.data.getBaxH5_v20()
-
-
-    def test_constructor_bash5(self):
-        """Verify that BasH5Reader can open the bas.h5 file and sets attributes
-        correctly.
-        """
+    def test_multipart_constructor_bash5(self):
+        # Test the constuctor of a multipart bas.h5 file
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
         nose.tools.assert_is_instance(reader.file, h5py.File)
         
+        # Should have three parts for v2.0 and v2.1
         nose.tools.assert_equal(len(reader.parts), 3)
         nose.tools.assert_list_equal(self.baxh5_filenames,
                 [k.filename for k in reader.parts])
-        nose.tools.assert_true(reader.hasConsensusBasecalls)
+
+        # All bas.h5 files should have raw base calls. 2.1 bas.h5 files don't
+        # have consensus base calls
         nose.tools.assert_true(reader.hasRawBasecalls)
         
+
         for zmw in reader.sequencingZmws:
             nose.tools.assert_in(zmw, reader.allSequencingZmws)
+            nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
 
         nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                         len(reader.allSequencingZmws))
 
-        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
-        
         reader.close()
 
-    def test_constructor_baxh5(self):
-        """Verify that BasH5Reader can open the bax.h5 file and sets attributes
-        correctly.
-        """
-
+    def test_multippart_constructor_baxh5(self):
+        # Test constructor of baxh5 files
         for filename in self.baxh5_filenames:
             reader = pbcore.io.BasH5Reader(filename)
             nose.tools.assert_is_instance(reader.file, h5py.File)
         
             nose.tools.assert_equal(len(reader.parts), 1)
-            nose.tools.assert_true(reader.hasConsensusBasecalls)
             nose.tools.assert_true(reader.hasRawBasecalls)
         
             for zmw in reader.sequencingZmws:
                 nose.tools.assert_in(zmw, reader.allSequencingZmws)
+                nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
 
             nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                             len(reader.allSequencingZmws))
 
-            nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
-        
             reader.close()
-
-    def test_hole_lookup(self):
-        """Test that the bas.h5 file points to the correct bax.h5 file when 
-        given a hole number."""
-        
+    
+    def test_multipart_hole_lookup(self):
+        # Test that multipart files look up files and hole numbers correctly
         hole_number_to_filename = {}
         for filename in self.baxh5_filenames: 
             f = h5py.File(filename, 'r')
@@ -188,10 +174,38 @@ class TestBasH5Reader_20:
             zmw = reader[hole_number]
             nose.tools.assert_equal(zmw.baxH5.filename, 
                                     hole_number_to_filename[hole_number])
-            # nose.tools.assert_is_instance(zmw, pbcore.io.BasH5Reader.Zmw)
-            # soon...
+            nose.tools.assert_is_instance(zmw, ZMW_CLASS)
         
         reader.close()
+
+class TestBasH5Reader_20(CommonMultiPartTests):
+    """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a
+    bas.h5 file and three bas.h5 files. The bax.h5 files also contain CCS.
+    """
+
+    def __init__(self):
+        """Get the full paths to the bas and bax.h5 files."""
+
+        self.bash5_filename = pbcore.data.getBasH5_v20()
+        self.baxh5_filenames = pbcore.data.getBaxH5_v20()
+
+
+    def test_20_constructor_bash5(self):
+        # Tests specific to the v2.0 bas.h5 constructor
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        nose.tools.assert_true(reader.hasConsensusBasecalls)
+        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
+        
+        reader.close()
+
+    def test_20_constructor_baxh5(self):
+        # Tests specific to the v2.0 bax.h5 constructor
+        for filename in self.baxh5_filenames:
+            reader = pbcore.io.BasH5Reader(filename)
+            nose.tools.assert_true(reader.hasConsensusBasecalls)
+            nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
+            reader.close()
+
 
     def test_productivity(self):
         """Test that productivities are set correctly for the ZMW objects."""
@@ -208,3 +222,31 @@ class TestBasH5Reader_20:
         for hn in productivities:
             nose.tools.assert_equal(reader[hn].productivity,
                                     productivities[hn])
+
+class TestBasH5Reader_21(CommonMultiPartTests):
+    """Tests of BasH5Reader against a 2.1 ba[sx].h5 files, consisting of a
+    bas.h5 file and three bas.h5 files. The bax.h5 files do not contain CCS.
+    """
+
+    def __init__(self):
+        """Get the full paths to the bas and bax.h5 files."""
+
+        self.bash5_filename = pbcore.data.getBasH5_v21()
+        self.baxh5_filenames = pbcore.data.getBaxH5_v21()
+
+
+    def test_21_constructor_bash5(self):
+        # Tests specific to the v2.0 bas.h5 constructor
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        nose.tools.assert_false(reader.hasConsensusBasecalls)
+        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_21)
+        
+        reader.close()
+
+    def test_21_constructor_baxh5(self):
+        # Tests specific to the v2.0 bax.h5 constructor
+        for filename in self.baxh5_filenames:
+            reader = pbcore.io.BasH5Reader(filename)
+            nose.tools.assert_false(reader.hasConsensusBasecalls)
+            nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_21)
+            reader.close()
