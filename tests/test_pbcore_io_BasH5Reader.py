@@ -114,7 +114,25 @@ class TestBasH5Reader_14:
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead.basecalls()))
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead))
 
+class CommonTests(object):
+    
+    ZMW_ATTRIBUTES = ['QualityValue', 'InsertionQV', 'DeletionQV', 
+                      'DeletionTag', 'SubstitutionQV', 'SubstitutionTag',
+                      'MergeQV', 'IPD', 'PreBaseFrames', 'PulseWidth',
+                      'WidthInFrames']
+                  
+    def test_all_fields_accessible(self):
+        # Test that zmws have correct pulse/quality attributes
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
 
+        for zmw in reader.sequencingZmws:
+            read = reader[zmw].read()
+            for attribute in self.ZMW_ATTRIBUTES:
+                nose.tools.assert_is_instance(getattr(read, attribute)(),
+                                              numpy.ndarray)
+            numpy.testing.assert_array_equal(read.IPD(), read.PreBaseFrames())
+            numpy.testing.assert_array_equal(read.PulseWidth(), 
+                                             read.WidthInFrames())
 class CommonMultiPartTests(object):
 
     def test_multipart_constructor_bash5(self):
@@ -178,7 +196,7 @@ class CommonMultiPartTests(object):
         
         reader.close()
 
-class TestBasH5Reader_20(CommonMultiPartTests):
+class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
     """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a
     bas.h5 file and three bas.h5 files. The bax.h5 files also contain CCS.
     """
@@ -223,7 +241,7 @@ class TestBasH5Reader_20(CommonMultiPartTests):
             nose.tools.assert_equal(reader[hn].productivity,
                                     productivities[hn])
 
-class TestBasH5Reader_21(CommonMultiPartTests):
+class TestBasH5Reader_21(CommonTests, CommonMultiPartTests):
     """Tests of BasH5Reader against a 2.1 ba[sx].h5 files, consisting of a
     bas.h5 file and three bas.h5 files. The bax.h5 files do not contain CCS.
     """
