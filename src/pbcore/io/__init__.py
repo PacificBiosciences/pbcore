@@ -32,6 +32,5 @@ from .BasH5Reader import *
 from .CmpH5Reader import *
 from .FastaIO import *
 from .FastqIO import *
-from .FastaTable import *
 from .GffIO import *
 from .ReferenceEntry import *
