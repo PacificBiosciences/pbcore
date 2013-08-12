@@ -12,6 +12,7 @@ import pbcore.io
 BASH5READER_MODULE = inspect.getmodule(pbcore.io.BasH5Reader)
 ZMW_CLASS = BASH5READER_MODULE.Zmw
 ZMWREAD_CLASS = BASH5READER_MODULE.ZmwRead
+CCSZMWREAD_CLASS = BASH5READER_MODULE.CCSZmwRead
 
 class TestBasH5Reader_14:
     """Tests of BasH5Reader against a 1.4 bas.h5 file, no multipart with
@@ -348,3 +349,57 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests):
             nose.tools.assert_false(reader.hasConsensusBasecalls)
             nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_21)
             reader.close()
+
+class TestBasH5Reader_CCS:
+    """Test BasH5Reader with a ccs.h5 file produced by P_CCS."""
+
+    def __init__(self):
+        """Get the full paths to the bas and bax.h5 files."""
+
+        self.ccsh5_filename = pbcore.data.getCCSH5()
+
+    def test_constructor_ccsh5(self):
+        # Test that BasH5Reader initializes correctly with a ccs.h5 file
+        reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
+        nose.tools.assert_is_instance(reader.file, h5py.File)
+
+        nose.tools.assert_true(reader.hasConsensusBasecalls)
+        nose.tools.assert_false(reader.hasRawBasecalls)
+        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_CCS)
+        
+        nose.tools.assert_equal(len(reader.parts), 1)
+
+        for zmw in reader.sequencingZmws:
+            nose.tools.assert_in(zmw, reader.allSequencingZmws)
+            nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
+
+        nose.tools.assert_less_equal(len(reader.sequencingZmws),
+                                        len(reader.allSequencingZmws))
+
+        reader.close()
+   
+    def test_ccs_zmw(self):
+        # Test Zmw objects derived from a BasH5Reader reading a ccs.h5
+        reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
+
+        for zmw in reader.allSequencingZmws:
+            region_table = reader[zmw].regionTable
+            nose.tools.assert_equal(len(region_table), 1)
+            nose.tools.assert_equal(region_table[0][0], zmw)
+            nose.tools.assert_equal(region_table[0][1], 2)
+
+            nose.tools.assert_equal(len(reader[zmw].insertRegions), 0)
+            nose.tools.assert_equal(len(reader[zmw].adapterRegions), 0)
+
+            with nose.tools.assert_raises(ValueError):
+                reader[zmw].subreads
+            
+            with nose.tools.assert_raises(ValueError):
+                reader[zmw].read()
+            
+            hq_size = region_table[0][3] - region_table[0][2]
+            if hq_size > 0:
+                nose.tools.assert_is_instance(reader[zmw].ccsRead, 
+                                              CCSZMWREAD_CLASS)
+            else:
+                nose.tools.assert_is_none(reader[zmw].ccsRead)

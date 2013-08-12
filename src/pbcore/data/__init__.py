@@ -37,6 +37,7 @@ DATA_FILES = {'aligned_reads_1.cmp.h5':
 MOVIE_NAME_14 = "m110818_075520_42141_c100129202555500000315043109121112_s1_p0"
 MOVIE_NAME_20 = "m130522_092457_42208_c100497142550000001823078008081323_s1_p0"
 MOVIE_NAME_21 = "m130731_192718_42129_c100564662550000001823085912221321_s1_p0"
+MOVIE_NAME_CCS = "m130727_114215_42211_c100569412550000001823090301191423_s1_p0"
 
 def _getAbsPath(fname):
     return resource_filename(Requirement.parse('pbcore'),'pbcore/data/%s' % fname)
@@ -54,6 +55,9 @@ def getBasH5_v21():
 def getBaxH5_v21():
     return [_getAbsPath('.'.join((MOVIE_NAME_21, str(k), 'bax.h5'))) 
             for k in range(1,4)]
+
+def getCCSH5():
+    return _getAbsPath(MOVIE_NAME_CCS + '.1.ccs.h5')
 
 def getCmpH5s():
     '''
