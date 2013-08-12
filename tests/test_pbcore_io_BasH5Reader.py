@@ -133,6 +133,29 @@ class CommonTests(object):
             numpy.testing.assert_array_equal(read.IPD(), read.PreBaseFrames())
             numpy.testing.assert_array_equal(read.PulseWidth(), 
                                              read.WidthInFrames())
+    
+    def test_zmw_region_table(self):
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        
+        sequencing_zmws = set(reader.sequencingZmws)
+
+        for zmw in reader.allSequencingZmws:
+            region_table = reader[zmw].regionTable.tolist()
+            hq_entry = [k for k in region_table if k[1] == 2][0]
+            
+            hq_size = hq_entry[3] - hq_entry[2]
+            # Sequencing Zmws should have an HQ region
+            if zmw not in sequencing_zmws:
+                nose.tools.assert_equal(hq_size, 0)
+            else:
+                nose.tools.assert_greater(hq_size, 0)
+            
+            for entry in region_table:
+                nose.tools.assert_equal(entry[0], zmw)
+                nose.tools.assert_less_equal(entry[2], entry[3])
+        reader.close()
+
+
 class CommonMultiPartTests(object):
 
     def test_multipart_constructor_bash5(self):
@@ -195,6 +218,63 @@ class CommonMultiPartTests(object):
             nose.tools.assert_is_instance(zmw, ZMW_CLASS)
         
         reader.close()
+    
+    def _clip_region(self, region, hq_region):
+        end = min(region[1], hq_region[1])
+        start = max(region[0], hq_region[0])
+        if start >= end:
+            return None
+        else:
+            return (start, end)
+        
+    def test_zmw_multipart_regions(self):
+        
+        regions = []
+
+        # First read in the regions from the h5 files directly
+        for filename in self.baxh5_filenames:
+            with h5py.File(filename, 'r') as f:
+                region_table = f['PulseData/Regions']
+                regions.extend(region_table.value.tolist())
+        
+        # Now see what BasH5Reader reports for regions
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        for zmw in reader.allSequencingZmws:
+            region_table = reader[zmw].regionTable.tolist()
+
+            true_regions = [k for k in regions if k[0] == zmw]
+            true_hq_region = [k for k in true_regions if k[1] == 2][0]
+
+            reported_hq_region = reader[zmw].hqRegion
+            nose.tools.assert_equal(reported_hq_region[0], true_hq_region[2])
+            nose.tools.assert_equal(reported_hq_region[1], true_hq_region[3])
+            
+            # Check the reported adapter regions
+            reported_adapter_regions = reader[zmw].adapterRegions
+            true_adapter_regions = [k for k in true_regions if k[1] == 0]
+            region_count = 0
+            for region in true_adapter_regions:
+                bound = (region[2], region[3])
+                clipped_region = self._clip_region(bound, reported_hq_region)
+                if clipped_region:
+                    nose.tools.assert_in(clipped_region, 
+                                         reported_adapter_regions)
+                    region_count += 1
+            nose.tools.assert_equal(region_count, len(reported_adapter_regions))
+            
+            # And the reported insert regions
+            reported_insert_regions = reader[zmw].insertRegions
+            true_insert_regions = [k for k in true_regions if k[1] == 1]
+            region_count = 0
+            for region in true_insert_regions:
+                bound = (region[2], region[3])
+                clipped_region = self._clip_region(bound, reported_hq_region)
+                if clipped_region:
+                    nose.tools.assert_in(clipped_region, 
+                                         reported_insert_regions)
+                    region_count += 1
+            nose.tools.assert_equal(region_count, len(reported_insert_regions))
+            
 
 class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
     """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a
