@@ -423,7 +423,7 @@ class BaxH5Reader(object):
 
     @property
     def movieName(self):
-        return op.basename(self.filename).split(".")[0]
+        return self.file["/ScanData/RunInfo"].attrs["MovieName"]
 
     def __len__(self):
         return len(self.sequencingZmws)
@@ -587,8 +587,7 @@ class BasH5Reader(object):
 
     @property
     def movieName(self):
-        # FIXME: better to use the name in /ScanData/RunInfo/MovieName
-        return op.basename(self.filename).split(".")[0]
+        return self._parts[0].movieName
 
     def __len__(self):
         return len(self.sequencingZmws)
