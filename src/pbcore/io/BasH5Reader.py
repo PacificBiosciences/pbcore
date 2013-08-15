@@ -179,10 +179,7 @@ class Zmw(object):
         hqStart, hqEnd = self.hqRegion
         readStart = hqStart if readStart is None else readStart
         readEnd   = hqEnd if readEnd is None else readEnd
-        if readStart > readEnd:
-            raise IndexError, "Invalid slice of ZMW"
-        else:
-            return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
+        return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
     @property
     def subreads(self):
@@ -219,13 +216,23 @@ class ZmwRead(object):
     A ZmwRead represents the data features (basecalls as well as pulse
     features) recorded from the ZMW, delimited by readStart and readEnd.
     """
-    __slots__ = [ "baxH5", "holeNumber", "readStart", "readEnd" ]
+    __slots__ = [ "baxH5", "holeNumber",
+                  "readStart", "readEnd",
+                  "offsetBegin", "offsetEnd" ]
 
-    def __init__(self, baxH5, holeNumber, readStart=None, readEnd=None):
+    def __init__(self, baxH5, holeNumber, readStart, readEnd):
         self.baxH5        = baxH5
         self.holeNumber   = holeNumber
         self.readStart    = readStart
         self.readEnd      = readEnd
+        zmwOffsetBegin, zmwOffsetEnd = self._getOffsets()[self.holeNumber]
+        self.offsetBegin = zmwOffsetBegin + self.readStart
+        self.offsetEnd   = zmwOffsetBegin + self.readEnd
+        if not (zmwOffsetBegin   <=
+                self.offsetBegin <=
+                self.offsetEnd   <=
+                zmwOffsetEnd):
+            raise IndexError, "Invalid slice of Zmw!"
 
     def _getBasecallsGroup(self):
         return self.baxH5._basecallsGroup
@@ -252,18 +259,12 @@ class ZmwRead(object):
         return self.readEnd - self.readStart
 
     def basecalls(self):
-        baseOffset  = self._getOffsets()[self.holeNumber][0]
-        offsetBegin = baseOffset + self.readStart
-        offsetEnd   = baseOffset + self.readEnd
         return arrayFromDataset(self._getBasecallsGroup()["Basecall"],
-                                offsetBegin, offsetEnd).tostring()
+                                self.offsetBegin, self.offsetEnd).tostring()
 
     def qv(self, qvName):
-        baseOffset  = self._getOffsets()[self.holeNumber][0]
-        offsetBegin = baseOffset + self.readStart
-        offsetEnd   = baseOffset + self.readEnd
         return arrayFromDataset(self._getBasecallsGroup()[qvName],
-                                offsetBegin, offsetEnd)
+                                self.offsetBegin, self.offsetEnd)
 
     PreBaseFrames  = _makeQvAccessor("PreBaseFrames")
     IPD            = _makeQvAccessor("PreBaseFrames")
