@@ -32,8 +32,8 @@ import logging
 import h5py as h5
 import numpy as n
 
-from pbcore.io.BasH5Reader import *
-from pbcore.io.CmpH5Reader import *
+from pbcore.io import BasH5Reader, BaxH5Reader
+from pbcore.io import CmpH5Reader, CmpH5Alignment
 
 BARCODE_DELIMITER = "--"
 BC_DS_PATH        = "BarcodeCalls/best"
