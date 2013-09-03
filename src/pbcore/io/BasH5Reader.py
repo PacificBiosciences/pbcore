@@ -385,8 +385,8 @@ class BaxH5Reader(object):
         # `allSequencingZmws` property.
         #
         self._sequencingZmws = \
-            holeNumbers[(holeStatus == SEQUENCING_ZMW)                  &
-                        (self._mainBasecallsGroup["ZMW/NumEvent"] >  0) &
+            holeNumbers[(holeStatus == SEQUENCING_ZMW)                       &
+                        (self._mainBasecallsGroup["ZMW/NumEvent"].value > 0) &
                         (hqRegionLength >  0)]
 
         #
