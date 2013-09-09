@@ -20,7 +20,7 @@ class TestFastaTable:
             assert_equal(frC.sequence, ftC.sequence[:])
 
         # Unlike FastaReader, FastaTable iteration is repeatable.
-        assert_equal(48, len(list(ft))
+        assert_equal(48, len(list(ft)))
 
     def testAccessByName(self):
         ft = FastaTable(self.fastaPath)
