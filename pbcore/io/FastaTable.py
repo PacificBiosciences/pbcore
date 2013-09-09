@@ -79,7 +79,8 @@ class FastaTableRecord(object):
     def sequence(self):
         return MmappedFastaContig(self.view,
                                   self.faiRecord)
-
+    def __repr__(self):
+        return "<FastaTableRecord: %s>" % self.name
 
 class FastaTable(ReaderBase):
     def __init__(self, filename):
