@@ -13,7 +13,7 @@
 
 import sys, os
 globals = {}
-execfile("../src/pbcore/__init__.py", globals)
+execfile("../pbcore/__init__.py", globals)
 __VERSION__ = globals["__VERSION__"]
 
 

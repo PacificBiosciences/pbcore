@@ -18,7 +18,7 @@ clean: doc-clean
 	rm -f nosetests.xml
 
 doc:
-	sphinx-apidoc -o doc/ src/ && cd doc/ && make html
+	sphinx-apidoc -o doc/ pbcore/ && cd doc/ && make html
 doc-clean:
 	cd doc && rm -rf _templates _static _build searchindex.js objects.inv
 
@@ -28,7 +28,7 @@ test:
 tests: test
 check: test
 
-GH_PAGES_SOURCES = src doc
+GH_PAGES_SOURCES = pbcore doc
 
 gh-pages:
 	git checkout gh-pages

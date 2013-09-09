@@ -42,7 +42,7 @@ clean:
 	-rm -rf $(BUILDDIR)/*
 
 api-doc:
-	sphinx-apidoc -o . -d 4  ../src/pbcore/
+	sphinx-apidoc -o . -d 4  ../pbcore/
 
 html: api-doc
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
