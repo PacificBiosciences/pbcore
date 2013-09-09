@@ -28,8 +28,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-from .BasH5Reader import *
-from .CmpH5Reader import *
+from .BasH5IO import *
+from .CmpH5IO import *
 from .FastaIO import *
 from .FastqIO import *
 from .GffIO import *
