@@ -42,7 +42,7 @@ __all__ = [ "ReferenceEntry",
             "ReferenceIndex" ]
 
 import os, glob, time, re, hashlib
-from . import FastaReader
+from pbcore.io import FastaReader
 from xml.etree.cElementTree import *
 
 DEFAULT_VERSION='1.0.0'
