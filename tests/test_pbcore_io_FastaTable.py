@@ -31,6 +31,15 @@ class TestFastaTable:
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
                      r0000021.sequence[:])
 
+    def testAccessByPosition(self):
+        ft = FastaTable(self.fastaPath)
+        r000001 = ft[0]
+        assert_equal("<FastaTableRecord: ref000001|EGFR_Exon_2>", repr(r000001))
+        firstTwo = ft[:2]
+        assert_equal([ft[0], ft[1]], firstTwo)
+        lastTwo = ft[-2:]
+        assert_equal([ft[-2], ft[-1]], lastTwo)
+
     def testSlice(self):
         ft = FastaTable(self.fastaPath)
         r0000021 = ft["ref000021|EGFR_Exon_22"]
