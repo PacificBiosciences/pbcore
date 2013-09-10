@@ -10,15 +10,27 @@ FaiRecord = namedtuple("FaiRecord", ("name", "length", "offset", "lineWidth", "s
 def faiFilename(fastaFilename):
     return fastaFilename + ".fai"
 
-def loadFastaIndex(filename):
+def loadFastaIndex(faidxFilename, fastaView):
     tbl = OrderedDict()
     try:
-        for line in open(filename):
-            name, length_, offset_, lineWidth_, blen_ = line.split()
-            record = FaiRecord(name, int(length_), int(offset_),
-                               int(lineWidth_), int(blen_))
+        #
+        # `samtools faidx` mangles FASTA contig names containing a
+        # space, for example, so we have to look up the true name in
+        # the FASTA file itself, ignoring the name in the fai.
+        #
+        offsetEnd = 0
+        for line in open(faidxFilename):
+            length, offset, lineWidth, blen = map(int, line.split()[-4:])
+            header    = fastaView[offsetEnd:offset]
+            assert (header[0] == ">" and header[-1] == "\n")
+            name      = header[1:-1]
+            q, r = divmod(length, lineWidth)
+            numNewlines = q + (r > 0)
+            offsetEnd = offset + length + numNewlines
+            record = FaiRecord(name, length, offset, lineWidth, blen)
             tbl[name] = record
         return tbl
+
     except:
         raise IOError,                                                        \
             "Companion FASTA index (.fai) file not found or malformatted! " + \
@@ -102,13 +114,13 @@ class FastaTable(ReaderBase, Sequence):
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
         self.file = open(self.filename, "r")
+        self.view = mmap.mmap(self.file.fileno(), 0,
+                              prot=mmap.PROT_READ)
         self.faiFilename = faiFilename(self.filename)
-        self.fai = loadFastaIndex(self.faiFilename)
+        self.fai = loadFastaIndex(self.faiFilename, self.view)
         self.contigById = dict(self.fai)
         self.contigById.update(zip(xrange(len(self.fai)),
                                    self.fai.itervalues()))
-        self.view = mmap.mmap(self.file.fileno(), 0,
-                              prot=mmap.PROT_READ)
 
     def __getitem__(self, key):
         if key < 0:
