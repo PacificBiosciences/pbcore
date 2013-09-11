@@ -381,7 +381,8 @@ class TestBasH5Reader_CCS:
     def test_ccs_zmw(self):
         # Test Zmw objects derived from a BasH5Reader reading a ccs.h5
         reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
-
+        
+        sequencing_zmws = set(reader.sequencingZmws)
         for zmw in reader.allSequencingZmws:
             region_table = reader[zmw].regionTable
             nose.tools.assert_equal(len(region_table), 1)
@@ -397,8 +398,7 @@ class TestBasH5Reader_CCS:
             with nose.tools.assert_raises(ValueError):
                 reader[zmw].read()
             
-            hq_size = region_table[0][3] - region_table[0][2]
-            if hq_size > 0:
+            if zmw in sequencing_zmws:
                 nose.tools.assert_is_instance(reader[zmw].ccsRead, 
                                               CCSZMWREAD_CLASS)
             else:
