@@ -145,6 +145,8 @@ def ungappedPulseArray(a):
         return a[a != np.uint8(-1)]
     elif dtype == np.uint16:
         return a[a != np.uint16(-1)]
+    elif dtype == np.uint32:
+        return a[a != np.uint32(-1)]
     elif dtype == np.int8:
         return a[a != ord("-")]
     else:
