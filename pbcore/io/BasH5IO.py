@@ -30,13 +30,18 @@
 
 # Authors: David Alexander, Jim Bullard
 
-__all__ = [ "BasH5Reader" ,
-            "BaxH5Reader" ]
+__all__ = [ "BasH5Reader"     ,
+            "BaxH5Reader"     ,
+            "BasH5Collection" ]
 
 import h5py, numpy as np, os.path as op
 from bisect import bisect_left, bisect_right
 from operator import getitem
+from itertools import groupby
+
+from pbcore.io.FofnIO import FofnReader
 from ._utils import arrayFromDataset
+
 
 def intersectRanges(r1, r2):
     b1, e1 = r1
@@ -530,21 +535,35 @@ class BasH5Reader(object):
     Iteration over the `BasH5Reader` object allows you to iterate over
     the `Zmw` objects providing useable sequence.
     """
-    def __init__(self, filename):
-        self.filename = op.abspath(op.expanduser(filename))
-        self.file = h5py.File(self.filename, "r")
-        # Is this a multi-part or single-part?
-        if self.file.get("MultiPart"):
-            directory = op.dirname(self.filename)
-            self._parts = [ BaxH5Reader(op.join(directory, fn))
-                            for fn in self.file["/MultiPart/Parts"] ]
-            self._holeLookupVector = self.file["/MultiPart/HoleLookup"][:,1]
-            self._holeLookup = self._holeLookupVector.__getitem__
+    def __init__(self, *args):
+        assert len(args) > 0
+
+        if len(args) == 1:
+            filename = args[0]
+            self.filename = op.abspath(op.expanduser(filename))
+            self.file = h5py.File(self.filename, "r")
+            # Is this a multi-part or single-part?
+            if self.file.get("MultiPart"):
+                directory = op.dirname(self.filename)
+                self._parts = [ BaxH5Reader(op.join(directory, fn))
+                                for fn in self.file["/MultiPart/Parts"] ]
+                self._holeLookupVector = self.file["/MultiPart/HoleLookup"][:,1]
+                self._holeLookup = self._holeLookupVector.__getitem__
+            else:
+                self._parts = [ BaxH5Reader(self.filename) ]
+                self._holeLookup = (lambda holeNumber: 1)
+            self._sequencingZmws = np.concatenate([ part.sequencingZmws
+                                                    for part in self._parts ])
         else:
-            self._parts = [ BaxH5Reader(self.filename) ]
-            self._holeLookup = (lambda holeNumber: 1)
-        self._sequencingZmws = np.concatenate([ part.sequencingZmws
-                                                for part in self._parts ])
+            partFilenames    = args
+            self.filename    = None
+            self.file        = None
+            self._parts      = [ BaxH5Reader(fn) for fn in partFilenames ]
+            holeLookupDict   = { hn : (i + 1)
+                                 for i in xrange(len(self._parts))
+                                 for hn in self._parts[i]._holeNumberToIndex }
+            self._holeLookup = lambda hn: holeLookupDict[hn]
+
 
     @property
     def parts(self):
@@ -621,10 +640,70 @@ class BasH5Reader(object):
             yield self[holeNumber]
 
     def __repr__(self):
-        return "<BasH5Reader: %s>" % op.basename(self.filename)
-
+        return "<BasH5Reader: %s>" % self.movieName
 
     # Make cursor classes available
     Zmw        = Zmw
     ZmwRead    = ZmwRead
     CCSZmwRead = CCSZmwRead
+
+
+
+def sniffMovieName(basFilename):
+    with h5py.File(basFilename, "r") as f:
+        return f["/ScanData/RunInfo"].attrs["MovieName"]
+
+class BasH5Collection(object):
+    """
+    Class representing a collection of base call (bas/bax) files.
+
+    Can be initialized from a list of bas/bax files, or an input.fofn
+    file containing a list of bas/bax files
+    """
+
+    def __init__(self, *args):
+        #
+        # Implementation notes: find all the bas/bax files, and group
+        # them together by movieName, by sniffing within the HDF5
+        # (don't trust the filename).
+        #
+        basFilenames = []
+        for arg in args:
+            if arg.endswith(".fofn"):
+                for fn in FofnReader(arg):
+                    basFilenames.append(fn)
+            else:
+                basFilenames.append(arg)
+
+        movieNames = map(sniffMovieName, basFilenames)
+        movieNamesAndFiles = zip(movieNames, basFilenames)
+
+        self.readers = { k : BasH5Reader(*[val[1] for val in v])
+                         for k, v in groupby(movieNamesAndFiles, lambda t: t[0]) }
+
+    @property
+    def movieNames(self):
+        return set([ k for k in self.readers])
+
+    def __getitem__(self, key):
+        """
+        Slice by movie name, zmw name, or zmw range name, using standard
+        PacBio naming conventions.  Examples:
+
+          - ["m110818_..._s1_p0"]       -> BasH5Reader
+          - ["m110818_..._s1_p0/24480"] -> Zmw
+          - ["m110818_..._s1_p0/24480"] -> ZmwRead
+        """
+        indices = key.rstrip("/").split("/")
+
+        if len(indices) < 1:
+            raise KeyError("Invalid slice of BasH5Collection")
+
+        if len(indices) >= 1:
+            result = self.readers[indices[0]]
+        if len(indices) >= 2:
+            result = result[int(indices[1])]
+        if len(indices) >= 3:
+            start, end = map(int, indices[2].split("_"))
+            result = result.read(start, end)
+        return result
