@@ -19,7 +19,7 @@
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
-# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,g SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
 # BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
@@ -28,9 +28,17 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-from .BasH5IO import *
-from .CmpH5IO import *
-from .FastaIO import *
-from .FastqIO import *
-from .FofnIO import *
-from .GffIO import *
+# Authors: David Alexander
+
+
+class FofnReader(object):
+    """
+    Reader class for a 'fofn' file, which stands for
+    file-of-filenames---the simplest container format you can imagine.
+    """
+    def __init__(self, fofnFilename):
+        self.filename = fofnFilename
+        self.file = open(fofnFilename)
+
+    def __iter__(self):
+        return (line.rstrip() for line in self.file)
