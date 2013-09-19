@@ -39,6 +39,7 @@ from itertools import groupby
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
 from pbcore.io._utils import rec_join, arrayFromDataset
+from pbcore.io.BasH5IO import BasH5Collection
 
 # ========================================
 #  Data manipulation routines.
@@ -251,6 +252,16 @@ class CmpH5Alignment(object):
     def __init__(self, cmph5, rowNumber):
         self.cmpH5 = cmph5
         self.rowNumber = rowNumber
+
+    @property
+    def zmw(self):
+        return self.zmwRead.zmw
+
+    @property
+    def zmwRead(self):
+        if not self.cmpH5.moviesAttached:
+            raise ValueError("Movies not attached!")
+        return self.cmpH5.basH5Collection[self.readName]
 
     def clippedTo(self, refStart, refEnd):
         """
@@ -811,6 +822,22 @@ class CmpH5Reader(object):
             # Barcode ID per row
             self._barcodes = self.file["/AlnInfo/Barcode"].value[:,0]
 
+        self.basH5Collection = None
+
+    def attach(self, fofnFilename):
+        """
+        Attach the actual movie data files that were used to create this
+        alignment file.
+
+        TODO: enable supplying movie names or fofn names here
+        TODO: enable unattach
+        TODO: sanity check that the movie names are all there?
+        """
+        self.basH5Collection = BasH5Collection(fofnFilename)
+
+    @property
+    def moviesAttached(self):
+        return (self.basH5Collection is not None)
 
     @property
     def alignmentIndex(self):
