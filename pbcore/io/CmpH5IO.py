@@ -913,15 +913,6 @@ class CmpH5Reader(object):
         """
         return self._referenceInfoTable
 
-
-    def localReferenceIdMapping(self):
-        """
-        Interface used by `pbcore.io.ReferenceTable`;
-        provides a dict of MD5 -> local contig id
-        """
-        return { record.MD5 : record.ID
-                 for record in  self.referenceInfoTable }
-
     @property
     def readType(self):
         """
