@@ -30,15 +30,9 @@
 
 # Authors: David Alexander
 
+from pbcore.io.base import getFileHandle
 
-class FofnReader(object):
-    """
-    Reader class for a 'fofn' file, which stands for
-    file-of-filenames---the simplest container format you can imagine.
-    """
-    def __init__(self, fofnFilename):
-        self.filename = fofnFilename
-        self.file = open(fofnFilename)
+__all__ = [ "readFofn" ]
 
-    def __iter__(self):
-        return (line.rstrip() for line in self.file)
+def readFofn(f):
+    return (line.rstrip() for line in getFileHandle(f))

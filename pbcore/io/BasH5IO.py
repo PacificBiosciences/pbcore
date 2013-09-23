@@ -39,7 +39,7 @@ from bisect import bisect_left, bisect_right
 from operator import getitem
 from itertools import groupby
 
-from pbcore.io.FofnIO import FofnReader
+from pbcore.io.FofnIO import readFofn
 from ._utils import arrayFromDataset
 
 
@@ -647,11 +647,13 @@ class BasH5Reader(object):
     ZmwRead    = ZmwRead
     CCSZmwRead = CCSZmwRead
 
-
-
 def sniffMovieName(basFilename):
-    with h5py.File(basFilename, "r") as f:
-        return f["/ScanData/RunInfo"].attrs["MovieName"]
+    # The clean way to do this is the get the moviename attribute from
+    # the file, but unfortunately that approach is unusable slow.
+    # Here we assume that the filename follows the standard PacBio
+    # naming convention.
+    movieName = op.basename(basFilename).split(".")[0]
+    return movieName
 
 class BasH5Collection(object):
     """
@@ -664,13 +666,12 @@ class BasH5Collection(object):
     def __init__(self, *args):
         #
         # Implementation notes: find all the bas/bax files, and group
-        # them together by movieName, by sniffing within the HDF5
-        # (don't trust the filename).
+        # them together by movieName
         #
         basFilenames = []
         for arg in args:
             if arg.endswith(".fofn"):
-                for fn in FofnReader(arg):
+                for fn in readFofn(arg):
                     basFilenames.append(fn)
             else:
                 basFilenames.append(arg)

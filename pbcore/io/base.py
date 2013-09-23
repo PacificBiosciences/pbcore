@@ -38,7 +38,7 @@ from os.path import abspath, expanduser
 def isFileLikeObject(o):
     return hasattr(o, "read") and hasattr(o, "write")
 
-def getFileHandle(filenameOrFile, mode):
+def getFileHandle(filenameOrFile, mode="r"):
     """
     Given a filename not ending in ".gz", open the file with the
     appropriate mode.
