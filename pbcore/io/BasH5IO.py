@@ -397,7 +397,7 @@ class BaxH5Reader(object):
         #
         # ZMW metric cache -- probably want to move prod and readScore
         # here.
-        # 
+        #
         self.__metricCache = {}
 
     @property
@@ -426,18 +426,18 @@ class BaxH5Reader(object):
     @property
     def movieName(self):
         movieNameAttr = self.file["/ScanData/RunInfo"].attrs["MovieName"]
-        
+
         # In old bas.h5 files, attributes of ScanData/RunInfo are stored as
         # strings in arrays of length one.
-        if (isinstance(movieNameAttr, (np.ndarray, list)) and 
+        if (isinstance(movieNameAttr, (np.ndarray, list)) and
                 len(movieNameAttr) == 1):
             movieNameString = movieNameAttr[0]
         else:
             movieNameString = movieNameAttr
-        
+
         if not isinstance(movieNameString, basestring):
             raise TypeError("Unsupported movieName {m} of type {t}."
-                             .format(m=movieNameString, 
+                             .format(m=movieNameString,
                                      t=type(movieNameString)))
         return movieNameString
 
