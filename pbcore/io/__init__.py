@@ -32,5 +32,6 @@ from .BasH5IO import *
 from .CmpH5IO import *
 from .FastaIO import *
 from .FastqIO import *
-from .FofnIO import *
-from .GffIO import *
+from .FofnIO  import *
+from .GffIO   import *
+from .base    import *

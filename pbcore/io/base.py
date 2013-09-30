@@ -35,6 +35,8 @@ from __future__ import absolute_import
 import gzip
 from os.path import abspath, expanduser
 
+__all__ = [ "ReaderBase", "WriterBase" ]
+
 def isFileLikeObject(o):
     return hasattr(o, "read") and hasattr(o, "write")
 
