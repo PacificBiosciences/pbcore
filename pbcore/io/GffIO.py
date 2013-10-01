@@ -101,7 +101,7 @@ class Gff3Record(object):
         Parse a string as a GFF record.
         Trailing whitespace is ignored.
         """
-        columns = s.rstrip().split("\t")
+        columns = s.rstrip().rstrip(";").split("\t")
         try:
             assert len(columns) == len(cls._GFF_COLUMNS)
             attributes = map(tupleFromGffAttribute, columns[-1].split(";"))
