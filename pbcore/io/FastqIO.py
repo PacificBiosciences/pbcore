@@ -39,10 +39,9 @@ __all__ = [ "FastqRecord",
             "FastqWriter",
             "qvsFromAscii",
             "asciiFromQvs" ]
-
+import numpy as np
 from .base import ReaderBase, WriterBase
-from cStringIO import StringIO
-import numpy as np, re
+
 
 
 class FastqRecord(object):
@@ -172,6 +171,7 @@ class FastqWriter(WriterBase):
 
     .. doctest::
 
+        >>> from pbcore.io import FastqWriter
         >>> with FastqWriter("output.fq.gz") as writer:
         ...     writer.writeRecord("dog", "GATTACA", [35]*7)
         ...     writer.writeRecord("cat", "CATTACA", [35]*7)

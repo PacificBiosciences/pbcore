@@ -485,9 +485,15 @@ class BasH5Reader(object):
 
     1. Index into the `BasH5Reader` using the ZMW hole number to get a `Zmw` object::
 
-       >>> from pbcore.io import BasH5Reader
-       >>> b = BasH5Reader("myMovie.bas.h5")
-       >>> zmw8 = b[8]
+    .. testsetup:: *
+
+       from pbcore.io import BasH5Reader
+       from pbcore import data
+       filename = data.getBasH5s()[0]
+       b = BasH5Reader(filename)
+       zmw8 = b[8]
+
+    .. doctest::
 
     2. Extract `ZmwRead` objects from the `Zmw` object by:
 
@@ -495,12 +501,13 @@ class BasH5Reader(object):
          are the subintervals of the raw read corresponding to the
          SMRTbell insert::
 
-           >>> print zmw8.subreads
+           >>> subreads = zmw8.subreads
+           >>> print subreads
            [<ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881>,
-            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398>,
-            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873>,
-            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354>,
-            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495>]
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398>,
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873>,
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354>,
+           <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495>]
 
        - Using the `.ccsRead` property to extract the CCS (consensus)
          read, which is a consensus sequence precomputed from the
@@ -529,11 +536,11 @@ class BasH5Reader(object):
          >>> subreads[0].InsertionQV()
          array([12, 12, 10,  2,  7, 14, 13, 18, 15, 16, 16, 15, 10, 12,  3, 14, ...])
 
-    Note that not every ZMW on a chip produces useable sequencing
-    data.  The `BasH5Reader` has a propery `sequencingZmws` is a list
-    of the hole numbers where useable sequence was recorded.
+    Note that not every ZMW on a chip produces usable sequencing
+    data.  The `BasH5Reader` has a property `sequencingZmws` is a list
+    of the hole numbers where usable sequence was recorded.
     Iteration over the `BasH5Reader` object allows you to iterate over
-    the `Zmw` objects providing useable sequence.
+    the `Zmw` objects providing usable sequence.
     """
     def __init__(self, *args):
         assert len(args) > 0

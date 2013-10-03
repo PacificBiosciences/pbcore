@@ -6,7 +6,7 @@ to PacBio data files and other standard bioinformatics file formats.
 Preferred usage is to import classes directly from the ``pbcore.io``
 package, e.g.::
 
-    from pbcore.io import CmpH5Reader
+    >>> from pbcore.io import CmpH5Reader
 
 The classes within ``pbcore.io`` adhere to a few conventions, in order
 to provide a uniform API:
@@ -25,8 +25,8 @@ to provide a uniform API:
   - The reader/writer classes all support the context manager idiom.
     Meaning, if you write::
 
-      with CmpH5Reader("aligned_reads.cmp.h5") as r:
-          print r[0].read()
+      >>> with CmpH5Reader("aligned_reads.cmp.h5") as r:
+      ...   print r[0].read()
 
     the `CmpH5Reader` object will be automatically closed after the
     block within the "with" statement is executed.
@@ -49,15 +49,15 @@ on top of the HDF5 standard.
     :members:
     :undoc-members:
 
-.. autoclass:: pbcore.io.BasH5Reader.Zmw
+.. autoclass:: pbcore.io.BasH5IO.Zmw
     :members:
     :undoc-members:
 
-.. autoclass:: pbcore.io.BasH5Reader.ZmwRead
+.. autoclass:: pbcore.io.BasH5IO.ZmwRead
     :members:
     :undoc-members:
 
-.. autoclass:: pbcore.io.BasH5IO.BasH5
+.. autoclass:: pbcore.io.BasH5IO.BasH5Reader
     :members:
     :undoc-members:
 

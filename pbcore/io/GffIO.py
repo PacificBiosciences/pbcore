@@ -52,12 +52,13 @@ class Gff3Record(object):
 
     .. doctest::
 
+        >>> from pbcore.io import Gff3Record
         >>> record = Gff3Record("chr1", 10, 11, "insertion",
         ...                     attributes=[("foo", "1"), ("bar", "2")])
         >>> record.start
         10
         >>> record.foo
-        1
+        '1'
         >>> record.baz = 3
         >>> del record.baz
 

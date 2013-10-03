@@ -683,8 +683,10 @@ class CmpH5Reader(object):
 
     .. testsetup:: *
 
+        from pbcore import data
         from pbcore.io import CmpH5Reader
-        c = CmpH5Reader("/Users/dalexander/Data/aligned_reads_1.cmp.h5")
+        filename = data.getCmpH5()['cmph5']
+        c = CmpH5Reader(filename)
         a0 = c[0]
         a1 = c[1]
 

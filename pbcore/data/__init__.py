@@ -92,3 +92,10 @@ def getFasta():
     Returns the filename of an example FASTA file.
     '''
     return _getAbsPath('Fluidigm_human_amplicons.fasta')
+
+
+def getTinyFasta():
+    """
+    Returns the filename of an example FASTA file.
+    """
+    return _getAbsPath('Fluidigm_human_amplicons_tiny.fasta')
