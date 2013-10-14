@@ -199,7 +199,7 @@ class CmpH5Alignment(object):
         CmpH5 alignment: +    1       7441       7699
         <BLANKLINE>
         Read:        m110818_075520_42141_c100129202555500000315043109121112_s2_p0/1009/44_322
-        Reference:   ref000001
+        Reference:   lambda_NEB3011
         <BLANKLINE>
         Read length: 278
         Concordance: 0.871
@@ -289,7 +289,7 @@ class CmpH5Alignment(object):
 
     @property
     def referenceName(self):
-        return self.referenceInfo.Name
+        return self.referenceInfo.FullName
 
     @property
     def readName(self):
