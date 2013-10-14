@@ -202,7 +202,7 @@ class CmpH5Alignment(object):
         Reference:   ref000001
         <BLANKLINE>
         Read length: 278
-        Accuracy:    0.871
+        Concordance: 0.871
         <BLANKLINE>
           12345678901234567890123456789001223456789012345678890112345678990112344567890011
           AACTGGTCACGGTCGTGGCACTGGTGAAG-CT-GCATACTGATGCACTT-CAC-GCCACGCG-GG-ATG-AACCTG-T-G
@@ -592,7 +592,7 @@ class CmpH5Alignment(object):
         val += "Read:        " + self.readName           + "\n"
         val += "Reference:   " + self.referenceName      + "\n\n"
         val += "Read length: " + str(self.readLength)    + "\n"
-        val += "Accuracy:    " + "%0.3f" % self.accuracy + "\n"
+        val += "Concordance: " + "%0.3f" % self.accuracy + "\n"
 
         alignedRead = self.read()
         alignedRef = self.reference()
