@@ -4,6 +4,8 @@ data files and writing bioinformatics applications.
 
 Installation:
 -------------
+    % pip install numpy
+    % pip install h5py
     % python setup.py install
 
 Requirements:
