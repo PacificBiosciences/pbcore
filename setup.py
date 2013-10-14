@@ -21,6 +21,6 @@ setup(
                                'data/*.fasta.fai'] },
     zip_safe = False,
     install_requires=[
-        'numpy >= 1.6.0',
-        'h5py >= 2.0.1'
+        'h5py >= 2.0.1',
+        'numpy >= 1.6.0'
     ])
