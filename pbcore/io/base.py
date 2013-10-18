@@ -53,7 +53,7 @@ def getFileHandle(filenameOrFile, mode="r"):
     """
     assert mode in ("r", "w")
 
-    if isinstance(filenameOrFile, str):
+    if isinstance(filenameOrFile, basestring):
         filename = abspath(expanduser(filenameOrFile))
         if filename.endswith(".gz"):
             return gzip.open(filename, mode)
