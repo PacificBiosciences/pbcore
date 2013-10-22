@@ -141,7 +141,7 @@ class Zmw(object):
         basecalls from this ZMW, from the `ReadScore` dataset in the
         file
         """
-        return self.baxH5._readScores[self.index]
+        return self.zmwMetric("ReadScore")
 
     @property
     def productivity(self):
@@ -150,7 +150,7 @@ class Zmw(object):
         number of polymerase reactions taking place within it.  For
         example, a doubly-loaded ZMW would have productivity 2.
         """
-        return self.baxH5._productivities[self.index]
+        return self.zmwMetric("Productivity")
 
 
     def zmwMetric(self, name):
@@ -349,9 +349,6 @@ class BaxH5Reader(object):
 
         self._mainBasecallsGroup = self._basecallsGroup if self.hasRawBasecalls \
                                    else self._ccsBasecallsGroup
-
-        self._readScores     = self._mainBasecallsGroup["ZMWMetrics/ReadScore"].value
-        self._productivities = self._mainBasecallsGroup["ZMWMetrics/Productivity"].value
 
         holeNumbers = self._mainBasecallsGroup["ZMW/HoleNumber"].value
         self._holeNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
