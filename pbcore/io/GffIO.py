@@ -157,6 +157,8 @@ class Gff3Record(object):
     def get(self, name, default=None):
         return getattr(self, name, default)
 
+    def put(self, name, value):
+        setattr(self, name, value)
 
 class GffReader(ReaderBase):
     """
