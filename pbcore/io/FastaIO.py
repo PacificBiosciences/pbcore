@@ -245,7 +245,7 @@ def fileOffset(faiRecord, pos):
     offset = faiRecord.offset + q*faiRecord.stride + r
     return offset
 
-class MmappedFastaContig(Sequence):
+class MmappedFastaSequence(Sequence):
     """
     A string-like view of a contig sequence that is backed by a file
     using mmap.
@@ -278,7 +278,7 @@ class MmappedFastaContig(Sequence):
         return self.faiRecord.length
 
     def __eq__(self, other):
-        return (isinstance(other, MmappedFastaContig) and
+        return (isinstance(other, MmappedFastaSequence) and
                 self[:] == other[:])
 
 class FastaTableRecord(object):
@@ -292,7 +292,7 @@ class FastaTableRecord(object):
 
     @property
     def sequence(self):
-        return MmappedFastaContig(self.view,
+        return MmappedFastaSequence(self.view,
                                   self.faiRecord)
     def __repr__(self):
         return "<FastaTableRecord: %s>" % self.name
