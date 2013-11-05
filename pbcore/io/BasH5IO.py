@@ -695,9 +695,10 @@ class BasH5Collection(object):
         Slice by movie name, zmw name, or zmw range name, using standard
         PacBio naming conventions.  Examples:
 
-          - ["m110818_..._s1_p0"]       -> BasH5Reader
-          - ["m110818_..._s1_p0/24480"] -> Zmw
-          - ["m110818_..._s1_p0/24480"] -> ZmwRead
+          - ["m110818_..._s1_p0"]             -> BasH5Reader
+          - ["m110818_..._s1_p0/24480"]       -> Zmw
+          - ["m110818_..._s1_p0/24480/20_67"] -> ZmwRead
+          - ["m110818_..._s1_p0/24480/ccs"]   -> CCSZmwRead
         """
         indices = key.rstrip("/").split("/")
 
@@ -709,6 +710,9 @@ class BasH5Collection(object):
         if len(indices) >= 2:
             result = result[int(indices[1])]
         if len(indices) >= 3:
-            start, end = map(int, indices[2].split("_"))
-            result = result.read(start, end)
+            if indices[2] == "ccs":
+                result = result.ccsRead
+            else:
+                start, end = map(int, indices[2].split("_"))
+                result = result.read(start, end)
         return result
