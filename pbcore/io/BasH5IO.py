@@ -38,6 +38,7 @@ import h5py, numpy as np, os.path as op
 from bisect import bisect_left, bisect_right
 from operator import getitem
 from itertools import groupby
+from collections import OrderedDict
 
 from pbcore.io.FofnIO import readFofn
 from ._utils import arrayFromDataset
@@ -556,8 +557,6 @@ class BasH5Reader(object):
             else:
                 self._parts = [ BaxH5Reader(self.filename) ]
                 self._holeLookup = (lambda holeNumber: 1)
-            self._sequencingZmws = np.concatenate([ part.sequencingZmws
-                                                    for part in self._parts ])
         else:
             partFilenames    = args
             self.filename    = None
@@ -567,7 +566,8 @@ class BasH5Reader(object):
                                  for i in xrange(len(self._parts))
                                  for hn in self._parts[i]._holeNumberToIndex }
             self._holeLookup = lambda hn: holeLookupDict[hn]
-
+        self._sequencingZmws = np.concatenate([ part.sequencingZmws
+                                                for part in self._parts ])
 
     @property
     def parts(self):
@@ -681,14 +681,15 @@ class BasH5Collection(object):
                 basFilenames.append(arg)
 
         movieNames = map(sniffMovieName, basFilenames)
-        movieNamesAndFiles = zip(movieNames, basFilenames)
+        movieNamesAndFiles = sorted(zip(movieNames, basFilenames))
 
-        self.readers = { k : BasH5Reader(*[val[1] for val in v])
-                         for k, v in groupby(movieNamesAndFiles, lambda t: t[0]) }
+        self.readers = OrderedDict(
+            [ (k , BasH5Reader(*[val[1] for val in v]))
+              for k, v in groupby(movieNamesAndFiles, lambda t: t[0]) ])
 
     @property
     def movieNames(self):
-        return set([ k for k in self.readers])
+        return self.readers.keys()
 
     def __getitem__(self, key):
         """
@@ -716,3 +717,10 @@ class BasH5Collection(object):
                 start, end = map(int, indices[2].split("_"))
                 result = result.read(start, end)
         return result
+
+    def __iter__(self):
+        """
+        Iterate over Zmws
+        """
+        for reader in self.readers.values():
+            for zmw in reader: yield zmw
