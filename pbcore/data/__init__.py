@@ -99,3 +99,13 @@ def getTinyFasta():
     Returns the filename of an example FASTA file.
     """
     return _getAbsPath('Fluidigm_human_amplicons_tiny.fasta')
+
+def getFofns():
+    """
+    Returns a list of FOFN files
+    """
+    return map(_getAbsPath,
+               ["1.4_bas_files.fofn",
+                "2.0_bax_files.fofn",
+                "2.1_bax_files.fofn",
+                "2.1_ccs_files.fofn"])

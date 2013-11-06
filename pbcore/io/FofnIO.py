@@ -31,8 +31,29 @@
 # Authors: David Alexander
 
 from pbcore.io.base import getFileHandle
+from os.path import dirname, isabs, join, normpath, abspath
 
 __all__ = [ "readFofn" ]
 
 def readFofn(f):
-    return (line.rstrip() for line in getFileHandle(f))
+    """
+    Return iterator over filenames in a FOFN ("file-of-filenames")
+    file or file-like object.
+
+    If f is a path to a true FOFN on disk, any paths listed in the
+    FOFN that are relative (i.e., do not contain a leading '/') will
+    be reckoned from the directory containing the FOFN.
+    """
+    if isinstance(f, basestring):
+        fofnRoot = dirname(abspath(f))
+    else:
+        fofnRoot = None
+
+    for line in getFileHandle(f):
+        path = line.rstrip()
+        if isabs(path):
+            yield path
+        elif fofnRoot is not None:
+            yield normpath(join(fofnRoot, path))
+        else:
+            raise IOError, "Cannot handle relative paths in StringIO FOFN"

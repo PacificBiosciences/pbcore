@@ -211,10 +211,13 @@ class Zmw(object):
             return CCSZmwRead(self.baxH5, self.holeNumber, 0,
                               baseOffset[1] - baseOffset[0])
 
+    @property
+    def zmwName(self):
+        return "%s/%d" % (self.baxH5.movieName,
+                          self.holeNumber)
+
     def __repr__(self):
-        zmwName = "%s/%d" % (self.baxH5.movieName,
-                             self.holeNumber)
-        return "<Zmw: %s>" % zmwName
+        return "<Zmw: %s>" % self.zmwName
 
 
 class ZmwRead(object):
@@ -252,10 +255,9 @@ class ZmwRead(object):
 
     @property
     def readName(self):
-        return "%s/%d/%d_%d" % (self.baxH5.movieName,
-                                self.holeNumber,
-                                self.readStart,
-                                self.readEnd)
+        return "%s/%d_%d" % (self.zmw.zmwName,
+                             self.readStart,
+                             self.readEnd)
 
     def __repr__(self):
         return "<%s: %s>" % (self.__class__.__name__,
@@ -300,7 +302,7 @@ class CCSZmwRead(ZmwRead):
 
     @property
     def readName(self):
-        return "%s/%d/ccs" % (self.baxH5.movieName, self.holeNumber)
+        return "%s/ccs" % (self.readName, self.holeNumber)
 
 def _makeOffsetsDataStructure(h5Group):
     numEvent   = h5Group["ZMW/NumEvent"].value
