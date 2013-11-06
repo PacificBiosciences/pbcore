@@ -302,7 +302,7 @@ class CCSZmwRead(ZmwRead):
 
     @property
     def readName(self):
-        return "%s/ccs" % (self.readName, self.holeNumber)
+        return "%s/ccs" % self.zmw.zmwName
 
 def _makeOffsetsDataStructure(h5Group):
     numEvent   = h5Group["ZMW/NumEvent"].value
