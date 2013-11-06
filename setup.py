@@ -18,7 +18,7 @@ setup(
     packages = find_packages('.'),
     package_dir = {'':'.'},
     package_data = {'pbcore': ['data/*.h5', 'data/*.gff3', 'data/*.fasta',
-                               'data/*.fasta.fai'] },
+                               'data/*.fasta.fai', 'data/*.fofn'] },
     zip_safe = False,
     install_requires=[
         'h5py >= 2.0.1',
