@@ -44,7 +44,7 @@ from ._utils import splitFileContents
 
 import md5, mmap, numpy as np
 from collections import namedtuple, OrderedDict, Sequence
-from os.path import abspath, expanduser
+from os.path import abspath, expanduser, isfile
 
 
 class FastaRecord(object):
@@ -211,30 +211,30 @@ def faiFilename(fastaFilename):
     return fastaFilename + ".fai"
 
 def loadFastaIndex(faidxFilename, fastaView):
-    tbl = OrderedDict()
-    try:
-        #
-        # `samtools faidx` mangles FASTA contig names containing a
-        # space, for example, so we have to look up the true name in
-        # the FASTA file itself, ignoring the name in the fai.
-        #
-        offsetEnd = 0
-        for line in open(faidxFilename):
-            length, offset, lineWidth, blen = map(int, line.split()[-4:])
-            header    = fastaView[offsetEnd:offset]
-            assert (header[0] == ">" and header[-1] == "\n")
-            name      = header[1:-1]
-            q, r = divmod(length, lineWidth)
-            numNewlines = q + (r > 0)
-            offsetEnd = offset + length + numNewlines
-            record = FaiRecord(name, length, offset, lineWidth, blen)
-            tbl[name] = record
-        return tbl
 
-    except:
-        raise IOError,                                                        \
-            "Companion FASTA index (.fai) file not found or malformatted! " + \
-            "Use 'samtools faidx' to generate FASTA index."
+    if not isfile(faidxFilename): # os.path.isfile
+        raise IOError("Companion FASTA index (.fai) fail not found or "
+                      "malformatted! Use 'samtools faidx' to generate FASTA "
+                      "index.")
+
+    tbl = OrderedDict()
+    #
+    # `samtools faidx` mangles FASTA contig names containing a
+    # space, for example, so we have to look up the true name in
+    # the FASTA file itself, ignoring the name in the fai.
+    #
+    offsetEnd = 0
+    for line in open(faidxFilename):
+        length, offset, lineWidth, blen = map(int, line.split()[-4:])
+        header    = fastaView[offsetEnd:offset]
+        assert (header[0] == ">" and header[-1] == "\n")
+        name      = header[1:-1]
+        q, r = divmod(length, lineWidth)
+        numNewlines = q + (r > 0)
+        offsetEnd = offset + length + numNewlines
+        record = FaiRecord(name, length, offset, lineWidth, blen)
+        tbl[name] = record
+    return tbl
 
 def fileOffset(faiRecord, pos):
     """
