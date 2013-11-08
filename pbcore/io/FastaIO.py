@@ -213,7 +213,7 @@ def faiFilename(fastaFilename):
 def loadFastaIndex(faidxFilename, fastaView):
 
     if not isfile(faidxFilename): # os.path.isfile
-        raise IOError("Companion FASTA index (.fai) fail not found or "
+        raise IOError("Companion FASTA index (.fai) file not found or "
                       "malformatted! Use 'samtools faidx' to generate FASTA "
                       "index.")
 
