@@ -363,7 +363,7 @@ class BaxH5Reader(object):
                                       self.file["/PulseData/Regions"].value)
         self._regionTableIndex = _makeRegionTableIndex(self.regionTable.holeNumber)
         isHqRegion     = self.regionTable.regionType == HQ_REGION
-        hqRegions      = self.regionTable[isHqRegion, :]
+        hqRegions      = self.regionTable[isHqRegion]
 
         if len(hqRegions) != len(holeNumbers):
             # Bug 23585: pre-2.1 primary had a bug where a bas file
