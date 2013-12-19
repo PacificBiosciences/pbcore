@@ -427,6 +427,16 @@ class CmpH5Alignment(object):
         return self.cmpH5.numPasses[self.rowNumber]
 
     @property
+    def zScore(self):
+        """
+        (PacBio internal files only)
+
+        The z-score of the alignment, using a null model of a random
+        sequence alignment.
+        """
+        return self.cmpH5.zScore[self.rowNumber]
+
+    @property
     def barcode(self):
         """
         The barcode ID (integer key) for this alignment's read
@@ -823,6 +833,9 @@ class CmpH5Reader(object):
                                                 self.file["/BarcodeInfo/ID"]))
             # Barcode ID per row
             self._barcodes = self.file["/AlnInfo/Barcode"].value[:,0]
+
+        if "ZScore" in self.file["/AlnInfo"]:
+            self.zScore = self.file["/AlnInfo/ZScore"].value
 
         self.basH5Collection = None
 
