@@ -100,7 +100,7 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
                    writeExtendedInfo = False):
     """Write a barcode file from a list of labeled ZMWs. In addition
     to labeledZmws, this function takes a
-    pbtools.pbbarcode.BarcodeLabeler."""
+    pbbarcode.BarcodeLabeler."""
     bestScores = map(lambda z: z.toBestRecord(), labeledZmws)
     outDta = n.vstack(bestScores)
     outH5 = h5.File(outFile, 'a')
