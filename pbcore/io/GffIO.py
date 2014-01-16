@@ -221,7 +221,11 @@ def integerValue(s):
         return None
 
 def grok(s):
-    return integerValue(s) or floatValue(s) or s
+    iv = integerValue(s)
+    if iv is not None: return iv
+    fv = floatValue(s)
+    if fv is not None: return fv
+    return s
 
 def tupleFromGffAttribute(s):
     k, v = s.split("=")
