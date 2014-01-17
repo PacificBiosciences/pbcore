@@ -38,10 +38,9 @@ gh-pages:
 	rm -rf $(GH_PAGES_SOURCES)
 	git add --all && git commit -m "Automatic update of gh-pages branch" && git checkout master
 
-pip-uninstall: $(shell which pip > /dev/null)
+pip-install:
+	@which pip >& /dev/null
 	@pip freeze|grep 'pbcore=='>/dev/null \
       && pip uninstall -y pbcore \
       || echo -n ''
-
-pip-install: $(shell which pip > /dev/null)
 	@pip install --no-index ./
