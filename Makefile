@@ -39,7 +39,7 @@ gh-pages:
 	git add --all && git commit -m "Automatic update of gh-pages branch" && git checkout master
 
 pip-install:
-	@which pip >& /dev/null
+	@which pip > /dev/null
 	@pip freeze|grep 'pbcore=='>/dev/null \
       && pip uninstall -y pbcore \
       || echo -n ''
