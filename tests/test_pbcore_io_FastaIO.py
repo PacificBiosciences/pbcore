@@ -61,6 +61,14 @@ class TestFastaReader:
         assert_equal("e3912e9ceacd6538ede8c1b2adda7423",
                      entries[0].md5)
 
+    def test_dosLineEndingsFasta(self):
+        f = FastaReader(data.getDosFormattedFasta())
+        entries = list(f)
+        for e in entries:
+            assert_true("\r" not in e.name)
+            assert_equal(16, len(e.sequence))
+
+
 
 class TestFastaWriter:
 

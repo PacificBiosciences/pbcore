@@ -113,7 +113,7 @@ class FastqRecord(object):
         format, as wrapped FASTQs can't easily be safely parsed.
         """
         try:
-            lines = s.rstrip().split("\n")
+            lines = s.rstrip().splitlines()
             assert len(lines) == 4
             assert lines[0][0] == cls.DELIMITER1
             assert lines[2][0] == cls.DELIMITER2

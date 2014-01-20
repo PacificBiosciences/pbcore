@@ -100,6 +100,12 @@ def getTinyFasta():
     """
     return _getAbsPath('Fluidigm_human_amplicons_tiny.fasta')
 
+def getDosFormattedFasta():
+    """
+    Returns the filename of an example FASTA file with DOS line endings
+    """
+    return _getAbsPath('barcodes-ed65-450.fasta')
+
 def getFofns():
     """
     Returns a list of FOFN files

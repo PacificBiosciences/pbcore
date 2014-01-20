@@ -96,7 +96,7 @@ class FastaRecord(object):
         assumptions about wrapping of the sequence string.
         """
         try:
-            lines = s.split("\n")
+            lines = s.splitlines()
             assert len(lines) > 1
             assert lines[0][0] == cls.DELIMITER
             name = lines[0][1:]
@@ -226,12 +226,13 @@ def loadFastaIndex(faidxFilename, fastaView):
     offsetEnd = 0
     for line in open(faidxFilename):
         length, offset, lineWidth, blen = map(int, line.split()[-4:])
+        newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
         header    = fastaView[offsetEnd:offset]
         assert (header[0] == ">" and header[-1] == "\n")
-        name      = header[1:-1]
+        name      = header[1:-newlineWidth]
         q, r = divmod(length, lineWidth)
         numNewlines = q + (r > 0)
-        offsetEnd = offset + length + numNewlines
+        offsetEnd = offset + length + numNewlines*newlineWidth
         record = FaiRecord(name, length, offset, lineWidth, blen)
         tbl[name] = record
     return tbl
@@ -271,7 +272,7 @@ class MmappedFastaSequence(Sequence):
             raise IndexError, "Out of bounds"
         startOffset = fileOffset(self.faiRecord, start)
         endOffset   = fileOffset(self.faiRecord, stop)
-        snip = self.view[startOffset:endOffset].replace("\n", "")
+        snip = self.view[startOffset:endOffset].translate(None, "\r\n")
         return snip
 
     def __len__(self):

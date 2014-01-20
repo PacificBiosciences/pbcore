@@ -52,3 +52,16 @@ class TestFastaTable:
         assert_equal("T", sequence[-3])
         assert_equal("C", sequence[0])
         assert_equal("A", sequence[1])
+
+
+    def test_dosLineEndingsFasta(self):
+        fr = FastaReader(data.getDosFormattedFasta())
+        frEntries = list(fr)
+
+        ft = FastaTable(data.getDosFormattedFasta())
+        ftEntries = list(ft)
+
+        assert_equal(len(frEntries), len(ftEntries))
+        for (frE, ftE) in zip(frEntries, ftEntries):
+            assert_equal(frE.name, ftE.name)
+            assert_equal(frE.sequence, ftE.sequence[:])
