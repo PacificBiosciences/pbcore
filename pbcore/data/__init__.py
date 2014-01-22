@@ -46,14 +46,14 @@ def getBasH5_v20():
     return _getAbsPath(MOVIE_NAME_20 + '.bas.h5')
 
 def getBaxH5_v20():
-    return [_getAbsPath('.'.join((MOVIE_NAME_20, str(k), 'bax.h5'))) 
+    return [_getAbsPath('.'.join((MOVIE_NAME_20, str(k), 'bax.h5')))
             for k in range(1,4)]
 
 def getBasH5_v21():
     return _getAbsPath(MOVIE_NAME_21 + '.bas.h5')
 
 def getBaxH5_v21():
-    return [_getAbsPath('.'.join((MOVIE_NAME_21, str(k), 'bax.h5'))) 
+    return [_getAbsPath('.'.join((MOVIE_NAME_21, str(k), 'bax.h5')))
             for k in range(1,4)]
 
 def getCCSH5():
@@ -105,6 +105,12 @@ def getDosFormattedFasta():
     Returns the filename of an example FASTA file with DOS line endings
     """
     return _getAbsPath('barcodes-ed65-450.fasta')
+
+def getBlasrM4():
+    return _getAbsPath('blasr-output.m4')
+
+def getBlasrM5():
+    return _getAbsPath('blasr-output.m5')
 
 def getFofns():
     """

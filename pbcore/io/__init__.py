@@ -29,6 +29,7 @@
 #################################################################################
 
 from .BasH5IO import *
+from .BlasrIO import *
 from .CmpH5IO import *
 from .FastaIO import *
 from .FastqIO import *
