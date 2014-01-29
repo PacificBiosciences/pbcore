@@ -393,7 +393,8 @@ class BaxH5Reader(object):
             holeNumbers[(holeStatus == SEQUENCING_ZMW)                       &
                         (self._mainBasecallsGroup["ZMW/NumEvent"].value > 0) &
                         (hqRegionLength >  0)]
-
+        
+        self._allSequencingZmws = holeNumbers[holeStatus == SEQUENCING_ZMW]
         #
         # ZMW metric cache -- probably want to move prod and readScore
         # here.
@@ -416,9 +417,7 @@ class BaxH5Reader(object):
         number is fixed per chip, whereas the `sequencingZmws` depends
         on things such as loading.
         """
-        hStatus = self._mainBasecallsGroup["ZMW/HoleStatus"].value
-        hNumber = self._mainBasecallsGroup["ZMW/HoleNumber"].value
-        return hNumber[hStatus == SEQUENCING_ZMW]
+        return self._allSequencingZmws
 
     def __getitem__(self, holeNumber):
         return Zmw(self, holeNumber)
