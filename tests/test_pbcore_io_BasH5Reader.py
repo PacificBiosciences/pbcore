@@ -20,8 +20,8 @@ class TestBasH5Reader_14:
     """
 
     def __init__(self):
-        self.cmpH5 = pbcore.io.CmpH5Reader(pbcore.data.getCmpH5()["cmph5"])
-        basFiles = pbcore.data.getCmpH5()["bash5s"]
+        self.cmpH5 = pbcore.io.CmpH5Reader(pbcore.data.getCmpH5())
+        basFiles = pbcore.data.getBasH5s()
         self.bas1, self.bas2 = map(pbcore.io.BasH5Reader, basFiles)
 
     def test_BasH5Reader_basicTest(self):

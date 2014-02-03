@@ -9,6 +9,4 @@ class TestGetCmpH5s:
 
 class TestGetCmpH5:
     def test_get_cmp_h5(self):
-        assert 'cmph5' in data.getCmpH5()
-        assert 'bash5s' in data.getCmpH5()
-
+        assert data.getCmpH5().endswith(".cmp.h5")

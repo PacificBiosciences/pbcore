@@ -69,17 +69,19 @@ def getCmpH5s():
              'bash5s': map(_getAbsPath, bash5s)}
             for cmph5, bash5s in DATA_FILES.items()]
 
-def getCmpH5():
+def getCmpH5AndBas():
     '''
-    Returns the first cmp.h5 file in the list of available files. The
-    returned value is a dictionary containing 2 keys: cmph5 and
-    bash5s. The latter are the bash5s that were used to generate the
-    cmp.h5 file.
+    The returned value is a dictionary containing 2 keys: cmph5
+    and bash5s. The latter are the bash5s that were used to generate
+    the cmp.h5 file.
     '''
     return getCmpH5s()[0]
 
+def getCmpH5():
+    return getCmpH5AndBas()["cmph5"]
+
 def getBasH5s():
-    return getCmpH5s()[0]["bash5s"]
+    return getCmpH5AndBas()["bash5s"]
 
 def getGff3():
     '''

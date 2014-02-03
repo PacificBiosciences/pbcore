@@ -327,6 +327,10 @@ class CmpH5Alignment(object):
         return self.RCRefStrand == 1
 
     @property
+    def referenceId(self):
+        return self.RefGroupID
+
+    @property
     def referenceStart(self):
         """
         The left bound of the alignment, in reference coordinates.
@@ -695,7 +699,7 @@ class CmpH5Reader(object):
 
         from pbcore import data
         from pbcore.io import CmpH5Reader
-        filename = data.getCmpH5()['cmph5']
+        filename = data.getCmpH5()
         c = CmpH5Reader(filename)
         a0 = c[0]
         a1 = c[1]
@@ -704,7 +708,7 @@ class CmpH5Reader(object):
 
         >>> import pbcore.data                # For an example data file
         >>> from pbcore.io import CmpH5Reader
-        >>> filename = pbcore.data.getCmpH5()["cmph5"]
+        >>> filename = pbcore.data.getCmpH5()
         >>> c = CmpH5Reader(filename)
         >>> c[0]
         CmpH5 alignment: -    1          0        290
