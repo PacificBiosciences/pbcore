@@ -112,6 +112,9 @@ def getBlasrM4():
 def getBlasrM5():
     return _getAbsPath('blasr-output.m5')
 
+def getBam():
+    return _getAbsPath('aligned_reads_1.bam')
+
 def getFofns():
     """
     Returns a list of FOFN files
