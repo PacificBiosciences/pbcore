@@ -456,6 +456,10 @@ class CmpH5Alignment(object):
         """
         return self.cmpH5.barcodeName[self.barcode]
 
+    @property
+    def sequencingChemistry(self):
+        return self.movieInfo.SequencingChemistry
+
     def alignmentArray(self, orientation="native"):
         """
         Direct access to the raw, encoded aligment array, which is a
