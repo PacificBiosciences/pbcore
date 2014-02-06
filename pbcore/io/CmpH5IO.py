@@ -840,7 +840,7 @@ class CmpH5Reader(object):
             self._barcode     = OrderedDict(zip(self.file["/BarcodeInfo/Name"],
                                                 self.file["/BarcodeInfo/ID"]))
             # Barcode ID per row
-            self._barcodes = self.file["/AlnInfo/Barcode"].value[:,0]
+            self._barcodes = self.file["/AlnInfo/Barcode"].value[:,1]
 
         if "ZScore" in self.file["/AlnInfo"]:
             self.zScore = self.file["/AlnInfo/ZScore"].value
