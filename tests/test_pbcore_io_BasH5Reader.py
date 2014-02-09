@@ -153,6 +153,32 @@ class CommonTests(object):
                 nose.tools.assert_less_equal(entry[2], entry[3])
         reader.close()
 
+class ReadIteratorTests(object):
+
+    def test_read_iterators(self):
+        for fname in [self.bash5_filename] + self.baxh5_filenames:
+            reader = pbcore.io.BasH5Reader(self.bash5_filename)
+
+            if reader.hasConsensusBasecalls:
+                ccsReads = [ zmw.ccsRead
+                             for zmw in reader
+                             if zmw.ccsRead is not None ]
+                nose.tools.assert_equal(ccsReads, list(reader.ccsReads()))
+            else:
+                nose.tools.assert_equal([], list(reader.ccsReads()))
+
+            if reader.hasRawBasecalls:
+                subreads = [ subread
+                             for zmw in reader
+                             for subread in zmw.subreads ]
+                nose.tools.assert_equal(subreads, list(reader.subreads()))
+
+                reads = [ zmw.read()
+                          for zmw in reader ]
+                nose.tools.assert_equal(reads, list(reader.reads()))
+            else:
+                nose.tools.assert_equal([], list(reader.reads()))
+                nose.tools.assert_equal([], list(reader.subreads()))
 
 class CommonMultiPartTests(object):
 
@@ -274,7 +300,7 @@ class CommonMultiPartTests(object):
             nose.tools.assert_equal(region_count, len(reported_insert_regions))
 
 
-class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
+class TestBasH5Reader_20(CommonTests, CommonMultiPartTests, ReadIteratorTests):
     """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a
     bas.h5 file and three bas.h5 files. The bax.h5 files also contain CCS.
     """
@@ -302,7 +328,6 @@ class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
             nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
             reader.close()
 
-
     def test_productivity(self):
         """Test that productivities are set correctly for the ZMW objects."""
         productivities = {}
@@ -319,17 +344,16 @@ class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
             nose.tools.assert_equal(reader[hn].productivity,
                                     productivities[hn])
 
-class TestBasH5Reader_21(CommonTests, CommonMultiPartTests):
+
+class TestBasH5Reader_21(CommonTests, CommonMultiPartTests, ReadIteratorTests):
     """Tests of BasH5Reader against a 2.1 ba[sx].h5 files, consisting of a
     bas.h5 file and three bas.h5 files. The bax.h5 files do not contain CCS.
     """
 
     def __init__(self):
         """Get the full paths to the bas and bax.h5 files."""
-
         self.bash5_filename = pbcore.data.getBasH5_v21()
         self.baxh5_filenames = pbcore.data.getBaxH5_v21()
-
 
     def test_21_constructor_bash5(self):
         # Tests specific to the v2.0 bas.h5 constructor
@@ -347,17 +371,17 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests):
             nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_21)
             reader.close()
 
-class TestBasH5Reader_CCS:
+class TestBasH5Reader_CCS(ReadIteratorTests):
     """Test BasH5Reader with a ccs.h5 file produced by P_CCS."""
 
     def __init__(self):
         """Get the full paths to the bas and bax.h5 files."""
-
-        self.ccsh5_filename = pbcore.data.getCCSH5()
+        self.bash5_filename = pbcore.data.getCCSH5()
+        self.baxh5_filenames = []
 
     def test_constructor_ccsh5(self):
         # Test that BasH5Reader initializes correctly with a ccs.h5 file
-        reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
         nose.tools.assert_is_instance(reader.file, h5py.File)
 
         nose.tools.assert_true(reader.hasConsensusBasecalls)
@@ -377,7 +401,7 @@ class TestBasH5Reader_CCS:
 
     def test_ccs_zmw(self):
         # Test Zmw objects derived from a BasH5Reader reading a ccs.h5
-        reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
 
         sequencing_zmws = set(reader.sequencingZmws)
         for zmw in reader.allSequencingZmws:

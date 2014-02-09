@@ -41,7 +41,7 @@ from itertools import groupby
 from collections import OrderedDict
 
 from pbcore.io.FofnIO import readFofn
-from ._utils import arrayFromDataset
+from ._utils import arrayFromDataset, CommonEqualityMixin
 
 
 def intersectRanges(r1, r2):
@@ -82,7 +82,7 @@ def _makeQvAccessor(featureName):
         return self.qv(featureName)
     return f
 
-class Zmw(object):
+class Zmw(CommonEqualityMixin):
     """
     A Zmw represents all data from a ZMW (zero-mode waveguide) hole
     within a bas.h5 movie file.  Accessor methods provide convenient
@@ -220,7 +220,7 @@ class Zmw(object):
         return "<Zmw: %s>" % self.zmwName
 
 
-class ZmwRead(object):
+class ZmwRead(CommonEqualityMixin):
     """
     A ZmwRead represents the data features (basecalls as well as pulse
     features) recorded from the ZMW, delimited by readStart and readEnd.
@@ -422,6 +422,33 @@ class BaxH5Reader(object):
     def __getitem__(self, holeNumber):
         return Zmw(self, holeNumber)
 
+    #
+    # Iterators over Zmws, ZmwReads
+    #
+
+    def __iter__(self):
+        for holeNumber in self.sequencingZmws:
+            yield self[holeNumber]
+
+    def reads(self):
+        if self.hasRawBasecalls:
+            for zmw in self:
+                yield zmw.read()
+
+    def subreads(self):
+        if self.hasRawBasecalls:
+            for zmw in self:
+                for subread in zmw.subreads:
+                    yield subread
+
+    def ccsReads(self):
+        if self.hasConsensusBasecalls:
+            for zmw in self:
+                if zmw.ccsRead is not None:
+                    yield zmw.ccsRead
+
+    # ------------------------------
+
     @property
     def movieName(self):
         movieNameAttr = self.file["/ScanData/RunInfo"].attrs["MovieName"]
@@ -453,10 +480,6 @@ class BaxH5Reader(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
-
-    def __iter__(self):
-        for holeNumber in self.sequencingZmws:
-            yield self[holeNumber]
 
     def listZmwMetrics(self):
         return self._basecallsGroup["ZMWMetrics"].keys()
@@ -591,9 +614,34 @@ class BasH5Reader(object):
     def hasRawBasecalls(self):
         return all(part.hasRawBasecalls for part in self._parts)
 
+
+    #
+    # Iterators
+    #
+
     def __iter__(self):
+        """
+        Iterate over ZMWs
+        """
         for holeNumber in self.sequencingZmws:
             yield self[holeNumber]
+
+    def reads(self):
+        for part in self._parts:
+            for read in part.reads():
+                yield read
+
+    def subreads(self):
+        for part in self._parts:
+            for subread in part.subreads():
+                yield subread
+
+    def ccsReads(self):
+        for part in self._parts:
+            for ccsRead in part.ccsReads():
+                yield ccsRead
+
+    # ----------
 
     def __len__(self):
         return len(self.sequencingZmws)
@@ -719,9 +767,25 @@ class BasH5Collection(object):
                 result = result.read(start, end)
         return result
 
+    #
+    # Iterators over Zmw, ZmwRead objects
+    #
+
     def __iter__(self):
-        """
-        Iterate over Zmws
-        """
         for reader in self.readers.values():
             for zmw in reader: yield zmw
+
+    def reads(self):
+        for reader in self.readers.values():
+            for read in reader.reads():
+                yield read
+
+    def subreads(self):
+        for reader in self.readers.values():
+            for read in reader.subreads():
+                yield read
+
+    def ccsReads(self):
+        for reader in self.readers.values():
+            for read in reader.ccsReads():
+                yield read

@@ -10,9 +10,19 @@ def lookupSomeReadsByName(bc):
 
 def test():
     for fofn in data.getFofns():
-        print fofn
         bc = BasH5Collection(fofn)
 
         for zmw in bc:
             zmwAgain = bc[zmw.zmwName]
             assert_equal(zmw.zmwName, zmwAgain.zmwName)
+
+
+
+def test_read_iterators():
+    for fofn in data.getFofns():
+        bc = BasH5Collection(fofn)
+
+        # TODO Add some meaningful tests here
+        list(bc.subreads())
+        list(bc.reads())
+        list(bc.ccsReads())
