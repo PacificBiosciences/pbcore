@@ -22,22 +22,22 @@ class TestBasH5Reader_14:
         self.bas1, self.bas2 = map(pbcore.io.BasH5Reader, basFiles)
 
     def test_BasH5Reader_basicTest(self):
-        """Test that BasH5Reader correctly sets moviename, identifies the 
+        """Test that BasH5Reader correctly sets moviename, identifies the
         sequencingZmws, and finds the subreads for each Zmw.
         """
 
         nose.tools.assert_equal(pbcore.data.MOVIE_NAME_14, self.bas1.movieName)
-        numpy.testing.assert_array_equal([   7,    8,    9, 1000, 1006, 1007, 
-                                          2001, 2003, 2007, 2008, 3004, 3006, 
+        numpy.testing.assert_array_equal([   7,    8,    9, 1000, 1006, 1007,
+                                          2001, 2003, 2007, 2008, 3004, 3006,
                                           3008, 4004, 4005, 4006, 4007, 4009],
                                           self.bas1.sequencingZmws)
-        numpy.testing.assert_array_equal([   7,    8,    9, 1000, 1001, 1002, 
-                                          1003, 1004, 1005, 1006, 1007, 1008, 
-                                          1009, 2000, 2001, 2002, 2003, 2004, 
-                                          2005, 2006, 2007, 2008, 2009, 3000, 
-                                          3001, 3002, 3003, 3004, 3005, 3006, 
-                                          3007, 3008, 3009, 4000, 4001, 4002, 
-                                          4003, 4004, 4005, 4006, 4007, 4008, 
+        numpy.testing.assert_array_equal([   7,    8,    9, 1000, 1001, 1002,
+                                          1003, 1004, 1005, 1006, 1007, 1008,
+                                          1009, 2000, 2001, 2002, 2003, 2004,
+                                          2005, 2006, 2007, 2008, 2009, 3000,
+                                          3001, 3002, 3003, 3004, 3005, 3006,
+                                          3007, 3008, 3009, 4000, 4001, 4002,
+                                          4003, 4004, 4005, 4006, 4007, 4008,
                                           4009],
                                           self.bas1.allSequencingZmws)
 
@@ -56,7 +56,7 @@ class TestBasH5Reader_14:
         zmwRead = self.bas1[2001].read(3580, 3922)
         nose.tools.assert_equal(os.path.join(pbcore.data.MOVIE_NAME_14, "2001", "3580_3922"),
                                 zmwRead.readName)
-        
+
         # Verify that the bases and a couple of quality values are the same
         nose.tools.assert_equal(aln.read(aligned=False), zmwRead.basecalls())
         numpy.testing.assert_array_equal(aln.InsertionQV(aligned=False),
@@ -83,7 +83,7 @@ class TestBasH5Reader_14:
 
         nose.tools.assert_equal((0, 1578), zmw.hqRegion)
         nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegions)
-        nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1578)], 
+        nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1578)],
                                 zmw.insertRegions)
 
     def test_BasH5Reader_ccs(self):
@@ -106,19 +106,19 @@ class TestBasH5Reader_14:
         """Test that ZmwRead objects have the correct len."""
         nose.tools.assert_equal(1126, len(self.bas1[4006].read().basecalls()))
         nose.tools.assert_equal(1126, len(self.bas1[4006].read()))
-        nose.tools.assert_equal(464, 
+        nose.tools.assert_equal(464,
                                 len(self.bas1[4006].subreads[0].basecalls()))
         nose.tools.assert_equal(464, len(self.bas1[4006].subreads[0]))
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead.basecalls()))
         nose.tools.assert_equal(239, len(self.bas1[4006].ccsRead))
 
 class CommonTests(object):
-    
-    ZMW_ATTRIBUTES = ['QualityValue', 'InsertionQV', 'DeletionQV', 
+
+    ZMW_ATTRIBUTES = ['QualityValue', 'InsertionQV', 'DeletionQV',
                       'DeletionTag', 'SubstitutionQV', 'SubstitutionTag',
                       'MergeQV', 'IPD', 'PreBaseFrames', 'PulseWidth',
                       'WidthInFrames']
-                  
+
     def test_all_fields_accessible(self):
         # Test that zmws have correct pulse/quality attributes
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
@@ -129,25 +129,25 @@ class CommonTests(object):
                 nose.tools.assert_is_instance(getattr(read, attribute)(),
                                               numpy.ndarray)
             numpy.testing.assert_array_equal(read.IPD(), read.PreBaseFrames())
-            numpy.testing.assert_array_equal(read.PulseWidth(), 
+            numpy.testing.assert_array_equal(read.PulseWidth(),
                                              read.WidthInFrames())
-    
+
     def test_zmw_region_table(self):
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
-        
+
         sequencing_zmws = set(reader.sequencingZmws)
 
         for zmw in reader.allSequencingZmws:
             region_table = reader[zmw].regionTable.tolist()
             hq_entry = [k for k in region_table if k[1] == 2][0]
-            
+
             hq_size = hq_entry[3] - hq_entry[2]
             # Sequencing Zmws should have an HQ region
             if zmw not in sequencing_zmws:
                 nose.tools.assert_equal(hq_size, 0)
             else:
                 nose.tools.assert_greater(hq_size, 0)
-            
+
             for entry in region_table:
                 nose.tools.assert_equal(entry[0], zmw)
                 nose.tools.assert_less_equal(entry[2], entry[3])
@@ -160,7 +160,7 @@ class CommonMultiPartTests(object):
         # Test the constuctor of a multipart bas.h5 file
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
         nose.tools.assert_is_instance(reader.file, h5py.File)
-        
+
         # Should have three parts for v2.0 and v2.1
         nose.tools.assert_equal(len(reader.parts), 3)
         nose.tools.assert_list_equal(self.baxh5_filenames,
@@ -169,7 +169,7 @@ class CommonMultiPartTests(object):
         # All bas.h5 files should have raw base calls. 2.1 bas.h5 files don't
         # have consensus base calls
         nose.tools.assert_true(reader.hasRawBasecalls)
-        
+
 
         for zmw in reader.sequencingZmws:
             nose.tools.assert_in(zmw, reader.allSequencingZmws)
@@ -185,10 +185,10 @@ class CommonMultiPartTests(object):
         for filename in self.baxh5_filenames:
             reader = pbcore.io.BasH5Reader(filename)
             nose.tools.assert_is_instance(reader.file, h5py.File)
-        
+
             nose.tools.assert_equal(len(reader.parts), 1)
             nose.tools.assert_true(reader.hasRawBasecalls)
-        
+
             for zmw in reader.sequencingZmws:
                 nose.tools.assert_in(zmw, reader.allSequencingZmws)
                 nose.tools.assert_is_instance(reader[zmw], Zmw)
@@ -197,11 +197,11 @@ class CommonMultiPartTests(object):
                                             len(reader.allSequencingZmws))
 
             reader.close()
-    
+
     def test_multipart_hole_lookup(self):
         # Test that multipart files look up files and hole numbers correctly
         hole_number_to_filename = {}
-        for filename in self.baxh5_filenames: 
+        for filename in self.baxh5_filenames:
             f = h5py.File(filename, 'r')
             for hole_number in f['PulseData/BaseCalls/ZMW/HoleNumber']:
                 hole_number_to_filename[hole_number] = filename
@@ -211,12 +211,12 @@ class CommonMultiPartTests(object):
 
         for hole_number in hole_number_to_filename:
             zmw = reader[hole_number]
-            nose.tools.assert_equal(zmw.baxH5.filename, 
+            nose.tools.assert_equal(zmw.baxH5.filename,
                                     hole_number_to_filename[hole_number])
             nose.tools.assert_is_instance(zmw, Zmw)
-        
+
         reader.close()
-    
+
     def _clip_region(self, region, hq_region):
         end = min(region[1], hq_region[1])
         start = max(region[0], hq_region[0])
@@ -224,9 +224,9 @@ class CommonMultiPartTests(object):
             return None
         else:
             return (start, end)
-        
+
     def test_zmw_multipart_regions(self):
-        
+
         regions = []
 
         # First read in the regions from the h5 files directly
@@ -234,7 +234,7 @@ class CommonMultiPartTests(object):
             with h5py.File(filename, 'r') as f:
                 region_table = f['PulseData/Regions']
                 regions.extend(region_table.value.tolist())
-        
+
         # Now see what BasH5Reader reports for regions
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
         for zmw in reader.allSequencingZmws:
@@ -246,7 +246,7 @@ class CommonMultiPartTests(object):
             reported_hq_region = reader[zmw].hqRegion
             nose.tools.assert_equal(reported_hq_region[0], true_hq_region[2])
             nose.tools.assert_equal(reported_hq_region[1], true_hq_region[3])
-            
+
             # Check the reported adapter regions
             reported_adapter_regions = reader[zmw].adapterRegions
             true_adapter_regions = [k for k in true_regions if k[1] == 0]
@@ -255,11 +255,11 @@ class CommonMultiPartTests(object):
                 bound = (region[2], region[3])
                 clipped_region = self._clip_region(bound, reported_hq_region)
                 if clipped_region:
-                    nose.tools.assert_in(clipped_region, 
+                    nose.tools.assert_in(clipped_region,
                                          reported_adapter_regions)
                     region_count += 1
             nose.tools.assert_equal(region_count, len(reported_adapter_regions))
-            
+
             # And the reported insert regions
             reported_insert_regions = reader[zmw].insertRegions
             true_insert_regions = [k for k in true_regions if k[1] == 1]
@@ -268,11 +268,11 @@ class CommonMultiPartTests(object):
                 bound = (region[2], region[3])
                 clipped_region = self._clip_region(bound, reported_hq_region)
                 if clipped_region:
-                    nose.tools.assert_in(clipped_region, 
+                    nose.tools.assert_in(clipped_region,
                                          reported_insert_regions)
                     region_count += 1
             nose.tools.assert_equal(region_count, len(reported_insert_regions))
-            
+
 
 class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
     """Tests of BasH5Reader against a 2.0 ba[sx].h5 files, consisting of a
@@ -291,7 +291,7 @@ class TestBasH5Reader_20(CommonTests, CommonMultiPartTests):
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
         nose.tools.assert_true(reader.hasConsensusBasecalls)
         nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
-        
+
         reader.close()
 
     def test_20_constructor_baxh5(self):
@@ -336,7 +336,7 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests):
         reader = pbcore.io.BasH5Reader(self.bash5_filename)
         nose.tools.assert_false(reader.hasConsensusBasecalls)
         nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_21)
-        
+
         reader.close()
 
     def test_21_constructor_baxh5(self):
@@ -363,7 +363,7 @@ class TestBasH5Reader_CCS:
         nose.tools.assert_true(reader.hasConsensusBasecalls)
         nose.tools.assert_false(reader.hasRawBasecalls)
         nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_CCS)
-        
+
         nose.tools.assert_equal(len(reader.parts), 1)
 
         for zmw in reader.sequencingZmws:
@@ -374,11 +374,11 @@ class TestBasH5Reader_CCS:
                                         len(reader.allSequencingZmws))
 
         reader.close()
-   
+
     def test_ccs_zmw(self):
         # Test Zmw objects derived from a BasH5Reader reading a ccs.h5
         reader = pbcore.io.BasH5Reader(self.ccsh5_filename)
-        
+
         sequencing_zmws = set(reader.sequencingZmws)
         for zmw in reader.allSequencingZmws:
             region_table = reader[zmw].regionTable
@@ -391,12 +391,12 @@ class TestBasH5Reader_CCS:
 
             with nose.tools.assert_raises(ValueError):
                 reader[zmw].subreads
-            
+
             with nose.tools.assert_raises(ValueError):
                 reader[zmw].read()
-            
+
             if zmw in sequencing_zmws:
-                nose.tools.assert_is_instance(reader[zmw].ccsRead, 
+                nose.tools.assert_is_instance(reader[zmw].ccsRead,
                                               CCSZmwRead)
             else:
                 nose.tools.assert_is_none(reader[zmw].ccsRead)
