@@ -7,12 +7,9 @@ import numpy
 import numpy.testing
 
 import pbcore.data
-import pbcore.io
 
-BASH5READER_MODULE = inspect.getmodule(pbcore.io.BasH5Reader)
-ZMW_CLASS = BASH5READER_MODULE.Zmw
-ZMWREAD_CLASS = BASH5READER_MODULE.ZmwRead
-CCSZMWREAD_CLASS = BASH5READER_MODULE.CCSZmwRead
+from pbcore.io.BasH5IO import BasH5Reader, Zmw, ZmwRead, CCSZmwRead
+
 
 class TestBasH5Reader_14:
     """Tests of BasH5Reader against a 1.4 bas.h5 file, no multipart with
@@ -176,7 +173,7 @@ class CommonMultiPartTests(object):
 
         for zmw in reader.sequencingZmws:
             nose.tools.assert_in(zmw, reader.allSequencingZmws)
-            nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
+            nose.tools.assert_is_instance(reader[zmw], Zmw)
 
         nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                         len(reader.allSequencingZmws))
@@ -194,7 +191,7 @@ class CommonMultiPartTests(object):
         
             for zmw in reader.sequencingZmws:
                 nose.tools.assert_in(zmw, reader.allSequencingZmws)
-                nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
+                nose.tools.assert_is_instance(reader[zmw], Zmw)
 
             nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                             len(reader.allSequencingZmws))
@@ -216,7 +213,7 @@ class CommonMultiPartTests(object):
             zmw = reader[hole_number]
             nose.tools.assert_equal(zmw.baxH5.filename, 
                                     hole_number_to_filename[hole_number])
-            nose.tools.assert_is_instance(zmw, ZMW_CLASS)
+            nose.tools.assert_is_instance(zmw, Zmw)
         
         reader.close()
     
@@ -371,7 +368,7 @@ class TestBasH5Reader_CCS:
 
         for zmw in reader.sequencingZmws:
             nose.tools.assert_in(zmw, reader.allSequencingZmws)
-            nose.tools.assert_is_instance(reader[zmw], ZMW_CLASS)
+            nose.tools.assert_is_instance(reader[zmw], Zmw)
 
         nose.tools.assert_less_equal(len(reader.sequencingZmws),
                                         len(reader.allSequencingZmws))
@@ -400,6 +397,6 @@ class TestBasH5Reader_CCS:
             
             if zmw in sequencing_zmws:
                 nose.tools.assert_is_instance(reader[zmw].ccsRead, 
-                                              CCSZMWREAD_CLASS)
+                                              CCSZmwRead)
             else:
                 nose.tools.assert_is_none(reader[zmw].ccsRead)
