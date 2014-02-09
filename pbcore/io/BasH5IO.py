@@ -393,7 +393,7 @@ class BaxH5Reader(object):
             holeNumbers[(holeStatus == SEQUENCING_ZMW)                       &
                         (self._mainBasecallsGroup["ZMW/NumEvent"].value > 0) &
                         (hqRegionLength >  0)]
-        
+
         self._allSequencingZmws = holeNumbers[holeStatus == SEQUENCING_ZMW]
         #
         # ZMW metric cache -- probably want to move prod and readScore
