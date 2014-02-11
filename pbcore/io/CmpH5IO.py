@@ -421,7 +421,19 @@ class CmpH5Alignment(object):
             return 0.
         else:
             return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
-
+    
+    @property
+    def similarity(self):
+        """
+        Replicates the pctsimilarity field from blasr, calculated as 
+        #matches/mean(aligned_length, read_length)
+        """
+        meanLength = (self.readLength + self.alignedLength)/2.0
+        
+        if meanLength == 0:
+            return 0.
+        else:
+            return float(self.nM/meanLength)
 
     @property
     def numPasses(self):
