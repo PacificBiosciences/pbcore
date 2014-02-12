@@ -428,7 +428,7 @@ class CmpH5Alignment(object):
         Replicates the pctsimilarity field from blasr, calculated as 
         #matches/mean(aligned_length, read_length)
         """
-        meanLength = (self.readLength + self.alignedLength)/2.0
+        meanLength = (self.readLength + self.referenceSpan)/2.0
         
         if meanLength == 0:
             return 0.
