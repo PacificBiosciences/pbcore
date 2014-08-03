@@ -1,0 +1,7 @@
+build
+dist
+doc/_build
+*~
+*.pyc
+*.egg-info
+nosetests.xml

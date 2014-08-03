@@ -1,0 +1,11 @@
+##gff-version 3
+##pacbio-variant-version 2.1
+##date Sat Mar 22 12:16:13 2014
+##feature-ontology http://song.cvs.sourceforge.net/*checkout*/song/ontology/sofa.obo?revision=1.12
+##source GenomicConsensus 0.8.0
+##source-commandline /Users/dalexander/.virtualenvs/VE/bin/variantCaller.py --algorithm=plurality -q20 -x5 pbcore/data/aligned_reads_1.cmp.h5 -r /Users/dalexander/Data/lambdaNEB.fa -o /tmp/v.gff
+##source-alignment-file /Users/dalexander/Dropbox/Sources/git/pbcore/pbcore/data/aligned_reads_1.cmp.h5
+##source-reference-file /Users/dalexander/Data/lambdaNEB.fa
+##sequence-region lambda_NEB3011 1 48502
+lambda_NEB3011	.	deletion	30890	30890	.	.	.	reference=G;variantSeq=.;frequency=2;coverage=5;confidence=25
+lambda_NEB3011	.	insertion	30924	30924	.	.	.	reference=.;variantSeq=G;frequency=2;coverage=5;confidence=25
