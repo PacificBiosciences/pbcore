@@ -33,7 +33,6 @@
 
 from __future__ import absolute_import
 import gzip
-import subprocess
 from os.path import abspath, expanduser
 
 __all__ = [ "ReaderBase", "WriterBase" ]
@@ -56,8 +55,6 @@ def getFileHandle(filenameOrFile, mode="r"):
 
     if isinstance(filenameOrFile, basestring):
         filename = abspath(expanduser(filenameOrFile))
-        # Call ls to trigger mount and avoid NFS issues.
-        subprocess.check_call("ls {f}".format(f=filename), shell=True)
         if filename.endswith(".gz"):
             return gzip.open(filename, mode)
         else:
