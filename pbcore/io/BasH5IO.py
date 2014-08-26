@@ -41,7 +41,9 @@ from itertools import groupby
 from collections import OrderedDict
 
 from pbcore.io.FofnIO import readFofn
-from pbcore.chemistry import decodeTriple, tripleFromMetadataXML
+from pbcore.chemistry import (decodeTriple,
+                              tripleFromMetadataXML,
+                              ChemistryLookupError)
 from ._utils import arrayFromDataset, CommonEqualityMixin
 
 
@@ -528,10 +530,6 @@ class BaxH5Reader(object):
         SequencingKit, SoftwareVersion) and is written on the
         instrument to the bax file as of primary version 2.1.  Prior
         to that, it was only written in the metadata.xml.
-
-        If the triple is not found in the bas file, we look in the
-        metadata.xml---throwing an exception if the xml file is not
-        found or can't be parsed.
         """
         try:
             bindingKit      = self.file["/ScanData/RunInfo"].attrs["BindingKit"]
@@ -542,15 +540,39 @@ class BaxH5Reader(object):
             swVersion= ".".join(tmp.split(".")[0:2])
             return (bindingKit, sequencingKit, swVersion)
         except:
+            return None
+
+    @property
+    def chemistryBarcodeTripleFromMetadataXML(self):
+        try:
             movieName = self.movieName
             _up = op.dirname(op.dirname(self.filename))
             metadataLocation = op.join(_up, movieName + ".metadata.xml")
             triple = tripleFromMetadataXML(metadataLocation)
             return triple
+        except ChemistryLookupError:
+            return None
 
     @property
     def sequencingChemistry(self):
-        return decodeTriple(*self.chemistryBarcodeTriple)
+        """
+        Find the name of the chemistry by consulting, in order of preference:
+          1) Barcode triple in file
+          2) "SequencingChemistry" attr in file (chemistry override)
+          3) metadata.xml companion file
+        """
+        triple = self.chemistryBarcodeTriple
+        if triple is not None:
+            return decodeTriple(*triple)
+        elif "SequencingChemistry" in self.file["/ScanData/RunInfo"].attrs:
+            return self.file["/ScanData/RunInfo"].attrs["SequencingChemistry"]
+        else:
+            tripleFromXML = self.chemistryBarcodeTripleFromMetadataXML
+            if tripleFromXML is not None:
+                return decodeTriple(*tripleFromXML)
+            else:
+                raise ChemistryLookupError, "Chemistry information could not be found for this file"
+
 
     def __len__(self):
         return len(self.sequencingZmws)
