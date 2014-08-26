@@ -524,7 +524,7 @@ class BaxH5Reader(object):
         return movieNameString
 
     @property
-    def chemistryBarcodeTriple(self):
+    def _chemistryBarcodeTripleInFile(self):
         """
         The chemistry barcode triple consists of (BindingKit,
         SequencingKit, SoftwareVersion) and is written on the
@@ -543,7 +543,7 @@ class BaxH5Reader(object):
             return None
 
     @property
-    def chemistryBarcodeTripleFromMetadataXML(self):
+    def _chemistryBarcodeTripleFromMetadataXML(self):
         try:
             movieName = self.movieName
             _up = op.dirname(op.dirname(self.filename))
@@ -554,6 +554,14 @@ class BaxH5Reader(object):
             return None
 
     @property
+    def chemistryBarcodeTriple(self):
+        triple = self._chemistryBarcodeTripleInFile or self._chemistryBarcodeTripleFromMetadataXML
+        if triple:
+            return triple
+        else:
+            raise ChemistryLookupError, "Could not find chemistry barcodes in file or companion metadata.xml"
+
+    @property
     def sequencingChemistry(self):
         """
         Find the name of the chemistry by consulting, in order of preference:
@@ -561,13 +569,13 @@ class BaxH5Reader(object):
           2) "SequencingChemistry" attr in file (chemistry override)
           3) metadata.xml companion file
         """
-        triple = self.chemistryBarcodeTriple
+        triple = self._chemistryBarcodeTripleInFile
         if triple is not None:
             return decodeTriple(*triple)
         elif "SequencingChemistry" in self.file["/ScanData/RunInfo"].attrs:
             return self.file["/ScanData/RunInfo"].attrs["SequencingChemistry"]
         else:
-            tripleFromXML = self.chemistryBarcodeTripleFromMetadataXML
+            tripleFromXML = self._chemistryBarcodeTripleFromMetadataXML
             if tripleFromXML is not None:
                 return decodeTriple(*tripleFromXML)
             else:
