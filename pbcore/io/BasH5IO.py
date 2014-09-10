@@ -112,28 +112,45 @@ class Zmw(CommonEqualityMixin):
                               [ (self.holeNumber, HQ_REGION, 0, 0, 0) ])
 
     #
-    # The following calls return one or more intervals ( (int, int) ).
-    # All intervals are clipped to the hqRegion.
+    # The following "region" calls return one or more intervals ((int, int)).
+    #  - The default implementations perform clipping to the hqRegion.
+    #  - The "unclipped" implementations entail no clipping
     #
     @property
+    def adapterRegionsNoQC(self):
+        """
+        Get adapter regions as intervals, without clipping to the HQ region
+        """
+        return [ (region.regionStart, region.regionEnd)
+                 for region in self.regionTable
+                 if region.regionType == ADAPTER_REGION ]
+
+    @property
     def adapterRegions(self):
-        unclippedAdapterRegions = \
-           [ (region.regionStart, region.regionEnd)
-             for region in self.regionTable
-             if region.regionType == ADAPTER_REGION ]
+        """
+        Get adapter regions as intervals, performing clipping to the HQ region
+        """
         hqRegion = self.hqRegion
         return removeNones([ intersectRanges(hqRegion, region)
-                             for region in unclippedAdapterRegions ])
+                             for region in self.adapterRegionsNoQC ])
+
+    @property
+    def insertRegionsNoQC(self):
+        """
+        Get insert regions as intervals, without clipping to the HQ region
+        """
+        return [ (region.regionStart, region.regionEnd)
+                 for region in self.regionTable
+                 if region.regionType == INSERT_REGION ]
 
     @property
     def insertRegions(self):
-        unclippedInsertRegions = \
-           [ (region.regionStart, region.regionEnd)
-             for region in self.regionTable
-             if region.regionType == INSERT_REGION ]
+        """
+        Get insert regions as intervals, clipped to the HQ region
+        """
         hqRegion = self.hqRegion
         return removeNones([ intersectRanges(hqRegion, region)
-                             for region in unclippedInsertRegions ])
+                             for region in self.insertRegionsNoQC ])
     @property
     def hqRegion(self):
         rt = self.regionTable
@@ -160,14 +177,12 @@ class Zmw(CommonEqualityMixin):
         """
         return self.zmwMetric("Productivity")
 
-
     @property
     def hqRegionSnr(self):
         """
         Return the SNRs, as a vector by channel.
         """
         return self.zmwMetric("HQRegionSNR")
-
 
     def zmwMetric(self, name):
         """
@@ -203,18 +218,63 @@ class Zmw(CommonEqualityMixin):
         return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
     @property
+    def subreadsNoQC(self):
+        """
+        Get the subreads, including data beyond the bounds of the HQ region.
+
+        .. warning::
+
+        It is not recommended that production code use this method as
+        we make no guarantees about what happens outside of the HQ
+        region.
+        """
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
+        return [ self.read(readStart, readEnd)
+                 for (readStart, readEnd) in self.unclippedInsertRegions ]
+
+    @property
     def subreads(self):
+        """
+        Get the subreads as a list of ZmwRead objects.  Restricts focus,
+        and clips to, the HQ region.  This method can be used by
+        production code.
+        """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
                  for (readStart, readEnd) in self.insertRegions ]
 
+
     @property
-    def adapters(self):
+    def adaptersNoQC(self):
+        """
+        Get the adapter hits as a list of ZmwRead objects.  Restricts
+        focus, and clips to, the HQ region.  This method can be used
+        by production code.
+        """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
                  for (readStart, readEnd) in self.adapterRegions ]
+
+    @property
+    def unclippedAdapters(self):
+        """
+        Get the adapters, including data beyond the bounds of the HQ
+        region.
+
+        .. warning::
+
+        It is not recommended that production code use this method as
+        we make no guarantees about what happens outside of the HQ
+        region.
+        """
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
+        return [ self.read(readStart, readEnd)
+                 for (readStart, readEnd) in self.unclippedAdapterRegions ]
+
     @property
     def ccsRead(self):
         if not self.baxH5.hasConsensusBasecalls:

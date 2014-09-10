@@ -83,8 +83,12 @@ class TestBasH5Reader_14:
 
         nose.tools.assert_equal((0, 1578), zmw.hqRegion)
         nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegions)
+        nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegionsNoQC) # not actually testing anything
         nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1578)],
                                 zmw.insertRegions)
+        nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1840)],
+                                zmw.insertRegionsNoQC)
+
 
     def test_BasH5Reader_ccs(self):
         """Test that BasH5Reader can read the CCS bases."""
