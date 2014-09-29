@@ -26,14 +26,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
-import os
-import logging
 
 import h5py as h5
 import numpy as n
 
-from pbcore.io import BasH5Reader, BaxH5Reader
-from pbcore.io import CmpH5Reader, CmpH5Alignment
+from pbcore.io.FofnIO import readFofn
 
 BARCODE_DELIMITER = "--"
 BC_DS_PATH        = "BarcodeCalls/best"
@@ -151,7 +148,12 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
 
 class BarcodeH5Reader(object):
     def __init__(self, fname):
-        self.h5File = h5.File(fname, 'r')
+
+        try:
+            self.h5File = h5.File(fname, "r")
+        except IOError:
+            raise IOError("Invalid or nonexistent bc file %s" % fname)
+
         self.bestDS = self.h5File[BC_DS_PATH]
 
         self._scoreMode = self.bestDS.attrs['scoreMode']
@@ -170,7 +172,7 @@ class BarcodeH5Reader(object):
 
     @property
     def holeNumbers(self):
-        return self.labeledZmws.keys()
+        return sorted(self.labeledZmws.keys())
     @property
     def barcodeLabels(self):
         return self._barcodeLabels
@@ -180,7 +182,11 @@ class BarcodeH5Reader(object):
     @property 
     def movieName(self):
         return self._movieName
-    
+
+    def __iter__(self):
+        for key in self.holeNumbers:
+            yield self.labeledZmws[key]
+
     def labeledZmwFromHoleNumber(self, holeNumber):
         """Returns a LabeledZmw object from the holeNumber"""
         try:
@@ -217,7 +223,7 @@ class MPBarcodeH5Reader(object):
     @property
     def scoreMode(self):
         return self._parts[0].scoreMode
-    
+
     def labeledZmwFromHoleNumber(self, holeNumber):
         """Returns a LabeledZmw object from the holeNumber"""
         part = self.choosePart(holeNumber)
@@ -227,14 +233,49 @@ class MPBarcodeH5Reader(object):
             raise KeyError("holeNumber: %d not labeled" % holeNumber)
     
     def labeledZmwsFromBarcodeLabel(self, bcLabel):
-        return reduce(lambda x,y: x + y, 
-                      map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel), 
+        lzmws = reduce(lambda x,y: x + y,
+                      map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel),
                           self._parts))
+        return sorted(lzmws, key=lambda z: z.holeNumber)
+
+    def __iter__(self):
+        for reader in self._parts:
+            for labeledZmw in reader:
+                yield labeledZmw
+
+    def __getitem__(self, item):
+        if (isinstance(item, int) or
+            issubclass(type(item), n.integer)):
+            return self.labeledZmwFromHoleNumber(item)
+        elif isinstance(item, str):
+            return self.labeledZmwsFromBarcodeLabel(item)
+        elif isinstance(item, slice):
+            return [ self.labeledZmwFromHoleNumber(self, item)
+                    for r in xrange(*item.indices(len(self)))]
+        elif isinstance(item, list) or isinstance(item, n.ndarray):
+            if len(item) == 0:
+                return []
+            else:
+                entryType = type(item[0])
+                if entryType == int or issubclass(entryType, n.integer):
+                    return [ self.labeledZmwFromHoleNumber(r) for r in item ]
+                elif entryType == bool or issubclass(entryType, n.bool_):
+                    return [ self.labeledZmwFromHoleNumber(r) for r in n.flatnonzero(item) ]
+        raise TypeError, "Invalid type for BasH5Reader slicing"
 
 class BarcodeH5Fofn(object):
-    def __init__(self, inputFofn):
+    def __init__(self, *args):
+
+        bcFilenames = []
+        for arg in args:
+            if arg.endswith(".fofn"):
+                for fn in readFofn(arg):
+                    bcFilenames.append(fn)
+            else:
+                bcFilenames.append(arg)
+
         self._bcH5s = [BarcodeH5Reader(fname) for fname in 
-                       open(inputFofn).read().splitlines()]
+                       bcFilenames]
         self._byMovie = {}
         for bc in self._bcH5s:
             if bc.movieName not in self._byMovie:
@@ -242,19 +283,86 @@ class BarcodeH5Fofn(object):
             else:
                 self._byMovie[bc.movieName].append(bc)
         
-        self.mpReaders = {movieName: parts[0] if len(parts) == 1 else \
-                              MPBarcodeH5Reader(parts) for movieName, parts in
-                          self._byMovie.iteritems()}
-    
+        self.mpReaders = { movieName: parts[0] if len(parts) == 1 else
+                           MPBarcodeH5Reader(parts) for movieName, parts in
+                           self._byMovie.iteritems() }
+
+    def __getitem__(self, item):
+        """
+        Get a BarcodeH5Reader or LabeledZmw by movie name, zmw name, subread id,
+        or ccs id, using standard PacBio naming conventions.  Examples:
+
+          - ["F3--R3"]                        -> List of LabeledZmws
+          - ["m110818_..._s1_p0"]             -> BarcodeH5Reader
+          - ["m110818_,,,_s1_p9/F3--R3"]      -> List of LabeledZmws
+          - ["m110818_..._s1_p0/24480"]       -> LabeledZmw
+          - ["m110818_..._s1_p0/24480/20_67"] -> LabeledZmw
+        """
+
+        if (isinstance(item, int) or
+            issubclass(type(item), n.integer)):
+            return self.labeledZmwFromHoleNumber(item)
+        elif isinstance(item, str):
+            if item in self.barcodeLabels:
+                return self.labeledZmwsFromBarcodeLabel(item)
+            elif item in self.movieNames:
+                return self.readerForMovie(item)
+            else:
+                return self.labeledZmwFromName(item)
+        else:
+            raise ValueError("BcH5Fofn slice must be a barcode, name or hole number")
+
+    def labeledZmwsFromBarcodeLabel(self, item):
+        lzmws = reduce(lambda x,y: x + y,
+                      map(lambda z: z.labeledZmwsFromBarcodeLabel(item),
+                          self._bcH5s))
+        return sorted(lzmws, key=lambda z: z.holeNumber )
+
+    def labeledZmwFromName(self, item):
+        indices = item.rstrip("/").split("/")
+
+        if (len(indices) < 1):
+            raise KeyError("Invalid slice of BarcodeH5Fofn")
+
+        if len(indices) >= 1:
+            result = self.readerForMovie(indices[0])
+        if len(indices) >= 2:
+            if indices[1] in self.barcodeLabels:
+                return result.labeledZmwsFromBarcodeLabel(indices[1])
+            try:
+                indexNum = int(indices[1])
+            except ValueError:
+                ValueError("Invalid hole number or barcode name {0} as second index".format(indices[1]))
+            result = result[indexNum]
+        return result
+
+    def labeledZmwFromHoleNumber(self, item):
+        if len(self.movieNames) > 1:
+            raise ValueError("Cannot slice by holeNumber with multiple movies")
+        else:
+            movie = self.movieNames[0]
+            reader = self.mpReaders[movie]
+            return reader[item]
+
+    def __iter__(self):
+        for reader in self._bcH5s:
+            for labeledZmw in reader:
+                yield labeledZmw
+
     def readerForMovie(self, movieName):
         """Return a BarcodeH5Reader for a movieName"""
         return self.mpReaders[movieName]
 
     @property
+    def holeNumbers(self):
+        return sorted([hn for reader in self._bcH5s
+                          for hn in reader.holeNumbers])
+    @property
+    def movieNames(self):
+        return self.mpReaders.keys()
+    @property
     def barcodeLabels(self):
         return self._bcH5s[0].barcodeLabels
-
     @property
     def scoreMode(self):
         return self._bcH5s[0].scoreMode
-    
