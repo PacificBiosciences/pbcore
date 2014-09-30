@@ -36,6 +36,7 @@ BARCODE_DELIMITER = "--"
 BC_DS_PATH        = "BarcodeCalls/best"
 BC_DS_ALL_PATH    = "BarcodeCalls/all"
 
+
 class LabeledZmw(object):
     """A scored ZMW represents a ZMW object and its corresponding
     barcode scores. Some fields are considered optional"""
@@ -146,6 +147,7 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
     # close the file at the very end.
     outH5.close()
 
+
 class BarcodeH5Reader(object):
     def __init__(self, fname):
 
@@ -183,10 +185,6 @@ class BarcodeH5Reader(object):
     def movieName(self):
         return self._movieName
 
-    def __iter__(self):
-        for key in self.holeNumbers:
-            yield self.labeledZmws[key]
-
     def labeledZmwFromHoleNumber(self, holeNumber):
         """Returns a LabeledZmw object from the holeNumber"""
         try:
@@ -199,6 +197,11 @@ class BarcodeH5Reader(object):
         barcode label, an empty list if there are no ZMWs for this
         barcode."""
         return self.bcLabelToLabeledZmws[bcLabel]
+
+    def __iter__(self):
+        for key in self.holeNumbers:
+            yield self.labeledZmws[key]
+
 
 class MPBarcodeH5Reader(object):
     def __init__(self, parts):
@@ -263,6 +266,7 @@ class MPBarcodeH5Reader(object):
                     return [ self.labeledZmwFromHoleNumber(r) for r in n.flatnonzero(item) ]
         raise TypeError, "Invalid type for BasH5Reader slicing"
 
+
 class BarcodeH5Fofn(object):
     def __init__(self, *args):
 
@@ -283,34 +287,22 @@ class BarcodeH5Fofn(object):
             else:
                 self._byMovie[bc.movieName].append(bc)
         
-        self.mpReaders = { movieName: parts[0] if len(parts) == 1 else
-                           MPBarcodeH5Reader(parts) for movieName, parts in
-                           self._byMovie.iteritems() }
+        self.mpReaders = { movieName: parts[0] if len(parts) == 1 else MPBarcodeH5Reader(parts)
+                           for movieName, parts in self._byMovie.iteritems() }
 
-    def __getitem__(self, item):
-        """
-        Get a BarcodeH5Reader or LabeledZmw by movie name, zmw name, subread id,
-        or ccs id, using standard PacBio naming conventions.  Examples:
-
-          - ["F3--R3"]                        -> List of LabeledZmws
-          - ["m110818_..._s1_p0"]             -> BarcodeH5Reader
-          - ["m110818_,,,_s1_p9/F3--R3"]      -> List of LabeledZmws
-          - ["m110818_..._s1_p0/24480"]       -> LabeledZmw
-          - ["m110818_..._s1_p0/24480/20_67"] -> LabeledZmw
-        """
-
-        if (isinstance(item, int) or
-            issubclass(type(item), n.integer)):
-            return self.labeledZmwFromHoleNumber(item)
-        elif isinstance(item, str):
-            if item in self.barcodeLabels:
-                return self.labeledZmwsFromBarcodeLabel(item)
-            elif item in self.movieNames:
-                return self.readerForMovie(item)
-            else:
-                return self.labeledZmwFromName(item)
-        else:
-            raise ValueError("BcH5Fofn slice must be a barcode, name or hole number")
+    @property
+    def holeNumbers(self):
+        return sorted([hn for reader in self._bcH5s
+                          for hn in reader.holeNumbers])
+    @property
+    def movieNames(self):
+        return self.mpReaders.keys()
+    @property
+    def barcodeLabels(self):
+        return self._bcH5s[0].barcodeLabels
+    @property
+    def scoreMode(self):
+        return self._bcH5s[0].scoreMode
 
     def labeledZmwsFromBarcodeLabel(self, item):
         lzmws = reduce(lambda x,y: x + y,
@@ -344,25 +336,36 @@ class BarcodeH5Fofn(object):
             reader = self.mpReaders[movie]
             return reader[item]
 
+    def readerForMovie(self, movieName):
+        """Return a BarcodeH5Reader for a movieName"""
+        return self.mpReaders[movieName]
+
     def __iter__(self):
         for reader in self._bcH5s:
             for labeledZmw in reader:
                 yield labeledZmw
 
-    def readerForMovie(self, movieName):
-        """Return a BarcodeH5Reader for a movieName"""
-        return self.mpReaders[movieName]
+    def __getitem__(self, item):
+        """
+        Get a BarcodeH5Reader or LabeledZmw by movie name, zmw name, subread id,
+        or ccs id, using standard PacBio naming conventions.  Examples:
 
-    @property
-    def holeNumbers(self):
-        return sorted([hn for reader in self._bcH5s
-                          for hn in reader.holeNumbers])
-    @property
-    def movieNames(self):
-        return self.mpReaders.keys()
-    @property
-    def barcodeLabels(self):
-        return self._bcH5s[0].barcodeLabels
-    @property
-    def scoreMode(self):
-        return self._bcH5s[0].scoreMode
+          - ["F3--R3"]                        -> List of LabeledZmws
+          - ["m110818_..._s1_p0"]             -> BarcodeH5Reader
+          - ["m110818_,,,_s1_p9/F3--R3"]      -> List of LabeledZmws
+          - ["m110818_..._s1_p0/24480"]       -> LabeledZmw
+          - ["m110818_..._s1_p0/24480/20_67"] -> LabeledZmw
+        """
+
+        if (isinstance(item, int) or
+            issubclass(type(item), n.integer)):
+            return self.labeledZmwFromHoleNumber(item)
+        elif isinstance(item, str):
+            if item in self.barcodeLabels:
+                return self.labeledZmwsFromBarcodeLabel(item)
+            elif item in self.movieNames:
+                return self.readerForMovie(item)
+            else:
+                return self.labeledZmwFromName(item)
+        else:
+            raise ValueError("BcH5Fofn slice must be a barcode, name or hole number")
