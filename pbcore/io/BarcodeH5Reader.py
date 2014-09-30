@@ -180,6 +180,7 @@ class BarcodeH5Reader(object):
         return self._barcodeLabels
     @property
     def scoreMode(self):
+        """String specifying whether the barcodes were score symmetrically or in pairs"""
         return self._scoreMode
     @property 
     def movieName(self):
@@ -225,6 +226,7 @@ class MPBarcodeH5Reader(object):
         return self._parts[0].barcodeLabels
     @property
     def scoreMode(self):
+        """String specifying whether the barcodes were score symmetrically or in pairs"""
         return self._parts[0].scoreMode
 
     def labeledZmwFromHoleNumber(self, holeNumber):
@@ -302,6 +304,7 @@ class BarcodeH5Fofn(object):
         return self._bcH5s[0].barcodeLabels
     @property
     def scoreMode(self):
+        """String specifying whether the barcodes were score symmetrically or in pairs"""
         return self._bcH5s[0].scoreMode
 
     def labeledZmwsFromBarcodeLabel(self, item):
