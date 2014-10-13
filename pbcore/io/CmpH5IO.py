@@ -875,7 +875,7 @@ class CmpH5Reader(object):
     @property
     def sequencingChemistry(self):
         if self._sequencingChemistry is None:
-            mi = self.file["/MovieInfo"]
+            mi = dict(self.file["/MovieInfo"])
             if (("BindingKit" in mi) and
                 ("SequencingKit" in mi) and
                 ("SoftwareVersion" in mi)):
