@@ -9,7 +9,7 @@ import numpy.testing
 import pbcore.data
 
 from pbcore.io.BasH5IO import BasH5Reader, Zmw, ZmwRead, CCSZmwRead
-
+from pbcore.chemistry import ChemistryLookupError
 
 class TestBasH5Reader_14:
     """Tests of BasH5Reader against a 1.4 bas.h5 file, no multipart with
@@ -83,12 +83,8 @@ class TestBasH5Reader_14:
 
         nose.tools.assert_equal((0, 1578), zmw.hqRegion)
         nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegions)
-        nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegionsNoQC) # not actually testing anything
         nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1578)],
                                 zmw.insertRegions)
-        nose.tools.assert_equal([(0, 299), (343, 991), (1032, 1840)],
-                                zmw.insertRegionsNoQC)
-
 
     def test_BasH5Reader_ccs(self):
         """Test that BasH5Reader can read the CCS bases."""
@@ -105,6 +101,11 @@ class TestBasH5Reader_14:
 
     def test_BasH5Reader_readScore(self):
         nose.tools.assert_almost_equal(0.7822426, self.bas1[4006].readScore)
+
+    @nose.tools.raises(ChemistryLookupError)
+    def test_14_missing_chemistry(self):
+        """Tests that we raise an exception when we can't find chemistry information"""
+        self.bas1.sequencingChemistry
 
     def test_ZmwRead_len(self):
         """Test that ZmwRead objects have the correct len."""
@@ -332,6 +333,12 @@ class TestBasH5Reader_20(CommonTests, CommonMultiPartTests, ReadIteratorTests):
             nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_20)
             reader.close()
 
+    @nose.tools.raises(ChemistryLookupError)
+    def test_20_missing_chemistry(self):
+        """Tests that we raise an exception when we can't find chemistry information"""
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        reader.sequencingChemistry
+
     def test_productivity(self):
         """Test that productivities are set correctly for the ZMW objects."""
         productivities = {}
@@ -389,6 +396,12 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests, ReadIteratorTests):
 
             nose.tools.assert_true(rgn_subread_count < bax_subread_count)
 
+    @nose.tools.raises(ChemistryLookupError)
+    def test_21_missing_chemistry(self):
+        """Tests that we raise an exception when we can't find chemistry information"""
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        reader.sequencingChemistry
+
     @nose.tools.raises(IOError)
     def test_21_bad_external_region_baxh5(self):
         """Tests that we raise an exception when incorrect region file given"""
@@ -396,6 +409,35 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests, ReadIteratorTests):
         baxfile = baxfiles[0]
         rgnfile = baxfiles[1].replace('bax.h5','rgn.h5')
         pbcore.io.BaxH5Reader(baxfile, regionH5Filename=rgnfile)
+
+class TestBasH5Reader_23(CommonTests, CommonMultiPartTests, ReadIteratorTests):
+    """Tests of BasH5Reader against a 2.3 ba[sx].h5 files, consisting of a
+    bas.h5 file and three bas.h5 files. The bax.h5 files do not contain CCS,
+    but do contain Chemistry information
+    """
+
+    def __init__(self):
+        """Get the full paths to the bas and bax.h5 files."""
+        self.bash5_filename = pbcore.data.getBasH5_v23()
+        self.baxh5_filenames = pbcore.data.getBaxH5_v23()
+
+    def test_23_constructor_bash5(self):
+        # Tests specific to the v2.0 bas.h5 constructor
+        reader = pbcore.io.BasH5Reader(self.bash5_filename)
+        nose.tools.assert_false(reader.hasConsensusBasecalls)
+        nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_23)
+        nose.tools.assert_equal(reader.sequencingChemistry, 'P6-C4')
+
+        reader.close()
+
+    def test_23_constructor_baxh5(self):
+        # Tests specific to the v2.0 bax.h5 constructor
+        for filename in self.baxh5_filenames:
+            reader = pbcore.io.BasH5Reader(filename)
+            nose.tools.assert_false(reader.hasConsensusBasecalls)
+            nose.tools.assert_equal(reader.movieName, pbcore.data.MOVIE_NAME_23)
+            nose.tools.assert_equal(reader.sequencingChemistry, 'P6-C4')
+            reader.close()
 
 class TestBasH5Reader_CCS(ReadIteratorTests):
     """Test BasH5Reader with a ccs.h5 file produced by P_CCS."""

@@ -434,11 +434,13 @@ class BaxH5Reader(object):
 
         if regionH5Filename is None:
             # load region information from the bas/bax file
-            self._loadRegions(self.file)        
+            self._loadRegions(self.file)
         else:
             # load region information from a separate region file
             self.loadExternalRegions(regionH5Filename)
 
+        # Create a variable to store the chemistry information
+        self._sequencingChemistry = None
         #
         # ZMW metric cache -- probably want to move prod and readScore
         # here.
@@ -447,7 +449,7 @@ class BaxH5Reader(object):
 
     def _loadRegions(self, fh):
         """
-        Loads region table information from the given file handle and applies 
+        Loads region table information from the given file handle and applies
         it to the ZMW data.
         """
         holeNumbers = self._mainBasecallsGroup["ZMW/HoleNumber"].value
@@ -506,7 +508,7 @@ class BaxH5Reader(object):
 
         self._loadRegions(fh)
         fh.close()
-        
+
         # A sanity check that the given region table provides information for
         # hole numbers contain in this base file.
         baxHoleNumbers = self._mainBasecallsGroup["ZMW/HoleNumber"].value
@@ -629,18 +631,19 @@ class BaxH5Reader(object):
           2) "SequencingChemistry" attr in file (chemistry override)
           3) metadata.xml companion file
         """
-        triple = self._chemistryBarcodeTripleInFile
-        if triple is not None:
-            return decodeTriple(*triple)
-        elif "SequencingChemistry" in self.file["/ScanData/RunInfo"].attrs:
-            return self.file["/ScanData/RunInfo"].attrs["SequencingChemistry"]
-        else:
-            tripleFromXML = self._chemistryBarcodeTripleFromMetadataXML
-            if tripleFromXML is not None:
-                return decodeTriple(*tripleFromXML)
+        if self._sequencingChemistry is None:
+            triple = self._chemistryBarcodeTripleInFile
+            if triple is not None:
+                self._sequencingChemistry = decodeTriple(*triple)
+            elif "SequencingChemistry" in self.file["/ScanData/RunInfo"].attrs:
+                self._sequencingChemistry = self.file["/ScanData/RunInfo"].attrs["SequencingChemistry"]
             else:
-                raise ChemistryLookupError, "Chemistry information could not be found for this file"
-
+                tripleFromXML = self._chemistryBarcodeTripleFromMetadataXML
+                if tripleFromXML is not None:
+                    self._sequencingChemistry = decodeTriple(*tripleFromXML)
+                else:
+                    raise ChemistryLookupError, "Chemistry information could not be found for this file"
+        return self._sequencingChemistry
 
     def __len__(self):
         return len(self.sequencingZmws)
