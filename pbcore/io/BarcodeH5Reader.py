@@ -3,27 +3,27 @@
 #
 # All rights reserved.
 #
-# Redistribution and use in source and binary forms, with or without 
+# Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright notice, this 
+# * Redistributions of source code must retain the above copyright notice, this
 #   list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright notice, 
-#   this list of conditions and the following disclaimer in the documentation 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
 #   and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its contributors 
-#   may be used to endorse or promote products derived from this software 
+# * Neither the name of Pacific Biosciences nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
 #   without specific prior written permission.
-# 
-# THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS CONTRIBUTORS 
-# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED 
-# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR 
-# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR ITS 
-# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+#
+# THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+# TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+# PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR ITS
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
 # ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
@@ -40,8 +40,8 @@ BC_DS_ALL_PATH    = "BarcodeCalls/all"
 class LabeledZmw(object):
     """A scored ZMW represents a ZMW object and its corresponding
     barcode scores. Some fields are considered optional"""
-    def __init__(self, holeNumber, nScored, bestIdx, bestScore, 
-                 secondBestIdx = -1, secondBestScore = 0, 
+    def __init__(self, holeNumber, nScored, bestIdx, bestScore,
+                 secondBestIdx = -1, secondBestScore = 0,
                  allScores = None):
         self._holeNumber = holeNumber
         self._nScored = nScored
@@ -53,13 +53,13 @@ class LabeledZmw(object):
 
     def toBestRecord(self):
         """Return a summary record suitable for storage"""
-        return (self.holeNumber, self.nScored, self.bestIdx, 
+        return (self.holeNumber, self.nScored, self.bestIdx,
                 self.bestScore, self.secondBestIdx, self.secondBestScore)
-    
+
     @staticmethod
     def fromBestRecord(npRow):
         return LabeledZmw(npRow[0], npRow[1], npRow[2],
-                          npRow[3], npRow[4], npRow[5], None) 
+                          npRow[3], npRow[4], npRow[5], None)
     @property
     def holeNumber(self):
         return self._holeNumber
@@ -94,7 +94,7 @@ class LabeledZmw(object):
             (self.holeNumber, self.nScored, self.bestIdx, self.bestScore, self.averageScore)
 
 
-def writeBarcodeH5(labeledZmws, labeler, outFile, 
+def writeBarcodeH5(labeledZmws, labeler, outFile,
                    writeExtendedInfo = False):
     """Write a barcode file from a list of labeled ZMWs. In addition
     to labeledZmws, this function takes a
@@ -109,8 +109,8 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
     bestDS = outH5.create_dataset(BC_DS_PATH, data = outDta, dtype = "int32")
     bestDS.attrs['movieName'] = labeler.movieName
     bestDS.attrs['barcodes'] = n.array(labeler.barcodeLabels, dtype = h5.new_vlen(str))
-    bestDS.attrs['columnNames'] = n.array(['holeNumber', 'nAdapters', 'barcodeIdx1', 
-                                           'barcodeScore1', 'barcodeIdx2', 'barcodeScore2'], 
+    bestDS.attrs['columnNames'] = n.array(['holeNumber', 'nAdapters', 'barcodeIdx1',
+                                           'barcodeScore1', 'barcodeIdx2', 'barcodeScore2'],
                                           dtype = h5.new_vlen(str))
     bestDS.attrs['scoreMode'] = labeler.scoreMode
 
@@ -123,7 +123,7 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
             a = n.zeros(l, dtype = type(v))
             a.fill(v)
             return a
-        
+
         def makeRecord(lZmw):
             zmws = makeArray(nBarcodes * lZmw.nScored, lZmw.holeNumber)
             adapters = n.concatenate([makeArray(nBarcodes, i) for i in \
@@ -135,14 +135,14 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
 
         records = [makeRecord(lZmw) for lZmw in labeledZmws if lZmw.allScores]
         records = n.vstack(records)
-    
+
         if BC_DS_ALL_PATH in outH5:
             del outH5[BC_DS_ALL_PATH]
         allDS = outH5.create_dataset(BC_DS_ALL_PATH, data = records, dtype = 'int32')
         allDS.attrs['movieName'] = labeler.movieName
         # note names versus labels.
         allDS.attrs['barcodes'] = n.array(labeler.barcodeNames, dtype = h5.new_vlen(str))
-        allDS.attrs['columnNames'] = n.array(['holeNumber', 'adapter', 'barcodeIdx', 'score'], 
+        allDS.attrs['columnNames'] = n.array(['holeNumber', 'adapter', 'barcodeIdx', 'score'],
                                              dtype = h5.new_vlen(str))
     # close the file at the very end.
     outH5.close()
@@ -162,10 +162,10 @@ class BarcodeH5Reader(object):
         self._barcodeLabels = self.bestDS.attrs['barcodes']
         self._movieName = self.bestDS.attrs['movieName']
         # zmw => LabeledZmw
-        labeledZmws = [LabeledZmw.fromBestRecord(self.bestDS[i,:]) for i in 
+        labeledZmws = [LabeledZmw.fromBestRecord(self.bestDS[i,:]) for i in
                        xrange(0, self.bestDS.shape[0])]
         self.labeledZmws = dict([(lZmw.holeNumber, lZmw) for lZmw in labeledZmws])
-        
+
         # barcode => LabeledZmws
         self.bcLabelToLabeledZmws = {l:[] for l in self.barcodeLabels}
         for lZmw in self.labeledZmws.values():
@@ -182,7 +182,7 @@ class BarcodeH5Reader(object):
     def scoreMode(self):
         """String specifying whether the barcodes were score symmetrically or in pairs"""
         return self._scoreMode
-    @property 
+    @property
     def movieName(self):
         return self._movieName
 
@@ -192,7 +192,7 @@ class BarcodeH5Reader(object):
             return self.labeledZmws[holeNumber]
         except KeyError:
             raise KeyError("holeNumber %d not labeled" % holeNumber)
-    
+
     def labeledZmwsFromBarcodeLabel(self, bcLabel):
         """Returns a list of LabeledZmw objects for the particular
         barcode label, an empty list if there are no ZMWs for this
@@ -236,7 +236,7 @@ class MPBarcodeH5Reader(object):
             return part.labeledZmwFromHoleNumber(holeNumber)
         else:
             raise KeyError("holeNumber: %d not labeled" % holeNumber)
-    
+
     def labeledZmwsFromBarcodeLabel(self, bcLabel):
         lzmws = reduce(lambda x,y: x + y,
                       map(lambda z: z.labeledZmwsFromBarcodeLabel(bcLabel),
@@ -280,7 +280,7 @@ class BarcodeH5Fofn(object):
             else:
                 bcFilenames.append(arg)
 
-        self._bcH5s = [BarcodeH5Reader(fname) for fname in 
+        self._bcH5s = [BarcodeH5Reader(fname) for fname in
                        bcFilenames]
         self._byMovie = {}
         for bc in self._bcH5s:
@@ -288,7 +288,7 @@ class BarcodeH5Fofn(object):
                 self._byMovie[bc.movieName] = [bc]
             else:
                 self._byMovie[bc.movieName].append(bc)
-        
+
         self.mpReaders = { movieName: parts[0] if len(parts) == 1 else MPBarcodeH5Reader(parts)
                            for movieName, parts in self._byMovie.iteritems() }
 

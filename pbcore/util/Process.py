@@ -63,6 +63,6 @@ def backticks( cmd, merge_stderr=True ):
     else:
         errorMessage = ''
         output = out
-        
+
     return output, errCode, errorMessage
 

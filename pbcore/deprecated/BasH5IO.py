@@ -73,7 +73,7 @@ class BaseCallsDataGroup(object):
         self.hn2offsets = dict(zip(self.holeNumber, zip(*offsets)))
 
         self._QVCache = {}
-        
+
         self.hn2readscore = {}
         if 'ZMWMetrics' in self.baseCallsDG.keys():
             self.hn2readscore = dict(zip(self.holeNumber, self.baseCallsDG['ZMWMetrics/ReadScore'][:]))
@@ -83,7 +83,7 @@ class BaseCallsDataGroup(object):
 
     def getQVDataSet(self, qvtype):
         QVDS = None
-        if qvtype in QVTYPES:            
+        if qvtype in QVTYPES:
             if self._QVCache.has_key(qvtype):
                 QVDS = self._QVCache[qvtype]
             else:
@@ -143,7 +143,7 @@ class CCSBaseCallsDataGroup(BaseCallsDataGroup):
         beginOffset = n.hstack( (n.array([0]), endOffset[0:-1] ) )
         offsets = n.vstack ( (beginOffset, endOffset) )
         self.hn2passesOffset = dict(zip(self.holeNumber, zip(*offsets)))
-        
+
     def getNumberOfPassesForZMW(self, hn):
         return self.hn2NumPasses[hn]
 
@@ -180,7 +180,7 @@ class RegionTable(object):
         for hn, insertRgn in hn2Inserts:
             self.hn2Inserts.setdefault(hn, [])
             self.hn2Inserts[hn].append(insertRgn)
-            
+
         hn2Adapters = zip(rgnDS[rgnType == adapterIndex,0], rgnDS[rgnType == adapterIndex,2:4])
         self.hn2Adapters = {}
         for hn, aptRgn in hn2Adapters:
@@ -211,20 +211,20 @@ class BasH5(object):
     def __init__(self, filename, readType='Raw'):
         self._h5f = File(filename, 'r')
         self.rgnTable = RegionTable(self._h5f)
-        self.baseCallsDG = None        
+        self.baseCallsDG = None
         if readType == 'Raw':
             self.baseCallsDG = BaseCallsDataGroup(self._h5f, '/PulseData/BaseCalls')
         elif readType == 'CCS':
-            self.baseCallsDG = CCSBaseCallsDataGroup(self._h5f, '/PulseData/ConsensusBaseCalls') 
+            self.baseCallsDG = CCSBaseCallsDataGroup(self._h5f, '/PulseData/ConsensusBaseCalls')
             self.rbaseCallsDG = BaseCallsDataGroup(self._h5f, '/PulseData/BaseCalls')
 
 
     def __del__(self):
         self._h5f.close()
-                
+
     def getZMWs(self):
         for hn in self.baseCallsDG.holeNumber:
-            yield hn            
+            yield hn
 
     def getSequencingZMWs(self):
         for hn in self.getZMWs():

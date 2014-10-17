@@ -29,7 +29,7 @@
 #################################################################################
 
 import h5py as h
-import numpy as n 
+import numpy as n
 import bisect
 
 def rightmostBinSearch(vec, val):
@@ -45,12 +45,12 @@ def rightmostBinSearch(vec, val):
 
     if (len(vec) == i):
         return(i)
-    
+
     while (i + 1 < len(vec) and vec[i + 1] == val):
         i += 1
 
     return(i)
-             
+
 def leftmostBinSearch(vec, val):
     """
     Return the leftmost position in the vector vec of val. If val is
@@ -125,12 +125,12 @@ def projectIntoRange(tStart, tEnd, winStart, winEnd):
 def makeReadLocator(cmpH5, refSeq):
     """
     Return a function which can be called iteratively to find reads
-    quickly. 
+    quickly.
     """
     if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
     offsets = cmpH5.file["/RefGroup/OffsetTable"].value
     offStart, offEnd = offsets[offsets[:,0] == refSeq, 1:3].ravel()
-    
+
     if (offEnd - offStart > 0):
         refAlignIdx = cmpH5.alignmentIndex[offStart:offEnd, ]
         returnEmpty = False
@@ -147,7 +147,7 @@ def makeReadLocator(cmpH5, refSeq):
             idxs = n.array([], dtype = 'uint32')
         else:
             idxs = getOverlappingRanges(refAlignIdx.tStart, refAlignIdx.tEnd,
-                                        refAlignIdx.nBackRead, refAlignIdx.nReadOverlap, 
+                                        refAlignIdx.nBackRead, refAlignIdx.nReadOverlap,
                                         rangeStart, rangeEnd)
         if justIndices:
             return(idxs + offStart)
@@ -179,4 +179,4 @@ def getCoverageInRange(cmpH5, coords, rowNumbers=None):
         return n.array([0]*(coords[2] - coords[1]))
     else:
         return(projectIntoRange(cmpH5.tStart[rowNumbers], cmpH5.tEnd[rowNumbers], coords[1], coords[2]))
-    
+
