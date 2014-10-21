@@ -24,12 +24,25 @@ class TestFastaTable:
 
     def testAccessByName(self):
         ft = FastaTable(self.fastaPath)
-        r0000021 = ft["ref000021|EGFR_Exon_22"]
-        assert_equal("ref000021|EGFR_Exon_22", r0000021.name)
+        r000021 = ft["ref000021|EGFR_Exon_22\tMetadataTest"]
+        assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.name)
+        assert_equal("ref000021|EGFR_Exon_22", r000021.id)
+        assert_equal("MetadataTest", r000021.metadata)
         assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT" + \
                      "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA" + \
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
-                     r0000021.sequence[:])
+                     r000021.sequence[:])
+
+    def testAccessById(self):
+        ft = FastaTable(self.fastaPath)
+        r000021 = ft["ref000021|EGFR_Exon_22"]
+        assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.name)
+        assert_equal("ref000021|EGFR_Exon_22", r000021.id)
+        assert_equal("MetadataTest", r000021.metadata)
+        assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT" + \
+                     "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA" + \
+                     "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
+                     r000021.sequence[:])
 
     def testAccessByPosition(self):
         ft = FastaTable(self.fastaPath)
@@ -42,8 +55,8 @@ class TestFastaTable:
 
     def testSlice(self):
         ft = FastaTable(self.fastaPath)
-        r0000021 = ft["ref000021|EGFR_Exon_22"]
-        sequence = r0000021.sequence
+        r000021 = ft["ref000021|EGFR_Exon_22"]
+        sequence = r000021.sequence
         assert_equal("CACTGCCTCA",
                      sequence[0:10])
         assert_equal("GCCAAGCTGG",

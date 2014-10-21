@@ -41,7 +41,7 @@ __all__ = [ "FastaRecord",
 
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
-from pbcore.util.sequence import reverseComplement
+from pbcore.util.sequence import splitRecordName, reverseComplement
 
 import md5, mmap, numpy as np
 from collections import namedtuple, OrderedDict, Sequence
@@ -63,6 +63,7 @@ class FastaRecord(object):
             self._name = name
             self._sequence = sequence
             self._md5 = md5.md5(self.sequence).hexdigest()
+            self._id, self._metadata = splitRecordName(name)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
 
@@ -73,6 +74,22 @@ class FastaRecord(object):
         FASTA header following the '>' character
         """
         return self._name
+
+    @property
+    def id(self):
+        """
+        The id of the sequence in the FASTA file, equal to the FASTA header
+        up to the first whitespace.
+        """
+        return self._id
+
+    @property
+    def metadata(self):
+        """
+        The metadata associated with the sequence in the FASTA file, equal to
+        the contents of the FASTA header following the first whitespace
+        """
+        return self._metadata
 
     @property
     def sequence(self):
@@ -303,6 +320,12 @@ class FastaTableRecord(object):
     @property
     def name(self):
         return self.faiRecord.name
+    @property
+    def id(self):
+        return splitRecordName(self.name)[0]
+    @property
+    def metadata(self):
+        return splitRecordName(self.name)[1]
 
     @property
     def sequence(self):
@@ -345,9 +368,20 @@ class FastaTable(ReaderBase, Sequence):
                               prot=mmap.PROT_READ)
         self.faiFilename = faiFilename(self.filename)
         self.fai = loadFastaIndex(self.faiFilename, self.view)
-        self.contigById = dict(self.fai)
-        self.contigById.update(zip(xrange(len(self.fai)),
-                                   self.fai.itervalues()))
+        self.contigById = self._loadContigById()
+
+    def _loadContigById(self):
+        # Initialize the dictionary with the full sequence name
+        contigById = dict(self.fai)
+        # Add the same records back under just the Id as well
+        for name in contigById.keys():
+            id_ = splitRecordName(name)[0]
+            if id_ not in contigById:
+                contigById[id_] = contigById[name]
+        # Finally add their index number
+        contigById.update(zip(xrange(len(self.fai)),
+                              self.fai.itervalues()))
+        return contigById
 
     def __getitem__(self, key):
         if key < 0:

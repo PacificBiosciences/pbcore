@@ -41,7 +41,9 @@ __all__ = [ "FastqRecord",
             "asciiFromQvs" ]
 import numpy as np
 from .base import ReaderBase, WriterBase
-from pbcore.util.sequence import reverseComplement, reverse
+from pbcore.util.sequence import (splitRecordName,
+                                  reverse,
+                                  reverseComplement)
 
 
 class FastqRecord(object):
@@ -66,6 +68,7 @@ class FastqRecord(object):
             assert "\n" not in sequence
             self._name = name
             self._sequence = sequence
+            self._id, self._metadata = splitRecordName(name)
 
             # Only one of quality, qualityString should be provided
             assert (quality == None) != (qualityString == None)
@@ -77,13 +80,28 @@ class FastqRecord(object):
         except AssertionError:
             raise ValueError("Invalid FASTQ record data")
 
-
     @property
     def name(self):
         """
         The name of the sequence in the FASTQ file
         """
         return self._name
+
+    @property
+    def id(self):
+        """
+        The id of the sequence in the FASTQ file, equal to the FASTQ header
+        up to the first whitespace.
+        """
+        return self._id
+
+    @property
+    def metadata(self):
+        """
+        The metadata associated with the sequence in the FASTQ file, equal to
+        the contents of the FASTQ header following the first whitespace
+        """
+        return self._metadata
 
     @property
     def sequence(self):

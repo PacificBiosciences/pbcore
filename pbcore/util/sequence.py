@@ -30,12 +30,12 @@
 
 from __future__ import absolute_import
 from string import maketrans
+import re
 
 DNA_COMPLEMENT = maketrans('agctAGCT-N', 'tcgaTCGA-N')
 
 def reverse( sequence ):
-    """
-    Return the reverse of any sequence
+    """Return the reverse of any sequence
     """
     return sequence[::-1]
 
@@ -52,3 +52,14 @@ def reverseComplement( sequence ):
     NOTE: This only currently supports DNA
     """
     return reverse(complement(sequence))
+
+def splitRecordName( name ):
+    """Separate a record name into it's Id and Metadata
+    """
+    nameParts = re.split('\s', name, maxsplit=1)
+    id_ = nameParts[0]
+    if len(nameParts) > 1:
+        metadata = nameParts[1].strip()
+    else:
+        metadata = ''
+    return (id_, metadata)

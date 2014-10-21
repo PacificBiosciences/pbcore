@@ -6,22 +6,24 @@ from StringIO import StringIO
 class TestFastaRecord:
 
     def setup(self):
-        self.name = "chr1|blah|blah"
-        self.rc_name = "chr1|blah|blah [revcomp]"
+        self.name = "chr1|blah|blah\tblah blah"
+        self.rc_name = "chr1|blah|blah\tblah blah [revcomp]"
+        self.id = "chr1|blah|blah"
+        self.metadata = "blah blah"
         self.sequence = "GATTACA" * 20
         self.rc_sequence = "TGTAATC" * 20
         self.expected__str__ =                                               \
-            ">chr1|blah|blah\n"                                              \
+            ">chr1|blah|blah\tblah blah\n"                                   \
             "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
             "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
             "ATTACAGATTACAGATTACA"
-        self.rc1_expected__str__ =                                            \
-            ">chr1|blah|blah [revcomp]\n"                                              \
+        self.rc1_expected__str__ =                                           \
+            ">chr1|blah|blah\tblah blah [revcomp]\n"                         \
             "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
             "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
             "GTAATCTGTAATCTGTAATC"
-        self.rc2_expected__str__ =                                            \
-            ">chr1|blah|blah\n"                                              \
+        self.rc2_expected__str__ =                                           \
+            ">chr1|blah|blah\tblah blah\n"                                   \
             "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
             "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
             "GTAATCTGTAATCTGTAATC"
@@ -32,6 +34,8 @@ class TestFastaRecord:
     def test__init__(self):
         assert_equal(self.name, self.record.name)
         assert_equal(self.sequence, self.record.sequence)
+        assert_equal(self.id, self.record.id)
+        assert_equal(self.metadata, self.record.metadata)
 
     def test__str__(self):
         assert_equal(self.expected__str__, str(self.record))
