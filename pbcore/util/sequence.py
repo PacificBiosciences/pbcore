@@ -61,5 +61,5 @@ def splitRecordName( name ):
     if len(nameParts) > 1:
         metadata = nameParts[1].strip()
     else:
-        metadata = ''
+        metadata = None
     return (id_, metadata)
