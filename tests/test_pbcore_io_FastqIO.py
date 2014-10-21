@@ -25,9 +25,13 @@ class TestFastqRecord:
 
     def setup(self):
         self.name = "chr1|blah|blah"
+        self.rc_name = "chr1|blah|blah [revcomp]"
         self.sequence = "GATTACA" * 20
+        self.rc_sequence = "TGTAATC" * 20
         self.quality  = [10,11,12,13,14,15,16] * 20
+        self.rc_quality = [16,15,14,13,12,11,10] * 20
         self.qualityString = "+,-./01" * 20
+        self.rc_qualityString = "10/.-,+" * 20
         self.expected__str__ =                                              \
             "@chr1|blah|blah\n"                                             \
             "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT"  \
@@ -37,10 +41,29 @@ class TestFastqRecord:
             "+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-."  \
             "/01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+"  \
             ",-./01+,-./01+,-./01"
+        self.rc1_expected__str__ =                                           \
+            "@chr1|blah|blah [revcomp]\n"                                             \
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"  \
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"  \
+            "GTAATCTGTAATCTGTAATC\n"                                        \
+            "+\n"                                                           \
+            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."  \
+            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"  \
+            "0/.-,+10/.-,+10/.-,+"
+        self.rc2_expected__str__ =                                           \
+            "@chr1|blah|blah\n"                                             \
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"  \
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"  \
+            "GTAATCTGTAATCTGTAATC\n"                                        \
+            "+\n"                                                           \
+            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."  \
+            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"  \
+            "0/.-,+10/.-,+10/.-,+"
         self.record = FastqRecord(self.name, self.sequence, self.quality)
         self.record2 = FastqRecord(self.name, self.sequence,
                                    qualityString=self.qualityString)
-
+        self.rc1_record = self.record.reverseComplement()
+        self.rc2_record = self.record.reverseComplement(True)
 
     def test__init__(self):
         assert_equal(self.name, self.record.name)
@@ -56,6 +79,20 @@ class TestFastqRecord:
         assert_equal(self.name, recordFromString.name)
         assert_equal(self.sequence, recordFromString.sequence)
         assert_array_equal(self.quality, recordFromString.quality)
+
+    def test_reverse_complement(self):
+        assert_equal(self.rc1_record.name, self.rc_name)
+        assert_equal(self.rc1_record.sequence, self.rc_sequence)
+        assert_equal(self.rc1_record.quality, self.rc_quality)
+        assert_equal(self.rc1_record.qualityString, self.rc_qualityString)
+        assert_equal(str(self.rc1_record), self.rc1_expected__str__)
+
+    def test_reverse_complement(self):
+        assert_equal(self.rc2_record.name, self.record.name)
+        assert_equal(self.rc2_record.sequence, self.rc_sequence)
+        assert_equal(self.rc2_record.quality, self.rc_quality)
+        assert_equal(self.rc2_record.qualityString, self.rc_qualityString)
+        assert_equal(str(self.rc2_record), self.rc2_expected__str__)
 
     def test_eq(self):
         name = 'r1'

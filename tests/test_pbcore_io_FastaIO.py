@@ -7,13 +7,27 @@ class TestFastaRecord:
 
     def setup(self):
         self.name = "chr1|blah|blah"
+        self.rc_name = "chr1|blah|blah [revcomp]"
         self.sequence = "GATTACA" * 20
+        self.rc_sequence = "TGTAATC" * 20
         self.expected__str__ =                                               \
             ">chr1|blah|blah\n"                                              \
             "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
             "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
             "ATTACAGATTACAGATTACA"
+        self.rc1_expected__str__ =                                            \
+            ">chr1|blah|blah [revcomp]\n"                                              \
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
+            "GTAATCTGTAATCTGTAATC"
+        self.rc2_expected__str__ =                                            \
+            ">chr1|blah|blah\n"                                              \
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
+            "GTAATCTGTAATCTGTAATC"
         self.record = FastaRecord(self.name, self.sequence)
+        self.rc1_record = self.record.reverseComplement()
+        self.rc2_record = self.record.reverseComplement(True)
 
     def test__init__(self):
         assert_equal(self.name, self.record.name)
@@ -30,6 +44,16 @@ class TestFastaRecord:
     def test_md5(self):
         assert_equal("67fc75ce599ed0ca1fc8ed2dcbccc95d",
                      self.record.md5)
+
+    def test_reverse_complement1(self):
+        assert_equal(self.rc1_record.name, self.rc_name)
+        assert_equal(self.rc1_record.sequence, self.rc_sequence)
+        assert_equal(self.rc1_expected__str__, str(self.rc1_record))
+
+    def test_reverse_complement2(self):
+        assert_equal(self.rc2_record.name, self.name)
+        assert_equal(self.rc2_record.sequence, self.rc_sequence)
+        assert_equal(self.rc2_expected__str__, str(self.rc2_record))
 
     def test_eq(self):
         name = 'r1'

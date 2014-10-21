@@ -41,6 +41,7 @@ __all__ = [ "FastaRecord",
 
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
+from pbcore.util.sequence import reverseComplement
 
 import md5, mmap, numpy as np
 from collections import namedtuple, OrderedDict, Sequence
@@ -104,6 +105,18 @@ class FastaRecord(object):
             return FastaRecord(name, sequence)
         except AssertionError:
             raise ValueError("String not recognized as a valid FASTA record")
+
+    def reverseComplement(self, preserveHeader=False):
+        """
+        Return a new FastaRecord with the reverse-complemented DNA sequence.
+        Optionally, supply a name
+        """
+        rcSequence = reverseComplement(self.sequence)
+        if preserveHeader:
+            return FastaRecord(self.name, rcSequence)
+        else:
+            rcName = '{0} [revcomp]'.format(self.name.strip())
+            return FastaRecord(rcName, rcSequence)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
