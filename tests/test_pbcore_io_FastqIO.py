@@ -34,33 +34,33 @@ class TestFastqRecord:
         self.rc_quality = [16,15,14,13,12,11,10] * 20
         self.qualityString = "+,-./01" * 20
         self.rc_qualityString = "10/.-,+" * 20
-        self.expected__str__ =                                              \
-            "@chr1|blah|blah\tblah blah\n"                                  \
-            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT"  \
-            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG"  \
-            "ATTACAGATTACAGATTACA\n"                                        \
-            "+\n"                                                           \
-            "+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-."  \
-            "/01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+"  \
-            ",-./01+,-./01+,-./01"
-        self.rc1_expected__str__ =                                          \
-            "@chr1|blah|blah\tblah blah [revcomp]\n"                        \
-            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"  \
-            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"  \
-            "GTAATCTGTAATCTGTAATC\n"                                        \
-            "+\n"                                                           \
-            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."  \
-            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"  \
-            "0/.-,+10/.-,+10/.-,+"
-        self.rc2_expected__str__ =                                          \
-            "@chr1|blah|blah\tblah blah\n"                                  \
-            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"  \
-            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"  \
-            "GTAATCTGTAATCTGTAATC\n"                                        \
-            "+\n"                                                           \
-            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."  \
-            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"  \
-            "0/.-,+10/.-,+10/.-,+"
+        self.expected__str__ = (
+            "@chr1|blah|blah\tblah blah\n"
+            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT"
+            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG"
+            "ATTACAGATTACAGATTACA\n"
+            "+\n"
+            "+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-."
+            "/01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+,-./01+"
+            ",-./01+,-./01+,-./01")
+        self.rc1_expected__str__ = (
+            "@chr1|blah|blah\tblah blah [revcomp]\n"
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"
+            "GTAATCTGTAATCTGTAATC\n"
+            "+\n"
+            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."
+            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"
+            "0/.-,+10/.-,+10/.-,+")
+        self.rc2_expected__str__ = (
+            "@chr1|blah|blah\tblah blah\n"
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA"
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT"
+            "GTAATCTGTAATCTGTAATC\n"
+            "+\n"
+            "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."
+            "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"
+            "0/.-,+10/.-,+10/.-,+")
         self.record = FastqRecord(self.name, self.sequence, self.quality)
         self.record2 = FastqRecord(self.name, self.sequence,
                                    qualityString=self.qualityString)

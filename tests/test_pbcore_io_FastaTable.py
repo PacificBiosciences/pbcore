@@ -28,8 +28,8 @@ class TestFastaTable:
         assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.name)
         assert_equal("ref000021|EGFR_Exon_22", r000021.id)
         assert_equal("MetadataTest", r000021.metadata)
-        assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT" + \
-                     "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA" + \
+        assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT"
+                     "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA"
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
                      r000021.sequence[:])
 
@@ -39,8 +39,8 @@ class TestFastaTable:
         assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.name)
         assert_equal("ref000021|EGFR_Exon_22", r000021.id)
         assert_equal("MetadataTest", r000021.metadata)
-        assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT" + \
-                     "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA" + \
+        assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT"
+                     "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA"
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
                      r000021.sequence[:])
 

@@ -12,21 +12,21 @@ class TestFastaRecord:
         self.metadata = "blah blah"
         self.sequence = "GATTACA" * 20
         self.rc_sequence = "TGTAATC" * 20
-        self.expected__str__ =                                               \
-            ">chr1|blah|blah\tblah blah\n"                                   \
-            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n" \
-            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n" \
-            "ATTACAGATTACAGATTACA"
-        self.rc1_expected__str__ =                                           \
-            ">chr1|blah|blah\tblah blah [revcomp]\n"                         \
-            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
-            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
-            "GTAATCTGTAATCTGTAATC"
-        self.rc2_expected__str__ =                                           \
-            ">chr1|blah|blah\tblah blah\n"                                   \
-            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n" \
-            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n" \
-            "GTAATCTGTAATCTGTAATC"
+        self.expected__str__ = (
+            ">chr1|blah|blah\tblah blah\n"
+            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n"
+            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n"
+            "ATTACAGATTACAGATTACA")
+        self.rc1_expected__str__ = (
+            ">chr1|blah|blah\tblah blah [revcomp]\n"
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n"
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n"
+            "GTAATCTGTAATCTGTAATC")
+        self.rc2_expected__str__ = (
+            ">chr1|blah|blah\tblah blah\n"
+            "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n"
+            "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n"
+            "GTAATCTGTAATCTGTAATC")
         self.record = FastaRecord(self.name, self.sequence)
         self.rc1_record = self.record.reverseComplement()
         self.rc2_record = self.record.reverseComplement(True)
