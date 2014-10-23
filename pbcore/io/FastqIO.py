@@ -41,9 +41,7 @@ __all__ = [ "FastqRecord",
             "asciiFromQvs" ]
 import numpy as np
 from .base import ReaderBase, WriterBase
-from pbcore.util.sequence import (splitRecordName,
-                                  reverse,
-                                  reverseComplement)
+from pbcore import util
 
 
 class FastqRecord(object):
@@ -68,7 +66,7 @@ class FastqRecord(object):
             assert "\n" not in sequence
             self._name = name
             self._sequence = sequence
-            self._id, self._metadata = splitRecordName(name)
+            self._id, self._metadata = util.sequence.splitRecordName(name)
 
             # Only one of quality, qualityString should be provided
             assert (quality == None) != (qualityString == None)
@@ -148,8 +146,8 @@ class FastqRecord(object):
         Return a new FastaRecord with the reverse-complemented DNA sequence.
         Optionally, supply a name
         """
-        rcSequence = reverseComplement(self.sequence)
-        rcQuality = reverse(self.quality)
+        rcSequence = util.sequence.reverseComplement(self.sequence)
+        rcQuality = util.sequence.reverse(self.quality)
         if preserveHeader:
             return FastqRecord(self.name, rcSequence, rcQuality)
         else:
