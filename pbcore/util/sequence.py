@@ -45,7 +45,7 @@ def complement( sequence ):
     Return the complement of a sequence
     NOTE: This only currently supports DNA
     """
-    if re.search('[^AGCTN-]', sequence.upper()):
+    if re.search('[^AGCTNagctn-]', sequence):
         raise ValueError("Sequence contains invalid DNA characters - "
                          "only [AGCTN-] allowed")
     return sequence.translate( DNA_COMPLEMENT )
