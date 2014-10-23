@@ -32,6 +32,7 @@ from __future__ import absolute_import
 from string import maketrans
 import re
 
+
 DNA_COMPLEMENT = maketrans('agctAGCT-N', 'tcgaTCGA-N')
 
 def reverse( sequence ):
@@ -44,6 +45,9 @@ def complement( sequence ):
     Return the complement of a sequence
     NOTE: This only currently supports DNA
     """
+    if re.search('[^AGCTN-]', sequence.upper()):
+        raise ValueError("Sequence contains invalid DNA characters - "
+                         "only [AGCTN-] allowed")
     return sequence.translate( DNA_COMPLEMENT )
 
 def reverseComplement( sequence ):
