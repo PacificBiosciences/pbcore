@@ -41,7 +41,7 @@ __all__ = [ "FastaRecord",
 
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
-from pbcore import util
+from pbcore.util import sequences
 
 import md5, mmap, numpy as np
 from collections import namedtuple, OrderedDict, Sequence
@@ -63,7 +63,7 @@ class FastaRecord(object):
             self._name = name
             self._sequence = sequence
             self._md5 = md5.md5(self.sequence).hexdigest()
-            self._id, self._metadata = util.sequence.splitRecordName(name)
+            self._id, self._metadata = sequences.splitRecordName(name)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
 
@@ -128,7 +128,7 @@ class FastaRecord(object):
         Return a new FastaRecord with the reverse-complemented DNA sequence.
         Optionally, supply a name
         """
-        rcSequence = util.sequence.reverseComplement(self.sequence)
+        rcSequence = sequences.reverseComplement(self.sequence)
         if preserveHeader:
             return FastaRecord(self.name, rcSequence)
         else:
@@ -322,10 +322,10 @@ class FastaTableRecord(object):
         return self.faiRecord.name
     @property
     def id(self):
-        return util.sequence.splitRecordName(self.name)[0]
+        return sequences.splitRecordName(self.name)[0]
     @property
     def metadata(self):
-        return util.sequence.splitRecordName(self.name)[1]
+        return sequences.splitRecordName(self.name)[1]
 
     @property
     def sequence(self):
@@ -375,7 +375,7 @@ class FastaTable(ReaderBase, Sequence):
         contigById = dict(self.fai)
         # Add the same records back under just the Id as well
         for name in contigById.keys():
-            id_ = util.sequence.splitRecordName(name)[0]
+            id_ = sequences.splitRecordName(name)[0]
             if id_ not in contigById:
                 contigById[id_] = contigById[name]
         # Finally add their index number
