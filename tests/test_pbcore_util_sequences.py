@@ -1,9 +1,9 @@
 import nose
 from nose.tools import assert_equal, assert_true, assert_false
-from pbcore.util.sequence import (reverse,
-                                  complement,
-                                  reverseComplement,
-                                  splitRecordName)
+from pbcore.util.sequences import (reverse,
+                                   complement,
+                                   reverseComplement,
+                                   splitRecordName)
 from StringIO import StringIO
 
 class TestReverseComplement:
