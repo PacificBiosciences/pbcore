@@ -37,16 +37,29 @@ Streaming I/O support for FASTA files.
 __all__ = [ "FastaRecord",
             "FastaReader",
             "FastaWriter",
-            "FastaTable" ]
+            "FastaTable",
+            "splitFastaHeader"]
 
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore.util import sequences
 
-import md5, mmap, numpy as np
+import md5, mmap, numpy as np, re
 from collections import namedtuple, OrderedDict, Sequence
 from os.path import abspath, expanduser, isfile
 
+
+def splitFastaHeader( name ):
+    """
+    Split a FASTA/FASTQ header into its id and metadata components
+    """
+    nameParts = re.split('\s', name, maxsplit=1)
+    id_ = nameParts[0]
+    if len(nameParts) > 1:
+        metadata = nameParts[1].strip()
+    else:
+        metadata = None
+    return (id_, metadata)
 
 class FastaRecord(object):
     """
@@ -63,7 +76,7 @@ class FastaRecord(object):
             self._name = name
             self._sequence = sequence
             self._md5 = md5.md5(self.sequence).hexdigest()
-            self._id, self._metadata = sequences.splitRecordName(name)
+            self._id, self._metadata = splitFastaHeader(name)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
 
@@ -320,12 +333,14 @@ class FastaTableRecord(object):
     @property
     def name(self):
         return self.faiRecord.name
+
     @property
     def id(self):
-        return sequences.splitRecordName(self.name)[0]
+        return splitFastaHeader(self.name)[0]
+
     @property
     def metadata(self):
-        return sequences.splitRecordName(self.name)[1]
+        return splitFastaHeader(self.name)[1]
 
     @property
     def sequence(self):
@@ -375,7 +390,7 @@ class FastaTable(ReaderBase, Sequence):
         contigById = dict(self.fai)
         # Add the same records back under just the Id as well
         for name in contigById.keys():
-            id_ = sequences.splitRecordName(name)[0]
+            id_ = splitFastaHeader(name)[0]
             if id_ not in contigById:
                 contigById[id_] = contigById[name]
         # Finally add their index number
