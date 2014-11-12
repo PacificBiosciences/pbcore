@@ -41,6 +41,7 @@ from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
 from pbcore.io._utils import rec_join, arrayFromDataset
 from pbcore.io.BasH5IO import BasH5Collection
+from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
 # ========================================
@@ -838,12 +839,15 @@ class CmpH5Reader(object):
         for record in self._referenceInfoTable:
             if record.ID != -1:
                 assert record.ID != record.Name
-                if (record.ID       in self._referenceDict or
+                shortName = splitFastaHeader(record.FullName)[0]
+                if (shortName       in self._referenceDict or
+                    record.ID       in self._referenceDict or
                     record.Name     in self._referenceDict or
                     record.FullName in self._referenceDict or
                     record.MD5      in self._referenceDict):
                     raise ValueError, "Duplicate reference contig sequence or identifier"
                 else:
+                    self._referenceDict[shortName]       = record
                     self._referenceDict[record.ID]       = record
                     self._referenceDict[record.Name]     = record
                     self._referenceDict[record.FullName] = record
@@ -1113,8 +1117,9 @@ class CmpH5Reader(object):
         """
         Access information about a reference that was aligned against.
         Key can be reference ID (integer), name ("ref000001"), full
-        name (e.g. "lambda_NEB3011"), or MD5 sum hex string
-        (e.g. "a1319ff90e994c8190a4fe6569d0822a").
+        name (e.g. "lambda_NEB3011"), truncated full name (full name
+        up to the first whitespace, following the samtools convention)
+        or MD5 sum hex string (e.g. "a1319ff90e994c8190a4fe6569d0822a").
 
         The returned value is a record from the :ref:referenceInfoTable .
 

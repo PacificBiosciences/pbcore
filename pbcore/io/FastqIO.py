@@ -41,8 +41,8 @@ __all__ = [ "FastqRecord",
             "asciiFromQvs" ]
 import numpy as np
 from .base import ReaderBase, WriterBase
+from .FastaIO import splitFastaHeader
 from pbcore.util import sequences
-
 
 class FastqRecord(object):
     """
@@ -66,7 +66,7 @@ class FastqRecord(object):
             assert "\n" not in sequence
             self._name = name
             self._sequence = sequence
-            self._id, self._metadata = sequences.splitRecordName(name)
+            self._id, self._metadata = splitFastaHeader(name)
 
             # Only one of quality, qualityString should be provided
             assert (quality == None) != (qualityString == None)
