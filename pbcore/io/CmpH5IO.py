@@ -516,19 +516,6 @@ class CmpH5Alignment(object):
         refBaseInts  = _baseEncodingToInt[alnArr  & 0b1111]
         return tbl[readBaseInts, refBaseInts].tostring()
 
-    def cigar(self, orientation="native"):
-        """
-        Return the CIGAR string for the alignment in the given
-        orientation.
-        """
-        cigarTranscript = self.transcript(orientation, "cigar")
-        # Run length encoding: (done fairly naively---my attempts at
-        # doing this in numpy ended up being *slower*
-        collapsed = [(len(list(group)),name)
-                      for name, group in groupby(cigarTranscript)]
-        cigarString = ''.join([('%s%s') % el for el in collapsed])
-        return cigarString
-
     def read(self, aligned=True, orientation="native"):
         """
         Return the read portion of the alignment as a string.
@@ -1049,22 +1036,6 @@ class CmpH5Reader(object):
         """
         myVersionTuple = map(int, self.version.split(".")[:3])
         minimalVersionTuple = map(int, minimalVersion.split(".")[:3])
-        return myVersionTuple >= minimalVersionTuple
-
-    @property
-    def primaryVersion(self):
-        """
-        The version of PacBio Primary Analysis software that produced
-        the ``bas.h5`` input file to the aligner.
-        """
-        return self.file.attrs["PrimaryVersion"]
-
-    def primaryVersionAtLeast(self, minimalVersion):
-        """
-        Compare ``primaryVersion`` to ``minimalVersion``
-        """
-        myVersionTuple = map(int, self.primaryVersion.split("."))
-        minimalVersionTuple = map(int, minimalVersion.split("."))
         return myVersionTuple >= minimalVersionTuple
 
     def softwareVersion(self, programName):
