@@ -344,8 +344,8 @@ class FastaTableRecord(object):
 
     @property
     def sequence(self):
-        return MmappedFastaSequence(self.view,
-                                  self.faiRecord)
+        return MmappedFastaSequence(self.view, self.faiRecord)
+
     def __repr__(self):
         return "<FastaTableRecord: %s>" % self.name
 
