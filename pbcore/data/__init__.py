@@ -133,9 +133,6 @@ def getBlasrM4():
 def getBlasrM5():
     return _getAbsPath('blasr-output.m5')
 
-def getBam():
-    return _getAbsPath('aligned_reads_1.bam')
-
 def getFofns():
     """
     Returns a list of FOFN files
@@ -148,9 +145,3 @@ def getFofns():
 
 def getBcFofn():
     return _getAbsPath("bc_files.fofn")
-
-def getPacBioBam():
-    """Return a path to a bam file that conforms to the PacBio BAM spec
-    and was created from the pbcore/data bax.h5 files.
-    """
-    return _getAbsPath("ecoli_pacbio_spec.bam")
