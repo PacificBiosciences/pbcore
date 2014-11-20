@@ -87,7 +87,12 @@ standard.  It is a simple container format for PacBio alignment records.
 FASTA Format
 ------------
 
-FASTA is a standard format for sequence data.
+FASTA is a standard format for sequence data.  We recommmend using the
+`FastaTable` class, which provides random access to indexed FASTA
+files (using the conventional SAMtools "fai" index).
+
+.. autoclass:: pbcore.io.FastaTable
+    :members:
 
 .. autoclass:: pbcore.io.FastaRecord
     :members:
