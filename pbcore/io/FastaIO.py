@@ -114,6 +114,13 @@ class FastaRecord(object):
         return self._sequence
 
     @property
+    def length(self):
+        """
+        Get the length of the FASTA sequence
+        """
+        return len(self._sequence)
+
+    @property
     def md5(self):
         """
         The MD5 checksum (hex digest) of `sequence`
@@ -345,6 +352,10 @@ class FastaTableRecord(object):
     @property
     def sequence(self):
         return MmappedFastaSequence(self.view, self.faiRecord)
+
+    @property
+    def length(self):
+        return self.faiRecord.length
 
     def __repr__(self):
         return "<FastaTableRecord: %s>" % self.name

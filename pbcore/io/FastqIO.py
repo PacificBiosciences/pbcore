@@ -94,6 +94,13 @@ class FastqRecord(object):
         return self._id
 
     @property
+    def length(self):
+        """
+        The length of the sequence
+        """
+        return len(self.sequence)
+
+    @property
     def metadata(self):
         """
         The metadata associated with the sequence in the FASTQ file, equal to
