@@ -1,3 +1,8 @@
+* Version 0.9.2 (Work in progress)
+- Remove unused components from CmpH5Reader API
+- Add example BAM file
+- Length accessors for FAST[AQ] record types
+
 * Version 0.9.1 (SMRTanalysis 2.3.0p1)
 - FASTA header parsing into "id" and "metadata" now available in the
   FastaRecord types
