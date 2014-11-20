@@ -145,3 +145,11 @@ def getFofns():
 
 def getBcFofn():
     return _getAbsPath("bc_files.fofn")
+
+
+def getBamAndCmpH5():
+    """
+    Get a "matched" BAM and cmp.h5 file
+    """
+    return (_getAbsPath("bam_mapping.bam"),
+            _getAbsPath("cmph5_mapping.cmp.h5"))
