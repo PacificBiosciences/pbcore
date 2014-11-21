@@ -379,7 +379,7 @@ class FastaTable(ReaderBase, Sequence):
         >>> from pbcore import data
         >>> filename = data.getFasta()
         >>> t = FastaTable(filename)
-        >>> print t[:4]
+        >>> print t[:4] # doctest: +NORMALIZE_WHITESPACE
         [<FastaTableRecord: ref000001|EGFR_Exon_2>,
         <FastaTableRecord: ref000002|EGFR_Exon_3>,
         <FastaTableRecord: ref000003|EGFR_Exon_4>,
