@@ -69,8 +69,8 @@ class FastqRecord(object):
             self._id, self._metadata = splitFastaHeader(name)
 
             # Only one of quality, qualityString should be provided
-            assert (quality == None) != (qualityString == None)
-            if quality != None:
+            assert (quality is None) != (qualityString is None)
+            if quality is not None:
                 self._quality = quality
             else:
                 self._quality = qvsFromAscii(qualityString)

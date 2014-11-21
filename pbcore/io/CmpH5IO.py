@@ -1247,7 +1247,7 @@ class CmpH5Reader(object):
         return self.__getattribute__("alignmentIndex")[key]
 
     def close(self):
-        if hasattr(self, "file") and self.file != None:
+        if hasattr(self, "file") and self.file is not None:
             self.file.close()
             self.file = None
 

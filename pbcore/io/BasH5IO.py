@@ -649,7 +649,7 @@ class BaxH5Reader(object):
         return len(self.sequencingZmws)
 
     def close(self):
-        if hasattr(self, "file") and self.file != None:
+        if hasattr(self, "file") and self.file is not None:
             self.file.close()
             self.file = None
 
@@ -867,7 +867,7 @@ class BasH5Reader(object):
         return len(self.sequencingZmws)
 
     def close(self):
-        if hasattr(self, "file") and self.file != None:
+        if hasattr(self, "file") and self.file is not None:
             self.file.close()
             self.file = None
         for part in self.parts:
