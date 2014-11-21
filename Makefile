@@ -22,8 +22,14 @@ doc:
 doc-clean:
 	cd doc && rm -rf _templates _static _build searchindex.js objects.inv
 
-test:
+doctest:
+	cd doc && make doctest
+
+unit-test:
 	nosetests --with-xunit tests -v
+
+test: doctest unit-test
+
 tests: test
 check: test
 
