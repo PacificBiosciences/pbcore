@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pbcore.model &mdash; pbcore 0.9.1 documentation</title>
+    <title>pbcore.chemistry package &mdash; pbcore 0.9.1 documentation</title>
     
     <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -44,8 +44,37 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="pbcore-model">
-<h1>pbcore.model<a class="headerlink" href="#pbcore-model" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="pbcore-chemistry-package">
+<h1>pbcore.chemistry package<a class="headerlink" href="#pbcore-chemistry-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pbcore.chemistry.chemistry">
+<span id="pbcore-chemistry-chemistry-module"></span><h2>pbcore.chemistry.chemistry module<a class="headerlink" href="#module-pbcore.chemistry.chemistry" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pbcore.chemistry.chemistry.tripleFromMetadataXML">
+<tt class="descclassname">pbcore.chemistry.chemistry.</tt><tt class="descname">tripleFromMetadataXML</tt><big>(</big><em>metadataXmlPath</em><big>)</big><a class="headerlink" href="#pbcore.chemistry.chemistry.tripleFromMetadataXML" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scrape the triple from the metadata.xml, or exception if the file
+or the relevant contents are not found</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.chemistry.chemistry.decodeTriple">
+<tt class="descclassname">pbcore.chemistry.chemistry.</tt><tt class="descname">decodeTriple</tt><big>(</big><em>bindingKit</em>, <em>sequencingKit</em>, <em>softwareVersion</em><big>)</big><a class="headerlink" href="#pbcore.chemistry.chemistry.decodeTriple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the name of the chemisty configuration given the
+configuration triple that was recorded on the instrument.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pbcore.chemistry.chemistry.ChemistryLookupError">
+<em class="property">exception </em><tt class="descclassname">pbcore.chemistry.chemistry.</tt><tt class="descname">ChemistryLookupError</tt><a class="headerlink" href="#pbcore.chemistry.chemistry.ChemistryLookupError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="http://docs.python.org/library/exceptions.html#exceptions.Exception" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pbcore.chemistry">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pbcore.chemistry" title="Permalink to this headline">¶</a></h2>
+</div>
 </div>
 
 
@@ -54,9 +83,19 @@
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">pbcore.chemistry package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-pbcore.chemistry.chemistry">pbcore.chemistry.chemistry module</a></li>
+<li><a class="reference internal" href="#module-pbcore.chemistry">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
   <h3>This Page</h3>
   <ul class="this-page-menu">
-    <li><a href="_sources/pbcore.model.txt"
+    <li><a href="_sources/pbcore.chemistry.txt"
            rel="nofollow">Show Source</a></li>
   </ul>
 <div id="searchbox" style="display: none">
