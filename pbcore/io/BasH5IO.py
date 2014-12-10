@@ -119,7 +119,8 @@ class Zmw(CommonEqualityMixin):
     @property
     def adapterRegionsNoQC(self):
         """
-        Get adapter regions as intervals, without clipping to the HQ region
+        Get adapter regions as intervals, without clipping to the HQ
+        region.  Don't use this unless you know what you're doing.
         """
         return [ (region.regionStart, region.regionEnd)
                  for region in self.regionTable
@@ -137,7 +138,8 @@ class Zmw(CommonEqualityMixin):
     @property
     def insertRegionsNoQC(self):
         """
-        Get insert regions as intervals, without clipping to the HQ region
+        Get insert regions as intervals, without clipping to the HQ
+        region.  Don't use this unless you know what you're doing.
         """
         return [ (region.regionStart, region.regionEnd)
                  for region in self.regionTable
@@ -153,6 +155,16 @@ class Zmw(CommonEqualityMixin):
                              for region in self.insertRegionsNoQC ])
     @property
     def hqRegion(self):
+        """
+        Return the HQ region interval.
+
+        The HQ region is an interval of basecalls where the basecaller has
+        inferred that a single sequencing reaction is taking place.
+        Secondary analysis should only use subreads within the HQ
+        region.  Methods in this class, with the exception of the
+        "NoQC" methods, return data appropriately clipped/filtered to
+        the HQ region.
+        """
         rt = self.regionTable
         hqRows = rt[rt.regionType == HQ_REGION]
         assert len(hqRows) == 1
@@ -210,11 +222,39 @@ class Zmw(CommonEqualityMixin):
     # The following calls return one or more ZmwRead objects.
     #
     def read(self, readStart=None, readEnd=None):
+        """
+        Given no arguments, returns the entire (HQ-clipped) polymerase
+        read.  With readStart, readEnd arguments, returns the
+        specified extent of the polymerase read.
+        """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         hqStart, hqEnd = self.hqRegion
         readStart = hqStart if readStart is None else readStart
         readEnd   = hqEnd if readEnd is None else readEnd
+        return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
+
+
+    def readNoQC(self, readStart=None, readEnd=None):
+        """
+        Given no arguments, returns the entire polymerase read, *not
+        HQ-clipped*.  With readStart, readEnd arguments, returns the
+        specified extent of the polymerase read.
+
+        .. warning::
+
+            It is not recommended that production code use this method
+            as we make no guarantees about what happens outside of the
+            HQ region.
+        """
+        if not self.baxH5.hasRawBasecalls:
+            raise ValueError, "No raw reads in this file"
+        offsets = self.baxH5._offsetsByHole[self.holeNumber]
+        numEvent = offsets[1] - offsets[0]
+        polymeraseBegin = 0
+        polymeraseEnd = numEvent
+        readStart = polymeraseBegin if readStart is None else readStart
+        readEnd   = polymeraseEnd   if readEnd   is None else readEnd
         return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
     @property
@@ -224,9 +264,9 @@ class Zmw(CommonEqualityMixin):
 
         .. warning::
 
-        It is not recommended that production code use this method as
-        we make no guarantees about what happens outside of the HQ
-        region.
+            It is not recommended that production code use this method
+            as we make no guarantees about what happens outside of the
+            HQ region.
         """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
@@ -247,7 +287,7 @@ class Zmw(CommonEqualityMixin):
 
 
     @property
-    def adaptersNoQC(self):
+    def adapters(self):
         """
         Get the adapter hits as a list of ZmwRead objects.  Restricts
         focus, and clips to, the HQ region.  This method can be used
@@ -259,16 +299,16 @@ class Zmw(CommonEqualityMixin):
                  for (readStart, readEnd) in self.adapterRegions ]
 
     @property
-    def unclippedAdapters(self):
+    def adaptersNoQC(self):
         """
         Get the adapters, including data beyond the bounds of the HQ
         region.
 
         .. warning::
 
-        It is not recommended that production code use this method as
-        we make no guarantees about what happens outside of the HQ
-        region.
+            It is not recommended that production code use this method
+            as we make no guarantees about what happens outside of the
+            HQ region.
         """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
