@@ -33,11 +33,15 @@ to provide a uniform API:
 
 
 
-`bas.h5` Format (PacBio basecalls file)
----------------------------------------
+`bas.h5` / `bax.h5` Formats (PacBio basecalls file)
+---------------------------------------------------
 
-The `bas.h5` file format is a container format for PacBio reads, built
-on top of the HDF5 standard.
+The `bas.h5`/ `bax.h5` file formats are container formats for PacBio
+reads, built on top of the HDF5 standard.  Originally there was just
+one `bas.h5`, but eventually "multistreaming" came along and we had to
+split the file into three `bax.h5` *parts* and one `bas.h5` file
+containing pointers to the *parts*.  Use ``BasH5Reader`` to read any
+kind of `bas.h5` file, and ``BaxH5Reader`` to read a `bax.h5`.
 
 .. note::
 
@@ -54,10 +58,6 @@ on top of the HDF5 standard.
     :undoc-members:
 
 .. autoclass:: pbcore.io.BasH5IO.ZmwRead
-    :members:
-    :undoc-members:
-
-.. autoclass:: pbcore.io.BasH5IO.BasH5Reader
     :members:
     :undoc-members:
 
