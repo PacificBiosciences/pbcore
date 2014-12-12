@@ -13,7 +13,7 @@ from collections import Counter
 from pbcore import data
 from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
 from pbcore.util.sequences import reverseComplement as RC
-
+from pbcore.chemistry import ChemistryLookupError
 
 
 class _BasicAlnFileReaderTests(object):
@@ -269,6 +269,10 @@ class _BasicAlnFileReaderTests(object):
     #     EQ("" , self.fwdAln.readName)
     #     EQ("" , self.revAln.readName)
 
+    def testSequencingChemistry(self):
+        EQ(["P6-C4"], self.f.sequencingChemistry)
+        EQ("P6-C4", self.fwdAln.sequencingChemistry)
+        EQ("P6-C4", self.revAln.sequencingChemistry)
 
     # #
     # # move out:
@@ -307,12 +311,45 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         pass
 
     def testReadsByName(self):
-        pass
+        reads2771_1 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/*")
+        reads2771_2 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771")
+        reads2771_3 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/")
+
+        expectedReadNames = ["m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8741_8874",
+                             "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8942_9480"]
+
+        EQ(expectedReadNames, [r.readName for r in reads2771_1])
+        EQ(expectedReadNames, [r.readName for r in reads2771_2])
+        EQ(expectedReadNames, [r.readName for r in reads2771_3])
+
+        #specificRead = self.f.readsByName(["m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8741_8874"])
+
+
 
 
 class TestCmpH5(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = CmpH5Reader
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[1],)
+
+    #
+    # Test behaviors specific to CmpH5Reader, which should be few.
+    #
+    def testLazyChemistryResolution(self):
+        """
+        The CmpH5Reader allows reading of files that have missing
+        chemistry information---an exception will be thrown only upon
+        attempts to access the information.  We need to retain this
+        behavior for compatibility.  """
+        oldCmpH5 = data.getCmpH5()
+
+        C = CmpH5Reader(oldCmpH5) # no exception here
+
+        with assert_raises(ChemistryLookupError):
+            C.sequencingChemistry
+
+        with assert_raises(ChemistryLookupError):
+            C[0].sequencingChemistry
+
 
 class TestBasicBam(_BasicAlnFileReaderTests):
      READER_CONSTRUCTOR = BamReader
