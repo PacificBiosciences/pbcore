@@ -594,28 +594,28 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
         clipStart = bisect_right(refPositions, refStart) - 1
         clipEnd   = bisect_left(refPositions, refEnd)
 
-        # Overlay the new bounds.  The logic for setting rStart, rEnd
-        # is tragically complicated, due to the end-exclusive
-        # coordinate system.
+        # Overlay the new bounds.
         self.tStart = refStart
         self.tEnd   = refEnd
         if aln.isForwardStrand:
             self.Offset_begin = aln.Offset_begin + clipStart
             self.Offset_end   = aln.Offset_begin + clipEnd
             self.rStart = readPositions[clipStart]
-            self.rEnd   = readPositions[clipEnd - 1] + 1
         else:
             self.Offset_begin = aln.Offset_end - clipEnd
             self.Offset_end   = aln.Offset_end - clipStart
-            self.rStart = readPositions[clipEnd - 1]
             self.rEnd   = readPositions[clipStart] + 1
         alnMoveCounts = Counter(self.transcript(style="gusfield"))
         self.nM   = alnMoveCounts["M"]
         self.nMM  = alnMoveCounts["R"]
         self.nIns = alnMoveCounts["I"]
         self.nDel = alnMoveCounts["D"]
-
-        assert (self.readLength == self.nM + self.nMM + self.nIns)
+        readLength = self.nM + self.nMM + self.nIns
+        if aln.isForwardStrand:
+            self.rEnd = self.rStart + readLength
+        else:
+            self.rStart = self.rEnd - readLength
+        assert self.rStart <= self.rEnd
 
 
 # ========================================

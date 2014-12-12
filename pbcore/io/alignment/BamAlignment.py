@@ -163,18 +163,16 @@ class BamAlignment(AlignmentRecordMixin):
         clipStart = bisect_right(refPositions, refStart) - 1
         clipEnd   = bisect_left(refPositions, refEnd)
 
-        # "The logic for setting rStart, rEnd is tragically
-        # complicated, due to the end-exclusive coordinate system."
         tStart = refStart
         tEnd   = refEnd
+        cUc = uc[clipStart:clipEnd]
+        readLength = sum(cUc != BAM_CDEL)
         if self.isForwardStrand:
             rStart = readPositions[clipStart]
-            rEnd   = readPositions[clipEnd - 1] + 1
-            cUc = uc[clipStart:clipEnd]
+            rEnd = rStart + readLength
         else:
-            rStart = readPositions[clipEnd - 1]
             rEnd   = readPositions[clipStart] + 1
-            cUc = uc[clipStart:clipEnd]
+            rStart = rEnd - readLength
         return ClippedBamAlignment(self, tStart, tEnd, rStart, rEnd, cUc)
 
     #TODO: remove this
