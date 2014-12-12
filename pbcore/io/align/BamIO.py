@@ -338,6 +338,8 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
         return BamAlignment(self, next(self.peer), rn)
 
     def readsInRange(self, winId, winStart, winEnd, justIndices=False):
+        if isinstance(winId, str):
+            winId = self.referenceInfo(winId).ID
         ix = self.pbi.rangeQuery(winId, winStart, winEnd)
         if justIndices:
             return ix
