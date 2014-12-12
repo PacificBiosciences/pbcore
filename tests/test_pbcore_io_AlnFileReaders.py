@@ -8,9 +8,10 @@ from nose import SkipTest
 import numpy as np
 import bisect
 import h5py
+from collections import Counter
 
 from pbcore import data
-from pbcore.io import CmpH5Reader, BamReader
+from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
 from pbcore.util.sequences import reverseComplement as RC
 
 

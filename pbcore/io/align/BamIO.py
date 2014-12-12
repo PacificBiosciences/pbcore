@@ -30,7 +30,7 @@
 
 # Author: David Alexander
 
-__all__ = [ "BamReader", "PacBioBamReader" ]
+__all__ = [ "BamReader", "IndexedBamReader" ]
 
 from pysam import Samfile
 from pbcore.io import FastaTable
@@ -316,21 +316,21 @@ class BamReader(_BamReaderBase):
 
 
 
-class PacBioBamReader(_BamReaderBase):
+class IndexedBamReader(_BamReaderBase):
     """
-    A `PacBioBamReader` is a bam reader class that uses the bam.pbi
+    A `IndexedBamReader` is a BAM reader class that uses the bam.pbi
     (PacBio BAM index) format to enable random access by "row number"
     and to provide access to precomputed semantic information about
     the BAM records
     """
     def __init__(self, fname, referenceFastaFname=None):
-        super(PacBioBamReader, self).__init__(fname, referenceFastaFname)
+        super(IndexedBamReader, self).__init__(fname, referenceFastaFname)
         self.pbi = None
         pbiFname = self.filename + ".pbi"
         if exists(pbiFname):
             self.pbi = PacBioBamIndex(pbiFname)
         else:
-            raise ValueError, "PacBioBamReader requires bam.pbi index file"
+            raise ValueError, "IndexedBamReader requires bam.pbi index file"
         assert len(self.pbi) == self.peer.mapped, "Corrupt or mismatched pbi index file"
 
     def atRowNumber(self, rn):
@@ -412,7 +412,7 @@ class PacBioBamReader(_BamReaderBase):
                     return [ self.atRowNumber(r) for r in rowNumbers ]
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return [ self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) ]
-                    raise TypeError, "Invalid type for PacBioBamReader slicing"
+                    raise TypeError, "Invalid type for IndexedBamReader slicing"
 
     def __getattr__(self, key):
         if key in self.pbi.columnNames:
