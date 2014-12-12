@@ -259,15 +259,18 @@ class _BasicAlnFileReaderTests(object):
                     EQ(ca.zmwRead.basecalls(),
                        ca.read(aligned=False, orientation="native"))
 
+    def testReadsInRange(self):
+        wLen = 1000
+        for wStart in xrange(0, 50000, wLen):
+            wEnd = wStart + wLen
+            expectedNames = set([ a.readName for a in self.alns
+                                  if (a.referenceName == "lambda_NEB3011" and
+                                      a.overlapsReferenceRange(wStart, wEnd)) ])
+            EQ(expectedNames,
+               set([ a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd) ]))
 
-    # def testReadsInRange(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
-
-
-    # def testReadsInRangeExhaustive(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
+    def testReadGroupTable(self):
+        pass
 
     def testSequencingChemistry(self):
         EQ(["P6-C4"], self.f.sequencingChemistry)
