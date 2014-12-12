@@ -35,4 +35,4 @@ from .FofnIO  import *
 from .GffIO   import *
 from .base    import *
 
-from .alignment import *
+from .align import *

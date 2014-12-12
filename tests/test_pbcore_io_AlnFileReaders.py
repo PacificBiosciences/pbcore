@@ -259,11 +259,6 @@ class _BasicAlnFileReaderTests(object):
                        ca.read(aligned=False, orientation="native"))
 
 
-    # def testClippedAlignmentExhaustive(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
-
-
     # def testReadsInRange(self):
     #     EQ("" , self.fwdAln.readName)
     #     EQ("" , self.revAln.readName)
@@ -285,7 +280,7 @@ class _BasicAlnFileReaderTests(object):
 class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
     """
     Abstract base class for tests of the reader functionality
-    requiring the bam.pbi index
+    requiring an alignment index (or bam.pbi index)
     """
     pass
 
