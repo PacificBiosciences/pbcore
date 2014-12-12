@@ -134,12 +134,11 @@ class _BasicAlnFileReaderTests(object):
             (986, 'T', 'T') ],
            zip(a.referencePositions(), a.reference(), a.read())[308:316])
 
-        # Clipping now chews off gaps at the ends, so begins at 984,
-        # not 983
         ac1 = a.clippedTo(983, 985)
-        EQ(984, ac1.referenceStart)
+        EQ(983, ac1.referenceStart)
         EQ(985, ac1.referenceEnd)
-        EQ([(984, 'C', 'C')],
+        EQ([(983, 'A', '-'),
+            (984, 'C', 'C')],
            zip(ac1.referencePositions(), ac1.reference(), ac1.read()))
 
         ac2 = a.clippedTo(982, 986)
@@ -153,11 +152,10 @@ class _BasicAlnFileReaderTests(object):
            zip(ac2.referencePositions(), ac2.reference(), ac2.read()))
 
         ac3 = a.clippedTo(984, 985)
-        EQ(984, ac1.referenceStart)
-        EQ(985, ac1.referenceEnd)
+        EQ(984, ac3.referenceStart)
+        EQ(985, ac3.referenceEnd)
         EQ([(984, 'C', 'C')],
            zip(ac3.referencePositions(), ac3.reference(), ac3.read()))
-
 
         # Get a more interesting (more gappy) rev strand aln
         b = self.alns[4]
@@ -175,13 +173,13 @@ class _BasicAlnFileReaderTests(object):
             (2206, 'C', 'C')],
            zip(b.referencePositions(), b.reference(), b.read())[188:200])
 
-
         bc1 = b.clippedTo(2208, 2214)
         EQ([(2213, 'A', 'A'),
             (2212, 'T', 'T'),
             (2211, 'G', 'G'),
             (2210, 'C', 'C'),
-            (2209, 'T', 'T')],
+            (2209, 'T', 'T'),
+            (2208, 'G', '-')],
            zip(bc1.referencePositions(), bc1.reference(), bc1.read()))
 
         bc2 = b.clippedTo(2207, 2215)
