@@ -307,10 +307,10 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
 
 class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     """
-    A `IndexedBamReader` is a BAM reader class that uses the bam.pbi
-    (PacBio BAM index) format to enable random access by "row number"
-    and to provide access to precomputed semantic information about
-    the BAM records
+    A `IndexedBamReader` is a BAM reader class that uses the
+    ``bam.pbi`` (PacBio BAM index) file to enable random access by
+    "row number" and to provide access to precomputed semantic
+    information about the BAM records
     """
     def __init__(self, fname, referenceFastaFname=None):
         super(IndexedBamReader, self).__init__(fname, referenceFastaFname)

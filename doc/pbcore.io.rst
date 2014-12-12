@@ -62,8 +62,33 @@ kind of `bas.h5` file, and ``BaxH5Reader`` to read a `bax.h5`.
     :undoc-members:
 
 
-`cmp.h5` format (PacBio alignment file)
----------------------------------------
+BAM format
+----------
+
+The BAM format is a standard format described aligned and unaligned
+reads.  PacBio is transitioning from the cmp.h5 format to the BAM
+format.  For basic functionality, one should use :class:`BamReader`;
+for full compatibility with the :class:`CmpH5Reader` API (including
+alignment index functionality) one should use
+:class:`IndexedBamReader`, which requires the auxiliary *PacBio BAM
+index file* (``bam.pbi`` file).
+
+.. autoclass:: pbcore.io.BamAlignment
+    :members:
+    :undoc-members:
+
+.. autoclass:: pbcore.io.BamReader
+    :members:
+    :undoc-members:
+
+.. autoclass:: pbcore.io.IndexedBamReader
+    :members:
+    :undoc-members:
+
+
+
+`cmp.h5` format (legacy PacBio alignment file)
+----------------------------------------------
 
 The `cmp.h5` file format is an alignment format built on top of the HDF5
 standard.  It is a simple container format for PacBio alignment records.
