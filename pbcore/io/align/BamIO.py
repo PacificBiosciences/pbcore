@@ -163,15 +163,6 @@ class _BamReaderBase(object):
     def alignmentIndex(self):
         raise UnavailableFeature("BAM has no alignment index")
 
-    #TODO: change concept to readGroupTable in cmp.h5
-    @property
-    def movieInfoTable(self):
-        raise Unimplemented()
-
-    # TODO: change to read group accessor, this is semantically wrong now
-    def movieInfo(self, movieId):
-        raise Unimplemented()
-
     @property
     def movieNames(self):
         return set([mi.MovieName for mi in self.readGroupTable])
@@ -180,7 +171,7 @@ class _BamReaderBase(object):
     def readGroupTable(self):
         return self._readGroupTable
 
-    def readGroup(self, readGroupId):
+    def readGroupInfo(self, readGroupId):
         return self._readGroupDict[readGroupId]
 
     @property
@@ -191,7 +182,6 @@ class _BamReaderBase(object):
         """
         return list(self.readGroupTable.SequencingChemistry)
 
-    #TODO: elide "Info" innames?
     @property
     def referenceInfoTable(self):
         return self._referenceInfoTable

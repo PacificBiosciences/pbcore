@@ -190,19 +190,19 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def movieName(self):
-        return self.readGroup.MovieName
+        return self.readGroupInfo.MovieName
 
     @property
-    def readGroup(self):
-        return self.bam.readGroup(int(self.peer.opt("RG")[:8], 16))
+    def readGroupInfo(self):
+        return self.bam.readGroupInfo(int(self.peer.opt("RG")[:8], 16))
 
     @property
     def readType(self):
-        return self.readGroup.ReadType
+        return self.readGroupInfo.ReadType
 
     @property
     def sequencingChemistry(self):
-        return self.readGroup.SequencingChemistry
+        return self.readGroupInfo.SequencingChemistry
 
     @property
     def isForwardStrand(self):

@@ -270,7 +270,11 @@ class _BasicAlnFileReaderTests(object):
                set([ a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd) ]))
 
     def testReadGroupTable(self):
-        pass
+        rgFwd = self.fwdAln.readGroupInfo
+        EQ([('ID', '<u4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O')], rgFwd.dtype)
+        EQ("P6-C4", rgFwd.SequencingChemistry)
+        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0", rgFwd.MovieName)
+        #EQ("bar", rgFwd.ReadType)
 
     def testSequencingChemistry(self):
         EQ(["P6-C4"], self.f.sequencingChemistry)

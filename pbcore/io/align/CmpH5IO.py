@@ -296,9 +296,22 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.referenceInfo.FullName
 
     @property
+    def ReadGroupID(self):
+        return self.MovieID
+
+    @property
+    def readGroupInfo(self):
+        """
+        Returns the corresponding record from the `readGroupTable`.
+        """
+        # TODO: add doctest
+        return self.cmpH5.readGroupInfo(self.MovieID)
+
+    @property
     def movieInfo(self):
         """
-        (cmp.h5 only; use readGroupInfo in BAM)
+        .. deprecated:: 0.9.2
+           Use :attr:`readGroupInfo`, which is compatible with BAM usage
 
         Returns a record (extracted from the cmph5's `movieInfoTable`)
         containing information about the movie that the read was
@@ -670,6 +683,10 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
         self._loadReferenceInfo()
         self._loadMiscInfo()
 
+        # These are loaded on demand
+        self._readGroupTable = None
+        self._readGroupDict  = None
+
     def _loadAlignmentInfo(self):
         if len(self.file["/AlnInfo/AlnIndex"]) == 0:
             raise EmptyCmpH5Error("Empty cmp.h5 file, cannot be read by CmpH5Reader")
@@ -714,6 +731,22 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
             assert record.ID not in self._movieDict
             self._movieDict[record.ID] = record
             self._movieDict[record.Name] = record
+
+    def _loadReadGroupInfo(self):
+        # This is invoked lazily to allow operation on cmp.h5s with
+        # missing chemistry info.
+        assert (self._readGroupTable is None) and (self._readGroupDict is None)
+        self._readGroupTable = np.rec.fromrecords(
+            zip(self.movieInfoTable.ID,
+                self.movieInfoTable.Name,
+                [self.readType] * len(self.movieInfoTable.ID),
+                self.sequencingChemistry),
+            dtype=[("ID"                 , np.uint32),
+                   ("MovieName"          , "O"),
+                   ("ReadType"           , "O"),
+                   ("SequencingChemistry", "O")])
+        self._readGroupDict = { rg.ID : rg
+                                for rg in self._readGroupTable }
 
     def _loadReferenceInfo(self):
         _referenceGroupTbl = np.rec.fromrecords(
@@ -872,6 +905,9 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
     @property
     def movieInfoTable(self):
         """
+        .. deprecated:: 0.9.2
+           Use :attr:`readGroupTable`, which is compatible with BAM usage
+
         Return a numpy recarray summarizing source movies for the
         reads in this file.
 
@@ -978,8 +1014,34 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
     def movieNames(self):
         return set([mi.Name for mi in self._movieDict.values()])
 
+    @property
+    def ReadGroupID(self):
+        return self.MovieID
+
+    @property
+    def readGroupTable(self):
+        # TODO: add doctest
+        if self._readGroupTable is None:
+            self._loadReadGroupInfo()
+        return self._readGroupTable
+
+    def readGroupInfo(self, movieId):
+        """
+        Access information about a movie whose reads are represented
+        in the file.
+
+        The returned value is a record from the :attr:`movieInfoTable`
+        """
+        # TODO: add doctest
+        if self._readGroupDict is None:
+            self._loadReadGroupInfo()
+        return self._readGroupDict[movieId]
+
     def movieInfo(self, movieId):
         """
+        .. deprecated:: 0.9.2
+           Use :attr:`readGroupInfo`, which is compatible with BAM usage
+
         Access information about a movie whose reads are represented
         in the file.
 
@@ -1051,25 +1113,6 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
             return rowNumbers
         else:
             return self[rowNumbers]
-
-
-    def readsForZmw(self, zmwName):
-        """
-        zmwName must follow the PacBio naming convention:
-          <movieName>/<holeNumber>
-
-        Alignments returned are sorted by readStart
-
-        (Not optimized)
-        """
-        fields = zmwName.split("/")
-        movieName = fields[0]
-        holeNumber = int(fields[1])
-        movieId = self.movieInfo(movieName).ID
-        rns = np.flatnonzero((self.MovieID == movieId) &
-                             (self.HoleNumber == holeNumber))
-        alns = self[rns]
-        return sorted(alns, key=lambda a: a.readStart)
 
     def hasPulseFeature(self, featureName):
         """
