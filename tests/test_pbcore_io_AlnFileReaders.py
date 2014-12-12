@@ -251,6 +251,13 @@ class _BasicAlnFileReaderTests(object):
     def testClippingsVsBaxData(self):
         self.f.attach(self.BAX_FILE)
 
+        for aln in [self.alns[52], self.alns[8]]:
+            for cS in xrange(aln.tStart, aln.tEnd + 1):
+                for cE in xrange(cS + 1, min(aln.tEnd, cS + 10)):
+                    ca = aln.clippedTo(cS, cE)
+                    EQ(ca.zmwRead.basecalls(),
+                       ca.read(aligned=False, orientation="native"))
+
 
     # def testClippedAlignmentExhaustive(self):
     #     EQ("" , self.fwdAln.readName)
