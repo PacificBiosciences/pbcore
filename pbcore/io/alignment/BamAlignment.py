@@ -35,7 +35,7 @@ from bisect import bisect_right, bisect_left
 
 from pbcore.util.sequences import reverseComplement
 from ._BamSupport import *
-
+from ._AlignmentMixin import AlignmentRecordMixin
 
 __all__ = [ "BamAlignment" ]
 
@@ -81,7 +81,7 @@ def requiresPbi(method):
             return method(bamAln, *args, **kwargs)
     return f
 
-class BamAlignment(object):
+class BamAlignment(AlignmentRecordMixin):
     def __init__(self, bamReader, pysamAlignedRead, rowNumber=None):
         #TODO: make these __slot__
         self.peer        = pysamAlignedRead
@@ -102,6 +102,11 @@ class BamAlignment(object):
 
         # Cache of unrolled cigar, in genomic orientation
         self._unrolledCigar = None
+
+
+    @property
+    def reader(self):
+        return self.bam
 
     @property
     def qStart(self):
@@ -130,16 +135,6 @@ class BamAlignment(object):
     @property
     def MapQV(self):
         return self.peer.mapq
-
-    @property
-    def zmw(self):
-        return self.zmwRead.zmw
-
-    @property
-    def zmwRead(self):
-        if not self.bam.moviesAttached:
-            raise ValueError("Movies not attached!")
-        return self.bam.basH5Collection[self.readName]
 
     def clippedTo(self, refStart, refEnd):
         """
@@ -196,22 +191,16 @@ class BamAlignment(object):
         return self.referenceInfo.FullName
 
     @property
-    def readName(self):
-        if self.readGroup.ReadType == "CCS":
-            return "%s/%d/%d_%d" % (self.readGroup.MovieName, self.HoleNumber, "ccs")
-        else:
-            return "%s/%d/%d_%d" % \
-                (self.readGroup.MovieName, self.HoleNumber, self.readStart, self.readEnd)
-
-
-    #TODO: get rid of this
-    @property
-    def movieInfo(self):
-        raise Unimplemented()
+    def movieName(self):
+        return self.readGroup.MovieName
 
     @property
     def readGroup(self):
         return self.bam.readGroup(int(self.peer.opt("RG")[:8], 16))
+
+    @property
+    def readType(self):
+        return self.readGroup.ReadType
 
     @property
     def sequencingChemistry(self):
@@ -230,14 +219,6 @@ class BamAlignment(object):
         return self.tId
 
     @property
-    def referenceStart(self):
-        return self.tStart
-
-    @property
-    def referenceEnd(self):
-        return self.tEnd
-
-    @property
     def queryStart(self):
         return self.qStart
 
@@ -245,45 +226,11 @@ class BamAlignment(object):
     def queryEnd(self):
         return self.qEnd
 
+
     #TODO: provide this in cmp.h5 but throw "unsupported"
     @property
     def queryName(self):
         return self.peer.qname
-
-    @property
-    def readStart(self):
-        return self.rStart
-
-    @property
-    def readEnd(self):
-        return self.rEnd
-
-    @property
-    def referenceSpan(self):
-        return self.tEnd - self.tStart
-
-    @property
-    def readLength(self):
-        return self.rEnd - self.rStart
-
-    @property
-    def alignedLength(self):
-        raise Unimplemented()
-
-    def spansReferencePosition(self, pos):
-        return self.tStart <= pos < self.tEnd
-
-    def spansReferenceRange(self, start, end):
-        assert start <= end
-        return (self.tStart <= start <= end <= self.tEnd)
-
-    def overlapsReferenceRange(self, start, end):
-        assert start <= end
-        return (self.tStart < end) and (self.tEnd > start)
-
-    def containedInReferenceRange(self, start, end):
-        assert start <= end
-        return (start <= self.tStart <= self.tEnd <= end)
 
     @property
     @requiresPbi

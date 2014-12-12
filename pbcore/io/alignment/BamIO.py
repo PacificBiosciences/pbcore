@@ -33,7 +33,7 @@
 __all__ = [ "BamReader", "PacBioBamReader" ]
 
 from pysam import Samfile
-from pbcore.io import BasH5Collection, FastaTable
+from pbcore.io import FastaTable
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
 import numpy as np
@@ -43,8 +43,9 @@ from os.path import abspath, expanduser, exists
 from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
+from ._AlignmentMixin import AlignmentReaderMixin
 
-class _BamReaderBase(object):
+class _BamReaderBase(AlignmentReaderMixin):
     """
     The BamReader class provides a high-level interface to PacBio BAM
     files.  If a PacBio BAM index (bam.pbi file) is present and the
@@ -157,13 +158,6 @@ class _BamReaderBase(object):
     @property
     def isReferenceLoaded(self):
         return self.referenceFasta is not None
-
-    def attach(self, fofnFilename):
-        self.basH5Collection = BasH5Collection(fofnFilename)
-
-    @property
-    def moviesAttached(self):
-        return (self.basH5Collection is not None)
 
     @property
     def alignmentIndex(self):

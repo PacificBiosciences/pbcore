@@ -1,6 +1,8 @@
 from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
-from nose.tools import nottest, assert_equal as EQ
+from nose.tools import (nottest,
+                        assert_raises,
+                        assert_equal as EQ)
 from nose import SkipTest
 
 import numpy as np
@@ -10,6 +12,8 @@ import h5py
 from pbcore import data
 from pbcore.io import CmpH5Reader, BamReader
 from pbcore.util.sequences import reverseComplement as RC
+
+
 
 class _BasicAlnFileReaderTests(object):
     """
@@ -21,6 +25,7 @@ class _BasicAlnFileReaderTests(object):
     """
     READER_CONSTRUCTOR = None
     CONSTRUCTOR_ARGS   = None
+    BAX_FILE           = data.getBaxForBam()
 
     def __init__(self):
         self.f = self.READER_CONSTRUCTOR(*self.CONSTRUCTOR_ARGS)
@@ -219,6 +224,34 @@ class _BasicAlnFileReaderTests(object):
         dc1 = d.clippedTo(16196, 16198)
 
 
+    def testBaxAttaching(self):
+        # Before attaching, should get sane exceptions
+        with assert_raises(ValueError):
+           self.fwdAln.zmw
+
+        with assert_raises(ValueError):
+           self.fwdAln.zmwRead
+
+        # Now attach
+        self.f.attach(self.BAX_FILE)
+        EQ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9734',
+           self.fwdAln.readName)
+        EQ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957'
+           , self.fwdAln.zmwName)
+        EQ('<Zmw: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957>',
+           repr(self.fwdAln.zmw))
+        EQ('<ZmwRead: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9734>',
+           repr(self.fwdAln.zmwRead))
+
+        # Check read contents, for every aln.
+        for aln in self.alns:
+            EQ(aln.read(aligned=False, orientation="native"), aln.zmwRead.basecalls())
+
+
+    def testClippingsVsBaxData(self):
+        self.f.attach(self.BAX_FILE)
+
+
     # def testClippedAlignmentExhaustive(self):
     #     EQ("" , self.fwdAln.readName)
     #     EQ("" , self.revAln.readName)
@@ -252,7 +285,6 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
 class TestCmpH5(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = CmpH5Reader
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[1],)
-
 
 class TestBasicBam(_BasicAlnFileReaderTests):
      READER_CONSTRUCTOR = BamReader

@@ -40,9 +40,10 @@ from itertools import groupby
 from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
 from pbcore.io._utils import rec_join, arrayFromDataset
-from pbcore.io.BasH5IO import BasH5Collection
 from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
+
+from ._AlignmentMixin import AlignmentRecordMixin, AlignmentReaderMixin
 
 # ========================================
 #  Data manipulation routines.
@@ -189,7 +190,7 @@ def _makePulseFeatureAccessor(featureName):
         return self.pulseFeature(featureName, aligned, orientation)
     return f
 
-class CmpH5Alignment(object):
+class CmpH5Alignment(AlignmentRecordMixin):
     """
     A lightweight class representing a single alignment record in a
     CmpH5 file, providing access to all columns of a single row of the
@@ -263,14 +264,8 @@ class CmpH5Alignment(object):
         self.rowNumber = rowNumber
 
     @property
-    def zmw(self):
-        return self.zmwRead.zmw
-
-    @property
-    def zmwRead(self):
-        if not self.cmpH5.moviesAttached:
-            raise ValueError("Movies not attached!")
-        return self.cmpH5.basH5Collection[self.readName]
+    def reader(self):
+        return self.cmpH5
 
     def clippedTo(self, refStart, refEnd):
         """
@@ -301,20 +296,10 @@ class CmpH5Alignment(object):
         return self.referenceInfo.FullName
 
     @property
-    def readName(self):
-        """
-        Return the name of the read that was aligned, in standard
-        PacBio format.
-        """
-        zmwName = "%s/%d" % (self.movieInfo.Name, self.HoleNumber)
-        if self.cmpH5.readType == "CCS":
-            return "%s/ccs" % (zmwName,)
-        else:
-            return "%s/%d_%d" % (zmwName, self.rStart, self.rEnd)
-
-    @property
     def movieInfo(self):
         """
+        (cmp.h5 only; use readGroupInfo in BAM)
+
         Returns a record (extracted from the cmph5's `movieInfoTable`)
         containing information about the movie that the read was
         extracted from.  This record should be accessed using
@@ -330,6 +315,10 @@ class CmpH5Alignment(object):
         return self.cmpH5.movieInfo(self.MovieID)
 
     @property
+    def movieName(self):
+        return self.movieInfo.Name
+
+    @property
     def isForwardStrand(self):
         return self.RCRefStrand == 0
 
@@ -340,78 +329,6 @@ class CmpH5Alignment(object):
     @property
     def referenceId(self):
         return self.RefGroupID
-
-    @property
-    def referenceStart(self):
-        """
-        The left bound of the alignment, in reference coordinates.
-        """
-        return self.tStart
-
-    @property
-    def referenceEnd(self):
-        """
-        The right bound of the alignment, in reference coordinates.
-        """
-        return self.tEnd
-
-    @property
-    def readStart(self):
-        """
-        The left bound of the alignment, in read coordinates (from the BAS.H5 file).
-        """
-        return self.rStart
-
-    @property
-    def readEnd(self):
-        """
-        The right bound of the alignment, in read coordinates (from the BAS.H5 file).
-        """
-        return self.rEnd
-
-    @property
-    def referenceSpan(self):
-        """
-        The length along the reference implied by this alignment.
-        """
-        return self.tEnd - self.tStart
-
-    @property
-    def readLength(self):
-        """
-        The length of the read.
-        """
-        return self.rEnd - self.rStart
-
-    def __len__(self):
-        return self.readLength
-
-    def spansReferencePosition(self, pos):
-        """
-        Does the alignment span the given reference position?
-        """
-        return self.tStart <= pos < self.tEnd
-
-    def spansReferenceRange(self, start, end):
-        """
-        Does the alignment span the given reference range, in its entirety?
-        """
-        assert start <= end
-        return (self.tStart <= start <= end <= self.tEnd)
-
-    def overlapsReferenceRange(self, start, end):
-        """
-        Does the alignment overlap the given reference interval?
-        """
-        assert start <= end
-        return (self.tStart < end) and (self.tEnd > start)
-
-    def containedInReferenceRange(self, start, end):
-        """
-        Is the alignment wholly contained within a given reference interval?
-        """
-        assert start <= end
-        return (start <= self.tStart <= self.tEnd <= end)
 
     @property
     def accuracy(self):
@@ -528,6 +445,10 @@ class CmpH5Alignment(object):
                                       gapped=aligned,
                                       complement=(self.RCRefStrand and
                                                   orientation == "genomic"))
+
+    @property
+    def readType(self):
+        return self.cmpH5.readType
 
     def reference(self, aligned=True, orientation="native"):
         """
@@ -700,7 +621,7 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
 # ========================================
 # CmpH5 reader class
 #
-class CmpH5Reader(object):
+class CmpH5Reader(AlignmentReaderMixin):
     """
     The `CmpH5Reader` class is a lightweight and efficient API for
     accessing PacBio ``cmp.h5`` alignment files.  Alignment records
@@ -855,7 +776,6 @@ class CmpH5Reader(object):
         if "ZScore" in self.file["/AlnInfo"]:
             self.zScore = self.file["/AlnInfo/ZScore"].value
 
-        self.basH5Collection = None
         self._sequencingChemistry = None
 
     @property
@@ -879,20 +799,6 @@ class CmpH5Reader(object):
                 raise ChemistryLookupError, "Chemistry information could not be found in cmp.h5!"
         return self._sequencingChemistry
 
-    def attach(self, fofnFilename):
-        """
-        Attach the actual movie data files that were used to create this
-        alignment file.
-
-        TODO: enable supplying movie names or fofn names here
-        TODO: enable unattach
-        TODO: sanity check that the movie names are all there?
-        """
-        self.basH5Collection = BasH5Collection(fofnFilename)
-
-    @property
-    def moviesAttached(self):
-        return (self.basH5Collection is not None)
 
     @property
     def alignmentIndex(self):

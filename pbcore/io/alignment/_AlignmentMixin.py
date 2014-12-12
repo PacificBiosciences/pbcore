@@ -30,10 +30,45 @@
 
 # Author: David Alexander
 
+__all__ = [ "AlignmentReaderMixin", "AlignmentRecordMixin" ]
+
+from pbcore.io import BasH5Collection
+
+
+class AlignmentReaderMixin(object):
+    """
+    Mixin class for higher-level functionality of alignment file
+    readers.
+    """
+    def attach(self, fofnFilename):
+        """
+        Attach the actual movie data files that were used to create this
+        alignment file.
+        """
+        self.basH5Collection = BasH5Collection(fofnFilename)
+
+    @property
+    def moviesAttached(self):
+        return (hasattr(self, "basH5Collection") and self.basH5Collection is not None)
+
+
 class AlignmentRecordMixin(object):
     """
-    Mixin class providing some higher-level functionality for objects from
+    Mixin class providing some higher-level functionality for
+    alignment records.
     """
+    @property
+    def zmw(self):
+        if not self.reader.moviesAttached:
+            raise ValueError("Movies not attached!")
+        return self.reader.basH5Collection[self.zmwName]
+
+    @property
+    def zmwRead(self):
+        if not self.reader.moviesAttached:
+            raise ValueError("Movies not attached!")
+        return self.reader.basH5Collection[self.readName]
+
     @property
     def referenceStart(self):
         """
@@ -78,6 +113,22 @@ class AlignmentRecordMixin(object):
 
     def __len__(self):
         return self.readLength
+
+    @property
+    def readName(self):
+        """
+        Return the name of the read that was aligned, in standard
+        PacBio format.
+        """
+        zmwName = self.zmwName
+        if self.readType == "CCS":
+            return "%s/ccs" % (zmwName,)
+        else:
+            return "%s/%d_%d" % (zmwName, self.rStart, self.rEnd)
+
+    @property
+    def zmwName(self):
+        return "%s/%d" % (self.movieName, self.HoleNumber)
 
     def spansReferencePosition(self, pos):
         """
