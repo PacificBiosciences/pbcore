@@ -29,4 +29,5 @@
 #################################################################################
 
 from CmpH5IO import *
+from BamIO   import *
 from BlasrIO import *
