@@ -121,35 +121,105 @@ class _BasicAlnFileReaderTests(object):
         # TODO: what is the correct behavior here?
         #AEQ(expectedRevNative[::-1], self.revAln.DeletionTag(orientation="genomic"))
 
-    def testReferencePositions(self):
-        expectedFwdNative = [29751, 29752, 29753, 29754, 29755, 29756, 29757, 29758, 29759,
-                             29760, 29761, 29762, 29763, 29764, 29765, 29766, 29767, 29768,
-                             29769, 29770, 29771, 29772, 29773, 29774, 29775, 29776, 29777,
-                             29778, 29779, 29780, 29781, 29782, 29783, 29784, 29785, 29786,
-                             29787, 29788, 29789, 29790, 29791, 29792, 29793, 29794, 29795,
-                             29796, 29797, 29798, 29799, 29800, 29801, 29802, 29803, 29804]
-        AEQ(expectedFwdNative, self.fwdAln.referencePositions())
-        AEQ(expectedFwdNative, self.fwdAln.referencePositions(orientation="genomic"))
-        # test for native orientation...
+    def testClippedAlignments(self):
+        # Get a more interesting (more gappy) fwd strand aln
+        a = self.alns[2]
+        EQ([(980, 'C', 'C'),
+            (981, 'C', 'C'),
+            (982, 'T', 'T'),
+            (983, 'A', '-'),
+            (984, 'C', 'C'),
+            (985, '-', 'G'),
+            (985, 'T', 'T'),
+            (986, 'T', 'T') ],
+           zip(a.referencePositions(), a.reference(), a.read())[308:316])
 
-        expectedRevNative = [29822, 29821, 29820, 29819, 29818, 29817, 29816, 29815, 29814,
-                             29813, 29812, 29811, 29810, 29809, 29808, 29807, 29806, 29805,
-                             29804, 29803, 29803, 29802, 29801, 29800, 29799, 29798, 29797,
-                             29796, 29795, 29794, 29793, 29792, 29791, 29790, 29789, 29789,
-                             29788, 29787, 29786, 29785, 29784, 29783, 29782, 29781, 29780,
-                             29779, 29778, 29777, 29776, 29775, 29774, 29773, 29772, 29771,
-                             29770, 29769, 29768, 29767, 29766, 29765, 29764]
-        AEQ(expectedRevNative, self.revAln.referencePositions())
-        # this is not true...
-        #AEQ(expectedRevNative[::-1], self.revAln.referencePositions(orientation="genomic"))
+        # Clipping now chews off gaps at the ends, so begins at 984,
+        # not 983
+        ac1 = a.clippedTo(983, 985)
+        EQ(984, ac1.referenceStart)
+        EQ(985, ac1.referenceEnd)
+        EQ([(984, 'C', 'C')],
+           zip(ac1.referencePositions(), ac1.reference(), ac1.read()))
 
-    # def testReadPositions(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
+        ac2 = a.clippedTo(982, 986)
+        EQ(982, ac2.referenceStart)
+        EQ(986, ac2.referenceEnd)
+        EQ([(982, 'T', 'T'),
+            (983, 'A', '-'),
+            (984, 'C', 'C'),
+            (985, '-', 'G'),
+            (985, 'T', 'T')],
+           zip(ac2.referencePositions(), ac2.reference(), ac2.read()))
 
-    # def testClippedAlignments(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
+        ac3 = a.clippedTo(984, 985)
+        EQ(984, ac1.referenceStart)
+        EQ(985, ac1.referenceEnd)
+        EQ([(984, 'C', 'C')],
+           zip(ac3.referencePositions(), ac3.reference(), ac3.read()))
+
+
+        # Get a more interesting (more gappy) rev strand aln
+        b = self.alns[4]
+        EQ([(2216, 'G', 'G'),
+            (2215, 'G', 'G'),
+            (2214, '-', 'C'),
+            (2214, 'C', 'C'),
+            (2213, 'A', 'A'),
+            (2212, 'T', 'T'),
+            (2211, 'G', 'G'),
+            (2210, 'C', 'C'),
+            (2209, 'T', 'T'),
+            (2208, 'G', '-'),
+            (2207, 'G', 'G'),
+            (2206, 'C', 'C')],
+           zip(b.referencePositions(), b.reference(), b.read())[188:200])
+
+
+        bc1 = b.clippedTo(2208, 2214)
+        EQ([(2213, 'A', 'A'),
+            (2212, 'T', 'T'),
+            (2211, 'G', 'G'),
+            (2210, 'C', 'C'),
+            (2209, 'T', 'T')],
+           zip(bc1.referencePositions(), bc1.reference(), bc1.read()))
+
+        bc2 = b.clippedTo(2207, 2215)
+        EQ([(2214, 'C', 'C'),
+            (2213, 'A', 'A'),
+            (2212, 'T', 'T'),
+            (2211, 'G', 'G'),
+            (2210, 'C', 'C'),
+            (2209, 'T', 'T'),
+            (2208, 'G', '-'),
+            (2207, 'G', 'G')],
+           zip(bc2.referencePositions(), bc2.reference(), bc2.read()))
+
+        bc3 = b.clippedTo(2209, 2214)
+        EQ([(2213, 'A', 'A'),
+            (2212, 'T', 'T'),
+            (2211, 'G', 'G'),
+            (2210, 'C', 'C'),
+            (2209, 'T', 'T')],
+           zip(bc3.referencePositions(), bc3.reference(), bc3.read()))
+
+
+        # Test clipping in a large deletion
+        d = self.alns[52]
+        EQ([(16191, 'C', 'C'),
+            (16192, 'A', 'A'),
+            (16193, 'G', 'G'),
+            (16194, 'C', 'C'),
+            (16195, 'A', 'A'),
+            (16196, 'G', '-'),
+            (16197, 'G', '-'),
+            (16198, 'T', '-'),
+            (16199, 'G', 'G'),
+            (16200, 'A', 'A'),
+            (16201, 'G', 'G')],
+           zip(d.referencePositions(), d.reference(), d.read())[130:141])
+        dc1 = d.clippedTo(16196, 16198)
+
 
     # def testClippedAlignmentExhaustive(self):
     #     EQ("" , self.fwdAln.readName)

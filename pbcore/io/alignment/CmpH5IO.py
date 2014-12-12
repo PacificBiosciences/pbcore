@@ -694,6 +694,8 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
         self.nIns = alnMoveCounts["I"]
         self.nDel = alnMoveCounts["D"]
 
+        assert (self.readLength == self.nM + self.nMM + self.nIns)
+
 
 # ========================================
 # CmpH5 reader class
