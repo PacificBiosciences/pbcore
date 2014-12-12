@@ -719,12 +719,6 @@ class BaxH5Reader(object):
 
 class BasH5Reader(object):
     """
-    The `BasH5Reader` provides access to the basecall and pulse metric
-    data encoded in PacBio bas.h5 files.  To access data using a
-    `BasH5Reader`, the standard idiom is:
-
-    1. Index into the `BasH5Reader` using the ZMW hole number to get a `Zmw` object::
-
     .. testsetup:: *
 
        from pbcore.io import BasH5Reader
@@ -733,7 +727,17 @@ class BasH5Reader(object):
        b = BasH5Reader(filename)
        zmw8 = b[8]
 
-    .. doctest::
+    The `BasH5Reader` provides access to the basecall and pulse metric
+    data encoded in PacBio bas.h5 files.  To access data using a
+    `BasH5Reader`, the standard idiom is:
+
+    1. Index into the `BasH5Reader` using the ZMW hole number to get a `Zmw` object::
+
+        >>> b
+        <BasH5Reader: m110818_075520_42141_c100129202555500000315043109121112_s1_p0>
+        >>> zmw8 = b[8]
+        >>> zmw8
+        <Zmw: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8>
 
     2. Extract `ZmwRead` objects from the `Zmw` object by:
 
@@ -749,11 +753,11 @@ class BasH5Reader(object):
            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4920_5354>,
            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/5413_5495>]
 
-       - Using the `.ccsRead` property to extract the CCS (consensus)
-         read, which is a consensus sequence precomputed from the
-         subreads.  Note that CCS data is not available for every
-         sequencing ZMW hole, for example some holes have too few
-         subreads for the computation of a consensus::
+       - For CCS bas files, using the `.ccsRead` property to extract
+         the CCS (consensus) read, which is a consensus sequence
+         precomputed from the subreads.  Older bas files, from when
+         CCS was computed on the instrument, may contain both CCS- and
+         sub- reads.
 
            >>> zmw8.ccsRead
            <CCSZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/ccs>

@@ -223,6 +223,11 @@ class FastaWriter(WriterBase):
 
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
+
+    .. testcleanup::
+
+        import os; os.unlink("output.fasta.gz")
+
     """
     def writeRecord(self, *args):
         """

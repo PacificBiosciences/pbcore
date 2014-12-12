@@ -212,6 +212,10 @@ class FastqWriter(WriterBase):
         ...     writer.writeRecord("dog", "GATTACA", [35]*7)
         ...     writer.writeRecord("cat", "CATTACA", [35]*7)
 
+    .. testcleanup::
+
+        import os; os.unlink("output.fq.gz")
+
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
     """
