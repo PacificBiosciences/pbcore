@@ -283,7 +283,32 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
     Abstract base class for tests of the reader functionality
     requiring an alignment index (or bam.pbi index)
     """
-    pass
+
+    def testMapQV(self):
+        c = Counter(self.f.MapQV)
+        EQ(Counter({254: 115}), c)
+
+    def testHoleNumbers(self):
+        c  = Counter([a.HoleNumber for a in self.f])   # from records
+        c2 = Counter(self.f.HoleNumber)                # from index
+        expected = Counter({37134: 14, 6251: 10, 32861: 8, 14743: 4, 35858: 3,
+                            39571: 3, 13473: 3, 32560: 3, 46835: 3, 47698: 3, 16996: 3,
+                            30983: 2, 38025: 2, 36363: 2, 7957: 2, 49050: 2, 23454: 2,
+                            49194: 2, 24494: 2, 20211: 2, 50621: 2, 12736: 2, 19915: 2,
+                            6469: 2, 31174: 2, 32328: 2, 42827: 2, 7247: 2, 50257: 2,
+                            2771: 2, 1650: 2, 45203: 2, 24962: 1, 32901: 1, 36628: 1,
+                            26262: 1, 15641: 1, 19360: 1, 42165: 1, 44356: 1, 51534: 1,
+                            29843: 1, 38754: 1, 52206: 1, 49521: 1, 7670: 1, 54396: 1,
+                            19837: 1})
+        EQ(expected, c)
+        EQ(expected, c2)
+
+    def testAlignedIdentity(self):
+        pass
+
+    def testReadsByName(self):
+        pass
+
 
 class TestCmpH5(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = CmpH5Reader
@@ -293,6 +318,6 @@ class TestBasicBam(_BasicAlnFileReaderTests):
      READER_CONSTRUCTOR = BamReader
      CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
 
-# class TestIndexedBam(_BasicAlnFileReaderTests):
-#     READER_CONSTRUCTOR = IndexedBamReader
-#     ALN_FILE           = data.getBamAndCmpH5()[0]
+class TestIndexedBam(_IndexedAlnFileReaderTests):
+    READER_CONSTRUCTOR = IndexedBamReader
+    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
