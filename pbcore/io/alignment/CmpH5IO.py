@@ -381,17 +381,10 @@ class CmpH5Alignment(object):
         """
         The length of the read.
         """
-        return self.alignedLength - self.nDel
+        return self.rEnd - self.rStart
 
     def __len__(self):
         return self.readLength
-
-    @property
-    def alignedLength(self):
-        """
-        The length of the alignment.
-        """
-        return self.Offset_end - self.Offset_begin
 
     def spansReferencePosition(self, pos):
         """
