@@ -560,11 +560,7 @@ class ClippedBamAlignment(BamAlignment):
         # Self-consistency checks
         assert tStart <= tEnd
         assert rStart <= rEnd
-
-        # TODO: Figure out why this assert triggers.  It seems to be a bug in the way clipping is
-        # done, in *both* cmp.h5 and BAM
-        #
-        # assert sum(unrolledCigar != BAM_CDEL) == (rEnd - rStart)
+        assert sum(unrolledCigar != BAM_CDEL) == (rEnd - rStart)
 
         # Assigment
         self.peer           = aln.peer
