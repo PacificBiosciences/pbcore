@@ -26,5 +26,6 @@ setup(
     zip_safe = False,
     install_requires=[
         'h5py >= 2.0.1',
-        'numpy >= 1.6.0'
+        'numpy >= 1.6.0',
+        'pysam == 0.8.1'
     ])

@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2013, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2014, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -28,4 +28,40 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-__VERSION__ = "0.9.2"
+# Author: David Alexander
+
+import numpy as np
+
+class UnavailableFeature(Exception): pass
+class Unimplemented(Exception):      pass
+class ReferenceMismatch(Exception):  pass
+
+PULSE_FEATURE_TAGS = { "InsertionQV"    : ("iq", "qv",   np.uint8),
+                       "DeletionQV"     : ("dq", "qv",   np.uint8),
+                       "DeletionTag"    : ("dt", "base", np.int8 ),
+                       "SubstitutionQV" : ("sq", "qv",   np.uint8),
+                       "MergeQV"        : ("mq", "qv",   np.uint8) }
+
+COMPLEMENT_MAP = { "A" : "T",
+                   "T" : "A",
+                   "C" : "G",
+                   "G" : "C",
+                   "N" : "N",
+                   "-" : "-" }
+
+def complementAscii(a):
+    return np.array([ord(COMPLEMENT_MAP[chr(b)]) for b in a], dtype=np.int8)
+
+def reverseComplementAscii(a):
+    return complementAscii(a)[::-1]
+
+
+BAM_CMATCH     = 0
+BAM_CINS       = 1
+BAM_CDEL       = 2
+BAM_CREF_SKIP  = 3
+BAM_CSOFT_CLIP = 4
+BAM_CHARD_CLIP = 5
+BAM_CPAD       = 6
+BAM_CEQUAL     = 7
+BAM_CDIFF      = 8
