@@ -43,7 +43,7 @@ from pbcore.io._utils import rec_join, arrayFromDataset
 from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
-from ._AlignmentMixin import AlignmentRecordMixin, AlignmentReaderMixin
+from ._AlignmentMixin import AlignmentRecordMixin, IndexedAlignmentReaderMixin
 
 # ========================================
 #  Data manipulation routines.
@@ -621,7 +621,7 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
 # ========================================
 # CmpH5 reader class
 #
-class CmpH5Reader(AlignmentReaderMixin):
+class CmpH5Reader(IndexedAlignmentReaderMixin):
     """
     The `CmpH5Reader` class is a lightweight and efficient API for
     accessing PacBio ``cmp.h5`` alignment files.  Alignment records
@@ -665,6 +665,12 @@ class CmpH5Reader(AlignmentReaderMixin):
             except IOError:
                 raise IOError, ("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
 
+        self._loadAlignmentInfo()
+        self._loadMovieInfo()
+        self._loadReferenceInfo()
+        self._loadMiscInfo()
+
+    def _loadAlignmentInfo(self):
         if len(self.file["/AlnInfo/AlnIndex"]) == 0:
             raise EmptyCmpH5Error("Empty cmp.h5 file, cannot be read by CmpH5Reader")
         rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
@@ -682,6 +688,8 @@ class CmpH5Reader(AlignmentReaderMixin):
             alnGroup = self.file[alnGroupPath]
             self._alignmentGroupById[alnGroupId] = dict(alnGroup.items())
 
+
+    def _loadMovieInfo(self):
         numMovies = len(self.file["/MovieInfo/ID"])
 
         if "FrameRate" in self.file["/MovieInfo"]:
@@ -707,6 +715,7 @@ class CmpH5Reader(AlignmentReaderMixin):
             self._movieDict[record.ID] = record
             self._movieDict[record.Name] = record
 
+    def _loadReferenceInfo(self):
         _referenceGroupTbl = np.rec.fromrecords(
             zip(self.file["/RefGroup/ID"],
                 self.file["/RefGroup/RefInfoID"],
@@ -737,8 +746,8 @@ class CmpH5Reader(AlignmentReaderMixin):
                                                 self._referenceInfoTable,
                                                 _offsetTable,
                                                 jointype="inner")
-
         self._referenceDict = {}
+        self._readLocatorByKey = {}
         for record in self._referenceInfoTable:
             if record.ID != -1:
                 assert record.ID != record.Name
@@ -756,11 +765,12 @@ class CmpH5Reader(AlignmentReaderMixin):
                     self._referenceDict[record.FullName] = record
                     self._referenceDict[record.MD5]      = record
 
-        self._readLocatorById = {}
-        if self.isSorted:
-            for refId in self.file["/RefGroup/ID"]:
-                self._readLocatorById[refId] = makeReadLocator(self, refId)
+                if self.isSorted:
+                    readLocator = makeReadLocator(self, record.ID)
+                    self._readLocatorByKey[record.ID] = readLocator
+                    self._readLocatorByKey[shortName] = readLocator
 
+    def _loadMiscInfo(self):
         if "NumPasses" in self.file["/AlnInfo"]:
             self.numPasses = self.file["/AlnInfo/NumPasses"].value
 
@@ -777,6 +787,7 @@ class CmpH5Reader(AlignmentReaderMixin):
             self.zScore = self.file["/AlnInfo/ZScore"].value
 
         self._sequencingChemistry = None
+
 
     @property
     def sequencingChemistry(self):
@@ -1006,7 +1017,7 @@ class CmpH5Reader(AlignmentReaderMixin):
         """
         return self._referenceDict[key]
 
-    def readsInRange(self, refId, refStart, refEnd, justIndices=False):
+    def readsInRange(self, refKey, refStart, refEnd, justIndices=False):
         """
         Get a list of reads overlapping (i.e., intersecting---not
         necessarily spanning) a given reference window.
@@ -1018,6 +1029,9 @@ class CmpH5Reader(AlignmentReaderMixin):
         row numbers in the alignment index table.  Slicing the
         `CmpH5Reader` object with these row numbers can be used to get
         the corresponding `CmpH5Alignment` objects.
+
+        The contig key can be either the ``RefID``, or the short name
+        (FASTA header up to first space).
 
         .. doctest::
 
@@ -1032,7 +1046,7 @@ class CmpH5Reader(AlignmentReaderMixin):
 
         if not self.isSorted:
             raise Exception, "CmpH5 is not sorted"
-        rowNumbers = self._readLocatorById[refId](refStart, refEnd, justIndices=True)
+        rowNumbers = self._readLocatorByKey[refKey](refStart, refEnd, justIndices=True)
         if justIndices:
             return rowNumbers
         else:

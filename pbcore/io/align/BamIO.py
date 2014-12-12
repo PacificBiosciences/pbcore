@@ -43,9 +43,9 @@ from os.path import abspath, expanduser, exists
 from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
-from ._AlignmentMixin import AlignmentReaderMixin
+from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
 
-class _BamReaderBase(AlignmentReaderMixin):
+class _BamReaderBase(object):
     """
     The BamReader class provides a high-level interface to PacBio BAM
     files.  If a PacBio BAM index (bam.pbi file) is present and the
@@ -286,7 +286,7 @@ class _BamReaderBase(AlignmentReaderMixin):
         self.close()
 
 
-class BamReader(_BamReaderBase):
+class BamReader(_BamReaderBase, AlignmentReaderMixin):
     """
     Reader for a BAM with a bam.bai (SAMtools) index, but not a
     bam.pbi (PacBio) index.  Supports basic BAM operations.
@@ -316,7 +316,7 @@ class BamReader(_BamReaderBase):
 
 
 
-class IndexedBamReader(_BamReaderBase):
+class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     """
     A `IndexedBamReader` is a BAM reader class that uses the bam.pbi
     (PacBio BAM index) format to enable random access by "row number"
@@ -344,50 +344,6 @@ class IndexedBamReader(_BamReaderBase):
             return ix
         else:
             return self[ix]
-
-    def readsByName(self, query):
-        """
-        Identifies reads by name query.  The name query is interpreted as follows:
-
-         - "movieName/holeNumber[/[*]]"      => gets all records from a chosen movie, ZMW
-         - "movieName/holeNumber/rStart_rEnd => gets all records *overlapping* read range query in movie, ZMW
-         - "movieName/holeNumber/ccs"        => gets CCS records from chose movie, ZMW (zero or one)
-
-        Records are returned in a list in ascending order of rStart
-        """
-        def rgIDs(movieName):
-            return self.readGroupTable.ID[self.readGroupTable.MovieName == movieName]
-
-        def rangeOverlap(w1, w2):
-            s1, e1 = w1
-            s2, e2 = w2
-            return (e1 > s2) and (e2 > s1)
-
-        def rQueryMatch(readName, rQuery):
-            if rQuery == "*" or rQuery == "":
-                return True
-            elif rQuery == "ccs":
-                return readName.endswith("ccs")
-            elif readName.endswith("ccs"):
-                return False
-            else:
-                q = map(int, rQuery.split("_"))
-                r = map(int, readName.split("/")[-1].split("_"))
-                return rangeOverlap(q, r)
-
-        fields = query.split("/")
-        movieName = fields[0]
-        holeNumber = int(fields[1])
-        if len(fields) > 2: rQuery = fields[2]
-        else:               rQuery = "*"
-
-        rgs = rgIDs(movieName)
-        rns = np.flatnonzero(np.in1d(self.ReadGroupID, rgs) &
-                             (self.HoleNumber == holeNumber))
-        alns = [ a for a in self[rns]
-                 if rQueryMatch(a.readName, rQuery) ]
-        return sorted(alns, key=lambda a: a.readStart)
-
 
     def __iter__(self):
         for rn in xrange(len(self.pbi)):
