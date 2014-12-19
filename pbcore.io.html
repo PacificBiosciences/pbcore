@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pbcore.io &mdash; pbcore 0.9.1 documentation</title>
+    <title>pbcore.io &mdash; pbcore 0.9.2 documentation</title>
     
     <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.1',
+        VERSION:     '0.9.2',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pbcore 0.9.1 documentation" href="index.html" /> 
+    <link rel="top" title="pbcore 0.9.2 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pbcore 0.9.2 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -98,13 +98,16 @@ convention as Python and the C++ STL.</p>
 <dd><p>The <cite>BasH5Reader</cite> provides access to the basecall and pulse metric
 data encoded in PacBio bas.h5 files.  To access data using a
 <cite>BasH5Reader</cite>, the standard idiom is:</p>
-<ol class="arabic simple">
-<li>Index into the <cite>BasH5Reader</cite> using the ZMW hole number to get a <cite>Zmw</cite> object:</li>
-</ol>
-<div class="highlight-python"><div class="highlight"><pre>
+<ol class="arabic">
+<li><p class="first">Index into the <cite>BasH5Reader</cite> using the ZMW hole number to get a <cite>Zmw</cite> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">b</span>
+<span class="go">&lt;BasH5Reader: m110818_075520_42141_c100129202555500000315043109121112_s1_p0&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span>
+<span class="go">&lt;Zmw: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8&gt;</span>
 </pre></div>
 </div>
-<ol class="arabic" start="2">
+</li>
 <li><p class="first">Extract <cite>ZmwRead</cite> objects from the <cite>Zmw</cite> object by:</p>
 <ul>
 <li><p class="first">Using the <cite>.subreads</cite> property to extract the subreads, which
@@ -120,11 +123,11 @@ SMRTbell insert:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Using the <cite>.ccsRead</cite> property to extract the CCS (consensus)
-read, which is a consensus sequence precomputed from the
-subreads.  Note that CCS data is not available for every
-sequencing ZMW hole, for example some holes have too few
-subreads for the computation of a consensus:</p>
+<li><p class="first">For CCS bas files, using the <cite>.ccsRead</cite> property to extract
+the CCS (consensus) read, which is a consensus sequence
+precomputed from the subreads.  Older bas files, from when
+CCS was computed on the instrument, may contain both CCS- and
+sub- reads.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">zmw8</span><span class="o">.</span><span class="n">ccsRead</span>
 <span class="go">&lt;CCSZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/ccs&gt;</span>
 </pre></div>
@@ -819,8 +822,271 @@ features) recorded from the ZMW, delimited by readStart and readEnd.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="cmp-h5-format-pacbio-alignment-file">
-<h2><cite>cmp.h5</cite> format (PacBio alignment file)<a class="headerlink" href="#cmp-h5-format-pacbio-alignment-file" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="bam-format">
+<h2>BAM format<a class="headerlink" href="#bam-format" title="Permalink to this headline">¶</a></h2>
+<p>The BAM format is a standard format described aligned and unaligned
+reads.  PacBio is transitioning from the cmp.h5 format to the BAM
+format.  For basic functionality, one should use <tt class="xref py py-class docutils literal"><span class="pre">BamReader</span></tt>;
+for full compatibility with the <tt class="xref py py-class docutils literal"><span class="pre">CmpH5Reader</span></tt> API (including
+alignment index functionality) one should use
+<tt class="xref py py-class docutils literal"><span class="pre">IndexedBamReader</span></tt>, which requires the auxiliary <em>PacBio BAM
+index file</em> (<tt class="docutils literal"><span class="pre">bam.pbi</span></tt> file).</p>
+<dl class="class">
+<dt id="pbcore.io.BamAlignment">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BamAlignment</tt><big>(</big><em>bamReader</em>, <em>pysamAlignedRead</em>, <em>rowNumber=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pbcore.io.BamAlignment.DeletionQV">
+<tt class="descname">DeletionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.DeletionTag">
+<tt class="descname">DeletionTag</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.HoleNumber">
+<tt class="descname">HoleNumber</tt><a class="headerlink" href="#pbcore.io.BamAlignment.HoleNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.InsertionQV">
+<tt class="descname">InsertionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.MapQV">
+<tt class="descname">MapQV</tt><a class="headerlink" href="#pbcore.io.BamAlignment.MapQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.MergeQV">
+<tt class="descname">MergeQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.MergeQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.QualityValue">
+<tt class="descname">QualityValue</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.QualityValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.SubstitutionQV">
+<tt class="descname">SubstitutionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.alignmentGroup">
+<tt class="descname">alignmentGroup</tt><a class="headerlink" href="#pbcore.io.BamAlignment.alignmentGroup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.barcode">
+<tt class="descname">barcode</tt><a class="headerlink" href="#pbcore.io.BamAlignment.barcode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.barcodeName">
+<tt class="descname">barcodeName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.barcodeName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.clippedTo">
+<tt class="descname">clippedTo</tt><big>(</big><em>refStart</em>, <em>refEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.clippedTo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new <cite>BamAlignment</cite> that refers to a subalignment of
+this alignment, as induced by clipping to reference
+coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This function takes time linear in the length of the alignment.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.identity">
+<tt class="descname">identity</tt><a class="headerlink" href="#pbcore.io.BamAlignment.identity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.isForwardStrand">
+<tt class="descname">isForwardStrand</tt><a class="headerlink" href="#pbcore.io.BamAlignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.isReverseStrand">
+<tt class="descname">isReverseStrand</tt><a class="headerlink" href="#pbcore.io.BamAlignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.movieName">
+<tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.movieName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.numPasses">
+<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.BamAlignment.numPasses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.pulseFeature">
+<tt class="descname">pulseFeature</tt><big>(</big><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the pulse feature as indicated.
+- <cite>aligned</cite>    : whether gaps should be inserted to reflect the alignment
+- <cite>orientation</cite>: &#8220;native&#8221; or &#8220;genomic&#8221;</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.qEnd">
+<tt class="descname">qEnd</tt><a class="headerlink" href="#pbcore.io.BamAlignment.qEnd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.qStart">
+<tt class="descname">qStart</tt><a class="headerlink" href="#pbcore.io.BamAlignment.qStart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.queryEnd">
+<tt class="descname">queryEnd</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryEnd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.queryName">
+<tt class="descname">queryName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.queryStart">
+<tt class="descname">queryStart</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryStart" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.read">
+<tt class="descname">read</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.readGroupInfo">
+<tt class="descname">readGroupInfo</tt><a class="headerlink" href="#pbcore.io.BamAlignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.readPositions">
+<tt class="descname">readPositions</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.readPositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of read positions.</p>
+<p>If aligned is True, the array has the same length as the
+alignment and readPositions[i] = read position of the i&#8217;th
+column in the oriented alignment.</p>
+<p>If aligned is False, the array has the same length as the
+mapped reference segment and readPositions[i] = read position
+of the i&#8217;th base in the oriented reference segment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.readType">
+<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.BamAlignment.readType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.reader">
+<tt class="descname">reader</tt><a class="headerlink" href="#pbcore.io.BamAlignment.reader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.reference">
+<tt class="descname">reference</tt><big>(</big><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.reference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.referenceId">
+<tt class="descname">referenceId</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.referenceInfo">
+<tt class="descname">referenceInfo</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.referenceName">
+<tt class="descname">referenceName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.referencePositions">
+<tt class="descname">referencePositions</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.referencePositions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of reference positions.</p>
+<p>If aligned is True, the array has the same length as the
+alignment and referencePositions[i] = reference position of
+the i&#8217;th column in the oriented alignment.</p>
+<p>If aligned is False, the array has the same length as the read
+and referencePositions[i] = reference position of the i&#8217;th
+base in the oriented read.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.sequencingChemistry">
+<tt class="descname">sequencingChemistry</tt><a class="headerlink" href="#pbcore.io.BamAlignment.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.tId">
+<tt class="descname">tId</tt><a class="headerlink" href="#pbcore.io.BamAlignment.tId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.transcript">
+<tt class="descname">transcript</tt><big>(</big><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.transcript" title="Permalink to this definition">¶</a></dt>
+<dd><p>A text representation of the alignment moves (see Gusfield).
+This can be useful in pretty-printing an alignment.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.unrolledCigar">
+<tt class="descname">unrolledCigar</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.unrolledCigar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run-length decode the CIGAR encoding, and orient.  Clipping ops are removed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.zScore">
+<tt class="descname">zScore</tt><a class="headerlink" href="#pbcore.io.BamAlignment.zScore" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.BamReader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BamReader</tt><big>(</big><em>fname</em>, <em>referenceFastaFname=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BamReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reader for a BAM with a bam.bai (SAMtools) index, but not a
+bam.pbi (PacBio) index.  Supports basic BAM operations.</p>
+<dl class="method">
+<dt id="pbcore.io.BamReader.readsInRange">
+<tt class="descname">readsInRange</tt><big>(</big><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.BamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pbcore.io.IndexedBamReader">
+<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">IndexedBamReader</tt><big>(</big><em>fname</em>, <em>referenceFastaFname=None</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <cite>IndexedBamReader</cite> is a BAM reader class that uses the
+<tt class="docutils literal"><span class="pre">bam.pbi</span></tt> (PacBio BAM index) file to enable random access by
+&#8220;row number&#8221; and to provide access to precomputed semantic
+information about the BAM records</p>
+<dl class="method">
+<dt id="pbcore.io.IndexedBamReader.atRowNumber">
+<tt class="descname">atRowNumber</tt><big>(</big><em>rn</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader.atRowNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.IndexedBamReader.readsInRange">
+<tt class="descname">readsInRange</tt><big>(</big><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="cmp-h5-format-legacy-pacbio-alignment-file">
+<h2><cite>cmp.h5</cite> format (legacy PacBio alignment file)<a class="headerlink" href="#cmp-h5-format-legacy-pacbio-alignment-file" title="Permalink to this headline">¶</a></h2>
 <p>The <cite>cmp.h5</cite> file format is an alignment format built on top of the HDF5
 standard.  It is a simple container format for PacBio alignment records.</p>
 <div class="admonition note">
@@ -849,6 +1115,11 @@ iteration, or range queries (via readsInRange).</p>
 <span class="go">26103</span>
 </pre></div>
 </div>
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.ReadGroupID">
+<tt class="descname">ReadGroupID</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.ReadGroupID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.alignmentGroup">
 <tt class="descname">alignmentGroup</tt><big>(</big><em>alnGroupId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentGroup" title="Permalink to this definition">¶</a></dt>
@@ -903,16 +1174,6 @@ accessed directly as a field of a <cite>CmpH5Alignment</cite> object</p>
 <span class="go">254</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="pbcore.io.CmpH5Reader.attach">
-<tt class="descname">attach</tt><big>(</big><em>fofnFilename</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.attach" title="Permalink to this definition">¶</a></dt>
-<dd><p>Attach the actual movie data files that were used to create this
-alignment file.</p>
-<p>TODO: enable supplying movie names or fofn names here
-TODO: enable unattach
-TODO: sanity check that the movie names are all there?</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -974,7 +1235,10 @@ this cmp.h5?</p>
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.movieInfo">
 <tt class="descname">movieInfo</tt><big>(</big><em>movieId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Access information about a movie whose reads are represented
+<dd><div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></tt>, which is compatible with BAM usage</p>
+</div>
+<p>Access information about a movie whose reads are represented
 in the file.</p>
 <p>The returned value is a record from the <tt class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></tt></p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">movieInfo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -989,7 +1253,10 @@ in the file.</p>
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.movieInfoTable">
 <tt class="descname">movieInfoTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfoTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a numpy recarray summarizing source movies for the
+<dd><div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupTable</span></tt>, which is compatible with BAM usage</p>
+</div>
+<p>Return a numpy recarray summarizing source movies for the
 reads in this file.</p>
 <p>The <cite>dtype</cite> of this recarray is:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">dtype</span><span class="p">([(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="s">&#39;int&#39;</span><span class="p">),</span>
@@ -1009,11 +1276,6 @@ NaN for pre-1.3 cmp.h5 files.</p>
 <tt class="descname">movieNames</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieNames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Reader.moviesAttached">
-<tt class="descname">moviesAttached</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.moviesAttached" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.pulseFeaturesAvailable">
 <tt class="descname">pulseFeaturesAvailable</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.pulseFeaturesAvailable" title="Permalink to this definition">¶</a></dt>
@@ -1023,6 +1285,19 @@ NaN for pre-1.3 cmp.h5 files.</p>
 </pre></div>
 </div>
 </dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.CmpH5Reader.readGroupInfo">
+<tt class="descname">readGroupInfo</tt><big>(</big><em>movieId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Access information about a movie whose reads are represented
+in the file.</p>
+<p>The returned value is a record from the <tt class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></tt></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.readGroupTable">
+<tt class="descname">readGroupTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupTable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.readType">
@@ -1036,19 +1311,8 @@ were aligned to the reference.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pbcore.io.CmpH5Reader.readsForZmw">
-<tt class="descname">readsForZmw</tt><big>(</big><em>zmwName</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsForZmw" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>zmwName must follow the PacBio naming convention:</dt>
-<dd>&lt;movieName&gt;/&lt;holeNumber&gt;</dd>
-</dl>
-<p>Alignments returned are sorted by readStart</p>
-<p>(Not optimized)</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="pbcore.io.CmpH5Reader.readsInRange">
-<tt class="descname">readsInRange</tt><big>(</big><em>refId</em>, <em>refStart</em>, <em>refEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">readsInRange</tt><big>(</big><em>refKey</em>, <em>refStart</em>, <em>refEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsInRange" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of reads overlapping (i.e., intersecting&#8212;not
 necessarily spanning) a given reference window.</p>
 <p>If <cite>justIndices</cite> is <tt class="docutils literal"><span class="pre">False</span></tt>, the list returned will contain
@@ -1057,6 +1321,8 @@ necessarily spanning) a given reference window.</p>
 row numbers in the alignment index table.  Slicing the
 <cite>CmpH5Reader</cite> object with these row numbers can be used to get
 the corresponding <cite>CmpH5Alignment</cite> objects.</p>
+<p>The contig key can be either the <tt class="docutils literal"><span class="pre">RefID</span></tt>, or the short name
+(FASTA header up to first space).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">readsInRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> 
 <span class="go">[CmpH5 alignment: -    1          0        290,</span>
 <span class="go"> CmpH5 alignment: +    1          0        365]</span>
@@ -1233,6 +1499,11 @@ Methods not prefixed with <em>aligned</em> excise the gaps.</p>
 <tt class="descname">QualityValue</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.QualityValue" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.ReadGroupID">
+<tt class="descname">ReadGroupID</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.ReadGroupID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.SubstitutionQV">
 <tt class="descname">SubstitutionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
@@ -1247,12 +1518,6 @@ Methods not prefixed with <em>aligned</em> excise the gaps.</p>
 <span class="go">0.87050359712230219</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.alignedLength">
-<tt class="descname">alignedLength</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignedLength" title="Permalink to this definition">¶</a></dt>
-<dd><p>The length of the alignment.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1298,12 +1563,6 @@ coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
 <tt class="descname">cmpH5</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.cmpH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="method">
-<dt id="pbcore.io.CmpH5Alignment.containedInReferenceRange">
-<tt class="descname">containedInReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.containedInReferenceRange" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the alignment wholly contained within a given reference interval?</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.isForwardStrand">
 <tt class="descname">isForwardStrand</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
@@ -1317,7 +1576,10 @@ coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.movieInfo">
 <tt class="descname">movieInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieInfo" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a record (extracted from the cmph5&#8217;s <cite>movieInfoTable</cite>)
+<dd><div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></tt>, which is compatible with BAM usage</p>
+</div>
+<p>Returns a record (extracted from the cmph5&#8217;s <cite>movieInfoTable</cite>)
 containing information about the movie that the read was
 extracted from.  This record should be accessed using
 dot-notation, according to the column names documented in
@@ -1330,15 +1592,14 @@ dot-notation, according to the column names documented in
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.movieName">
+<tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.numPasses">
 <tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.numPasses" title="Permalink to this definition">¶</a></dt>
 <dd><p>(CCS only) The number subreads that were used to produce this CCS read.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pbcore.io.CmpH5Alignment.overlapsReferenceRange">
-<tt class="descname">overlapsReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.overlapsReferenceRange" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the alignment overlap the given reference interval?</p>
 </dd></dl>
 
 <dl class="method">
@@ -1363,22 +1624,9 @@ complementation of reverse-strand reads.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.readEnd">
-<tt class="descname">readEnd</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readEnd" title="Permalink to this definition">¶</a></dt>
-<dd><p>The right bound of the alignment, in read coordinates (from the BAS.H5 file).</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.readLength">
-<tt class="descname">readLength</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readLength" title="Permalink to this definition">¶</a></dt>
-<dd><p>The length of the read.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.readName">
-<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readName" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the name of the read that was aligned, in standard
-PacBio format.</p>
+<dt id="pbcore.io.CmpH5Alignment.readGroupInfo">
+<tt class="descname">readGroupInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the corresponding record from the <cite>readGroupTable</cite>.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1392,10 +1640,14 @@ read base, in the specified orientation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.readStart">
-<tt class="descname">readStart</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readStart" title="Permalink to this definition">¶</a></dt>
-<dd><p>The left bound of the alignment, in read coordinates (from the BAS.H5 file).</p>
-</dd></dl>
+<dt id="pbcore.io.CmpH5Alignment.readType">
+<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.reader">
+<tt class="descname">reader</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reader" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.reference">
@@ -1408,12 +1660,6 @@ reference bases are returned.</p>
 the order it is stored in the cmp.h5 file&#8212;for reverse-strand
 reads, the reference is reverse-complemented.  If
 <cite>orientation</cite> is &#8220;genomic&#8221;, the forward strand reference is returned.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.referenceEnd">
-<tt class="descname">referenceEnd</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceEnd" title="Permalink to this definition">¶</a></dt>
-<dd><p>The right bound of the alignment, in reference coordinates.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -1442,18 +1688,6 @@ reference base, in the specified orientation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.referenceSpan">
-<tt class="descname">referenceSpan</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceSpan" title="Permalink to this definition">¶</a></dt>
-<dd><p>The length along the reference implied by this alignment.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.referenceStart">
-<tt class="descname">referenceStart</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceStart" title="Permalink to this definition">¶</a></dt>
-<dd><p>The left bound of the alignment, in reference coordinates.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.rowNumber">
 <tt class="descname">rowNumber</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.rowNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1471,18 +1705,6 @@ reference base, in the specified orientation.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pbcore.io.CmpH5Alignment.spansReferencePosition">
-<tt class="descname">spansReferencePosition</tt><big>(</big><em>pos</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.spansReferencePosition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the alignment span the given reference position?</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pbcore.io.CmpH5Alignment.spansReferenceRange">
-<tt class="descname">spansReferenceRange</tt><big>(</big><em>start</em>, <em>end</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.spansReferenceRange" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the alignment span the given reference range, in its entirety?</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.transcript">
 <tt class="descname">transcript</tt><big>(</big><em>orientation='native'</em>, <em>style='gusfield'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.transcript" title="Permalink to this definition">¶</a></dt>
 <dd><p>A text representation of the alignment moves (see Gusfield).
@@ -1496,16 +1718,6 @@ This can be useful in pretty-printing an alignment.</p>
 <p>The z-score of the alignment, using a null model of a random
 sequence alignment.</p>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.zmw">
-<tt class="descname">zmw</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.zmw" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.zmwRead">
-<tt class="descname">zmwRead</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.zmwRead" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -1817,7 +2029,8 @@ Trailing whitespace is ignored.</p>
   <ul>
 <li><a class="reference internal" href="#">pbcore.io</a><ul>
 <li><a class="reference internal" href="#bas-h5-bax-h5-formats-pacbio-basecalls-file"><cite>bas.h5</cite> / <cite>bax.h5</cite> Formats (PacBio basecalls file)</a></li>
-<li><a class="reference internal" href="#cmp-h5-format-pacbio-alignment-file"><cite>cmp.h5</cite> format (PacBio alignment file)</a></li>
+<li><a class="reference internal" href="#bam-format">BAM format</a></li>
+<li><a class="reference internal" href="#cmp-h5-format-legacy-pacbio-alignment-file"><cite>cmp.h5</cite> format (legacy PacBio alignment file)</a></li>
 <li><a class="reference internal" href="#fasta-format">FASTA Format</a></li>
 <li><a class="reference internal" href="#fastq-format">FASTQ Format</a></li>
 <li><a class="reference internal" href="#gff-format-version-3">GFF Format (Version 3)</a></li>
@@ -1856,7 +2069,7 @@ Trailing whitespace is ignored.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pbcore 0.9.2 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -1,0 +1,54 @@
+pbcore.io.align package
+=======================
+
+Submodules
+----------
+
+pbcore.io.align.BamAlignment module
+-----------------------------------
+
+.. automodule:: pbcore.io.align.BamAlignment
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pbcore.io.align.BamIO module
+----------------------------
+
+.. automodule:: pbcore.io.align.BamIO
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pbcore.io.align.BlasrIO module
+------------------------------
+
+.. automodule:: pbcore.io.align.BlasrIO
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pbcore.io.align.CmpH5IO module
+------------------------------
+
+.. automodule:: pbcore.io.align.CmpH5IO
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pbcore.io.align.PacBioBamIndex module
+-------------------------------------
+
+.. automodule:: pbcore.io.align.PacBioBamIndex
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: pbcore.io.align
+    :members:
+    :undoc-members:
+    :show-inheritance:
