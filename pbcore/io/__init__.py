@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2013, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -35,4 +35,6 @@ from .FofnIO  import *
 from .GffIO   import *
 from .base    import *
 
-from .align import *
+from .align   import *
+
+from .opener  import *
