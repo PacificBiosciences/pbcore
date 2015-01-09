@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pbcore.io &mdash; pbcore 0.9.2 documentation</title>
+    <title>pbcore.io &mdash; pbcore 0.9.3 documentation</title>
     
     <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.2',
+        VERSION:     '0.9.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pbcore 0.9.2 documentation" href="index.html" /> 
+    <link rel="top" title="pbcore 0.9.3 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,7 +35,7 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pbcore 0.9.3 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -78,6 +78,36 @@ block within the &#8220;with&#8221; statement is executed.</p>
 </li>
 </ul>
 </div></blockquote>
+<div class="section" id="bam-cmp-h5-compatibility-quick-start">
+<h2>BAM/cmp.h5 compatibility: quick start<a class="headerlink" href="#bam-cmp-h5-compatibility-quick-start" title="Permalink to this headline">¶</a></h2>
+<p>If you have an application that uses the <cite>CmpH5Reader</cite> and you want to
+start using BAM files, your best bet is to use the following generic
+factory functions:</p>
+<dl class="function">
+<dt id="pbcore.io.openIndexedAlignmentFile">
+<tt class="descclassname">pbcore.io.</tt><tt class="descname">openIndexedAlignmentFile</tt><big>(</big><em>fname</em>, <em>referenceFasta=None</em><big>)</big><a class="headerlink" href="#pbcore.io.openIndexedAlignmentFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function to get a handle to a reader for an alignment file
+(cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
+requires bam.pbi index for BAM</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pbcore.io.openAlignmentFile">
+<tt class="descclassname">pbcore.io.</tt><tt class="descname">openAlignmentFile</tt><big>(</big><em>fname</em>, <em>referenceFasta=None</em><big>)</big><a class="headerlink" href="#pbcore.io.openAlignmentFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Factory function to get a handle to a reader for an alignment file
+(cmp.h5 or BAM), not requiring index capability</p>
+</dd></dl>
+
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Since BAM files contain a subset of the information that was
+present in cmp.h5 files, you will need to provide these functions
+an indexed FASTA file for your reference.  For <em>full</em>
+compatibility, you need the <cite>openIndexedAlignmentFile</cite> function,
+which requires the existence of a <cite>bam.pbi</cite> file (PacBio BAM index
+companion file).</p>
+</div>
+</div>
 <div class="section" id="bas-h5-bax-h5-formats-pacbio-basecalls-file">
 <h2><cite>bas.h5</cite> / <cite>bax.h5</cite> Formats (PacBio basecalls file)<a class="headerlink" href="#bas-h5-bax-h5-formats-pacbio-basecalls-file" title="Permalink to this headline">¶</a></h2>
 <p>The <cite>bas.h5</cite>/ <cite>bax.h5</cite> file formats are container formats for PacBio
@@ -2028,6 +2058,7 @@ Trailing whitespace is ignored.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">pbcore.io</a><ul>
+<li><a class="reference internal" href="#bam-cmp-h5-compatibility-quick-start">BAM/cmp.h5 compatibility: quick start</a></li>
 <li><a class="reference internal" href="#bas-h5-bax-h5-formats-pacbio-basecalls-file"><cite>bas.h5</cite> / <cite>bax.h5</cite> Formats (PacBio basecalls file)</a></li>
 <li><a class="reference internal" href="#bam-format">BAM format</a></li>
 <li><a class="reference internal" href="#cmp-h5-format-legacy-pacbio-alignment-file"><cite>cmp.h5</cite> format (legacy PacBio alignment file)</a></li>
@@ -2069,11 +2100,11 @@ Trailing whitespace is ignored.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.2 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pbcore 0.9.3 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2011-2013, Pacific Biosciences.
+        &copy; Copyright 2011-2015, Pacific Biosciences.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
   </body>

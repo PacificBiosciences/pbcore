@@ -32,6 +32,28 @@ to provide a uniform API:
     block within the "with" statement is executed.
 
 
+BAM/cmp.h5 compatibility: quick start
+-------------------------------------
+
+If you have an application that uses the `CmpH5Reader` and you want to
+start using BAM files, your best bet is to use the following generic
+factory functions:
+
+.. autofunction:: pbcore.io.openIndexedAlignmentFile
+
+.. autofunction:: pbcore.io.openAlignmentFile
+
+.. note::
+
+   Since BAM files contain a subset of the information that was
+   present in cmp.h5 files, you will need to provide these functions
+   an indexed FASTA file for your reference.  For *full*
+   compatibility, you need the `openIndexedAlignmentFile` function,
+   which requires the existence of a `bam.pbi` file (PacBio BAM index
+   companion file).
+
+
+
 
 `bas.h5` / `bax.h5` Formats (PacBio basecalls file)
 ---------------------------------------------------

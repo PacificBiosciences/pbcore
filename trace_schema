@@ -1,0 +1,494 @@
+mp-f052:2770691 $ h5ls -rv   0001/m141008_060349_42194_c100704972550000001823137703241586_s1_p0.1.trx.h5
+Opened "0001/m141008_060349_42194_c100704972550000001823137703241586_s1_p0.1.trx.h5" with sec2 driver.
+/                        Group
+    Location:  1:96
+    Links:     1
+/ScanData                Group
+    Attribute: ChangeListID scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "140640"
+    Attribute: DateCreated scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2014-10-08T06:10:45+0000"
+    Attribute: FormatVersion scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Springfield 1.1"
+    Attribute: SoftwareVersion scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Otto 2.3.0.0"
+    Location:  1:12584
+    Links:     1
+/ScanData/AcqParams      Group
+    Attribute: AduGain scalar
+        Type:      native float
+        Data:  0.485437
+    Attribute: CameraGain scalar
+        Type:      native float
+        Data:  1
+    Attribute: CameraType scalar
+        Type:      native int
+        Data:  200
+    Attribute: DOELayout scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "RS2"
+    Attribute: FrameRate scalar
+        Type:      native float
+        Data:  75
+    Attribute: HotStartFrame scalar
+        Type:      native int
+        Data:  0
+    Attribute: HotStartFrameValid scalar
+        Type:      native unsigned char
+        Data:  0
+    Attribute: LaserIntensity {2}
+        Type:      native float
+        Data:  1, 1
+    Attribute: LaserOnFrame scalar
+        Type:      native int
+        Data:  -562
+    Attribute: LaserOnFrameValid scalar
+        Type:      native unsigned char
+        Data:  1
+    Attribute: LaserPower {2}
+        Type:      native float
+        Data:  1, 1
+    Attribute: Look scalar
+        Type:      native unsigned char
+        Data:  0
+    Attribute: NumCameras scalar
+        Type:      native unsigned char
+        Data:  4
+    Attribute: NumFrames scalar
+        Type:      native unsigned int
+        Data:  539900
+    Attribute: NumLasers scalar
+        Type:      native unsigned char
+        Data:  2
+    Location:  1:13608
+    Links:     1
+/ScanData/ChipInfo       Group
+    Attribute: ChipId scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "SpringfieldPANE_L16_L00_L31_L32_LOOK1_DISTD_NN_TYPE_SEQUE_Laurel"
+    Attribute: GridDims {2}
+        Type:      native int
+        Data:  421, 421
+    Attribute: LayoutId scalar
+        Type:      native unsigned int
+        Data:  0
+    Attribute: LayoutName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "SpringfieldPANE_L16_L00_L31_L32_LOOK1_DISTD_NN_TYPE_SEQUE_Laurel"
+    Attribute: NumDiffusion scalar
+        Type:      native unsigned short
+        Data:  131
+    Attribute: NumLooks scalar
+        Type:      native unsigned char
+        Data:  2
+    Attribute: XSpacing scalar
+        Type:      native float
+        Data:  14000
+    Attribute: YSpacing scalar
+        Type:      native float
+        Data:  14000
+    Location:  1:15672
+    Links:     1
+/ScanData/ChipInfo/DiffusionXY Dataset {131/131, 2/2}
+    Location:  1:20936
+    Links:     1
+    Chunks:    {131, 2} 524 bytes
+    Storage:   524 logical bytes, 524 allocated bytes, 100.00% utilization
+    Type:      native short
+/ScanData/DyeSet         Group
+    Attribute: BaseMap scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "TGAC"
+    Attribute: Name scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: NumAnalog scalar
+        Type:      native unsigned short
+        Data:  4
+    Location:  1:22080
+    Links:     1
+/ScanData/DyeSet/Analog[0] Group
+    Attribute: Base scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "T"
+    Attribute: CalMovieDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: Label scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Ch1-FAB4.F-dT"
+    Attribute: Nucleotide scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "dT6P"
+    Attribute: RecordDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2012-05-08T00:48:13-0800"
+    Attribute: RecordName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "m120508_171413_310_SIA_120508_171413.dye.h5"
+    Attribute: Type scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: TypeId scalar
+        Type:      native int
+        Data:  0
+    Attribute: Wavelength scalar
+        Type:      native float
+        Data:  433
+    Location:  1:22992
+    Links:     1
+/ScanData/DyeSet/Analog[1] Group
+    Attribute: Base scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "G"
+    Attribute: CalMovieDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: Label scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Ch2-FAB4.F-dG"
+    Attribute: Nucleotide scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "dG6P"
+    Attribute: RecordDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2012-05-08T00:48:13-0800"
+    Attribute: RecordName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "m120508_174215_403_SIA_120508_174215.dye.h5"
+    Attribute: Type scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: TypeId scalar
+        Type:      native int
+        Data:  0
+    Attribute: Wavelength scalar
+        Type:      native float
+        Data:  488
+    Location:  1:24688
+    Links:     1
+/ScanData/DyeSet/Analog[2] Group
+    Attribute: Base scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "A"
+    Attribute: CalMovieDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: Label scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Ch3-FAB4.F-dA"
+    Attribute: Nucleotide scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "dA6P"
+    Attribute: RecordDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2012-05-08T00:48:13-0800"
+    Attribute: RecordName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "m120508_180110_580_SIA_120508_180110.dye.h5"
+    Attribute: Type scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: TypeId scalar
+        Type:      native int
+        Data:  0
+    Attribute: Wavelength scalar
+        Type:      native float
+        Data:  538
+    Location:  1:26056
+    Links:     1
+/ScanData/DyeSet/Analog[3] Group
+    Attribute: Base scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "C"
+    Attribute: CalMovieDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: Label scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Ch4-FAB4.F-dC"
+    Attribute: Nucleotide scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "dC6P"
+    Attribute: RecordDate scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2012-05-08T00:48:13-0800"
+    Attribute: RecordName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "m120508_181505_485_SIA_120508_181505.dye.h5"
+    Attribute: Type scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Attribute: TypeId scalar
+        Type:      native int
+        Data:  0
+    Attribute: Wavelength scalar
+        Type:      native float
+        Data:  633
+    Location:  1:27424
+    Links:     1
+/ScanData/Protocol       Group
+    Attribute: InsertSize scalar
+        Type:      native int
+        Data:  1
+    Attribute: Name scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "NA"
+    Location:  1:28792
+    Links:     1
+/ScanData/RunInfo        Group
+    Attribute: BindingKit scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "100356300"
+    Attribute: Control scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  ""
+    Attribute: InstrumentId scalar
+        Type:      native unsigned int
+        Data:  1
+    Attribute: InstrumentName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "42194"
+    Attribute: IsControlUsed scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "False"
+    Attribute: MovieName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "m141008_060349_42194_c100704972550000001823137703241586_s1_p0"
+    Attribute: PlatformId scalar
+        Type:      native unsigned int
+        Data:  2
+    Attribute: PlatformName scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Springfield"
+    Attribute: RunCode scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "10-07-2014_Traces_2132-A01_1"
+    Attribute: RunId scalar
+        Type:      native unsigned int
+        Data:  1
+    Attribute: SequencingKit scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "100356200"
+    Location:  1:29632
+    Links:     1
+/TraceData               Group
+    Attribute: ChangeListID scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2.3.0.0.140640"
+    Attribute: CountStored scalar
+        Type:      native int
+        Data:  13626
+    Attribute: DateCreated scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "2014-10-08T06:11:26+0000"
+    Attribute: Look {1}
+        Type:      native unsigned char
+        Data:  0
+    Attribute: Representation scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Camera"
+    Attribute: TraceOrder {3}
+        Type:      native unsigned char
+        Data:  0, 1, 2
+    Attribute: Version scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Otto 0.5"
+    Location:  1:800
+    Links:     1
+/TraceData/Codec         Group
+    Attribute: Bias {1}
+        Type:      native float
+        Data:  -60
+    Attribute: BitDepth {1}
+        Type:      native unsigned char
+        Data:  8
+    Attribute: Config {4}
+        Type:      variable-length null-terminated ASCII string
+        Data:  "BitDepth", "DynamicRange", "Bias", "Mu"
+    Attribute: DynamicRange {1}
+        Type:      native float
+        Data:  1864
+    Attribute: Mu {1}
+        Type:      native double
+        Data:  4
+    Attribute: Name scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "MuLaw"
+    Attribute: Units scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Photons"
+    Location:  1:31144
+    Links:     1
+/TraceData/Codec/Decode  Dataset {256/256}
+    Location:  1:31752
+    Links:     1
+    Storage:   1024 logical bytes, 1024 allocated bytes, 100.00% utilization
+    Type:      native float
+/TraceData/HPFrameSet    Dataset {1/Inf}
+    Location:  1:34312
+    Links:     1
+    Chunks:    {1} 4 bytes
+    Storage:   4 logical bytes, 4 allocated bytes, 100.00% utilization
+    Type:      native unsigned int
+/TraceData/HoleChipLook  Dataset {13626/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Look of ZMW in chip layout"
+    Location:  1:7072
+    Links:     1
+    Chunks:    {1024} 2048 bytes
+    Storage:   27252 logical bytes, 28672 allocated bytes, 95.05% utilization
+    Type:      native short
+/TraceData/HoleNumber    Dataset {13626/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Number assigned to each ZMW on the chip"
+    Location:  1:6200
+    Links:     1
+    Chunks:    {1024} 4096 bytes
+    Storage:   54504 logical bytes, 57344 allocated bytes, 95.05% utilization
+    Type:      native unsigned int
+/TraceData/HolePhase     Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The time delay of each ZMW for each camera"
+    Attribute: UnitsOrEncoding scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Fraction of the frame interval [0,1]"
+    Location:  1:8784
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 43941 allocated bytes, 496.16% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/HoleStatus    Dataset {13626/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Type of ZMW that produced the data"
+    Attribute: LookupTable {9}
+        Type:      12-byte null-terminated ASCII string
+        Data:
+            (0) "SEQUENCING", "ANTIHOLE", "FIDUCIAL", "SUSPECT", "ANTIMIRROR", "FDZMW", "FBZMW", "ANTIBEAMLET", "OUTSIDEFOV"
+    Location:  1:7344
+    Links:     1
+    Chunks:    {1024} 1024 bytes
+    Storage:   13626 logical bytes, 14336 allocated bytes, 95.05% utilization
+    Type:      native unsigned char
+/TraceData/HoleXY        Dataset {13626/Inf, 2/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Grid coordinates assigned to each ZMW on the chip"
+    Location:  1:6800
+    Links:     1
+    Chunks:    {1024, 1} 2048 bytes
+    Storage:   54504 logical bytes, 57344 allocated bytes, 95.05% utilization
+    Type:      native short
+/TraceData/HoleXYPlot    Dataset {13626/Inf, 2/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The (unique) location of each ZMW in normalized chip coordinates"
+    Location:  1:7736
+    Links:     1
+    Chunks:    {1024, 1} 4096 bytes
+    Storage:   109008 logical bytes, 114688 allocated bytes, 95.05% utilization
+    Type:      native float
+/TraceData/IFVarianceScale Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The in-focus variance scaling factor"
+    Location:  1:9168
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 202087 allocated bytes, 107.88% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/OFBackgroundMean Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The out-of-focus background mean"
+    Attribute: UnitsOrEncoding scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Correspond to decoded trace units"
+    Location:  1:9768
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 210606 allocated bytes, 103.52% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/OFBackgroundVariance Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The out-of-focus background mean"
+    Attribute: UnitsOrEncoding scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Correspond to decoded trace units"
+    Location:  1:10152
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 210911 allocated bytes, 103.37% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/RVFrameSet    Dataset {1/Inf}
+    Location:  1:36544
+    Links:     1
+    Chunks:    {1} 4 bytes
+    Storage:   4 logical bytes, 4 allocated bytes, 100.00% utilization
+    Type:      native unsigned int
+/TraceData/ReadVariance  Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The variance estimates corresponding to camera read noise contribution"
+    Attribute: UnitsOrEncoding scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Correspond to decoded trace units"
+    Location:  1:10536
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 209375 allocated bytes, 104.13% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/Spectra       Dataset {4/Inf, 13626/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The dye calibration spectra"
+    Location:  1:8184
+    Links:     1
+    Chunks:    {4, 40, 4} 2560 bytes
+    Storage:   872064 logical bytes, 661442 allocated bytes, 131.84% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+/TraceData/Traces        Dataset {13626/Inf, 4/Inf, 539900/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Trace data, each datum compressed to a byte using the compression algorithm described by Codec"
+    Location:  1:8488
+    Links:     1
+    Chunks:    {40, 4, 4000} 640000 bytes
+    Storage:   29426709600 logical bytes, 17919385188 allocated bytes, 164.22% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native unsigned char
+/TraceData/VFrameSet     Dataset {1/Inf}
+    Location:  1:38776
+    Links:     1
+    Chunks:    {1} 4 bytes
+    Storage:   4 logical bytes, 4 allocated bytes, 100.00% utilization
+    Type:      native unsigned int
+/TraceData/Variance      Dataset {13626/Inf, 1/Inf, 4/Inf}
+    Attribute: Description scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "The channel variance estimates used to construct the weights for DWS reduction"
+    Attribute: UnitsOrEncoding scalar
+        Type:      variable-length null-terminated ASCII string
+        Data:  "Correspond to decoded trace units"
+    Location:  1:11160
+    Links:     1
+    Chunks:    {40, 1, 4} 640 bytes
+    Storage:   218016 logical bytes, 204546 allocated bytes, 106.59% utilization
+    Filter-0:  deflate-1 OPT {3}
+    Type:      native float
+mp-f052:2770691 $ h5ls -rv   0001/m141008_060349_42194_c100704972550000001823137703241586_s1_p0.1.trx.h5
