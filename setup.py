@@ -24,6 +24,7 @@ setup(
                                'chemistry/resources/*.xml']
                                },
     zip_safe = False,
+    entry_points = { "console_scripts" : [ ".open = pbcore.io.opener:entryPoint" ] },
     install_requires=[
         'h5py >= 2.0.1',
         'numpy >= 1.6.0',

@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2013, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -28,4 +28,4 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-__VERSION__ = "0.9.2"
+__VERSION__ = "0.9.3"
