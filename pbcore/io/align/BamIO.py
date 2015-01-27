@@ -311,7 +311,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
                      for it in self.peer.fetch(winId, winStart, winEnd, multiple_iterators=False) )
 
     def __getitem__(self, rowNumbers):
-        raise UnavailableFeature("Use PacBioBamReader to get row-number based slicing.")
+        raise UnavailableFeature("Use IndexedBamReader to get row-number based slicing.")
 
 
 
