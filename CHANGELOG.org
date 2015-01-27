@@ -1,4 +1,8 @@
-* Version 0.9.3 (in progress)
+* Version 0.9.4
+- BAM support moved to 3.0 spec; support for earlier PacBio BAMs
+  dropped
+
+* Version 0.9.3
 - ".open" script added for convenience
 - openers added (factory methods invoking the appropriate Reader
   class; useful for applications that want to transparently use either
