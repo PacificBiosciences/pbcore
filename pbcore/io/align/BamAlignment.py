@@ -388,34 +388,37 @@ class BamAlignment(AlignmentRecordMixin):
         - `aligned`    : whether gaps should be inserted to reflect the alignment
         - `orientation`: "native" or "genomic"
         """
+        # 1. Extract in native orientation
         if not (orientation == "native" or orientation == "genomic"):
             raise ValueError, "Bad `orientation` value"
         if featureName == "read":
             kind_  = "base"
             dtype_ = np.int8
-            data_  = self.peer.seq
+            data  = self.peer.seq
         elif featureName == "QualityValue":
             kind_  = "raw"
             dtype_ = np.uint8
-            data_  = self.peer.qual
+            data  = self.peer.qual
         else:
             tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
             data_ = self.peer.opt(tag)
-        assert len(data_) == self.peer.rlen
+            if isinstance(data_, str):
+                data = np.fromstring(data_, dtype=dtype_)
+            else:
+                # This is about 300x slower than the fromstring above.
+                # Unless pysam exposes  buffer or numpy interface,
+                # is is going to be very slow.
+                data = np.fromiter(data_, dtype=dtype_)
+            del data_
+        assert len(data) == self.peer.rlen
 
-        # In a SAM/BAM file, the read data is all reversed if the aln
-        # is on the reverse strand.  Let's get it back in read
-        # (native) orientation, and remove the other artifacts of BAM
-        # encoding
-        if self.isReverseStrand:
-            if kind_ == "base": data = reverseComplement(data_)
-            else:               data = data_[::-1]
-        else:
-            data = data_
-        data = np.fromstring(data, dtype=dtype_)
-        if kind_ == "qv": data -= 33
-        del data_
+        # 2. Decode
+        if kind_ == "qv":
+            data -= 33
+        elif kind_ == "time":
+            data = codeToFrames(data)
 
+        # 3. Clip
         # [s, e) delimits the range, within the query, that is in the aligned read.
         # This will be determined by the soft clips actually in the file as well as those
         # imposed by the clipping API here.
@@ -424,18 +427,18 @@ class BamAlignment(AlignmentRecordMixin):
         assert s >= 0 and e <= len(data)
         clipped = data[s:e]
 
-        # How to present it to the user
+        # 4. Orient
         shouldReverse = self.isReverseStrand and orientation == "genomic"
         if kind_ == "base":
             ungapped = reverseComplementAscii(clipped) if shouldReverse else clipped
         else:
             ungapped = clipped[::-1] if shouldReverse else clipped
 
+        # 5. Gapify if requested
         if aligned == False:
             return ungapped
         else:
             return self._gapifyRead(ungapped, orientation)
-
 
     def _gapifyRead(self, data, orientation):
         return self._gapify(data, orientation, BAM_CDEL)
@@ -457,10 +460,8 @@ class BamAlignment(AlignmentRecordMixin):
         alnData[~gapMask] = data
         return alnData
 
-    # TODO: We haven't yet decided where these guys are going to live.
-    # IPD            = _makePulseFeatureAccessor("IPD")
-    # PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
-
+    IPD            = _makePulseFeatureAccessor("IPD")
+    PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
     QualityValue   = _makePulseFeatureAccessor("QualityValue")
     InsertionQV    = _makePulseFeatureAccessor("InsertionQV")
     DeletionQV     = _makePulseFeatureAccessor("DeletionQV")

@@ -40,7 +40,9 @@ PULSE_FEATURE_TAGS = { "InsertionQV"    : ("iq", "qv",   np.uint8),
                        "DeletionQV"     : ("dq", "qv",   np.uint8),
                        "DeletionTag"    : ("dt", "base", np.int8 ),
                        "SubstitutionQV" : ("sq", "qv",   np.uint8),
-                       "MergeQV"        : ("mq", "qv",   np.uint8) }
+                       "MergeQV"        : ("mq", "qv",   np.uint8),
+                       "IPD"            : ("ip", "time", np.uint8),
+                       "PulseWidth"     : ("pw", "time", np.uint8) }
 
 COMPLEMENT_MAP = { "A" : "T",
                    "T" : "A",
@@ -65,3 +67,52 @@ BAM_CHARD_CLIP = 5
 BAM_CPAD       = 6
 BAM_CEQUAL     = 7
 BAM_CDIFF      = 8
+
+
+#
+# Kinetics: decode the scheme we are using to encode approximate frame
+# counts in 8-bits.
+#
+def _makeFramepoints():
+    B = 2
+    t = 6
+    T = 2**t
+
+    framepoints = []
+    next = 0
+    for i in range(256/T):
+        grain = B**i
+        nextOnes = next + grain * np.arange(0, T)
+        next = nextOnes[-1] + grain
+        framepoints = framepoints + list(nextOnes)
+    return np.array(framepoints, dtype=int)
+
+def _makeLookup(framepoints):
+    # (frame -> code) involves some kind of rounding
+    # basic round-to-nearest
+    frameToCode = np.empty(shape=max(framepoints)+1, dtype=int)
+    for i, (fl, fu) in enumerate(zip(framepoints, framepoints[1:])):
+        if (fu > fl + 1):
+            m = (fl + fu)/2
+            for f in xrange(fl, m):
+                frameToCode[f] = i
+            for f in xrange(m, fu):
+                frameToCode[f] = i + 1
+        else:
+            frameToCode[fl] = i
+    # Extra entry for last:
+    frameToCode[fu] = i + 1
+    return frameToCode, fu
+
+_framepoints = _makeFramepoints()
+_frameToCode, _maxFramepoint = _makeLookup(_framepoints)
+
+def framesToCode(nframes):
+    nframes = np.minimum(_maxFramepoint, nframes)
+    return _frameToCode[nframes]
+
+def codeToFrames(code):
+    return _framepoints[code]
+
+def downsampleFrames(nframes):
+    return codeToFrames(framesToCode(nframes))
