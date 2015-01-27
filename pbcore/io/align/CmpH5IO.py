@@ -1183,6 +1183,16 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
         """
         return self._barcodes
 
+    @property
+    def qId(self):
+        # Forward compatibility with BAM API
+        return self.ReadGroupID
+
+    @property
+    def holeNumber(self):
+        # Forward compatibility with BAM API
+        return self.HoleNumber
+
     def __repr__(self):
         return "<CmpH5Reader for %s>" % self.filename
 
