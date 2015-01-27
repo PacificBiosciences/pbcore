@@ -358,10 +358,10 @@ class TestCmpH5(_IndexedAlnFileReaderTests):
             C[0].sequencingChemistry
 
 
-class TestBasicBam(_BasicAlnFileReaderTests):
-     READER_CONSTRUCTOR = BamReader
-     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+# class TestBasicBam(_BasicAlnFileReaderTests):
+#      READER_CONSTRUCTOR = BamReader
+#      CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
 
-class TestIndexedBam(_IndexedAlnFileReaderTests):
-    READER_CONSTRUCTOR = IndexedBamReader
-    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+# class TestIndexedBam(_IndexedAlnFileReaderTests):
+#     READER_CONSTRUCTOR = IndexedBamReader
+#     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
