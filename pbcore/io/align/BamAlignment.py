@@ -81,6 +81,16 @@ def requiresPbi(method):
             return method(bamAln, *args, **kwargs)
     return f
 
+def requiresMapping(method):
+    @wraps(method)
+    def f(bamAln, *args, **kwargs):
+        if bamAln.isUnmapped:
+            raise UnavailableFeature, "this feature requires a *mapped* BAM record"
+        else:
+            return method(bamAln, *args, **kwargs)
+    return f
+
+
 class BamAlignment(AlignmentRecordMixin):
     def __init__(self, bamReader, pysamAlignedRead, rowNumber=None):
         #TODO: make these __slot__
@@ -144,6 +154,7 @@ class BamAlignment(AlignmentRecordMixin):
     def MapQV(self):
         return self.peer.mapq
 
+    @requiresMapping
     def clippedTo(self, refStart, refEnd):
         """
         Return a new `BamAlignment` that refers to a subalignment of
@@ -154,7 +165,6 @@ class BamAlignment(AlignmentRecordMixin):
             This function takes time linear in the length of the alignment.
         """
         assert type(self) is BamAlignment
-        assert self.isMapped
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
@@ -190,10 +200,12 @@ class BamAlignment(AlignmentRecordMixin):
         raise UnavailableFeature("BAM has no HDF5 groups")
 
     @property
+    @requiresMapping
     def referenceInfo(self):
         return self.bam.referenceInfo(self.referenceId)
 
     @property
+    @requiresMapping
     def referenceName(self):
         return self.referenceInfo.FullName
 
@@ -297,10 +309,13 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             return tSeqOriented
 
+    @requiresMapping
     def unrolledCigar(self, orientation="native"):
         """
         Run-length decode the CIGAR encoding, and orient.  Clipping ops are removed.
         """
+        if self.isUnmapped: return None
+
         if self._unrolledCigar is None:
             self._unrolledCigar = _unrollCigar(self.peer.cigar, exciseSoftClips=True)
 
@@ -309,7 +324,7 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             return self._unrolledCigar
 
-
+    @requiresMapping
     def referencePositions(self, aligned=True, orientation="native"):
         """
         Returns an array of reference positions.
@@ -429,6 +444,8 @@ class BamAlignment(AlignmentRecordMixin):
         return self._gapify(data, orientation, BAM_CINS)
 
     def _gapify(self, data, orientation, gapOp):
+        if self.isUnmapped: return data
+
         # Precondition: data must already be *in* the specified orientation
         if data.dtype == np.int8:
             gapCode = ord("-")
@@ -507,6 +524,7 @@ class BamAlignment(AlignmentRecordMixin):
 class ClippedBamAlignment(BamAlignment):
     def __init__(self, aln, tStart, tEnd, rStart, rEnd, unrolledCigar):
         # Self-consistency checks
+        assert aln.isMapped
         assert tStart <= tEnd
         assert rStart <= rEnd
         assert sum(unrolledCigar != BAM_CDEL) == (rEnd - rStart)
