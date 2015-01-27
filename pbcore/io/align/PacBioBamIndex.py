@@ -67,9 +67,13 @@ class PacBioBamIndex(object):
     def __init__(self, pbiFilename):
         pbiFilename = abspath(expanduser(pbiFilename))
         with h5py.File(pbiFilename, "r") as f:
-            self._version = self._loadVersion(f)
-            self._columns = self._loadColumns(f)
-            self._offsets = self._loadOffsets(f)
+            try:
+                self._version = self._loadVersion(f)
+                self._columns = self._loadColumns(f)
+                self._offsets = self._loadOffsets(f)
+            except Exception as e:
+                raise IOError, "Malformed bam.pbi file: " + str(e)
+
 
     @property
     def version(self):
