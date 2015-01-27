@@ -133,9 +133,20 @@ class _BamReaderBase(object):
             raise ReferenceMismatch, "FASTA file must contain superset of reference contigs in BAM"
         self.referenceFasta = ft
 
+    def _checkFileCompatibility(self):
+        # Verify that this is a "pacbio" BAM file of version at least
+        # 3.0b3
+        try:
+            checkedVersion = self.version
+        except:
+            raise IncompatibleFile(
+                "This BAM file is incompatible with this API " +
+                "(only PacBio BAM files version >= 3.0b3 are supported)")
+
     def __init__(self, fname, referenceFastaFname=None):
         self.filename = fname = abspath(expanduser(fname))
         self.peer = Samfile(fname, "rb", check_sq=False)
+        self._checkFileCompatibility()
         # Check for sortedness, index.
         # There doesn't seem to be a "public" way to do this right
         # now, but that's fine because we're going to have to rewrite
