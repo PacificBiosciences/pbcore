@@ -637,7 +637,7 @@ class BaxH5Reader(object):
             bindingKit      = self.file["/ScanData/RunInfo"].attrs["BindingKit"]
             sequencingKit   = self.file["/ScanData/RunInfo"].attrs["SequencingKit"]
             # version string in bas file looks like "2.1.1.1.x", we have to extract
-            # the "2.1.1"
+            # the "2.1"
             tmp = self.file["/PulseData/BaseCalls"].attrs["ChangeListID"]
             swVersion= ".".join(tmp.split(".")[0:2])
             return (bindingKit, sequencingKit, swVersion)

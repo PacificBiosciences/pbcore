@@ -74,7 +74,7 @@ def tripleFromMetadataXML(metadataXmlPath):
         root = tree.getroot()
         bindingKit = root.find("pb:BindingKit/pb:PartNumber", namespaces=nsd).text
         sequencingKit = root.find("pb:SequencingKit/pb:PartNumber", namespaces=nsd).text
-        # The instrument version is truncated to the first 3 dot components
+        # The instrument version is truncated to the first 2 dot delimited components
         instrumentControlVersion = root.find("pb:InstCtrlVer", namespaces=nsd).text
         verComponents = instrumentControlVersion.split(".")[0:2]
         instrumentControlVersion = ".".join(verComponents)
