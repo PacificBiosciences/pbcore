@@ -166,6 +166,8 @@ class _BamReaderBase(object):
 
         self.referenceFasta = None
         if referenceFastaFname is not None:
+            if self.isUnmapped:
+                raise ValueError, "Unmapped BAM file--reference FASTA should not be given as argument to BamReader"
             self._loadReferenceFasta(referenceFastaFname)
 
     @property
