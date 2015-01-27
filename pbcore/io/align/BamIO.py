@@ -165,12 +165,6 @@ class _BamReaderBase(object):
         self.filename = fname = abspath(expanduser(fname))
         self.peer = Samfile(fname, "rb", check_sq=False)
         self._checkFileCompatibility()
-        # Check for sortedness, index.
-        # There doesn't seem to be a "public" way to do this right
-        # now, but that's fine because we're going to have to rewrite
-        # it all anyway once the pysam rewrite lands.
-        if not self.peer._hasIndex:
-            raise IOError, "Specified bam file lacks a bam index---required for this API"
 
         self._loadReferenceInfo()
         self._loadReadGroupInfo()
@@ -247,7 +241,6 @@ class _BamReaderBase(object):
     def version(self):
         return self.peer.header["HD"]["pb"]
 
-    #TODO: Marcus needs to put something in the spec for this
     def versionAtLeast(self, minimalVersion):
         raise Unimplemented()
 
