@@ -104,7 +104,7 @@ class _BamReaderBase(object):
             # 32-bit word.  So we truncate here for the purposes of
             # cross-referencing within this API and the PacBioBamIndex
             # API.  We do check for a collision below.
-            rgID = int(rg["ID"][:8], 16)
+            rgID = np.int32(int(rg["ID"][:8], 16))
             rgName = rg["PU"]
             ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
             # spec: we only consider first two components of basecaller version
