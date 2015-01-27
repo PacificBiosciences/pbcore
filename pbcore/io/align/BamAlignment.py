@@ -214,14 +214,6 @@ class BamAlignment(AlignmentRecordMixin):
         return self.readGroupInfo.SequencingChemistry
 
     @property
-    def isForwardStrand(self):
-        return not self.isReverseStrand
-
-    @property
-    def isReverseStrand(self):
-        return self.peer.is_reverse
-
-    @property
     def referenceId(self):
         return self.tId
 
