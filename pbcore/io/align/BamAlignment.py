@@ -394,11 +394,7 @@ class BamAlignment(AlignmentRecordMixin):
         if featureName == "read":
             kind_  = "base"
             dtype_ = np.int8
-            data  = self.peer.seq
-        elif featureName == "QualityValue":
-            kind_  = "raw"
-            dtype_ = np.uint8
-            data  = self.peer.qual
+            data  = np.fromstring(self.peer.seq, dtype=dtype_)
         else:
             tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
             data_ = self.peer.opt(tag)
@@ -462,7 +458,7 @@ class BamAlignment(AlignmentRecordMixin):
 
     IPD            = _makePulseFeatureAccessor("IPD")
     PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
-    QualityValue   = _makePulseFeatureAccessor("QualityValue")
+    #QualityValue   = _makePulseFeatureAccessor("QualityValue")
     InsertionQV    = _makePulseFeatureAccessor("InsertionQV")
     DeletionQV     = _makePulseFeatureAccessor("DeletionQV")
     DeletionTag    = _makePulseFeatureAccessor("DeletionTag")
