@@ -97,8 +97,8 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         else:               rQuery = "*"
 
         rgs = rgIDs(movieName)
-        rns = np.flatnonzero(np.in1d(self.ReadGroupID, rgs) &
-                             (self.HoleNumber == holeNumber))
+        rns = np.flatnonzero(np.in1d(self.qId, rgs) &
+                             (self.holeNumber == holeNumber))
         alns = [ a for a in self[rns]
                  if rQueryMatch(a.readName, rQuery) ]
         return sorted(alns, key=lambda a: a.readStart)

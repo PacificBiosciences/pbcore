@@ -300,6 +300,16 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.MovieID
 
     @property
+    def qId(self):
+        # Forward compatibility with BAM API
+        return self.ReadGroupID
+
+    @property
+    def holeNumber(self):
+        # Forward compatibility with BAM API
+        return self.HoleNumber
+
+    @property
     def readGroupInfo(self):
         """
         Returns the corresponding record from the `readGroupTable`.
