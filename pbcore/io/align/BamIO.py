@@ -107,7 +107,10 @@ class _BamReaderBase(object):
             rgID = int(rg["ID"][:8], 16)
             rgName = rg["PU"]
             ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
-            triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], ds["BASECALLERVERSION"]
+            # spec: we only consider first two components of basecaller version
+            # in "chem" lookup
+            basecallerVersion = ".".join(ds["BASECALLERVERSION"].split(".")[0:2])
+            triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
             readGroupTable_.append((rgID, rgName, rgReadType, rgChem))
