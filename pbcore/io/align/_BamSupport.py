@@ -71,6 +71,13 @@ BAM_CEQUAL     = 7
 BAM_CDIFF      = 8
 
 
+
+#
+# qId calculation from RG ID string
+#
+def rgAsInt(rgIdString):
+    return np.int32(int(rgIdString, 16))
+
 #
 # Kinetics: decode the scheme we are using to encode approximate frame
 # counts in 8-bits.

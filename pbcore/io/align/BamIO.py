@@ -99,12 +99,7 @@ class _BamReaderBase(object):
         readGroupTable_ = []
         pulseFeaturesInAll_ = frozenset(PULSE_FEATURE_TAGS.keys())
         for rg in rgs:
-            # Regarding RG ID: BLASR currently outputs a hex digest of
-            # 10 nibbles, instead of the 8 which would fit into a
-            # 32-bit word.  So we truncate here for the purposes of
-            # cross-referencing within this API and the PacBioBamIndex
-            # API.  We do check for a collision below.
-            rgID = np.int32(int(rg["ID"][:8], 16))
+            rgID = rgAsInt(rg["ID"])
             rgName = rg["PU"]
             ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
             # spec: we only consider first two components of basecaller version
@@ -118,14 +113,14 @@ class _BamReaderBase(object):
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
-            dtype=[("ID"                 , np.uint32),
+            dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
                    ("SequencingChemistry", "O")])
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
-        self._readGroupDict = { rg.ID : rg
+        self._readGroupDict = { rgID : rg
                                 for rg in self._readGroupTable }
 
         self._pulseFeaturesAvailable = pulseFeaturesInAll_

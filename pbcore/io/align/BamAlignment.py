@@ -214,7 +214,7 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def readGroupInfo(self):
-        return self.bam.readGroupInfo(int(self.peer.opt("RG")[:8], 16))
+        return self.bam.readGroupInfo(rgAsInt(self.peer.opt("RG")))
 
     @property
     def readType(self):
