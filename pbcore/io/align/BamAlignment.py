@@ -110,15 +110,23 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def qStart(self):
-        return self.peer.opt("YS")
+        return self.peer.opt("qs")
 
     @property
     def qEnd(self):
-        return self.peer.opt("YE")
+        return self.peer.opt("qe")
 
     @property
     def tId(self):
         return self.peer.tid
+
+    @property
+    def isMapped(self):
+        return not self.isUnmapped
+
+    @property
+    def isUnmapped(self):
+        return self.peer.is_unmapped
 
     @property
     def isReverseStrand(self):
@@ -130,7 +138,7 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def HoleNumber(self):
-        return self.peer.opt("ZM")
+        return self.peer.opt("zm")
 
     @property
     def MapQV(self):
@@ -146,6 +154,7 @@ class BamAlignment(AlignmentRecordMixin):
             This function takes time linear in the length of the alignment.
         """
         assert type(self) is BamAlignment
+        assert self.isMapped
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
@@ -240,7 +249,7 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def numPasses(self):
-        return self.peer.opt("NP")
+        return self.peer.opt("np")
 
     @property
     def zScore(self):
@@ -455,8 +464,11 @@ class BamAlignment(AlignmentRecordMixin):
         return feature.tostring()
 
     def __repr__(self):
-        return "BAM alignment: %s  %3d  %9d  %9d" \
-            % (("+" if self.isForwardStrand else "-"),
+        if self.isUnmapped:
+            return "Unmapped BAM record: " + self.queryName
+        else:
+            return "BAM alignment: %s @ %s  %3d  %9d  %9d" \
+            % (self.queryName, ("+" if self.isForwardStrand else "-"),
                self.referenceId, self.tStart, self.tEnd)
 
     def __str__(self):
