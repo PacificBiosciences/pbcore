@@ -92,7 +92,7 @@ class _BamReaderBase(object):
             rgID = int(rg["ID"][:8], 16)
             rgName = rg["PU"]
             ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
-            triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], ds["SOFTWAREVERSION"]
+            triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], ds["BASECALLERVERSION"]
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
             readGroupTable_.append((rgID, rgName, rgReadType, rgChem))
@@ -135,7 +135,7 @@ class _BamReaderBase(object):
 
     def __init__(self, fname, referenceFastaFname=None):
         self.filename = fname = abspath(expanduser(fname))
-        self.peer = Samfile(fname, "rb")
+        self.peer = Samfile(fname, "rb", check_sq=False)
         # Check for sortedness, index.
         # There doesn't seem to be a "public" way to do this right
         # now, but that's fine because we're going to have to rewrite
@@ -204,10 +204,9 @@ class _BamReaderBase(object):
         else:
             return "unknown"
 
-    #TODO: Marcus needs to put something in the spec for this
     @property
     def version(self):
-        raise Unimplemented()
+        return self.peer.header["HD"]["pb"]
 
     #TODO: Marcus needs to put something in the spec for this
     def versionAtLeast(self, minimalVersion):
@@ -218,7 +217,7 @@ class _BamReaderBase(object):
 
     @property
     def isSorted(self):
-        return True
+        return self.peer.header["HD"]["SO"] == "coordinate"
 
     @property
     def isBarcoded(self):
