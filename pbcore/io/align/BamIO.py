@@ -152,7 +152,7 @@ class _BamReaderBase(object):
         # now, but that's fine because we're going to have to rewrite
         # it all anyway once the pysam rewrite lands.
         if not self.peer._hasIndex:
-            raise ValueError, "Specified bam file lacks a bam index---required for this API"
+            raise IOError, "Specified bam file lacks a bam index---required for this API"
 
         self._loadReferenceInfo()
         self._loadReadGroupInfo()
@@ -329,7 +329,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
         if exists(pbiFname):
             self.pbi = PacBioBamIndex(pbiFname)
         else:
-            raise ValueError, "IndexedBamReader requires bam.pbi index file"
+            raise IOError, "IndexedBamReader requires bam.pbi index file"
         assert len(self.pbi) == self.peer.mapped, "Corrupt or mismatched pbi index file"
 
     def atRowNumber(self, rn):
