@@ -348,7 +348,6 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             self.pbi = PacBioBamIndex(pbiFname)
         else:
             raise IOError, "IndexedBamReader requires bam.pbi index file"
-        assert len(self.pbi) == self.peer.mapped, "Corrupt or mismatched pbi index file"
 
     def atRowNumber(self, rn):
         offset = self.pbi.virtualFileOffset[rn]
