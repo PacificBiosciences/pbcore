@@ -284,8 +284,8 @@ class CmpH5Alignment(AlignmentRecordMixin):
             return ClippedCmpH5Alignment(self, refStart, refEnd)
 
     @property
-    def alignmentGroup(self):
-        return self.cmpH5.alignmentGroup(self.AlnGroupID)
+    def _alignmentGroup(self):
+        return self.cmpH5._alignmentGroup(self.AlnGroupID)
 
     @property
     def referenceInfo(self):
@@ -414,7 +414,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         Direct access to the raw, encoded aligment array, which is a
         packed representation of the aligned read and reference.
         """
-        alnDs = self.alignmentGroup["AlnArray"]
+        alnDs = self._alignmentGroup["AlnArray"]
         alnArray = arrayFromDataset(alnDs, self.Offset_begin, self.Offset_end)
         if self.RCRefStrand and (orientation == "genomic"):
             return alnArray[::-1]
@@ -515,7 +515,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         """
         Access a pulse feature by name.
         """
-        pulseDataset = self.alignmentGroup[featureName]
+        pulseDataset = self._alignmentGroup[featureName]
         pulseArray = arrayFromDataset(pulseDataset, self.Offset_begin, self.Offset_end)
         if self.RCRefStrand and orientation == "genomic":
             alignedPulseArray = pulseArray[::-1]
@@ -1007,7 +1007,7 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
     def isEmpty(self):
         return len(self.file["/AlnInfo/AlnIndex"]) == 0
 
-    def alignmentGroup(self, alnGroupId):
+    def _alignmentGroup(self, alnGroupId):
         return self._alignmentGroupById[alnGroupId]
 
     @property

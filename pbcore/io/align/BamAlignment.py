@@ -194,11 +194,6 @@ class BamAlignment(AlignmentRecordMixin):
             rStart = rEnd - readLength
         return ClippedBamAlignment(self, tStart, tEnd, rStart, rEnd, cUc)
 
-    #TODO: remove this
-    @property
-    def alignmentGroup(self):
-        raise UnavailableFeature("BAM has no HDF5 groups")
-
     @property
     @requiresMapping
     def referenceInfo(self):

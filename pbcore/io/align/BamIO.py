@@ -252,10 +252,6 @@ class _BamReaderBase(object):
     def isEmpty(self):
         return (len(self) == 0)
 
-    # TODO: make this private in cmp.h5 reader
-    def alignmentGroup(self, alnGroupId):
-        raise UnavailableFeature("BAM has no HDF5 groups")
-
     def referenceInfo(self, key):
         return self._referenceDict[key]
 
