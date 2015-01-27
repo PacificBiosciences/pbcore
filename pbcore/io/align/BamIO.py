@@ -61,23 +61,26 @@ class _BamReaderBase(object):
         refIds = map(self.peer.gettid, refNames)
         nRefs = len(refRecords)
 
-        self._referenceInfoTable = np.rec.fromrecords(zip(
-            refIds,
-            refIds,
-            refNames,
-            refNames,
-            refLengths,
-            refMD5s,
-            np.zeros(nRefs, dtype=np.uint32),
-            np.zeros(nRefs, dtype=np.uint32)),
-            dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
-                   ('Name', 'O'), ('FullName', 'O'),
-                   ('Length', '<i8'), ('MD5', 'O'),
-                   ('StartRow', '<u4'), ('EndRow', '<u4')])
-        self._referenceDict = {}
-        self._referenceDict.update(zip(refIds, self._referenceInfoTable))
-        self._referenceDict.update(zip(refNames, self._referenceInfoTable))
-
+        if nRefs > 0:
+            self._referenceInfoTable = np.rec.fromrecords(zip(
+                refIds,
+                refIds,
+                refNames,
+                refNames,
+                refLengths,
+                refMD5s,
+                np.zeros(nRefs, dtype=np.uint32),
+                np.zeros(nRefs, dtype=np.uint32)),
+                dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
+                       ('Name', 'O'), ('FullName', 'O'),
+                       ('Length', '<i8'), ('MD5', 'O'),
+                       ('StartRow', '<u4'), ('EndRow', '<u4')])
+            self._referenceDict = {}
+            self._referenceDict.update(zip(refIds, self._referenceInfoTable))
+            self._referenceDict.update(zip(refNames, self._referenceInfoTable))
+        else:
+            self._referenceInfoTable = None
+            self._referenceDict = None
 
     def _loadReadGroupInfo(self):
         rgs = self.peer.header["RG"]
@@ -114,14 +117,17 @@ class _BamReaderBase(object):
 
 
     def _loadProgramInfo(self):
-        # TODO: guarantee that these fields are nonoptional in our bams --- check with Marcus
-        # TODO: are we interesting in the PP info?
-        self._programTable = np.rec.fromrecords(
-            [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
-              for pg in self.peer.header["PG"] ],
-            dtype=[("ID"     ,     "O"),
-                   ("Version",     "O"),
-                   ("CommandLine", "O")])
+        pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
+                      for pg in self.peer.header.get("PG", []) ]
+
+        if len(pgRecords) > 0:
+            self._programTable = np.rec.fromrecords(
+                pgRecords,
+                dtype=[("ID"     ,     "O"),
+                       ("Version",     "O"),
+                       ("CommandLine", "O")])
+        else:
+            self._programTable = None
 
     def _loadReferenceFasta(self, referenceFastaFname):
         ft = FastaTable(referenceFastaFname)
@@ -169,6 +175,14 @@ class _BamReaderBase(object):
     @property
     def isReferenceLoaded(self):
         return self.referenceFasta is not None
+
+    @property
+    def isUnmapped(self):
+        return not(self.isMapped)
+
+    @property
+    def isMapped(self):
+        return len(self.peer.header["SQ"]) > 0
 
     @property
     def alignmentIndex(self):
