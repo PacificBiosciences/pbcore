@@ -24,12 +24,13 @@ class TestQvConversion:
 class TestFastqRecord:
 
     def setup(self):
-        self.name = "chr1|blah|blah\tblah blah"
-        self.rc_name = "chr1|blah|blah\tblah blah [revcomp]"
+        self.header = "chr1|blah|blah\tblah blah"
+        self.rc_header = "chr1|blah|blah\tblah blah [revcomp]"
         self.id = "chr1|blah|blah"
         self.metadata = "blah blah"
         self.sequence = "GATTACA" * 20
         self.rc_sequence = "TGTAATC" * 20
+        self.length = 140
         self.quality  = [10,11,12,13,14,15,16] * 20
         self.rc_quality = [16,15,14,13,12,11,10] * 20
         self.qualityString = "+,-./01" * 20
@@ -61,14 +62,14 @@ class TestFastqRecord:
             "10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/."
             "-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+10/.-,+1"
             "0/.-,+10/.-,+10/.-,+")
-        self.record = FastqRecord(self.name, self.sequence, self.quality)
-        self.record2 = FastqRecord(self.name, self.sequence,
+        self.record = FastqRecord(self.header, self.sequence, self.quality)
+        self.record2 = FastqRecord(self.header, self.sequence,
                                    qualityString=self.qualityString)
         self.rc1_record = self.record.reverseComplement()
         self.rc2_record = self.record.reverseComplement(True)
 
     def test__init__(self):
-        assert_equal(self.name, self.record.name)
+        assert_equal(self.header, self.record.header)
         assert_equal(self.sequence, self.record.sequence)
         assert_equal(self.id, self.record.id)
         assert_equal(self.metadata, self.record.metadata)
@@ -80,38 +81,43 @@ class TestFastqRecord:
 
     def test_fromString(self):
         recordFromString = FastqRecord.fromString(self.expected__str__)
-        assert_equal(self.name, recordFromString.name)
+        assert_equal(self.header, recordFromString.header)
         assert_equal(self.sequence, recordFromString.sequence)
         assert_array_equal(self.quality, recordFromString.quality)
 
     def test_reverse_complement1(self):
-        assert_equal(self.rc1_record.name, self.rc_name)
+        assert_equal(self.rc1_record.header, self.rc_header)
         assert_equal(self.rc1_record.sequence, self.rc_sequence)
         assert_equal(self.rc1_record.quality, self.rc_quality)
         assert_equal(self.rc1_record.qualityString, self.rc_qualityString)
         assert_equal(str(self.rc1_record), self.rc1_expected__str__)
 
     def test_reverse_complement2(self):
-        assert_equal(self.rc2_record.name, self.record.name)
+        assert_equal(self.rc2_record.header, self.record.header)
         assert_equal(self.rc2_record.sequence, self.rc_sequence)
         assert_equal(self.rc2_record.quality, self.rc_quality)
         assert_equal(self.rc2_record.qualityString, self.rc_qualityString)
         assert_equal(str(self.rc2_record), self.rc2_expected__str__)
 
+    def test_len(self):
+        assert_equal(self.length, len(self.record))
+        assert_equal(self.length, len(self.rc1_record))
+        assert_equal(self.length, len(self.rc2_record))
+
     def test_eq(self):
-        name = 'r1'
+        header = 'r1'
         seq = 'ACGT'
         qvs = list(xrange(10, 10 + len(seq)))
-        r1 = FastqRecord(name, seq, qvs)
-        r2 = FastqRecord(name, seq, qvs)
+        r1 = FastqRecord(header, seq, qvs)
+        r2 = FastqRecord(header, seq, qvs)
         assert_true(r1 == r2)
         assert_false(r1 != r2)
 
     def test_not_equal(self):
-        name = 'r1'
+        header = 'r1'
         seq = 'ACGT'
         qvs = list(xrange(10, 10 + len(seq)))
-        r1 = FastqRecord(name, seq, qvs)
+        r1 = FastqRecord(header, seq, qvs)
         r2 = FastqRecord('r2', seq, qvs)
         assert_true(r1 != r2)
 
@@ -173,5 +179,5 @@ class TestFastqWriter:
         f = StringIO()
         w = FastqWriter(f)
         for record in FastqReader(self.fastq2):
-            w.writeRecord(record.name, record.sequence, record.quality)
+            w.writeRecord(record.header, record.sequence, record.quality)
         assert_equal(self.fastq2.getvalue(), f.getvalue())

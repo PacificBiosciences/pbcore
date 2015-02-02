@@ -43,6 +43,7 @@ __all__ = [ "FastaRecord",
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore.util import sequences
+from pbcore.util.decorators import deprecated
 
 import md5, mmap, numpy as np, re
 from collections import namedtuple, OrderedDict, Sequence
@@ -68,25 +69,34 @@ class FastaRecord(object):
     DELIMITER = ">"
     COLUMNS   = 60
 
-    def __init__(self, name, sequence):
+    def __init__(self, header, sequence):
         try:
-            assert "\n" not in name
+            assert "\n" not in header
             assert "\n" not in sequence
             assert self.DELIMITER not in sequence
-            self._name = name
+            self._header = header
             self._sequence = sequence
             self._md5 = md5.md5(self.sequence).hexdigest()
-            self._id, self._metadata = splitFastaHeader(name)
+            self._id, self._metadata = splitFastaHeader(header)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
 
     @property
+    def header(self):
+        """
+        The header of the sequence in the FASTA file, equal to the entire
+        first line of the FASTA record following the '>' character
+        """
+        return self._header
+
+    @property
+    @deprecated
     def name(self):
         """
-        The name of the sequence in the FASTA file, equal to the entire
-        FASTA header following the '>' character
+        DEPRECATED: The name of the sequence in the FASTA file, equal to
+        the entire FASTA header following the '>' character
         """
-        return self._name
+        return self._header
 
     @property
     def id(self):
@@ -114,6 +124,7 @@ class FastaRecord(object):
         return self._sequence
 
     @property
+    @deprecated
     def length(self):
         """
         Get the length of the FASTA sequence
@@ -137,9 +148,9 @@ class FastaRecord(object):
             lines = s.splitlines()
             assert len(lines) > 1
             assert lines[0][0] == cls.DELIMITER
-            name = lines[0][1:]
+            header = lines[0][1:]
             sequence = "".join(lines[1:])
-            return FastaRecord(name, sequence)
+            return FastaRecord(header, sequence)
         except AssertionError:
             raise ValueError("String not recognized as a valid FASTA record")
 
@@ -150,14 +161,17 @@ class FastaRecord(object):
         """
         rcSequence = sequences.reverseComplement(self.sequence)
         if preserveHeader:
-            return FastaRecord(self.name, rcSequence)
+            return FastaRecord(self.header, rcSequence)
         else:
-            rcName = '{0} [revcomp]'.format(self.name.strip())
+            rcName = '{0} [revcomp]'.format(self.header.strip())
             return FastaRecord(rcName, rcSequence)
+
+    def __len__(self):
+        return len(self._sequence)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return (self.name     == other.name and
+            return (self.header   == other.header and
                     self.sequence == other.sequence)
         else:
             return False
@@ -170,7 +184,7 @@ class FastaRecord(object):
         Output a string representation of this FASTA record, observing
         standard conventions about sequence wrapping.
         """
-        return (">%s\n" % self.name) + \
+        return (">%s\n" % self.header) + \
             wrap(self.sequence, self.COLUMNS)
 
 
@@ -188,7 +202,7 @@ class FastaReader(ReaderBase):
         >>> filename = data.getTinyFasta()
         >>> r = FastaReader(filename)
         >>> for record in r:
-        ...     print record.name, len(record.sequence), record.md5
+        ...     print record.header, len(record.sequence), record.md5
         ref000001|EGFR_Exon_2 183 e3912e9ceacd6538ede8c1b2adda7423
         ref000002|EGFR_Exon_3 203 4bf218da37175a91869033024ac8f9e9
         ref000003|EGFR_Exon_4 215 245bc7a046aad0788c22b071ed210f4d
@@ -241,8 +255,8 @@ class FastaWriter(WriterBase):
             record = args[0]
             assert isinstance(record, FastaRecord)
         else:
-            name, sequence = args
-            record = FastaRecord(name, sequence)
+            header, sequence = args
+            record = FastaRecord(header, sequence)
         self.file.write(str(record))
         self.file.write("\n")
 

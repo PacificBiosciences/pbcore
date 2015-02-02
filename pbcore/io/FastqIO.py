@@ -43,6 +43,7 @@ import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
 from pbcore.util import sequences
+from pbcore.util.decorators import deprecated
 
 class FastqRecord(object):
     """
@@ -60,13 +61,13 @@ class FastqRecord(object):
     DELIMITER1 = "@"
     DELIMITER2 = "+"
 
-    def __init__(self, name, sequence, quality=None, qualityString=None):
+    def __init__(self, header, sequence, quality=None, qualityString=None):
         try:
-            assert "\n" not in name
+            assert "\n" not in header
             assert "\n" not in sequence
-            self._name = name
+            self._header = header
             self._sequence = sequence
-            self._id, self._metadata = splitFastaHeader(name)
+            self._id, self._metadata = splitFastaHeader(header)
 
             # Only one of quality, qualityString should be provided
             assert (quality is None) != (qualityString is None)
@@ -79,11 +80,19 @@ class FastqRecord(object):
             raise ValueError("Invalid FASTQ record data")
 
     @property
+    def header(self):
+        """
+        The header of the sequence in the FASTQ file
+        """
+        return self._header
+
+    @property
+    @deprecated
     def name(self):
         """
-        The name of the sequence in the FASTQ file
+        DEPRECATED: The name of the sequence in the FASTQ file
         """
-        return self._name
+        return self._header
 
     @property
     def id(self):
@@ -94,6 +103,7 @@ class FastqRecord(object):
         return self._id
 
     @property
+    @deprecated
     def length(self):
         """
         The length of the sequence
@@ -141,10 +151,10 @@ class FastqRecord(object):
             assert lines[0][0] == cls.DELIMITER1
             assert lines[2][0] == cls.DELIMITER2
             assert len(lines[1]) == len(lines[3])
-            name = lines[0][1:]
+            header = lines[0][1:]
             sequence = lines[1]
             quality = qvsFromAscii(lines[3])
-            return FastqRecord(name, sequence, quality)
+            return FastqRecord(header, sequence, quality)
         except AssertionError:
             raise ValueError("String not recognized as a valid FASTQ record")
 
@@ -156,14 +166,17 @@ class FastqRecord(object):
         rcSequence = sequences.reverseComplement(self.sequence)
         rcQuality = sequences.reverse(self.quality)
         if preserveHeader:
-            return FastqRecord(self.name, rcSequence, rcQuality)
+            return FastqRecord(self.header, rcSequence, rcQuality)
         else:
-            rcName = '{0} [revcomp]'.format(self.name.strip())
+            rcName = '{0} [revcomp]'.format(self.header.strip())
             return FastqRecord(rcName, rcSequence, rcQuality)
+
+    def __len__(self):
+        return len(self._sequence)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return (self.name     == other.name and
+            return (self.header   == other.header and
                     self.sequence == other.sequence and
                     np.array_equiv(self.quality, other.quality))
         else:
@@ -177,7 +190,7 @@ class FastqRecord(object):
         Output a string representation of this FASTQ record, in
         standard four-line format.
         """
-        return "\n".join([self.DELIMITER1 + self.name,
+        return "\n".join([self.DELIMITER1 + self.header,
                           self.sequence,
                           self.DELIMITER2,
                           self.qualityString])
@@ -231,8 +244,8 @@ class FastqWriter(WriterBase):
             record = args[0]
             assert isinstance(record, FastqRecord)
         else:
-            name, sequence, quality = args
-            record = FastqRecord(name, sequence, quality)
+            header, sequence, quality = args
+            record = FastqRecord(header, sequence, quality)
         self.file.write(str(record))
         self.file.write("\n")
 

@@ -6,12 +6,13 @@ from StringIO import StringIO
 class TestFastaRecord:
 
     def setup(self):
-        self.name = "chr1|blah|blah\tblah blah"
-        self.rc_name = "chr1|blah|blah\tblah blah [revcomp]"
+        self.header = "chr1|blah|blah\tblah blah"
+        self.rc_header = "chr1|blah|blah\tblah blah [revcomp]"
         self.id = "chr1|blah|blah"
         self.metadata = "blah blah"
         self.sequence = "GATTACA" * 20
         self.rc_sequence = "TGTAATC" * 20
+        self.length = 140
         self.expected__str__ = (
             ">chr1|blah|blah\tblah blah\n"
             "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n"
@@ -27,12 +28,12 @@ class TestFastaRecord:
             "TGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTA\n"
             "ATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCTGTAATCT\n"
             "GTAATCTGTAATCTGTAATC")
-        self.record = FastaRecord(self.name, self.sequence)
+        self.record = FastaRecord(self.header, self.sequence)
         self.rc1_record = self.record.reverseComplement()
         self.rc2_record = self.record.reverseComplement(True)
 
     def test__init__(self):
-        assert_equal(self.name, self.record.name)
+        assert_equal(self.header, self.record.header)
         assert_equal(self.sequence, self.record.sequence)
         assert_equal(self.id, self.record.id)
         assert_equal(self.metadata, self.record.metadata)
@@ -42,7 +43,7 @@ class TestFastaRecord:
 
     def test_fromString(self):
         recordFromString = FastaRecord.fromString(self.expected__str__)
-        assert_equal(self.name, recordFromString.name)
+        assert_equal(self.header, recordFromString.header)
         assert_equal(self.sequence, recordFromString.sequence)
 
     def test_md5(self):
@@ -50,20 +51,25 @@ class TestFastaRecord:
                      self.record.md5)
 
     def test_reverse_complement1(self):
-        assert_equal(self.rc1_record.name, self.rc_name)
+        assert_equal(self.rc1_record.header, self.rc_header)
         assert_equal(self.rc1_record.sequence, self.rc_sequence)
         assert_equal(self.rc1_expected__str__, str(self.rc1_record))
 
     def test_reverse_complement2(self):
-        assert_equal(self.rc2_record.name, self.name)
+        assert_equal(self.rc2_record.header, self.header)
         assert_equal(self.rc2_record.sequence, self.rc_sequence)
         assert_equal(self.rc2_expected__str__, str(self.rc2_record))
 
+    def test_len(self):
+        assert_equal(self.length, len(self.record))
+        assert_equal(self.length, len(self.rc1_record))
+        assert_equal(self.length, len(self.rc2_record))
+
     def test_eq(self):
-        name = 'r1'
+        header = 'r1'
         seq = 'ACGT'
-        r1 = FastaRecord(name, seq)
-        r2 = FastaRecord(name, seq)
+        r1 = FastaRecord(header, seq)
+        r2 = FastaRecord(header, seq)
         assert_true(r1 == r2)
 
     def test_not_equal(self):
@@ -80,7 +86,7 @@ class TestFastaReader:
         f = FastaReader(data.getFasta())
         entries = list(f)
         assert_equal(48, len(entries))
-        assert_equal("ref000001|EGFR_Exon_2", entries[0].name)
+        assert_equal("ref000001|EGFR_Exon_2", entries[0].header)
         assert_equal("TTTCTTCCAGTTTGCCAAGGCACGAGTAACAAGCTCACGCAGTTGGGCACTTT"
                      "TGAAGATCATTTTCTCAGCCTCCAGAGGATGTTCAATAACTGTGAGGTGGTCC"
                      "TTGGGAATTTGGAAATTACCTATGTGCAGAGGAATTATGATCTTTCCTTCTTA"
@@ -93,7 +99,7 @@ class TestFastaReader:
         f = FastaReader(data.getDosFormattedFasta())
         entries = list(f)
         for e in entries:
-            assert_true("\r" not in e.name)
+            assert_true("\r" not in e.header)
             assert_equal(16, len(e.sequence))
 
 
@@ -123,5 +129,5 @@ class TestFastaWriter:
         f = StringIO()
         w = FastaWriter(f)
         for record in FastaReader(self.fasta1):
-            w.writeRecord(record.name, record.sequence)
+            w.writeRecord(record.header, record.sequence)
         assert_equal(self.fasta1.getvalue(), f.getvalue())
