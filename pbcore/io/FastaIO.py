@@ -38,6 +38,7 @@ __all__ = [ "FastaRecord",
             "FastaReader",
             "FastaWriter",
             "FastaTable",
+            "IndexedFastaReader",
             "splitFastaHeader"]
 
 from .base import ReaderBase, WriterBase
@@ -85,7 +86,11 @@ class FastaRecord(object):
     def header(self):
         """
         The header of the sequence in the FASTA file, equal to the entire
-        first line of the FASTA record following the '>' character
+        first line of the FASTA record following the '>' character.
+
+        .. warning::
+
+           You should almost certainly be using "id", not "header".
         """
         return self._header
 
@@ -179,6 +184,9 @@ class FastaRecord(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return "<FastaRecord: %s>" % self.header
+
     def __str__(self):
         """
         Output a string representation of this FASTA record, observing
@@ -271,10 +279,10 @@ def wrap(s, columns):
 
 
 # ------------------------------------------------------------------------------
-# FastaTable: random access Fasta class
+# IndexedFastaReader: random access Fasta class
 #
 
-FaiRecord = namedtuple("FaiRecord", ("name", "length", "offset", "lineWidth", "stride"))
+FaiRecord = namedtuple("FaiRecord", ("id", "comment", "header", "length", "offset", "lineWidth", "stride"))
 
 def faiFilename(fastaFilename):
     return fastaFilename + ".fai"
@@ -286,24 +294,22 @@ def loadFastaIndex(faidxFilename, fastaView):
                       "malformatted! Use 'samtools faidx' to generate FASTA "
                       "index.")
 
-    tbl = OrderedDict()
-    #
-    # `samtools faidx` mangles FASTA contig names containing a
-    # space, for example, so we have to look up the true name in
-    # the FASTA file itself, ignoring the name in the fai.
-    #
+    tbl = []
+    # NB: We have to look back in the FASTA to find the full header;
+    # only "id" makes it into the fai.
     offsetEnd = 0
     for line in open(faidxFilename):
         length, offset, lineWidth, blen = map(int, line.split()[-4:])
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
-        header    = fastaView[offsetEnd:offset]
-        assert (header[0] == ">" and header[-1] == "\n")
-        name      = header[1:-newlineWidth]
+        header_    = fastaView[offsetEnd:offset]
+        assert (header_[0] == ">" and header_[-1] == "\n")
+        header     = header_[1:-newlineWidth]
+        id, comment = splitFastaHeader(header)
         q, r = divmod(length, lineWidth)
         numNewlines = q + (r > 0)
         offsetEnd = offset + length + numNewlines*newlineWidth
-        record = FaiRecord(name, length, offset, lineWidth, blen)
-        tbl[name] = record
+        record = FaiRecord(id, comment, header, length, offset, lineWidth, blen)
+        tbl.append(record)
     return tbl
 
 def fileOffset(faiRecord, pos):
@@ -351,40 +357,49 @@ class MmappedFastaSequence(Sequence):
         return (isinstance(other, MmappedFastaSequence) and
                 self[:] == other[:])
 
-class FastaTableRecord(object):
+class IndexedFastaRecord(object):
     def __init__(self, view, faiRecord):
         self.view = view
         self.faiRecord = faiRecord
 
     @property
+    @deprecated
     def name(self):
-        return self.faiRecord.name
+        return self.header
+
+    @property
+    def header(self):
+        return self.faiRecord.header
 
     @property
     def id(self):
-        return splitFastaHeader(self.name)[0]
+        return self.faiRecord.id
 
     @property
     def metadata(self):
-        return splitFastaHeader(self.name)[1]
+        return self.faiRecord.comment
 
     @property
     def sequence(self):
         return MmappedFastaSequence(self.view, self.faiRecord)
 
     @property
+    @deprecated
     def length(self):
         return self.faiRecord.length
 
+    def __len__(self):
+        return self.faiRecord.length
+
     def __repr__(self):
-        return "<FastaTableRecord: %s>" % self.name
+        return "<IndexedFastaRecord: %s>" % self.header
 
     def __eq__(self, other):
-        return (isinstance(other, FastaTableRecord) and
-                self.name == other.name and
+        return (isinstance(other, IndexedFastaRecord) and
+                self.header == other.header and
                 self.sequence == other.sequence)
 
-class FastaTable(ReaderBase, Sequence):
+class IndexedFastaReader(ReaderBase, Sequence):
     """
     Random-access FASTA file reader.
 
@@ -397,12 +412,12 @@ class FastaTable(ReaderBase, Sequence):
         >>> from pbcore.io import FastaTable
         >>> from pbcore import data
         >>> filename = data.getFasta()
-        >>> t = FastaTable(filename)
+        >>> t = IndexedFastaReader(filename)
         >>> print t[:4] # doctest: +NORMALIZE_WHITESPACE
-        [<FastaTableRecord: ref000001|EGFR_Exon_2>,
-        <FastaTableRecord: ref000002|EGFR_Exon_3>,
-        <FastaTableRecord: ref000003|EGFR_Exon_4>,
-        <FastaTableRecord: ref000004|EGFR_Exon_5>]
+        [<IndexedFastaRecord: ref000001|EGFR_Exon_2>,
+         <IndexedFastaRecord: ref000002|EGFR_Exon_3>,
+         <IndexedFastaRecord: ref000003|EGFR_Exon_4>,
+         <IndexedFastaRecord: ref000004|EGFR_Exon_5>]
         >>> t.close()
 
     """
@@ -416,33 +431,31 @@ class FastaTable(ReaderBase, Sequence):
         self.contigById = self._loadContigById()
 
     def _loadContigById(self):
-        # Initialize the dictionary with the full sequence name
-        contigById = dict(self.fai)
-        # Add the same records back under just the Id as well
-        for name in contigById.keys():
-            id_ = splitFastaHeader(name)[0]
-            if id_ not in contigById:
-                contigById[id_] = contigById[name]
-        # Finally add their index number
-        contigById.update(zip(xrange(len(self.fai)),
-                              self.fai.itervalues()))
-        return contigById
+        contigByKey = dict()
+        for (pos, faiRecord) in enumerate(self.fai):
+            contigByKey[pos]              = faiRecord
+            contigByKey[faiRecord.id]     = faiRecord
+            contigByKey[faiRecord.header] = faiRecord
+        return contigByKey
 
     def __getitem__(self, key):
         if key < 0:
             key = len(self) + key
 
         if isinstance(key, slice):
-            indices = xrange(*key.indices(len(self.fai)))
-            return [ FastaTableRecord(self.view, self.contigById[i])
+            indices = xrange(*key.indices(len(self)))
+            return [ IndexedFastaRecord(self.view, self.contigById[i])
                      for i in indices ]
         elif key in self.contigById:
-            return FastaTableRecord(self.view, self.contigById[key])
+            return IndexedFastaRecord(self.view, self.contigById[key])
         else:
             raise IndexError, "Contig not in FastaTable"
 
     def __iter__(self):
-        return (self[key] for key in self.fai)
+        return (self[i] for i in xrange(len(self)))
 
     def __len__(self):
         return len(self.fai)
+
+# old name for IndexedFastaReader was FastaTable
+FastaTable = IndexedFastaReader
