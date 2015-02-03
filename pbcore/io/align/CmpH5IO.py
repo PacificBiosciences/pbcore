@@ -331,12 +331,6 @@ class CmpH5Alignment(AlignmentRecordMixin):
         extracted from.  This record should be accessed using
         dot-notation, according to the column names documented in
         `movieInfoTable`.
-
-        .. doctest::
-
-            >>> mi = c[0].movieInfo
-            >>> mi.Name, mi.ID, mi.TimeScale
-            ('m110818_075520_42141_c100129202555500000315043109121112_s2_p0', 1, 1.0)
         """
         return self.cmpH5.movieInfo(self.MovieID)
 
@@ -1077,15 +1071,6 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         in the file.
 
         The returned value is a record from the :attr:`movieInfoTable`
-
-        .. doctest::
-
-            >>> mi = c.movieInfo(1)
-            >>> mi.Name
-            'm110818_075520_42141_c100129202555500000315043109121112_s2_p0'
-            >>> mi.TimeScale
-            1.0
-
         """
         return self._movieInfo(movieId)
 
