@@ -357,20 +357,32 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.RefGroupID
 
     @property
-    def accuracy(self):
+    def identity(self):
         """
-        Return the accuracy of this alignment, calculated as
+        Return the identity of this alignment, calculated as
         (#matchs / read length)
 
         .. doctest::
 
-            >>> c[26].accuracy
+            >>> c[26].identity
             0.87050359712230219
         """
         if self.readLength == 0:
             return 0.
         else:
             return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+
+    @property
+    @deprecated
+    def accuracy(self):
+        """
+        Return the identity of this alignment, calculated as
+        (#matchs / read length)
+
+        .. deprecated:: 0.9.5
+           Use :attr:`identity`
+        """
+        return self.identity
 
     @property
     def similarity(self):
@@ -563,7 +575,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         val += "Read:        " + self.readName           + "\n"
         val += "Reference:   " + self.referenceName      + "\n\n"
         val += "Read length: " + str(self.readLength)    + "\n"
-        val += "Concordance: " + "%0.3f" % self.accuracy + "\n"
+        val += "Concordance: " + "%0.3f" % self.identity + "\n"
 
         alignedRead = self.read()
         alignedRef = self.reference()
