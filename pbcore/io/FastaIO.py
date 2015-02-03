@@ -53,15 +53,15 @@ from os.path import abspath, expanduser, isfile
 
 def splitFastaHeader( name ):
     """
-    Split a FASTA/FASTQ header into its id and metadata components
+    Split a FASTA/FASTQ header into its id and comment components
     """
     nameParts = re.split('\s', name, maxsplit=1)
     id_ = nameParts[0]
     if len(nameParts) > 1:
-        metadata = nameParts[1].strip()
+        comment = nameParts[1].strip()
     else:
-        metadata = None
-    return (id_, metadata)
+        comment = None
+    return (id_, comment)
 
 class FastaRecord(object):
     """
@@ -78,7 +78,7 @@ class FastaRecord(object):
             self._header = header
             self._sequence = sequence
             self._md5 = md5.md5(self.sequence).hexdigest()
-            self._id, self._metadata = splitFastaHeader(header)
+            self._id, self._comment = splitFastaHeader(header)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
 
@@ -112,12 +112,12 @@ class FastaRecord(object):
         return self._id
 
     @property
-    def metadata(self):
+    def comment(self):
         """
-        The metadata associated with the sequence in the FASTA file, equal to
+        The comment associated with the sequence in the FASTA file, equal to
         the contents of the FASTA header following the first whitespace
         """
-        return self._metadata
+        return self._comment
 
     @property
     def sequence(self):
@@ -376,7 +376,7 @@ class IndexedFastaRecord(object):
         return self.faiRecord.id
 
     @property
-    def metadata(self):
+    def comment(self):
         return self.faiRecord.comment
 
     @property

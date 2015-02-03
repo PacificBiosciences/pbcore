@@ -67,7 +67,7 @@ class FastqRecord(object):
             assert "\n" not in sequence
             self._header = header
             self._sequence = sequence
-            self._id, self._metadata = splitFastaHeader(header)
+            self._id, self._comment = splitFastaHeader(header)
 
             # Only one of quality, qualityString should be provided
             assert (quality is None) != (qualityString is None)
@@ -111,12 +111,12 @@ class FastqRecord(object):
         return len(self.sequence)
 
     @property
-    def metadata(self):
+    def comment(self):
         """
-        The metadata associated with the sequence in the FASTQ file, equal to
+        The comment associated with the sequence in the FASTQ file, equal to
         the contents of the FASTQ header following the first whitespace
         """
-        return self._metadata
+        return self._comment
 
     @property
     def sequence(self):

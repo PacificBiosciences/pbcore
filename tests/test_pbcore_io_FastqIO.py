@@ -27,7 +27,7 @@ class TestFastqRecord:
         self.header = "chr1|blah|blah\tblah blah"
         self.rc_header = "chr1|blah|blah\tblah blah [revcomp]"
         self.id = "chr1|blah|blah"
-        self.metadata = "blah blah"
+        self.comment = "blah blah"
         self.sequence = "GATTACA" * 20
         self.rc_sequence = "TGTAATC" * 20
         self.length = 140
@@ -72,7 +72,7 @@ class TestFastqRecord:
         assert_equal(self.header, self.record.header)
         assert_equal(self.sequence, self.record.sequence)
         assert_equal(self.id, self.record.id)
-        assert_equal(self.metadata, self.record.metadata)
+        assert_equal(self.comment, self.record.comment)
         assert_array_equal(self.quality, self.record.quality)
         assert_equal(self.record, self.record2)
 

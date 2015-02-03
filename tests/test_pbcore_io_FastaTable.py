@@ -27,7 +27,7 @@ class TestIndexedFastaReader:
         r000021 = ft["ref000021|EGFR_Exon_22\tMetadataTest"]
         assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.header)
         assert_equal("ref000021|EGFR_Exon_22", r000021.id)
-        assert_equal("MetadataTest", r000021.metadata)
+        assert_equal("MetadataTest", r000021.comment)
         assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT"
                      "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA"
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
@@ -38,7 +38,7 @@ class TestIndexedFastaReader:
         r000021 = ft["ref000021|EGFR_Exon_22"]
         assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.header)
         assert_equal("ref000021|EGFR_Exon_22", r000021.id)
-        assert_equal("MetadataTest", r000021.metadata)
+        assert_equal("MetadataTest", r000021.comment)
         assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT"
                      "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA"
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
