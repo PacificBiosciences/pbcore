@@ -6,7 +6,8 @@ def deprecated(func):
     when the function is used.'''
     def new_func(*args, **kwargs):
         if not new_func.__called:
-            warnings.warn('Call to deprecated function "{0}".'.format(func.__name__))
+            warnings.warn('Call to deprecated function "{0}".'.format(func.__name__),
+                          stacklevel=2)
             new_func.__called = True
         return func(*args, **kwargs)
     new_func.__name__ = func.__name__
