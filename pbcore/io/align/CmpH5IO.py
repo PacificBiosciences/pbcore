@@ -33,7 +33,7 @@ __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
             "EmptyCmpH5Error" ]
 
-import h5py, numpy as np
+import h5py, numpy as np, warnings
 from bisect import bisect_left, bisect_right
 from collections import Counter, OrderedDict
 from itertools import groupby
@@ -43,6 +43,7 @@ from pbcore.io._utils import rec_join, arrayFromDataset
 from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.io.base import ReaderBase
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
+from pbcore.util.decorators import deprecated
 
 from ._AlignmentMixin import AlignmentRecordMixin, IndexedAlignmentReaderMixin
 
@@ -319,6 +320,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.cmpH5.readGroupInfo(self.MovieID)
 
     @property
+    @deprecated
     def movieInfo(self):
         """
         .. deprecated:: 0.9.2
@@ -340,7 +342,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     @property
     def movieName(self):
-        return self.movieInfo.Name
+        return self.cmpH5._movieInfo(self.MovieID).Name
 
     @property
     def isForwardStrand(self):
@@ -748,9 +750,9 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         # missing chemistry info.
         assert (self._readGroupTable is None) and (self._readGroupDict is None)
         self._readGroupTable = np.rec.fromrecords(
-            zip(self.movieInfoTable.ID,
-                self.movieInfoTable.Name,
-                [self.readType] * len(self.movieInfoTable.ID),
+            zip(self._movieInfoTable.ID,
+                self._movieInfoTable.Name,
+                [self.readType] * len(self._movieInfoTable.ID),
                 self.sequencingChemistry),
             dtype=[("ID"                 , np.uint32),
                    ("MovieName"          , "O"),
@@ -914,6 +916,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         return self._alignmentIndex
 
     @property
+    @deprecated
     def movieInfoTable(self):
         """
         .. deprecated:: 0.9.2
@@ -1048,6 +1051,11 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             self._loadReadGroupInfo()
         return self._readGroupDict[movieId]
 
+
+    def _movieInfo(self, movieId):
+        return self._movieDict[movieId]
+
+    @deprecated
     def movieInfo(self, movieId):
         """
         .. deprecated:: 0.9.2
@@ -1067,7 +1075,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             1.0
 
         """
-        return self._movieDict[movieId]
+        return self._movieInfo(movieId)
 
     def referenceInfo(self, key):
         """
