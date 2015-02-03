@@ -41,6 +41,7 @@ from os.path import abspath, expanduser
 from pbcore.io.rangeQueries import makeReadLocator
 from pbcore.io._utils import rec_join, arrayFromDataset
 from pbcore.io.FastaIO import splitFastaHeader
+from pbcore.io.base import ReaderBase
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
 from ._AlignmentMixin import AlignmentRecordMixin, IndexedAlignmentReaderMixin
@@ -644,7 +645,7 @@ class ClippedCmpH5Alignment(CmpH5Alignment):
 # ========================================
 # CmpH5 reader class
 #
-class CmpH5Reader(IndexedAlignmentReaderMixin):
+class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
     """
     The `CmpH5Reader` class is a lightweight and efficient API for
     accessing PacBio ``cmp.h5`` alignment files.  Alignment records
@@ -1192,9 +1193,6 @@ class CmpH5Reader(IndexedAlignmentReaderMixin):
     def holeNumber(self):
         # Forward compatibility with BAM API
         return self.HoleNumber
-
-    def __repr__(self):
-        return "<CmpH5Reader for %s>" % self.filename
 
     def __getitem__(self, rowNumbers):
         if (isinstance(rowNumbers, int) or

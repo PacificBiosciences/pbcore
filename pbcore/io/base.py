@@ -83,6 +83,9 @@ class ReaderBase(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
 
+    def __repr__(self):
+        return "<%s for %s>" % (type(self).__name__, self.filename)
+
 class WriterBase(object):
     def __init__(self, f):
         """
@@ -101,3 +104,6 @@ class WriterBase(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
+
+    def __repr__(self):
+        return "<%s for %s>" % (type(self).__name__, self.filename)

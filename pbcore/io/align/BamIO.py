@@ -41,6 +41,7 @@ from itertools import groupby
 from functools import wraps
 from os.path import abspath, expanduser, exists
 
+from ..base import ReaderBase
 from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
@@ -57,7 +58,7 @@ def requiresBai(method):
     return f
 
 
-class _BamReaderBase(object):
+class _BamReaderBase(ReaderBase):
     """
     The BamReader class provides a high-level interface to PacBio BAM
     files.  If a PacBio BAM index (bam.pbi file) is present and the
@@ -281,9 +282,6 @@ class _BamReaderBase(object):
     @property
     def barcodes(self):
         raise Unimplemented()
-
-    def __repr__(self):
-        return "<%s for %s>" % (type(self).__name__, self.filename)
 
     @requiresBai
     def __len__(self):
