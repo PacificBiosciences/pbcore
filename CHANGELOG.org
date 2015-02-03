@@ -1,6 +1,10 @@
-* Version 0.9.4
+* Version 0.9.4 (in progress)
 - BAM support moved to 3.0 spec; support for earlier PacBio BAMs
   dropped
+- Deprecation warning decorators added
+- BAM-incompatible cmp.h5 accessors deprecated
+- Moved to support 3.0 FASTA conventions in Fasta readers
+- Rename FastaTable to IndexedFastaReader
 
 * Version 0.9.3
 - ".open" script added for convenience
@@ -11,8 +15,7 @@
 * Version 0.9.2
 - BAM support: Addition of BamReader, IndexedBamReader, and BamAlignment
 - Minor CmpH5Reader API changes for greater compatibility with
-  BamReader:
-  + deprecation of movieInfo in favor of readGroupInfo
+  BamReader (deprecation of movieInfo in favor of readGroupInfo)
 - Removed unused components from CmpH5Reader API
 - Add example BAM file
 - Length accessors for FAST[AQ] record types
