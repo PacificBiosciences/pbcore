@@ -428,15 +428,15 @@ class IndexedFastaReader(ReaderBase, Sequence):
                               prot=mmap.PROT_READ)
         self.faiFilename = faiFilename(self.filename)
         self.fai = loadFastaIndex(self.faiFilename, self.view)
-        self.contigById = self._loadContigById()
+        self.contigLookup = self._loadContigLookup()
 
-    def _loadContigById(self):
-        contigByKey = dict()
+    def _loadContigLookup(self):
+        contigLookup = dict()
         for (pos, faiRecord) in enumerate(self.fai):
-            contigByKey[pos]              = faiRecord
-            contigByKey[faiRecord.id]     = faiRecord
-            contigByKey[faiRecord.header] = faiRecord
-        return contigByKey
+            contigLookup[pos]              = faiRecord
+            contigLookup[faiRecord.id]     = faiRecord
+            contigLookup[faiRecord.header] = faiRecord
+        return contigLookup
 
     def __getitem__(self, key):
         if key < 0:
@@ -444,10 +444,10 @@ class IndexedFastaReader(ReaderBase, Sequence):
 
         if isinstance(key, slice):
             indices = xrange(*key.indices(len(self)))
-            return [ IndexedFastaRecord(self.view, self.contigById[i])
+            return [ IndexedFastaRecord(self.view, self.contigLookup[i])
                      for i in indices ]
-        elif key in self.contigById:
-            return IndexedFastaRecord(self.view, self.contigById[key])
+        elif key in self.contigLookup:
+            return IndexedFastaRecord(self.view, self.contigLookup[key])
         else:
             raise IndexError, "Contig not in FastaTable"
 
