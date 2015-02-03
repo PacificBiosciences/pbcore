@@ -320,7 +320,6 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.cmpH5.readGroupInfo(self.MovieID)
 
     @property
-    @deprecated
     def movieInfo(self):
         """
         .. deprecated:: 0.9.2
@@ -367,7 +366,6 @@ class CmpH5Alignment(AlignmentRecordMixin):
             return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
 
     @property
-    @deprecated
     def accuracy(self):
         """
         Return the identity of this alignment, calculated as
@@ -922,7 +920,6 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         return self._alignmentIndex
 
     @property
-    @deprecated
     def movieInfoTable(self):
         """
         .. deprecated:: 0.9.2
@@ -1061,7 +1058,6 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
     def _movieInfo(self, movieId):
         return self._movieDict[movieId]
 
-    @deprecated
     def movieInfo(self, movieId):
         """
         .. deprecated:: 0.9.2

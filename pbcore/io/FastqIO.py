@@ -87,7 +87,6 @@ class FastqRecord(object):
         return self._header
 
     @property
-    @deprecated
     def name(self):
         """
         DEPRECATED: The name of the sequence in the FASTQ file

@@ -95,7 +95,6 @@ class FastaRecord(object):
         return self._header
 
     @property
-    @deprecated
     def name(self):
         """
         DEPRECATED: The name of the sequence in the FASTA file, equal to
@@ -363,7 +362,6 @@ class IndexedFastaRecord(object):
         self.faiRecord = faiRecord
 
     @property
-    @deprecated
     def name(self):
         return self.header
 
