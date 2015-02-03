@@ -43,7 +43,7 @@ __all__ = [ "FastaRecord",
 
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
-from pbcore.util import sequences
+from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
 import md5, mmap, numpy as np, re
@@ -163,7 +163,7 @@ class FastaRecord(object):
         Return a new FastaRecord with the reverse-complemented DNA sequence.
         Optionally, supply a name
         """
-        rcSequence = sequences.reverseComplement(self.sequence)
+        rcSequence = sequence.reverseComplement(self.sequence)
         if preserveHeader:
             return FastaRecord(self.header, rcSequence)
         else:

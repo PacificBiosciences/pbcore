@@ -1,6 +1,6 @@
 import nose
 from nose.tools import assert_equal, assert_true, assert_false
-from pbcore.util import sequences
+from pbcore import sequence
 
 class TestReverseComplement:
 
@@ -13,33 +13,33 @@ class TestReverseComplement:
 
     def test_reverse(self):
         assert_equal(self.sequence,
-                     sequences.reverse(sequences.reverse(self.sequence)))
+                     sequence.reverse(sequence.reverse(self.sequence)))
         assert_equal(self.reverse,
-                     sequences.reverse(self.sequence))
+                     sequence.reverse(self.sequence))
         assert_equal(self.complement,
-                     sequences.reverse(self.reverse_complement))
+                     sequence.reverse(self.reverse_complement))
 
     def test_complement(self):
         assert_equal(self.sequence,
-                     sequences.complement(self.complement))
+                     sequence.complement(self.complement))
         assert_equal(self.complement,
-                     sequences.complement(self.sequence))
+                     sequence.complement(self.sequence))
         assert_equal(self.reverse,
-                     sequences.complement(self.reverse_complement))
+                     sequence.complement(self.reverse_complement))
 
     def test_reverseComplement(self):
         assert_equal(self.reverse_complement,
-                     sequences.reverseComplement(self.sequence))
+                     sequence.reverseComplement(self.sequence))
         assert_equal(self.sequence,
-                     sequences.reverseComplement(self.reverse_complement))
+                     sequence.reverseComplement(self.reverse_complement))
 
     @nose.tools.raises(ValueError)
     def test_complement_error(self):
-        sequences.complement(self.bad_sequence)
+        sequence.complement(self.bad_sequence)
 
     @nose.tools.raises(ValueError)
     def test_reverse_complement_error(self):
-        sequences.reverseComplement(self.bad_sequence)
+        sequence.reverseComplement(self.bad_sequence)
 
 
 class TestSplitRecordName:

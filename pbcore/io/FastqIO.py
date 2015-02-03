@@ -42,7 +42,7 @@ __all__ = [ "FastqRecord",
 import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
-from pbcore.util import sequences
+from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
 class FastqRecord(object):
@@ -162,8 +162,8 @@ class FastqRecord(object):
         Return a new FastaRecord with the reverse-complemented DNA sequence.
         Optionally, supply a name
         """
-        rcSequence = sequences.reverseComplement(self.sequence)
-        rcQuality = sequences.reverse(self.quality)
+        rcSequence = sequence.reverseComplement(self.sequence)
+        rcQuality = sequence.reverse(self.quality)
         if preserveHeader:
             return FastqRecord(self.header, rcSequence, rcQuality)
         else:

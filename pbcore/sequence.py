@@ -28,10 +28,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-from __future__ import absolute_import
+# sequence.py: module of basic sequence methods
+# Authors: Brett Bowman, David Alexander
+
+__all__ = [ "complement",
+            "reverseComplement"]
+
 from string import maketrans
 import re
-
 
 DNA_COMPLEMENT = maketrans('agctAGCT-N', 'tcgaTCGA-N')
 
@@ -55,4 +59,4 @@ def reverseComplement( sequence ):
     Return the reverse-complement of a sequence
     NOTE: This only currently supports DNA
     """
-    return reverse(complement(sequence))
+    return complement(sequence)[::-1]

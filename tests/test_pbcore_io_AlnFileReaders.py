@@ -12,7 +12,7 @@ from collections import Counter
 
 from pbcore import data
 from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
-from pbcore.util.sequences import reverseComplement as RC
+from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
 
 
