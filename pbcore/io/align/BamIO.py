@@ -382,7 +382,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
                     return [ self.atRowNumber(r) for r in rowNumbers ]
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return [ self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) ]
-                    raise TypeError, "Invalid type for IndexedBamReader slicing"
+        raise TypeError, "Invalid type for IndexedBamReader slicing"
 
     def __getattr__(self, key):
         if key in self.pbi.columnNames:
