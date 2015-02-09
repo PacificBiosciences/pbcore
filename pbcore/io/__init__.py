@@ -28,12 +28,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+from .base    import *
 from .BasH5IO import *
 from .FastaIO import *
 from .FastqIO import *
 from .FofnIO  import *
 from .GffIO   import *
-from .base    import *
+from .PlsH5IO import *
 
 from .align   import *
 

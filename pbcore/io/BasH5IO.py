@@ -332,7 +332,7 @@ class Zmw(CommonEqualityMixin):
                           self.holeNumber)
 
     def __repr__(self):
-        return "<Zmw: %s>" % self.zmwName
+        return "<%s: %s>" % (type(self).__name__, self.zmwName)
 
 
 class ZmwRead(CommonEqualityMixin):
@@ -403,6 +403,7 @@ class ZmwRead(CommonEqualityMixin):
     SubstitutionQV = _makeQvAccessor("SubstitutionQV")
     SubstitutionTag = _makeQvAccessor("SubstitutionTag")
 
+    PulseIndex  = _makeQvAccessor("PulseIndex")
 
 class CCSZmwRead(ZmwRead):
     """
