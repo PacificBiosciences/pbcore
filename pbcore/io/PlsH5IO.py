@@ -102,11 +102,6 @@ class ZmwPulses(object):
         CHANNEL_BASES = np.fromstring("TGAC", dtype=np.uint8)
         return CHANNEL_BASES[self.channel()].tostring()
 
-    def isBase(self):
-        """
-        Did the pulse make it to a basecall?
-        """
-        pass
 
     def startFrame(self):
         return arrayFromDataset(self._getPulsecallsGroup()["StartFrame"],
@@ -127,9 +122,19 @@ class ZmwPulses(object):
         pass
 
     def isPulse(self):
+        """
+        Is the pulse actually a pulse? No idea why Pat did this.
+        """
         pass
 
+    def isBase(self):
+        """
+        Did the pulse make it to a basecall?
+        """
+        pass
 
+    def __len__(self):
+        return self.pulseEnd - self.pulseStart
 
 class PlxH5Reader(BaxH5Reader):
 
