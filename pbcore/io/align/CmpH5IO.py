@@ -682,7 +682,19 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         26103
 
     """
-    def __init__(self, filenameOrH5File):
+    def __init__(self, filenameOrH5File, sharedAlignmentIndex=None):
+
+        # The sharedAlignmentIndex is a copy of the /AlnInfo/AlnIndex dataset
+        # for the file indicated by filenameOrH5File that's already opened and
+        # held in memory by another process. When it isn't None, this process
+        # doesn't have to keep its own copy of the dataset, which can save
+        # memory. This is useful for quiver and kineticsTools where there's a
+        # master process that opens the cmph5 file and schedules slaves that
+        # only need a read-only copy of the reader.
+
+        # It is an unchecked runtime error to supply a sharedAlignmentIndex
+        # that is not identical to the AlnIndex in the filenameOrH5File
+
         if isinstance(filenameOrH5File, h5py.File):
             if filenameOrH5File.mode != "r":
                 raise ValueError("HDF5 files used by CmpH5Reader must be opened read-only!")
@@ -695,7 +707,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             except IOError:
                 raise IOError, ("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
 
-        self._loadAlignmentInfo()
+        self._loadAlignmentInfo(sharedAlignmentIndex)
         self._loadMovieInfo()
         self._loadReferenceInfo()
         self._loadMiscInfo()
@@ -704,13 +716,20 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         self._readGroupTable = None
         self._readGroupDict  = None
 
-    def _loadAlignmentInfo(self):
-        if len(self.file["/AlnInfo/AlnIndex"]) == 0:
-            raise EmptyCmpH5Error("Empty cmp.h5 file, cannot be read by CmpH5Reader")
-        rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
-        self._alignmentIndex = rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE) \
-                                                .view(np.recarray)                   \
-                                                .flatten()
+    def _loadAlignmentInfo(self, sharedAlignmentIndex=None):
+        # If a sharedAlignmentIndex is not provided, read it from the file. If
+        # it is provided, don't read anything from the file or store anything
+        # else in memory
+        if sharedAlignmentIndex is None:
+            if len(self.file["/AlnInfo/AlnIndex"]) == 0:
+                raise EmptyCmpH5Error("Empty cmp.h5 file, cannot be read by CmpH5Reader")
+            rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
+            self._alignmentIndex = (rawAlignmentIndex.view(dtype = ALIGNMENT_INDEX_DTYPE)
+                                                     .view(np.recarray)
+                                                     .flatten())
+        else:
+            self._alignmentIndex = sharedAlignmentIndex
+            self._alignmentIndex.setflags(write=False)
 
         # This is the only sneaky part of this whole class.  We do not
         # store the raw h5py group object; rather we cache a dict of {
