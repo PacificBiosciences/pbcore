@@ -54,7 +54,7 @@ def requiresBai(method):
         if not bamReader.peer._hasIndex():
             raise UnavailableFeature, "this feature requires an standard BAM index file (bam.bai)"
         else:
-            return method(bamAln, *args, **kwargs)
+            return method(bamReader, *args, **kwargs)
     return f
 
 
