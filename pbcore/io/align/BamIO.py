@@ -144,7 +144,7 @@ class _BamReaderBase(ReaderBase):
         ft = FastaTable(referenceFastaFname)
         # Verify that this FASTA is in agreement with the BAM's
         # reference table---BAM should be a subset.
-        fastaIdsAndLens = set((c.id, c.length) for c in ft)
+        fastaIdsAndLens = set((c.id, len(c)) for c in ft)
         bamIdsAndLens   = set((c.Name, c.Length) for c in self.referenceInfoTable)
         if not bamIdsAndLens.issubset(fastaIdsAndLens):
             raise ReferenceMismatch, "FASTA file must contain superset of reference contigs in BAM"
