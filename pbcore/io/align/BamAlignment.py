@@ -123,6 +123,10 @@ class BamAlignment(AlignmentRecordMixin):
         return self.readGroupInfo.ID
 
     @property
+    def qName(self):
+        return self.peer.qname
+
+    @property
     def qStart(self):
         return self.peer.opt("qs")
 
