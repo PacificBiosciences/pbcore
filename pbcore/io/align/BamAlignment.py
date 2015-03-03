@@ -131,6 +131,10 @@ class BamAlignment(AlignmentRecordMixin):
         return self.peer.opt("qe")
 
     @property
+    def qLen(self):
+        return self.peer.qlen
+
+    @property
     def tId(self):
         return self.peer.tid
 
@@ -386,25 +390,25 @@ class BamAlignment(AlignmentRecordMixin):
         Retrieve the pulse feature as indicated.
         - `aligned`    : whether gaps should be inserted to reflect the alignment
         - `orientation`: "native" or "genomic"
+
+        Note that this function assumes the the feature is stored in
+        native orientation in the file, so it is not appropriate to
+        use this method to fetch the read or the qual, which are
+        oriented genomically in the file.
         """
         # 1. Extract in native orientation
         if not (orientation == "native" or orientation == "genomic"):
             raise ValueError, "Bad `orientation` value"
-        if featureName == "read":
-            kind_  = "base"
-            dtype_ = np.int8
-            data  = np.fromstring(self.peer.seq, dtype=dtype_)
+        tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
+        data_ = self.peer.opt(tag)
+        if isinstance(data_, str):
+            data = np.fromstring(data_, dtype=dtype_)
         else:
-            tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
-            data_ = self.peer.opt(tag)
-            if isinstance(data_, str):
-                data = np.fromstring(data_, dtype=dtype_)
-            else:
-                # This is about 300x slower than the fromstring above.
-                # Unless pysam exposes  buffer or numpy interface,
-                # is is going to be very slow.
-                data = np.fromiter(data_, dtype=dtype_)
-            del data_
+            # This is about 300x slower than the fromstring above.
+            # Unless pysam exposes  buffer or numpy interface,
+            # is is going to be very slow.
+            data = np.fromiter(data_, dtype=dtype_)
+        del data_
         assert len(data) == self.peer.rlen
 
         # 2. Decode
@@ -465,8 +469,21 @@ class BamAlignment(AlignmentRecordMixin):
     SubstitutionQV = _makePulseFeatureAccessor("SubstitutionQV")
 
     def read(self, aligned=True, orientation="native"):
-        feature = self.pulseFeature("read", aligned, orientation)
-        return feature.tostring()
+        data = np.fromstring(self.peer.seq, dtype=np.int8)
+        s = self.rStart - self.qStart
+        e = self.rEnd   - self.qStart
+        l = self.qLen
+        # clip
+        assert l == len(data) and s >= 0 and e <= l
+        if self.isForwardStrand: clipped = data[s:e]
+        else:                    clipped = data[(l-e):(l-s)]
+        # orient
+        shouldReverse = self.isReverseStrand and orientation == "native"
+        ungapped = reverseComplementAscii(clipped) if shouldReverse else clipped
+        # gapify
+        if aligned: r = self._gapifyRead(ungapped, orientation)
+        else:       r = ungapped
+        return r.tostring()
 
     def __repr__(self):
         if self.isUnmapped:
