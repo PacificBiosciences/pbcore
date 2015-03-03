@@ -400,9 +400,12 @@ class BamAlignment(AlignmentRecordMixin):
         use this method to fetch the read or the qual, which are
         oriented genomically in the file.
         """
-        # 1. Extract in native orientation
         if not (orientation == "native" or orientation == "genomic"):
             raise ValueError, "Bad `orientation` value"
+        if self.isUnmapped and (orientation != "native" or aligned == True):
+            raise UnavailableFeature, \
+                "Cannot get genome oriented/aligned features from unmapped BAM record"
+        # 1. Extract in native orientation
         tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
         data_ = self.peer.opt(tag)
         if isinstance(data_, str):
@@ -473,6 +476,11 @@ class BamAlignment(AlignmentRecordMixin):
     SubstitutionQV = _makePulseFeatureAccessor("SubstitutionQV")
 
     def read(self, aligned=True, orientation="native"):
+        if not (orientation == "native" or orientation == "genomic"):
+            raise ValueError, "Bad `orientation` value"
+        if self.isUnmapped and (orientation != "native" or aligned == True):
+            raise UnavailableFeature, \
+                "Cannot get genome oriented/aligned features from unmapped BAM record"
         data = np.fromstring(self.peer.seq, dtype=np.int8)
         s = self.rStart - self.qStart
         e = self.rEnd   - self.qStart
