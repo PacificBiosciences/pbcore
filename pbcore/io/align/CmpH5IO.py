@@ -307,6 +307,15 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.ReadGroupID
 
     @property
+    def aStart(self):
+        # Forward compatibility with BAM API
+        return self.rStart
+
+    @property
+    def aEnd(self):
+        return self.rEnd
+
+    @property
     def holeNumber(self):
         # Forward compatibility with BAM API
         return self.HoleNumber

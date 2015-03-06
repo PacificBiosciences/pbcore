@@ -107,8 +107,8 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             clipLeft  = self.peer.qstart
             clipRight = self.peer.rlen - self.peer.qend
-        self.rStart = self.qStart + clipLeft
-        self.rEnd   = self.qEnd   - clipRight
+        self.aStart = self.qStart + clipLeft
+        self.aEnd   = self.qEnd   - clipRight
 
         # Cache of unrolled cigar, in genomic orientation
         self._unrolledCigar = None
@@ -199,12 +199,12 @@ class BamAlignment(AlignmentRecordMixin):
         cUc = uc[clipStart:clipEnd]
         readLength = sum(cUc != BAM_CDEL)
         if self.isForwardStrand:
-            rStart = readPositions[clipStart]
-            rEnd = rStart + readLength
+            aStart = readPositions[clipStart]
+            aEnd = aStart + readLength
         else:
-            rEnd   = readPositions[clipStart] + 1
-            rStart = rEnd - readLength
-        return ClippedBamAlignment(self, tStart, tEnd, rStart, rEnd, cUc)
+            aEnd   = readPositions[clipStart] + 1
+            aStart = aEnd - readLength
+        return ClippedBamAlignment(self, tStart, tEnd, aStart, aEnd, cUc)
 
     @property
     @requiresMapping
@@ -379,9 +379,9 @@ class BamAlignment(AlignmentRecordMixin):
         readNonGapMask = (ucOriented != BAM_CDEL)
 
         if self.isReverseStrand and orientation == "genomic":
-            pos = self.rEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
+            pos = self.aEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
         else:
-            pos = self.rStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
+            pos = self.aStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
 
         if aligned:
             return pos
@@ -428,8 +428,8 @@ class BamAlignment(AlignmentRecordMixin):
         # [s, e) delimits the range, within the query, that is in the aligned read.
         # This will be determined by the soft clips actually in the file as well as those
         # imposed by the clipping API here.
-        s = self.rStart - self.qStart
-        e = self.rEnd   - self.qStart
+        s = self.aStart - self.qStart
+        e = self.aEnd   - self.qStart
         assert s >= 0 and e <= len(data)
         clipped = data[s:e]
 
@@ -482,8 +482,8 @@ class BamAlignment(AlignmentRecordMixin):
             raise UnavailableFeature, \
                 "Cannot get genome oriented/aligned features from unmapped BAM record"
         data = np.fromstring(self.peer.seq, dtype=np.int8)
-        s = self.rStart - self.qStart
-        e = self.rEnd   - self.qStart
+        s = self.aStart - self.qStart
+        e = self.aEnd   - self.qStart
         l = self.qLen
         # clip
         assert l == len(data) and s >= 0 and e <= l
@@ -547,12 +547,12 @@ class BamAlignment(AlignmentRecordMixin):
             return self.bam.pbi.columnNames
 
 class ClippedBamAlignment(BamAlignment):
-    def __init__(self, aln, tStart, tEnd, rStart, rEnd, unrolledCigar):
+    def __init__(self, aln, tStart, tEnd, aStart, aEnd, unrolledCigar):
         # Self-consistency checks
         assert aln.isMapped
         assert tStart <= tEnd
-        assert rStart <= rEnd
-        assert sum(unrolledCigar != BAM_CDEL) == (rEnd - rStart)
+        assert aStart <= aEnd
+        assert sum(unrolledCigar != BAM_CDEL) == (aEnd - aStart)
 
         # Assigment
         self.peer           = aln.peer
@@ -560,8 +560,8 @@ class ClippedBamAlignment(BamAlignment):
         self.rowNumber      = aln.rowNumber
         self.tStart         = tStart
         self.tEnd           = tEnd
-        self.rStart         = rStart
-        self.rEnd           = rEnd
+        self.aStart         = aStart
+        self.aEnd           = aEnd
         self._unrolledCigar = unrolledCigar  # genomic orientation
 
     def unrolledCigar(self, orientation="native"):

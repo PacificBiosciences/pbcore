@@ -1,4 +1,7 @@
-* Version 0.9.4 (in progress)
+* Version 0.9.5 (in progress)
+- Adopt aStart, aEnd conventions from BAM spec, replacing rStart, rEnd
+
+* Version 0.9.4
 - BAM support moved to 3.0 spec; support for earlier PacBio BAMs
   dropped
 - Deprecation warning decorators added

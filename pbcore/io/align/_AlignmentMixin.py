@@ -140,14 +140,14 @@ class AlignmentRecordMixin(object):
         """
         The left bound of the alignment, in read coordinates (from the BAS.H5 file).
         """
-        return self.rStart
+        return self.aStart
 
     @property
     def readEnd(self):
         """
         The right bound of the alignment, in read coordinates (from the BAS.H5 file).
         """
-        return self.rEnd
+        return self.aEnd
 
     @property
     def referenceSpan(self):
@@ -161,7 +161,7 @@ class AlignmentRecordMixin(object):
         """
         The length of the read.
         """
-        return self.rEnd - self.rStart
+        return self.aEnd - self.aStart
 
     def __len__(self):
         return self.readLength
@@ -176,7 +176,7 @@ class AlignmentRecordMixin(object):
         if self.readType == "CCS":
             return "%s/ccs" % (zmwName,)
         else:
-            return "%s/%d_%d" % (zmwName, self.rStart, self.rEnd)
+            return "%s/%d_%d" % (zmwName, self.aStart, self.aEnd)
 
     @property
     def zmwName(self):
