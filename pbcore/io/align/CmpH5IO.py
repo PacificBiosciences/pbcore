@@ -321,6 +321,11 @@ class CmpH5Alignment(AlignmentRecordMixin):
         return self.HoleNumber
 
     @property
+    def mapQV(self):
+        # Forward compatibility with BAM API
+        return self.MapQV
+
+    @property
     def readGroupInfo(self):
         """
         Returns the corresponding record from the `readGroupTable`.
@@ -1222,6 +1227,11 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
     def holeNumber(self):
         # Forward compatibility with BAM API
         return self.HoleNumber
+
+    @property
+    def mapQV(self):
+        # Forward compatibility with BAM API
+        return self.MapQV
 
     def __getitem__(self, rowNumbers):
         if (isinstance(rowNumbers, int) or

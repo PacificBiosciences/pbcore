@@ -296,12 +296,12 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
     """
 
     def testMapQV(self):
-        c = Counter(self.f.MapQV)
+        c = Counter(self.f.mapQV)
         EQ(Counter({254: 115}), c)
 
     def testHoleNumbers(self):
-        c  = Counter([a.HoleNumber for a in self.f])   # from records
-        c2 = Counter(self.f.HoleNumber)                # from index
+        c  = Counter([a.holeNumber for a in self.f])   # from records
+        c2 = Counter(self.f.holeNumber)                # from index
         expected = Counter({37134: 14, 6251: 10, 32861: 8, 14743: 4, 35858: 3,
                             39571: 3, 13473: 3, 32560: 3, 46835: 3, 47698: 3, 16996: 3,
                             30983: 2, 38025: 2, 36363: 2, 7957: 2, 49050: 2, 23454: 2,
@@ -370,6 +370,6 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     #        set(tagNames))
 
 
-# class TestIndexedBam(_IndexedAlnFileReaderTests):
-#     READER_CONSTRUCTOR = IndexedBamReader
-#     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+class TestIndexedBam(_IndexedAlnFileReaderTests):
+    READER_CONSTRUCTOR = IndexedBamReader
+    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
