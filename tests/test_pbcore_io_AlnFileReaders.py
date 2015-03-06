@@ -35,7 +35,6 @@ class _BasicAlnFileReaderTests(object):
         self.revAln = self.alns[71]
 
     def testBasicOperations(self):
-        #EQ("1.3.1", self.f.version)
         EQ(False, self.f.isEmpty)
         EQ(True,  self.f.isSorted)
         EQ(115,   len(self.f))
@@ -47,13 +46,13 @@ class _BasicAlnFileReaderTests(object):
         EQ(True,  self.revAln.isReverseStrand)
 
     def testReadName(self):
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9734",
+        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9727",
            self.fwdAln.readName)
         EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9561_9619",
            self.revAln.readName)
 
     def testAlignedRead(self):
-        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGAC-ACGCGAA"
+        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGAC"
         EQ(expectedFwdNative, self.fwdAln.read(aligned=True))
         EQ(expectedFwdNative, self.fwdAln.read())
         EQ(expectedFwdNative, self.fwdAln.read(orientation="genomic"))
@@ -63,7 +62,7 @@ class _BasicAlnFileReaderTests(object):
         EQ(RC(expectedRevNative), self.revAln.read(orientation="genomic"))
 
     def testUnalignedRead(self):
-        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGACACGCGAA"
+        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGAC"
         EQ(expectedFwdNative, self.fwdAln.read(aligned=False))
         EQ(expectedFwdNative, self.fwdAln.read(aligned=False, orientation="genomic"))
         expectedRevNative = "CTTGTGAAAATGCTGAATTCTGCGTCGCTTCACCAGCGATGCCAAGTCTGTAGTGTCA"
@@ -71,7 +70,7 @@ class _BasicAlnFileReaderTests(object):
         EQ(RC(expectedRevNative), self.revAln.read(aligned=False, orientation="genomic"))
 
     def testAlignedReference(self):
-        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGACGACGCGAA"
+        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGAC"
         EQ(expectedFwdNative, self.fwdAln.reference(aligned=True))
         EQ(expectedFwdNative, self.fwdAln.reference())
         EQ(expectedFwdNative, self.fwdAln.reference(orientation="genomic"))
@@ -81,7 +80,7 @@ class _BasicAlnFileReaderTests(object):
         EQ(RC(expectedRevNative), self.revAln.reference(orientation="genomic"))
 
     def testUnalignedReference(self):
-        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGACGACGCGAA"
+        expectedFwdNative = "TACGGTCATCATCTGACACTACAGACTCTGGCATCGCTGTGAAGAC"
         EQ(expectedFwdNative, self.fwdAln.reference(aligned=False))
         EQ(expectedFwdNative, self.fwdAln.reference(aligned=False, orientation="genomic"))
         expectedRevNative = "CTTGTGAAAATGCTGAATTTCGCGTCGTCTTCACAGCGATGCCAGAGTCTGTAGTGTCA"
@@ -92,8 +91,7 @@ class _BasicAlnFileReaderTests(object):
         expectedFwdNative = [ 17,  17,   7,  17,  17,   6,  17,  17,  17,  17,  17,  17,  17,
                               17,  17,  17,  17,  17,  17,  17,  17,  17,  17,  17,  17,  17,
                               17,  17,  17,  17,  17,  17,   7,  17,  17,  17,  17,  17,  17,
-                              17,  17,  17,  17,  17,  17,  17, 255,  17,  17,  17,  17,  17,
-                              17,  17 ]
+                              17,  17,  17,  17,  17,  17,  17 ]
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV(aligned=True))
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV())
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV(orientation="genomic"))
@@ -108,11 +106,19 @@ class _BasicAlnFileReaderTests(object):
         AEQ(expectedRevNative[::-1], self.revAln.DeletionQV(orientation="genomic"))
 
 
+    # def testInsertionQV(self):
+    #     pass
+
+    # def testSubstitutionQV(self):
+    #     pass
+
+    # def testIPD(self):
+    #     pass
+
     def testDeletionTag(self):
         expectedFwdNative = [78, 78, 84, 78, 78, 67, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,
                              78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 65, 78,
-                             78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 45, 78, 78, 78, 78,
-                             78, 78, 78]
+                             78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78]
         AEQ(expectedFwdNative, self.fwdAln.DeletionTag(aligned=True))
         AEQ(expectedFwdNative, self.fwdAln.DeletionTag())
         AEQ(expectedFwdNative, self.fwdAln.DeletionTag(orientation="genomic"))
@@ -164,7 +170,7 @@ class _BasicAlnFileReaderTests(object):
            zip(ac3.referencePositions(), ac3.reference(), ac3.read()))
 
         # Get a more interesting (more gappy) rev strand aln
-        b = self.alns[4]
+        b = self.alns[3]
         EQ([(2216, 'G', 'G'),
             (2215, 'G', 'G'),
             (2214, '-', 'C'),
@@ -221,9 +227,10 @@ class _BasicAlnFileReaderTests(object):
             (16199, 'G', 'G'),
             (16200, 'A', 'A'),
             (16201, 'G', 'G')],
-           zip(d.referencePositions(), d.reference(), d.read())[130:141])
+           zip(d.referencePositions(), d.reference(), d.read())[129:140])
         dc1 = d.clippedTo(16196, 16198)
 
+        # where's the test code?
 
     def testBaxAttaching(self):
         # Before attaching, should get sane exceptions
@@ -235,13 +242,13 @@ class _BasicAlnFileReaderTests(object):
 
         # Now attach
         self.f.attach(self.BAX_FILE)
-        EQ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9734',
+        EQ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9727',
            self.fwdAln.readName)
         EQ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957'
            , self.fwdAln.zmwName)
         EQ('<Zmw: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957>',
            repr(self.fwdAln.zmw))
-        EQ('<ZmwRead: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9734>',
+        EQ('<ZmwRead: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/7957/9681_9727>',
            repr(self.fwdAln.zmwRead))
 
         # Check read contents, for every aln.
@@ -251,7 +258,6 @@ class _BasicAlnFileReaderTests(object):
 
     def testClippingsVsBaxData(self):
         self.f.attach(self.BAX_FILE)
-
         for aln in [self.alns[52], self.alns[8]]:
             for cS in xrange(aln.tStart, aln.tEnd + 1):
                 for cE in xrange(cS + 1, min(aln.tEnd, cS + 10)):
@@ -271,7 +277,7 @@ class _BasicAlnFileReaderTests(object):
 
     def testReadGroupTable(self):
         rgFwd = self.fwdAln.readGroupInfo
-        EQ([('ID', '<u4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O')], rgFwd.dtype)
+        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O')], rgFwd.dtype)
         EQ("P6-C4", rgFwd.SequencingChemistry)
         EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0", rgFwd.MovieName)
         #EQ("bar", rgFwd.ReadType)
@@ -281,12 +287,6 @@ class _BasicAlnFileReaderTests(object):
         EQ("P6-C4", self.fwdAln.sequencingChemistry)
         EQ("P6-C4", self.revAln.sequencingChemistry)
 
-    # #
-    # # move out:
-    # #
-    # def testFeatureManifest(self):
-    #     EQ("" , self.fwdAln.readName)
-    #     EQ("" , self.revAln.readName)
 
 
 class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
@@ -329,10 +329,6 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         EQ(expectedReadNames, [r.readName for r in reads2771_2])
         EQ(expectedReadNames, [r.readName for r in reads2771_3])
 
-        #specificRead = self.f.readsByName(["m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8741_8874"])
-
-
-
 
 class TestCmpH5(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = CmpH5Reader
@@ -358,9 +354,21 @@ class TestCmpH5(_IndexedAlnFileReaderTests):
             C[0].sequencingChemistry
 
 
-# class TestBasicBam(_BasicAlnFileReaderTests):
-#      READER_CONSTRUCTOR = BamReader
-#      CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+class TestBasicBam(_BasicAlnFileReaderTests):
+    READER_CONSTRUCTOR = BamReader
+    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+
+    def testSpecVersion(self):
+        EQ("3.0b3",     self.f.version)
+
+    # def testNoLegacyBamTags(self):
+    #     # junk from older PacBio BAM spec versions doesn't belong
+    #     tagNames = [x[0] for x in self.fwdAln.peer.tags]
+    #     EQ(set(["RG",
+    #             "qs", "qe", "zm", "np", "rq",
+    #             "dq", "dt", "iq", "mq", "sq"]),
+    #        set(tagNames))
+
 
 # class TestIndexedBam(_IndexedAlnFileReaderTests):
 #     READER_CONSTRUCTOR = IndexedBamReader

@@ -299,7 +299,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     @property
     def ReadGroupID(self):
-        return self.MovieID
+        return np.int32(self.MovieID)
 
     @property
     def qId(self):
@@ -317,7 +317,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         Returns the corresponding record from the `readGroupTable`.
         """
         # TODO: add doctest
-        return self.cmpH5.readGroupInfo(self.MovieID)
+        return self.cmpH5.readGroupInfo(self.ReadGroupID)
 
     @property
     def movieInfo(self):
@@ -777,7 +777,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 self._movieInfoTable.Name,
                 [self.readType] * len(self._movieInfoTable.ID),
                 self.sequencingChemistry),
-            dtype=[("ID"                 , np.uint32),
+            dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
                    ("SequencingChemistry", "O")])
@@ -1061,17 +1061,17 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             self._loadReadGroupInfo()
         return self._readGroupTable
 
-    def readGroupInfo(self, movieId):
+    def readGroupInfo(self, rgId):
         """
         Access information about a movie whose reads are represented
         in the file.
 
-        The returned value is a record from the :attr:`movieInfoTable`
+        The returned value is a record from the :attr:`readGroupTable`
         """
         # TODO: add doctest
         if self._readGroupDict is None:
             self._loadReadGroupInfo()
-        return self._readGroupDict[movieId]
+        return self._readGroupDict[rgId]
 
 
     def _movieInfo(self, movieId):
