@@ -55,7 +55,9 @@ def readFofn(f):
 
     for line in getFileHandle(f):
         path = line.rstrip()
-        if isabs(path):
+        if not path:
+            continue            # skip empty lines
+        elif isabs(path):
             yield path
         elif fofnRoot is not None:
             yield join(fofnRoot, path)

@@ -11,6 +11,11 @@ def test_simple():
     lst = list(readFofn(fofn))
     assert_array_equal(["/a/b", "/c/d"], lst)
 
+def test_empty_lines():
+    fofn = StringIO("/a/b\n \n/c/d\n ")
+    lst = list(readFofn(fofn))
+    assert_array_equal(["/a/b", "/c/d"], lst)
+
 def test_absolutifying():
     for fofnPath in data.getFofns():
         for filePath in readFofn(fofnPath):
