@@ -17,5 +17,3 @@ Requirements:
 Documentation:
 --------------
 http://pacificbiosciences.github.io/pbcore/
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/720f27c5c0e76f68ea1a1a13866dca1f "githalytics.com")](http://githalytics.com/PacificBiosciences/pbcore)
