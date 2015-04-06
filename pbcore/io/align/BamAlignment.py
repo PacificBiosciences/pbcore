@@ -136,7 +136,7 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def qLen(self):
-        return self.peer.qlen
+        return self.peer.query_length
 
     @property
     def tId(self):
