@@ -163,10 +163,5 @@ class PlxH5Reader(BaxH5Reader):
         self._plxHoleNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
         self._plxOffsetsByHole = _makeOffsetsDataStructure(self._pulsecallsGroup)
 
-        # convenience array to hold pre-pulse frames
-        prePulseFrames = np.copy(self._pulsecallsGroup["StartFrame"].value)
-        prePulseFrames[1:] -= prePulseFrames[:-1] + self._pulsecallsGroup["WidthInFrames"].value[:-1]
-        self._prePulseFrames = prePulseFrames
-
     def __getitem__(self, holeNumber):
         return PlxZmw(self, holeNumber)
