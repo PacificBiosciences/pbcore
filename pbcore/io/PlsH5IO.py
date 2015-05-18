@@ -60,7 +60,7 @@ class PlxZmw(Zmw):
     def pulsesByBaseInterval(self, beginBase, endBase):
         pulseIndex = self.readNoQC().PulseIndex()
         pulseStart = pulseIndex[beginBase]
-        pulseEnd   = pulseIndex[endBase]
+        pulseEnd   = pulseIndex[endBase - 1]
         return ZmwPulses(self.plxH5, self.holeNumber, pulseStart, pulseEnd)
 
     def pulsesByPulseInterval(self, beginPulse, endPulse):
@@ -165,7 +165,7 @@ class PlxH5Reader(BaxH5Reader):
 
         # convenience array to hold pre-pulse frames
         prePulseFrames = np.copy(self._pulsecallsGroup["StartFrame"].value)
-        prePulseFrames[1:] -= prePulseFrames[:-1] + self._pulseCallsGroup["WidthInFrames"].value[:-1]
+        prePulseFrames[1:] -= prePulseFrames[:-1] + self._pulsecallsGroup["WidthInFrames"].value[:-1]
         self._prePulseFrames = prePulseFrames
 
     def __getitem__(self, holeNumber):
