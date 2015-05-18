@@ -64,7 +64,12 @@ class PlxZmw(Zmw):
         return ZmwPulses(self.plxH5, self.holeNumber, pulseStart, pulseEnd)
 
     def pulsesByPulseInterval(self, beginPulse, endPulse):
-        return ZmwPulses(self.plxH5, self.holeNumber, pulseStart, pulseEnd)
+        return ZmwPulses(self.plxH5, self.holeNumber, beginPulse, endPulse)
+
+    def pulses(self):
+        zmwOffsetBegin, zmwOffsetEnd = self._getPlxOffsets()[self.holeNumber]
+        numEvents = zmwOffsetEnd - zmwOffsetBegin
+        return ZmwPulses(self.plxH5, self.holeNumber, 0, numEvents)
 
     # metrics? pulserate, pulseratevst
 
@@ -102,7 +107,6 @@ class ZmwPulses(object):
         CHANNEL_BASES = np.fromstring("TGAC", dtype=np.uint8)
         return CHANNEL_BASES[self.channel()].tostring()
 
-
     def startFrame(self):
         return arrayFromDataset(self._getPulsecallsGroup()["StartFrame"],
                                 self.plxOffsetBegin, self.plxOffsetEnd)
@@ -111,30 +115,44 @@ class ZmwPulses(object):
         return arrayFromDataset(self._getPulsecallsGroup()["WidthInFrames"],
                                 self.plxOffsetBegin, self.plxOffsetEnd)
 
+    def prePulseFrames(self):
+        begin, end = (self.plxOffsetBegin, self.plxOffsetEnd)
+        begin_ = max(0, begin - 1)
+        prePulseFrames_ = arrayFromDataset(self._getPulsecallsGroup()["StartFrame"],
+                                           begin_, end)
+        widthInFrames_  = arrayFromDataset(self._getPulsecallsGroup()["WidthInFrames"],
+                                           begin_, end)
+        prePulseFrames_[1:] -= prePulseFrames_[:-1] + widthInFrames_[:-1]
+        if (begin > 0): return prePulseFrames_[1:]
+        else:           return prePulseFrames_
+
     def midSignal(self):
         return arrayFromDataset(self._getPulsecallsGroup()["MidSignal"],
                                 self.plxOffsetBegin, self.plxOffsetEnd)
 
     def meanSignal(self):
-        pass
+        return arrayFromDataset(self._getPulsecallsGroup()["MeanSignal"],
+                                self.plxOffsetBegin, self.plxOffsetEnd)
 
     def maxSignal(self):
-        pass
+        return arrayFromDataset(self._getPulsecallsGroup()["MaxSignal"],
+                                self.plxOffsetBegin, self.plxOffsetEnd)
 
     def isPulse(self):
-        """
-        Is the pulse actually a pulse? No idea why Pat did this.
-        """
-        pass
+        return arrayFromDataset(self._getPulsecallsGroup()["IsPulse"],
+                                self.plxOffsetBegin, self.plxOffsetEnd)
 
     def isBase(self):
-        """
-        Did the pulse make it to a basecall?
-        """
-        pass
+        numEvents = len(self)
+        isBase_ = np.zeros((numEvents,), dtype=np.bool)
+        pulseIndex = self.plxH5[self.holeNumber].readNoQC().PulseIndex()
+        pulseIndex = pulseIndex[self.pulseStart:self.pulseEnd]
+        isBase_[pulseIndex] = True
+        return isBase_
 
     def __len__(self):
         return self.pulseEnd - self.pulseStart
+
 
 class PlxH5Reader(BaxH5Reader):
 
@@ -144,6 +162,11 @@ class PlxH5Reader(BaxH5Reader):
         holeNumbers = self._pulsecallsGroup["ZMW/HoleNumber"][:]
         self._plxHoleNumberToIndex = dict(zip(holeNumbers, range(len(holeNumbers))))
         self._plxOffsetsByHole = _makeOffsetsDataStructure(self._pulsecallsGroup)
+
+        # convenience array to hold pre-pulse frames
+        prePulseFrames = np.copy(self._pulsecallsGroup["StartFrame"].value)
+        prePulseFrames[1:] -= prePulseFrames[:-1] + self._pulseCallsGroup["WidthInFrames"].value[:-1]
+        self._prePulseFrames = prePulseFrames
 
     def __getitem__(self, holeNumber):
         return PlxZmw(self, holeNumber)
