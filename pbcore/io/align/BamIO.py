@@ -121,7 +121,7 @@ class _BamReaderBase(ReaderBase):
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
-        self._readGroupDict = { rgID : rg
+        self._readGroupDict = { rg.ID : rg
                                 for rg in self._readGroupTable }
 
         self._pulseFeaturesAvailable = pulseFeaturesInAll_
