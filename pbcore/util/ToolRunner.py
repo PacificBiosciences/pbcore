@@ -29,10 +29,6 @@
 #################################################################################
 
 import argparse, cProfile, logging, pstats
-try:
-    import ipdb as pdb
-except:
-    import pdb
 
 
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
@@ -72,7 +68,7 @@ class PBToolRunner(object):
             help="Print runtime profile at exit")
         self.parser.add_argument(
             "--debug", action="store_true",
-            help="Run within a debugger session")
+            help="Catch exceptions in debugger (requires ipdb)")
 
     def _setupParsers(self, description):
         self.parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -94,8 +90,16 @@ class PBToolRunner(object):
         self._parseArgs()
         self._setupLogging()
         self.validateArgs()
+
         if self.args.debug:
-            return pdb.runeval("self.run()", globals(), locals())
+            try:
+                import ipdb
+            except ImportError:
+                print "--debug requires module 'ipdb'"
+                return -1
+            with ipdb.launch_ipdb_on_exception():
+                self.run()
+
         elif self.args.profile:
             l = locals()
             cProfile.runctx("_rv=self.run()", globals(), l, "profile.out")
