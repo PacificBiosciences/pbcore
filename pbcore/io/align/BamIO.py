@@ -316,8 +316,6 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
         for a in self.peer:
             yield BamAlignment(self, a)
 
-    # TODO: cmp.h5 readsInRange only accepts int key, not string.
-    # that's just lame, fix it.
     def readsInRange(self, winId, winStart, winEnd, justIndices=False):
         # PYSAM BUG: fetch doesn't work if arg 1 is tid and not rname
         if not isinstance(winId, str):
