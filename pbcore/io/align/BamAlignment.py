@@ -259,6 +259,10 @@ class BamAlignment(AlignmentRecordMixin):
             return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
 
     @property
+    def mapQV(self):
+        return self.peer.mapq
+
+    @property
     def numPasses(self):
         return self.peer.opt("np")
 
