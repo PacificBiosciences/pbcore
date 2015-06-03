@@ -340,14 +340,17 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     "row number" and to provide access to precomputed semantic
     information about the BAM records
     """
-    def __init__(self, fname, referenceFastaFname=None):
+    def __init__(self, fname, referenceFastaFname=None, sharedIndex=None):
         super(IndexedBamReader, self).__init__(fname, referenceFastaFname)
-        self.pbi = None
-        pbiFname = self.filename + ".pbi"
-        if exists(pbiFname):
-            self.pbi = PacBioBamIndex(pbiFname)
+        if sharedIndex is None:
+            self.pbi = None
+            pbiFname = self.filename + ".pbi"
+            if exists(pbiFname):
+                self.pbi = PacBioBamIndex(pbiFname)
+            else:
+                raise IOError, "IndexedBamReader requires bam.pbi index file"
         else:
-            raise IOError, "IndexedBamReader requires bam.pbi index file"
+            self.pbi = sharedIndex
 
     def atRowNumber(self, rn):
         offset = self.pbi.virtualFileOffset[rn]

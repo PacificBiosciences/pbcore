@@ -38,7 +38,7 @@ from pbcore.io import (IndexedFastaReader, FastaReader,
                        CmpH5Reader, BamReader, IndexedBamReader,
                        GffReader, FastqReader)
 
-def openIndexedAlignmentFile(fname, referenceFasta=None):
+def openIndexedAlignmentFile(fname, referenceFasta=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
@@ -48,9 +48,9 @@ def openIndexedAlignmentFile(fname, referenceFasta=None):
     (fasta.fai).
     """
     if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname)
+        return CmpH5Reader(fname, sharedIndex=sharedIndex)
     elif fname.endswith("bam"):
-        return IndexedBamReader(fname, referenceFasta)
+        return IndexedBamReader(fname, referenceFasta=referenceFasta, sharedIndex=sharedIndex)
     else:
         raise ValueError, "Invalid alignment file suffix"
 
