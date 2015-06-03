@@ -38,7 +38,7 @@ from pbcore.io import (IndexedFastaReader, FastaReader,
                        CmpH5Reader, BamReader, IndexedBamReader,
                        GffReader, FastqReader)
 
-def openIndexedAlignmentFile(fname, referenceFasta=None, sharedIndex=None):
+def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
@@ -50,11 +50,11 @@ def openIndexedAlignmentFile(fname, referenceFasta=None, sharedIndex=None):
     if fname.endswith("cmp.h5"):
         return CmpH5Reader(fname, sharedIndex=sharedIndex)
     elif fname.endswith("bam"):
-        return IndexedBamReader(fname, referenceFasta=referenceFasta, sharedIndex=sharedIndex)
+        return IndexedBamReader(fname, referenceFastaFname=referenceFastaFname, sharedIndex=sharedIndex)
     else:
         raise ValueError, "Invalid alignment file suffix"
 
-def openAlignmentFile(fname, referenceFasta=None):
+def openAlignmentFile(fname, referenceFastaFname=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), not requiring index capability
@@ -62,7 +62,7 @@ def openAlignmentFile(fname, referenceFasta=None):
     if fname.endswith("cmp.h5"):
         return CmpH5Reader(fname)
     elif fname.endswith("bam"):
-        return BamReader(fname, referenceFasta)
+        return BamReader(fname, referenceFastaFname)
 
 def _openersFor(ext):
     if   ext == "gff":           return (GffReader,)
