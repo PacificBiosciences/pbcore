@@ -311,6 +311,10 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     def __init__(self, fname, referenceFastaFname=None):
         super(BamReader, self).__init__(fname, referenceFastaFname)
 
+    @property
+    def index(self):
+        return None
+
     def __iter__(self):
         self.peer.reset()
         for a in self.peer:
@@ -349,6 +353,10 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
                 raise IOError, "IndexedBamReader requires bam.pbi index file"
         else:
             self.pbi = sharedIndex
+
+    @property
+    def index(self):
+        return self.pbi
 
     def atRowNumber(self, rn):
         offset = self.pbi.virtualFileOffset[rn]

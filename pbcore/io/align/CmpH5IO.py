@@ -895,6 +895,9 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 raise ChemistryLookupError, "Chemistry information could not be found in cmp.h5!"
         return self._sequencingChemistry
 
+    @property
+    def index(self):
+        return self.alignmentIndex
 
     @property
     def alignmentIndex(self):
