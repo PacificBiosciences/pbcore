@@ -790,11 +790,13 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             zip(self._movieInfoTable.ID,
                 self._movieInfoTable.Name,
                 [self.readType] * len(self._movieInfoTable.ID),
-                self.sequencingChemistry),
+                self.sequencingChemistry,
+                self._movieInfoTable.FrameRate),
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
-                   ("SequencingChemistry", "O")])
+                   ("SequencingChemistry", "O"),
+                   ("FrameRate"          , float)])
         self._readGroupDict = { rg.ID : rg
                                 for rg in self._readGroupTable }
 

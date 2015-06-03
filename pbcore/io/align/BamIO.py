@@ -109,7 +109,10 @@ class _BamReaderBase(ReaderBase):
             triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
-            readGroupTable_.append((rgID, rgName, rgReadType, rgChem))
+            # TODO(dalexander): need FRAMERATEHZ in RG::DS!
+            #rgFrameRate = ds["FRAMERATEHZ"]
+            rgFrameRate = 75.0
+            readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate))
             pulseFeaturesInAll_ = pulseFeaturesInAll_.intersection(ds.keys())
 
         self._readGroupTable = np.rec.fromrecords(
@@ -117,7 +120,8 @@ class _BamReaderBase(ReaderBase):
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
-                   ("SequencingChemistry", "O")])
+                   ("SequencingChemistry", "O"),
+                   ("FrameRate",           float)])
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
