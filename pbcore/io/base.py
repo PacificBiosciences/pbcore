@@ -70,6 +70,10 @@ class ReaderBase(object):
         Prepare for iteration through the records in the file
         """
         self.file = getFileHandle(f, "r")
+        if hasattr(self.file, "name"):
+            self.filename = self.file.name
+        else:
+            self.filename = "(anonymous)"
 
     def close(self):
         """
@@ -92,6 +96,10 @@ class WriterBase(object):
         Prepare for output to the file
         """
         self.file = getFileHandle(f, "w")
+        if hasattr(self.file, "name"):
+            self.filename = self.file.name
+        else:
+            self.filename = "(anonymous)"
 
     def close(self):
         """
