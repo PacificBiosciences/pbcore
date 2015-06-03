@@ -54,13 +54,16 @@ def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     else:
         raise ValueError, "Invalid alignment file suffix"
 
-def openAlignmentFile(fname, referenceFastaFname=None):
+def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), not requiring index capability
+
+    (A `sharedIndex` can still be passed for opening a cmp.h5, for which
+    the index is compulsory.)
     """
     if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname)
+        return CmpH5Reader(fname, sharedIndex=sharedIndex)
     elif fname.endswith("bam"):
         return BamReader(fname, referenceFastaFname)
 
