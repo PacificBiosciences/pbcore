@@ -5,3 +5,5 @@ doc/_build
 *.pyc
 *.egg-info
 nosetests.xml
+.pyde*
+.project
