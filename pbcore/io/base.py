@@ -64,10 +64,17 @@ def getFileHandle(filenameOrFile, mode="r"):
     else:
         raise Exception("Invalid type to getFileHandle")
 
-class RWBase(object):
-    @property
-    def filename(self):
-        return self.file.name
+
+class ReaderBase(object):
+    def __init__(self, f):
+        """
+        Prepare for iteration through the records in the file
+        """
+        self.file = getFileHandle(f, "r")
+        if hasattr(self.file, "name"):
+            self.filename = self.file.name
+        else:
+            self.filename = "(anonymous)"
 
     def close(self):
         """
@@ -83,17 +90,29 @@ class RWBase(object):
 
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
-    
-class ReaderBase(RWBase):
-    def __init__(self, f):
-        """
-        Prepare for iteration through the records in the file
-        """
-        self.file = getFileHandle(f, "r")
-    
-class WriterBase(RWBase):
+
+class WriterBase(object):
     def __init__(self, f):
         """
         Prepare for output to the file
         """
         self.file = getFileHandle(f, "w")
+        if hasattr(self.file, "name"):
+            self.filename = self.file.name
+        else:
+            self.filename = "(anonymous)"
+
+    def close(self):
+        """
+        Close the underlying file
+        """
+        self.file.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def __repr__(self):
+        return "<%s for %s>" % (type(self).__name__, self.filename)

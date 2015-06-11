@@ -31,16 +31,14 @@
 
 __all__ = [ "openAlignmentFile",
             "openIndexedAlignmentFile",
-            "openFasta",
-            "openIndexedFasta",
             "entryPoint" ]
 
-from pbcore.io import (FastaTable, FastaReader,
+from pbcore.io import (IndexedFastaReader, FastaReader,
                        BaxH5Reader, BasH5Reader, BasH5Collection,
                        CmpH5Reader, BamReader, IndexedBamReader,
                        GffReader, FastqReader)
 
-def openIndexedAlignmentFile(fname, referenceFasta=None):
+def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
@@ -50,52 +48,34 @@ def openIndexedAlignmentFile(fname, referenceFasta=None):
     (fasta.fai).
     """
     if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname)
+        return CmpH5Reader(fname, sharedIndex=sharedIndex)
     elif fname.endswith("bam"):
-        return IndexedBamReader(fname, referenceFasta)
+        return IndexedBamReader(fname, referenceFastaFname=referenceFastaFname, sharedIndex=sharedIndex)
     else:
         raise ValueError, "Invalid alignment file suffix"
 
-def openAlignmentFile(fname, referenceFasta=None):
+def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file
     (cmp.h5 or BAM), not requiring index capability
+
+    (A `sharedIndex` can still be passed for opening a cmp.h5, for which
+    the index is compulsory.)
     """
     if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname)
+        return CmpH5Reader(fname, sharedIndex=sharedIndex)
     elif fname.endswith("bam"):
-        try:
-            return IndexedBamReader(fname, referenceFasta)
-        except IOError:
-            return BamReader(fname, referenceFasta)
+        return BamReader(fname, referenceFastaFname)
 
-def openIndexedFasta(fname):
-    """
-    Factory function to get a handle to a FASTA reader, requiring
-    random access capability via the fasta.fai index.
-    """
-    return FastaTable(fname)
-
-def openFasta(fname):
-    """
-    Factory function to get a handle to a FASTA reader, requiring only
-    iteration over the contigs.
-    """
-    try:
-        return FastaTable(fname)
-    except IOError:
-        # TODO: would be better to have a more specific error type
-        return FastaReader(fname)
-
-def _openerFor(ext):
-    if   ext == "gff":           return GffReader
-    elif ext in ("fq", "fastq"): return FastqReader
-    elif ext in ("fa", "fasta"): return openFasta
-    elif ext == "cmp.h5":        return CmpH5Reader
-    elif ext == "bas.h5":        return BasH5Reader
-    elif ext == "bax.h5":        return BaxH5Reader
-    elif ext == "fofn":          return BasH5Collection
-    elif ext == "bam":           return openAlignmentFile
+def _openersFor(ext):
+    if   ext == "gff":           return (GffReader,)
+    elif ext in ("fq", "fastq"): return (FastqReader,)
+    elif ext in ("fa", "fasta"): return (IndexedFastaReader, FastaReader)
+    elif ext == "cmp.h5":        return (CmpH5Reader,)
+    elif ext == "bas.h5":        return (BasH5Reader,)
+    elif ext == "bax.h5":        return (BaxH5Reader,)
+    elif ext == "fofn":          return (BasH5Collection,)
+    elif ext == "bam":           return (IndexedBamReader, BamReader)
     else:
         raise ValueError, ("No known opener class for extension %s" % ext)
 
@@ -108,8 +88,17 @@ def _extension(fname):
 
 def _openAny(fname, *extraArgs):
     ext = _extension(fname)
-    opener = _openerFor(ext)
-    return opener(fname, *extraArgs)
+    openers = _openersFor(ext)
+    lastException = None
+    for opener in openers:
+        try:
+            f = opener(fname, *extraArgs)
+            return f
+        except IOError as e:
+            lastException = e
+    else:
+        assert lastException is not None
+        raise lastException
 
 def entryPoint():
     """

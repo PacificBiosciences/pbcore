@@ -109,7 +109,10 @@ class _BamReaderBase(ReaderBase):
             triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
-            readGroupTable_.append((rgID, rgName, rgReadType, rgChem))
+            # TODO(dalexander): need FRAMERATEHZ in RG::DS!
+            #rgFrameRate = ds["FRAMERATEHZ"]
+            rgFrameRate = 75.0
+            readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate))
             pulseFeaturesInAll_ = pulseFeaturesInAll_.intersection(ds.keys())
 
         self._readGroupTable = np.rec.fromrecords(
@@ -117,7 +120,8 @@ class _BamReaderBase(ReaderBase):
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
-                   ("SequencingChemistry", "O")])
+                   ("SequencingChemistry", "O"),
+                   ("FrameRate",           float)])
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
@@ -307,13 +311,15 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     def __init__(self, fname, referenceFastaFname=None):
         super(BamReader, self).__init__(fname, referenceFastaFname)
 
+    @property
+    def index(self):
+        return None
+
     def __iter__(self):
         self.peer.reset()
         for a in self.peer:
             yield BamAlignment(self, a)
 
-    # TODO: cmp.h5 readsInRange only accepts int key, not string.
-    # that's just lame, fix it.
     def readsInRange(self, winId, winStart, winEnd, justIndices=False):
         # PYSAM BUG: fetch doesn't work if arg 1 is tid and not rname
         if not isinstance(winId, str):
@@ -336,14 +342,21 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     "row number" and to provide access to precomputed semantic
     information about the BAM records
     """
-    def __init__(self, fname, referenceFastaFname=None):
+    def __init__(self, fname, referenceFastaFname=None, sharedIndex=None):
         super(IndexedBamReader, self).__init__(fname, referenceFastaFname)
-        self.pbi = None
-        pbiFname = self.filename + ".pbi"
-        if exists(pbiFname):
-            self.pbi = PacBioBamIndex(pbiFname)
+        if sharedIndex is None:
+            self.pbi = None
+            pbiFname = self.filename + ".pbi"
+            if exists(pbiFname):
+                self.pbi = PacBioBamIndex(pbiFname)
+            else:
+                raise IOError, "IndexedBamReader requires bam.pbi index file"
         else:
-            raise IOError, "IndexedBamReader requires bam.pbi index file"
+            self.pbi = sharedIndex
+
+    @property
+    def index(self):
+        return self.pbi
 
     def atRowNumber(self, rn):
         offset = self.pbi.virtualFileOffset[rn]

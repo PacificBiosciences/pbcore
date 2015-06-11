@@ -251,12 +251,28 @@ class BamAlignment(AlignmentRecordMixin):
         return self.peer.qname
 
     @property
-    @requiresPbi
+    @requiresMapping
     def identity(self):
-        if self.readLength == 0:
-            return 0.
+        if self.rowNumber is not None:
+            # Fast (has pbi)
+            if self.readLength == 0:
+                return 0.
+            else:
+                return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
         else:
-            return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+            # Slow (no pbi);
+            if self.readLength == 0:
+                return 0.
+            else:
+                x = self.transcript()
+                nMM  = x.count("R")
+                nIns = x.count("I")
+                nDel = x.count("D")
+                return 1. - float(nMM + nIns + nDel)/self.readLength
+
+    @property
+    def mapQV(self):
+        return self.peer.mapq
 
     @property
     def numPasses(self):
@@ -513,7 +529,7 @@ class BamAlignment(AlignmentRecordMixin):
             val += "Read:        " + self.readName           + "\n"
             val += "Reference:   " + self.referenceName      + "\n\n"
             val += "Read length: " + str(self.readLength)    + "\n"
-            #val += "Identity:    " + "%0.3f" % self.identity + "\n"
+            val += "Identity:    " + "%0.3f" % self.identity + "\n"
 
             alignedRead = self.read()
             alignedRef = self.reference()

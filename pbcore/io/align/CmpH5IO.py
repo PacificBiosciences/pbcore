@@ -696,9 +696,9 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         26103
 
     """
-    def __init__(self, filenameOrH5File, sharedAlignmentIndex=None):
+    def __init__(self, filenameOrH5File, sharedIndex=None):
 
-        # The sharedAlignmentIndex is a copy of the /AlnInfo/AlnIndex dataset
+        # The sharedIndex is a copy of the /AlnInfo/AlnIndex dataset
         # for the file indicated by filenameOrH5File that's already opened and
         # held in memory by another process. When it isn't None, this process
         # doesn't have to keep its own copy of the dataset, which can save
@@ -706,7 +706,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         # master process that opens the cmph5 file and schedules slaves that
         # only need a read-only copy of the reader.
 
-        # It is an unchecked runtime error to supply a sharedAlignmentIndex
+        # It is an unchecked runtime error to supply a sharedIndex
         # that is not identical to the AlnIndex in the filenameOrH5File
 
         if isinstance(filenameOrH5File, h5py.File):
@@ -721,7 +721,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             except IOError:
                 raise IOError, ("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
 
-        self._loadAlignmentInfo(sharedAlignmentIndex)
+        self._loadAlignmentInfo(sharedIndex)
         self._loadMovieInfo()
         self._loadReferenceInfo()
         self._loadMiscInfo()
@@ -730,11 +730,11 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         self._readGroupTable = None
         self._readGroupDict  = None
 
-    def _loadAlignmentInfo(self, sharedAlignmentIndex=None):
-        # If a sharedAlignmentIndex is not provided, read it from the file. If
+    def _loadAlignmentInfo(self, sharedIndex=None):
+        # If a sharedIndex is not provided, read it from the file. If
         # it is provided, don't read anything from the file or store anything
         # else in memory
-        if sharedAlignmentIndex is None:
+        if sharedIndex is None:
             if len(self.file["/AlnInfo/AlnIndex"]) == 0:
                 raise EmptyCmpH5Error("Empty cmp.h5 file, cannot be read by CmpH5Reader")
             rawAlignmentIndex = self.file["/AlnInfo/AlnIndex"].value
@@ -742,7 +742,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                                                      .view(np.recarray)
                                                      .flatten())
         else:
-            self._alignmentIndex = sharedAlignmentIndex
+            self._alignmentIndex = sharedIndex
             self._alignmentIndex.setflags(write=False)
 
         # This is the only sneaky part of this whole class.  We do not
@@ -790,11 +790,13 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             zip(self._movieInfoTable.ID,
                 self._movieInfoTable.Name,
                 [self.readType] * len(self._movieInfoTable.ID),
-                self.sequencingChemistry),
+                self.sequencingChemistry,
+                self._movieInfoTable.FrameRate),
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
-                   ("SequencingChemistry", "O")])
+                   ("SequencingChemistry", "O"),
+                   ("FrameRate"          , float)])
         self._readGroupDict = { rg.ID : rg
                                 for rg in self._readGroupTable }
 
@@ -893,6 +895,9 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 raise ChemistryLookupError, "Chemistry information could not be found in cmp.h5!"
         return self._sequencingChemistry
 
+    @property
+    def index(self):
+        return self.alignmentIndex
 
     @property
     def alignmentIndex(self):
