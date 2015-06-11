@@ -78,14 +78,14 @@ class RWBase(object):
         self.close()
 
     def __repr__(self):
-        return "<%s for %s>" % (type(self).__name__, self.filename)
+        return "<%s for %s>" % (type(self).__name__, self._possible_filename())
     
-    @property
-    def filename(self):
+    def _possible_filename(self):
         if hasattr(self.file, "name"):
             return self.file.name
         else:
             return"(anonymous)"
+        
     
 class ReaderBase(RWBase):
     def __init__(self, f):
@@ -101,4 +101,3 @@ class WriterBase(RWBase):
         Prepare for output to the file
         """
         self.file = getFileHandle(f, "w")
-
