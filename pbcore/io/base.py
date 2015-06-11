@@ -64,55 +64,41 @@ def getFileHandle(filenameOrFile, mode="r"):
     else:
         raise Exception("Invalid type to getFileHandle")
 
+class RWBase(object):
+    def close(self):
+        """
+        Close the underlying file
+        """
+        self.file.close()
 
-class ReaderBase(object):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def __repr__(self):
+        return "<%s for %s>" % (type(self).__name__, self.filename)
+    
+    @property
+    def filename(self):
+        if hasattr(self.file, "name"):
+            return self.file.name
+        else:
+            return"(anonymous)"
+    
+class ReaderBase(RWBase):
     def __init__(self, f):
         """
         Prepare for iteration through the records in the file
         """
         self.file = getFileHandle(f, "r")
-        if hasattr(self.file, "name"):
-            self.filename = self.file.name
-        else:
-            self.filename = "(anonymous)"
 
-    def close(self):
-        """
-        Close the underlying file
-        """
-        self.file.close()
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def __repr__(self):
-        return "<%s for %s>" % (type(self).__name__, self.filename)
-
-class WriterBase(object):
+class WriterBase(RWBase):
     def __init__(self, f):
         """
         Prepare for output to the file
         """
         self.file = getFileHandle(f, "w")
-        if hasattr(self.file, "name"):
-            self.filename = self.file.name
-        else:
-            self.filename = "(anonymous)"
 
-    def close(self):
-        """
-        Close the underlying file
-        """
-        self.file.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-
-    def __repr__(self):
-        return "<%s for %s>" % (type(self).__name__, self.filename)
