@@ -39,7 +39,6 @@ class TestCase (unittest.TestCase):
         open("tst_pbcore.fa.fai", "w").write(fai_str)
 
     def tearDown (self):
-        return
         os.remove("tst_pbcore.sam")
         os.remove("tst_pbcore.bam")
         os.remove("tst_pbcore.fa")
