@@ -37,7 +37,8 @@ __all__ = [ "complement",
 from string import maketrans
 import re
 
-DNA_COMPLEMENT = maketrans('agctAGCT-N', 'tcgaTCGA-N')
+DNA_COMPLEMENT = maketrans('agcturyswkmbdhvnAGCTURYSWKMBDHV-N',
+                           'tcgannnnnnnnnnnnTCGANNNNNNNNNNN-N')
 
 def reverse( sequence ):
     """Return the reverse of any sequence
@@ -47,11 +48,10 @@ def reverse( sequence ):
 def complement( sequence ):
     """
     Return the complement of a sequence
-    NOTE: This only currently supports DNA
     """
-    if re.search('[^AGCTNagctn-]', sequence):
+    if re.search('[^agcturyswkmbdhvnAGCTURYSWKMBDHVN-]', sequence):
         raise ValueError("Sequence contains invalid DNA characters - "
-                         "only [AGCTN-] allowed")
+                         "only standard IUPAC nucleotide codes allowed")
     return sequence.translate( DNA_COMPLEMENT )
 
 def reverseComplement( sequence ):

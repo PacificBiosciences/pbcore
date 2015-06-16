@@ -9,7 +9,11 @@ class TestReverseComplement:
         self.reverse = "ACATTAG" * 20
         self.complement = "CTAATGT" * 20
         self.reverse_complement = "TGTAATC" * 20
-        self.bad_sequence = "AGCTR" * 20
+        self.iupac_sequence = "ACTURY" * 20
+        self.iupac_complement = "TGANNN" * 20
+        self.iupac_reverse_complement = "NNNAGT" * 20
+        self.bad_sequence = "AGCTQ" * 20  # contains non-IUPAC char
+
 
     def test_reverse(self):
         assert_equal(self.sequence,
@@ -32,6 +36,12 @@ class TestReverseComplement:
                      sequence.reverseComplement(self.sequence))
         assert_equal(self.sequence,
                      sequence.reverseComplement(self.reverse_complement))
+
+    def test_iupac(self):
+        assert_equal(self.iupac_complement,
+                     sequence.complement(self.iupac_sequence))
+        assert_equal(self.iupac_reverse_complement,
+                     sequence.reverseComplement(self.iupac_sequence))
 
     @nose.tools.raises(ValueError)
     def test_complement_error(self):
