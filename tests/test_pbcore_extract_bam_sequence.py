@@ -8,7 +8,9 @@ is needed.
 
 import pbcore.io
 import pysam
+import tempfile
 import unittest
+import shutil
 import os
 
 sam_str_ = """\
@@ -51,4 +53,11 @@ class TestCase (unittest.TestCase):
             seq = aln.transcript()
 
 if __name__ == "__main__":
-    unittest.main()
+    tmp_dir = tempfile.mkdtemp()
+    cwd = os.getcwd()
+    os.chdir(tmp_dir)
+    try:
+        unittest.main()
+    finally:
+        os.chdir(cwd)
+        shutil.rmtree(tmp_dir)
