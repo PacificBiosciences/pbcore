@@ -47,12 +47,12 @@ PULSE_FEATURE_TAGS = { "InsertionQV"    : ("iq", "qv",   np.uint8),
                        "PulseWidth"     : ("pw", "time", np.uint8) }
 
 
-ASCII_COMPLEMENT_MAP = { np.int8(ord("A")) : np.int8(ord("T")),
-                         np.int8(ord("T")) : np.int8(ord("A")),
-                         np.int8(ord("C")) : np.int8(ord("G")),
-                         np.int8(ord("G")) : np.int8(ord("C")),
-                         np.int8(ord("N")) : np.int8(ord("N")),
-                         np.int8(ord("-")) : np.int8(ord("-")) }
+ASCII_COMPLEMENT_MAP = { ord("A") : ord("T"),
+                         ord("T") : ord("A"),
+                         ord("C") : ord("G"),
+                         ord("G") : ord("C"),
+                         ord("N") : ord("N"),
+                         ord("-") : ord("-") }
 
 complementAscii = np.vectorize(ASCII_COMPLEMENT_MAP.get, otypes=[np.int8])
 
