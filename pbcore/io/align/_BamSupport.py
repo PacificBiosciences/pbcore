@@ -46,15 +46,15 @@ PULSE_FEATURE_TAGS = { "InsertionQV"    : ("iq", "qv",   np.uint8),
                        "IPD"            : ("ip", "time", np.uint8),
                        "PulseWidth"     : ("pw", "time", np.uint8) }
 
-COMPLEMENT_MAP = { "A" : "T",
-                   "T" : "A",
-                   "C" : "G",
-                   "G" : "C",
-                   "N" : "N",
-                   "-" : "-" }
 
-def complementAscii(a):
-    return np.array([ord(COMPLEMENT_MAP[chr(b)]) for b in a], dtype=np.int8)
+ASCII_COMPLEMENT_MAP = { np.int8(ord("A")) : np.int8(ord("T")),
+                         np.int8(ord("T")) : np.int8(ord("A")),
+                         np.int8(ord("C")) : np.int8(ord("G")),
+                         np.int8(ord("G")) : np.int8(ord("C")),
+                         np.int8(ord("N")) : np.int8(ord("N")),
+                         np.int8(ord("-")) : np.int8(ord("-")) }
+
+complementAscii = np.vectorize(ASCII_COMPLEMENT_MAP.get, otypes=[np.int8])
 
 def reverseComplementAscii(a):
     return complementAscii(a)[::-1]
