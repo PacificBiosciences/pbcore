@@ -21,10 +21,13 @@ setup(
                                'data/*.fasta.fai', 'data/*.fofn', 'data/*.m4',
                                'data/*.fa', 'data/*.fa.fai',
                                'data/*.m5', 'data/*.bam', 'data/*.bam.bai', "data/*.bam.pbi",
-                               'chemistry/resources/*.xml']
+                               'chemistry/resources/*.xml',
+                               'data/datasets/*.*',
+                               'data/datasets/yieldtest/*.*']
                                },
     zip_safe = False,
     entry_points = { "console_scripts" : [ ".open = pbcore.io.opener:entryPoint" ] },
+    scripts=['bin/dataset.py'],
     install_requires=[
         'h5py >= 2.0.1',
         'numpy >= 1.6.0',

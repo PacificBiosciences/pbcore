@@ -10,6 +10,8 @@ Library API documentation
 
     :doc:`pbcore.io`: Classes for reading/writing PacBio data formats and essential common data formats
 
+    :doc:`pbcore.io.dataset`: Classes for reading/writing PacBio DataSet XML files
+
     :doc:`pbcore.model`: Common base classes
 
     :doc:`pbcore.util`: Utilities for building bioinformatics applications
