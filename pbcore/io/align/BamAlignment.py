@@ -197,7 +197,7 @@ class BamAlignment(AlignmentRecordMixin):
         tStart = refStart
         tEnd   = refEnd
         cUc = uc[clipStart:clipEnd]
-        readLength = sum(cUc != BAM_CDEL)
+        readLength = np.count_nonzero(cUc != BAM_CDEL)
         if self.isForwardStrand:
             aStart = readPositions[clipStart]
             aEnd = aStart + readLength
@@ -568,7 +568,7 @@ class ClippedBamAlignment(BamAlignment):
         assert aln.isMapped
         assert tStart <= tEnd
         assert aStart <= aEnd
-        assert sum(unrolledCigar != BAM_CDEL) == (aEnd - aStart)
+        assert np.count_nonzero(unrolledCigar != BAM_CDEL) == (aEnd - aStart)
 
         # Assigment
         self.peer           = aln.peer
