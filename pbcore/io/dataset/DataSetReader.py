@@ -188,14 +188,14 @@ def _updateDataset(element):
     for old, new in updateMap.items():
         #while element.find('.//' + namer(old)) is not None:
         while element.find(old) is not None:
-            log.warn("Outdated XML received: {t}".format(
+            log.error("Outdated XML received: {t}".format(
                 t=old.split('}')[-1]))
             element.find(old).tag = namer(new)
 
     auton = ('.//' + namer('CollectionMetadata') + '/' +
              namer('AutomationName'))
     if element.find(auton) is not None:
-        log.warn("Outdated XML received: AutomationName")
+        log.error("Outdated XML received: AutomationName")
         autonele = element.find(auton)
         autonele.tag = namer('Automation')
         val = autonele.text

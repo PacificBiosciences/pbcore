@@ -539,15 +539,13 @@ class DataSet(object):
         # TODO
         return results
 
-    def _split_atoms(self, atoms, key, chunks):
-        while len(atoms) < chunks:
-            atoms.sort(key=key)
-            largest = atoms.pop()
-            breakpoint = int(key(largest)/2 + largest[1])
-            part1 = (largest[0], largest[1], breakpoint)
-            part2 = (largest[0], breakpoint, largest[2])
-            atoms.append(part1)
-            atoms.append(part2)
+    def _split_atoms(self, atoms, num_chunks):
+        """Divide up atomic units (e.g. contigs) into chunks (refId, size,
+        segments)
+        """
+        for _ in range(num_chunks - len(atoms)):
+            largest = max(atoms, key=lambda x: x[1]/x[2])
+            largest[2] += 1
         return atoms
 
     def _split_contigs(self, chunks):
@@ -572,10 +570,26 @@ class DataSet(object):
             chunks = len(atoms)
         log.debug("Fetching reference lengths")
         refLens = self.refLengths
+        # refwindow format: rId, start, end
         atoms = [(rn, 0, refLens[rn]) for rn, _, _ in atoms]
         if chunks > len(atoms):
+            # splitting atom format is slightly different (but more compatible
+            # going forward with countRecords): (rId, size, segments)
+            atoms = [[rn, refLens[rn], 1] for rn, _, _ in atoms]
             log.debug("Splitting atoms")
-            atoms = self._split_atoms(atoms, balanceKey, chunks)
+            atoms = self._split_atoms(atoms, chunks)
+            segments = []
+            for atom in atoms:
+                segment_size = atom[1]/atom[2]
+                sub_segments = [(atom[0], segment_size * i, segment_size *
+                                 (i + 1)) for i in range(atom[2])]
+                # if you can't divide it evenly you may have some messiness
+                # with the last window. Fix it:
+                tmp = sub_segments.pop()
+                tmp = (tmp[0], tmp[1], refLens[tmp[0]])
+                sub_segments.append(tmp)
+                segments.extend(sub_segments)
+            atoms = segments
         log.debug("Done defining chunks")
 
         # duplicate
@@ -967,6 +981,23 @@ class DataSet(object):
         else:
             self.subdatasets.append(otherDataSet)
 
+    def _openFiles(self, refFile=None):
+        # TODO, implement refFiles
+        log.debug("Opening resources")
+        for extRes in self.externalResources:
+            location = urlparse(extRes.resourceId).path
+            try:
+                resource = openIndexedAlignmentFile(
+                    location,
+                    referenceFastaFname=refFile)
+            except (IOError, ValueError):
+                log.warn("pbi file missing, operating with "
+                         "reduced functionality")
+                resource = openAlignmentFile(location)
+            self._openReaders.append(resource)
+        log.debug("Done opening resources")
+
+
     def resourceReaders(self, refName=False):
         """A generator of Indexed*Reader objects for the ExternalResources
         in this DataSet.
@@ -984,15 +1015,7 @@ class DataSet(object):
             hn: ...
         """
         if not self._openReaders:
-            log.debug("Opening resources")
-            for extRes in self.externalResources:
-                location = urlparse(extRes.resourceId).path
-                try:
-                    resource = openIndexedAlignmentFile(location)
-                except (IOError, ValueError):
-                    resource = openAlignmentFile(location)
-                self._openReaders.append(resource)
-            log.debug("Done opening resources")
+            self._openFiles()
         if refName:
             return [resource for resource in self._openReaders
                     if refName in resource.referenceInfoTable['FullName']]
@@ -1491,6 +1514,13 @@ class AlignmentSet(DataSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
     so the base class version is OK (this just ensures type representation on
     output and expandability"""
+
+    def addReference(self, fname):
+        reference = ReferenceSet(fname).externalResources.resourceIds
+        if len(reference) > 1:
+            log.warn("Multiple references found, cannot open with reads")
+        else:
+            self._openFiles(refFile=reference[0])
 
     @property
     def records(self):
