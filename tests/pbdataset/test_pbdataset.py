@@ -347,10 +347,17 @@ class TestDataSet(unittest.TestCase):
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         self.assertEqual(refWindows, [(0, 0, 48502)])
+
         dss = ds3.split(contigs=True, chunks=2)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         self.assertEqual(refWindows, [(0, 0, 24251), (0, 24251, 48502)])
+
+        dss = ds3.split(contigs=True, chunks=3)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        self.assertEqual(refWindows, [(0, 0, 16167), (0, 16167, 32334),
+                                      (0, 32334, 48502)])
 
     def test_filter_reference_contigs(self):
         ds2 = ReferenceSet(data.getRef())

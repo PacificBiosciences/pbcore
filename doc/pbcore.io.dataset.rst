@@ -22,7 +22,7 @@ The following entry points are available through the main script: dataset.py::
                       {create,filter,merge,split,validate,loadstats,consolidate}
                       ...
 
-    Run pbdatasets.py by specifying a command.
+    Run dataset.py by specifying a command.
 
     optional arguments:
       -h, --help            show this help message and exit
@@ -262,10 +262,10 @@ the common constructor (DataSet) and later cast to a specific type
 (an artifact of early api Designs). The factory behavior is defined in the
 DataSet metaclass.
 
-.. inheritance-diagram:: pbdataset.DataSetIO
+.. inheritance-diagram:: pbcore.io.dataset.DataSetIO
     :parts: 1
 
-.. automodule:: pbdataset.DataSetIO
+.. automodule:: pbcore.io.dataset.DataSetIO
     :members:
     :special-members: __call__, __init__, __metaclass__, __repr__, __add__,
                       __eq__, __deepcopy__
@@ -286,10 +286,10 @@ various helper classes and functions manipulating this tree. The structure of
 this tree and currently implemented helper classes are available in the
 DataSetMembers module.
 
-.. inheritance-diagram:: pbdataset.DataSetMembers
+.. inheritance-diagram:: pbcore.io.dataset.DataSetMembers
     :parts: 1
 
-.. automodule:: pbdataset.DataSetMembers
+.. automodule:: pbcore.io.dataset.DataSetMembers
     :members:
     :special-members: __getitem__, __iter__, __repr__
     :show-inheritance:

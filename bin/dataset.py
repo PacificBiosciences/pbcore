@@ -37,7 +37,7 @@ def add_subparsers(parser, sps):
     return parser
 
 def get_parser():
-    description = 'Run pbdatasets.py by specifying a command.'
+    description = 'Run dataset.py by specifying a command.'
     parser = argparse.ArgumentParser(version=__version__,
             description=description)
     parser.add_argument("--debug", default=False, action='store_true',

@@ -700,6 +700,7 @@ class DataSet(object):
 
         Doctest:
             >>> import pbcore.data.datasets as data
+            >>> from pbcore.io import DataSet
             >>> ds1 = DataSet(data.getXml(8))
             >>> ds1.loadStats(data.getStats())
             >>> ds2 = DataSet(data.getXml(9))
@@ -1463,7 +1464,7 @@ class SubreadSet(ReadSet):
 
     DocTest:
 
-        >>> from pbcore.io import DataSet
+        >>> from pbcore.io import DataSet, SubreadSet
         >>> import pbcore.data.datasets as data
         >>> ds1 = DataSet(data.getXml(no=8))
         >>> ds2 = DataSet(data.getXml(no=9))
@@ -1498,6 +1499,7 @@ class ConsensusReadSet(ReadSet):
 
     Doctest:
         >>> import pbcore.data.datasets as data
+        >>> from pbcore.io import DataSet, ConsensusReadSet
         >>> ds1 = DataSet(data.getXml(5))
         >>> ds1 # doctest:+ELLIPSIS
         <ConsensusReadSet...
