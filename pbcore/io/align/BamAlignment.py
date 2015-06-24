@@ -424,6 +424,14 @@ class BamAlignment(AlignmentRecordMixin):
         # 1. Extract in native orientation
         tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
         data_ = self.peer.opt(tag)
+
+        # FIXME:
+        # Temporary hack for when we encode kinetics losslessly
+        # Need to revise RG to tell us the codec used.
+        if (featureName in ("IPD", "PulseWidth") and isinstance(data_, list)):
+            dtype_ = np.uint16
+            kind_ = "raw"
+
         if isinstance(data_, str):
             data = np.fromstring(data_, dtype=dtype_)
         else:
