@@ -1243,7 +1243,7 @@ class DataSet(object):
                 for read in resource.readsInRange(refName, start, end):
                     yield read
 
-    def toFofn(self, outfn=None, uri=False, relative=True):
+    def toFofn(self, outfn=None, uri=False, relative=False):
         """Return a list of resource filenames (and write to optional outfile)
 
         Args:
@@ -1266,7 +1266,7 @@ class DataSet(object):
         lines = [er.resourceId for er in self.externalResources]
         if not uri:
             lines = [urlparse(line).path for line in lines]
-        if relative:
+        if relative is True:
             # make it relative to the fofn location
             if outfn:
                 lines = [os.path.relpath(line, os.path.dirname(outfn))

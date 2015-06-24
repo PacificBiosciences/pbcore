@@ -254,6 +254,15 @@ class TestDataSet(unittest.TestCase):
     def test_toFofn(self):
         self.assertEquals(DataSet("bam1.bam", "bam2.bam").toFofn(),
                           ['bam1.bam', 'bam2.bam'])
+        realDS = DataSet(data.getXml(13))
+        files = realDS.toFofn()
+        self.assertEqual(len(files), 1)
+        self.assertTrue(os.path.exists(files[0]))
+        self.assertTrue(os.path.isabs(files[0]))
+        files = realDS.toFofn(relative=True)
+        self.assertEqual(len(files), 1)
+        self.assertTrue(os.path.exists(files[0]))
+        self.assertFalse(os.path.isabs(files[0]))
 
     def test_toExternalFiles(self):
         bogusDS = DataSet("bam1.bam", "bam2.bam")

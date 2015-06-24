@@ -1,3 +1,7 @@
+* Version 1.1.0
+- Added dataset functionality to pbcore.io
+- Added dataset.py tools for CLI manipulation of DataSet XML files
+
 * Version 1.0.0
 - BAM fixes
 - Better FOFN handling

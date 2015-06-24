@@ -240,7 +240,7 @@ do them using the API, rather than the CLI.
     variantCaller.py --alignmentSetRefWindows --referenceFileName referenceset.xml --outputFilename chunk1consensus.fasta --algorithm quiver chunk1contigs.alignmentset.xml
     variantCaller.py --alignmentSetRefWindows --referenceFileName referenceset.xml --outputFilename chunk2consensus.fasta --algorithm quiver chunk2contigs.alignmentset.xml
 
-    # Inside quiver (still using pbdataset API):
+    # Inside quiver (still using python dataset API):
     aln = AlignmentSet(fname)
     # get this set's windows:
     refWindows = aln.refWindows

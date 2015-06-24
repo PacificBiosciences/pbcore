@@ -5,9 +5,9 @@ import argparse
 import logging
 import time
 from pbcore.io.dataset import EntryPoints
+from pbcore import __VERSION__
 
 
-__version__ = '0.1.0'
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 
 def _setup_logging():
@@ -38,7 +38,7 @@ def add_subparsers(parser, sps):
 
 def get_parser():
     description = 'Run dataset.py by specifying a command.'
-    parser = argparse.ArgumentParser(version=__version__,
+    parser = argparse.ArgumentParser(version=__VERSION__,
             description=description)
     parser.add_argument("--debug", default=False, action='store_true',
                         help="Turn on debug level logging")
@@ -50,7 +50,7 @@ def main(argv=sys.argv):
     """Main point of Entry"""
     log = _setup_logging()
     log.info("Starting {f} version {v} dataset manipulator".format(
-        f=__file__, v=__version__))
+        f=__file__, v=__VERSION__))
     parser = get_parser()
     args = parser.parse_args()
     if args.debug:
