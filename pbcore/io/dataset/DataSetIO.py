@@ -304,7 +304,10 @@ class DataSet(object):
         self.close()
 
     def __len__(self):
-        return len(list(self.records))
+        count = 0
+        for _ in self.records:
+            count += 1
+        return count
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -1176,6 +1179,9 @@ class DataSet(object):
                     refName in resource.referenceInfoTable['FullName']):
                 refLen = resource.referenceInfo(refName).Length
         if refLen:
+            # TODO if the bam file is indexed readsInRange returns a list.
+            # Calling this on the alignment results in every read in a list all
+            # at once. We can block it into smaller calls...
             for read in self.readsInRange(refName, 0, refLen, justIndices):
                 yield read
 
@@ -1535,18 +1541,6 @@ class AlignmentSet(DataSet):
             log.warn("Multiple references found, cannot open with reads")
         else:
             self._openFiles(refFile=reference[0])
-
-    @property
-    def records(self):
-        # we only care about aligned sequences here, so we can make this a
-        # chain of readsInReferences to add pre-filtering by rname, instead of
-        # going through every record and performing downstream filtering.
-        # This will make certain operations, like len(), potentially faster
-
-        for rname in self.refNames:
-            for read in self.readsInReference(rname):
-                yield read
-
 
 class ReferenceSet(DataSet):
     """DataSet type specific to References"""
