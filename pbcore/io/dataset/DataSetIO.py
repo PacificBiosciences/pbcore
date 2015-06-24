@@ -421,7 +421,7 @@ class DataSet(object):
             except KeyError:
                 raise TypeError("Cannot cast from {s} to "
                                 "{t}".format(s=type(self).__name__, t=asType))
-            tbr.__dict__ = copy.deepcopy(self.__dict__)
+            tbr.__dict__.update(copy.deepcopy(self.__dict__))
             return tbr
         result = copy.deepcopy(self)
         result.newUuid()
@@ -746,15 +746,15 @@ class DataSet(object):
         log.warn("File not found: {f}".format(f=fname))
         return fname
 
-    def makePathsAbsolute(self, curStart=None):
+    def makePathsAbsolute(self, curStart="."):
         """As part of the validation process, make all ResourceIds absolute
-        URIs rather than relative paths. Generally not called by API users."""
-        # The extra slashes make this a valid uri
-        if curStart:
-            self._changePaths(lambda x, s=curStart: self._resolveLocation(x,
-                                                                          s))
-        else:
-            self._changePaths(os.path.abspath)
+        URIs rather than relative paths. Generally not called by API users.
+
+        Args:
+            curStart: The location from which relative paths should emanate.
+        """
+        self._changePaths(lambda x, s=curStart: self._resolveLocation(x,
+                                                                      s))
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
@@ -983,7 +983,6 @@ class DataSet(object):
             self.subdatasets.append(otherDataSet)
 
     def _openFiles(self, refFile=None):
-        # TODO, implement refFiles
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
@@ -1280,6 +1279,13 @@ class DataSet(object):
                 outFile.writelines(line + '\n' for line in lines)
         return lines
 
+    def toExternalFiles(self):
+        files = self.externalResources.resourceIds
+        tbr = []
+        for fname in files:
+            tbr.append(self._resolveLocation(fname, '.'))
+        return tbr
+
     @property
     def _castableTypes(self):
         """The types to which this DataSet type may be cast. This is a property
@@ -1543,6 +1549,7 @@ class ReferenceSet(DataSet):
     def __init__(self, *files):
         super(ReferenceSet, self).__init__()
         self._metadata = ReferenceSetMetadata()
+        self._indexedOnly = False
 
     def processFilters(self):
         # Allows us to not process all of the filters each time. This is marked
@@ -1583,6 +1590,27 @@ class ReferenceSet(DataSet):
             if newMetadata.contigs:
                 self._metadata.contigs.extend(newMetadata.contigs)
 
+    def _openFiles(self):
+        log.debug("Opening resources")
+        for extRes in self.externalResources:
+            location = urlparse(extRes.resourceId).path
+            try:
+                resource = IndexedFastaReader(location)
+            except IOError:
+                if not self._indexedOnly:
+                    log.warn('Companion reference index (.fai) missing. '
+                             'Use "samtools faidx <refname>" to generate one.')
+                    resource = FastaReader(location)
+                else:
+                    raise
+            self._openReaders.append(resource)
+        log.debug("Done opening resources")
+
+    def assertIndexed(self):
+        self._indexedOnly = True
+        self._openFiles()
+        return True
+
     def resourceReaders(self):
         """A generator of fastaReader objects for the ExternalResources in this
         ReferenceSet.
@@ -1599,17 +1627,9 @@ class ReferenceSet(DataSet):
             ...         print 'hn: %i' % row.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
-        for extRes in self.externalResources:
-            location = urlparse(extRes.resourceId).path
-            try:
-                with IndexedFastaReader(location) as resource:
-                    yield resource
-            except IOError:
-                log.warn('Everything is better with indexed references. '
-                         'samtools faidx <refname> to generate one.')
-                with FastaReader(location) as resource:
-                    yield resource
-
+        self._openFiles()
+        for resource in self._openReaders:
+            yield resource
 
     @property
     def refNames(self):

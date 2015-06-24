@@ -255,6 +255,18 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(DataSet("bam1.bam", "bam2.bam").toFofn(),
                           ['bam1.bam', 'bam2.bam'])
 
+    def test_toExternalFiles(self):
+        bogusDS = DataSet("bam1.bam", "bam2.bam")
+        self.assertEqual(['bam1.bam', 'bam2.bam'],
+                         bogusDS.externalResources.resourceIds)
+        self.assertEquals(DataSet("bam1.bam", "bam2.bam").toExternalFiles(),
+                          ['bam1.bam', 'bam2.bam'])
+        realDS = DataSet(data.getXml(13))
+        files = realDS.toExternalFiles()
+        self.assertEqual(len(files), 1)
+        self.assertTrue(os.path.exists(files[0]))
+        self.assertTrue(os.path.isabs(files[0]))
+
     @SkipTest
     def test_checkFilterMatch(self):
         # different resourceIds, compatible filters:
