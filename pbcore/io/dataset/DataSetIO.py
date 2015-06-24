@@ -14,7 +14,7 @@ from functools import wraps
 from functools import partial
 from urlparse import urlparse
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
-                              FastaReader, IndexedFastaReader)
+                              FastaReader, IndexedFastaReader, CmpH5Reader)
 
 from pbcore.io.dataset import DataSetReader
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -87,11 +87,11 @@ class DataSet(object):
             >>> import os, tempfile
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
-            >>> # Prog like pbalign provides a file://....bam uri:
-            >>> # e.g. d = DataSet("file:aligned.bam")
+            >>> # Prog like pbalign provides a .bam file:
+            >>> # e.g. d = DataSet("aligned.bam")
             >>> # Something like the test files we have:
             >>> inBam = data.getBam()
-            >>> inBam.startswith('file:') and inBam.endswith('.bam')
+            >>> inBam.endswith('.bam')
             True
             >>> d = DataSet(inBam)
             >>> # A UniqueId is generated, despite being a BAM input
@@ -99,9 +99,9 @@ class DataSet(object):
             True
             >>> dOldUuid = d.uuid
             >>> # They can write this BAM to an XML:
-            >>> # e.g. d.write("xml:alignmentset.xml")
+            >>> # e.g. d.write("alignmentset.xml")
             >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
-            >>> outXml = 'xml:' + os.path.join(outdir, 'tempfile.xml')
+            >>> outXml = os.path.join(outdir, 'tempfile.xml')
             >>> d.write(outXml)
             >>> # And then recover the same XML:
             >>> d = DataSet(outXml)
@@ -660,7 +660,7 @@ class DataSet(object):
             >>> from pbcore.io import DataSet
             >>> import tempfile, os
             >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
-            >>> outfile = 'xml:' + os.path.join(outdir, 'tempfile.xml')
+            >>> outfile = os.path.join(outdir, 'tempfile.xml')
             >>> ds1 = DataSet(data.getXml())
             >>> ds1.write(outfile, validate=False)
             >>> ds2 = DataSet(outfile)
@@ -1018,7 +1018,8 @@ class DataSet(object):
             self._openFiles()
         if refName:
             return [resource for resource in self._openReaders
-                    if refName in resource.referenceInfoTable['FullName']]
+                    if refName in resource.referenceInfoTable['FullName'] or
+                    refName in resource.referenceInfoTable['ID']]
         else:
             return self._openReaders
 
@@ -1389,6 +1390,11 @@ class DataSet(object):
                 if keyFunc(responses[0]) != keyFunc(res):
                     raise ResourceMismatchError(responses)
         return responses[0]
+
+    @property
+    def isCmpH5(self):
+        res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
+        return self._unifyResponses(res)
 
     def referenceInfo(self, refName):
         responses = self._pollResources(

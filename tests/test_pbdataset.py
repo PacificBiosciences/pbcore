@@ -20,22 +20,22 @@ class TestDataSet(unittest.TestCase):
     associated module functions"""
 
     def test_build(self):
-        # Progs like pbalign provides a file:.bam uri:
-        # e.g. d = DataSet("file:aligned.bam")
+        # Progs like pbalign provide a .bam file:
+        # e.g. d = DataSet("aligned.bam")
         # Something like the test files we have:
         inBam = data.getBam()
-        self.assertTrue(inBam.startswith('file:') and inBam.endswith('.bam'))
+        self.assertTrue(inBam.endswith('.bam'))
         d = DataSet(inBam)
         # A UniqueId is generated, despite being a BAM input
         self.assertTrue(d.uuid != '')
         dOldUuid = d.uuid
         # They can write this BAM to an XML:
-        # e.g. d.write("xml:alignmentset.xml")
+        # e.g. d.write("alignmentset.xml")
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outXml = 'xml:' + os.path.join(outdir, 'tempfile.xml')
+        outXml = os.path.join(outdir, 'tempfile.xml')
         d.write(outXml)
         # And then recover the same XML (or a different one):
-        # e.g. d = DataSet("xml:alignmentset.xml")
+        # e.g. d = DataSet("alignmentset.xml")
         d = DataSet(outXml)
         # The UniqueId will be the same
         self.assertTrue(d.uuid == dOldUuid)
@@ -176,7 +176,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_write(self):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outfile = 'xml:' + os.path.join(outdir, 'tempfile.xml')
+        outfile = os.path.join(outdir, 'tempfile.xml')
         ds1 = DataSet(data.getBam())
         ds1.write(outfile)
         # TODO: turn back on when pyxb present:
