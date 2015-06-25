@@ -37,8 +37,12 @@ from pbcore.sequence import reverseComplement
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentRecordMixin
 
+import os
+
 __all__ = [ "BamAlignment" ]
 
+# Temporary hack while we await a means to get tag types from pysam
+PBCORE_BAM_LOSSLESS_KINETICS = os.environ.get("PBCORE_BAM_LOSSLESS_KINETICS")
 
 def _unrollCigar(cigar, exciseSoftClips=False):
     """
@@ -424,6 +428,14 @@ class BamAlignment(AlignmentRecordMixin):
         # 1. Extract in native orientation
         tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
         data_ = self.peer.opt(tag)
+
+        # FIXME:
+        # Temporary hack for when we encode kinetics losslessly
+        # Need to revise RG to tell us the codec used.
+        if (featureName in ("IPD", "PulseWidth") and PBCORE_BAM_LOSSLESS_KINETICS):
+            dtype_ = np.uint16
+            kind_ = "raw"
+
         if isinstance(data_, str):
             data = np.fromstring(data_, dtype=dtype_)
         else:
