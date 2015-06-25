@@ -482,7 +482,7 @@ class BamAlignment(AlignmentRecordMixin):
         alnData[~gapMask] = data
         return alnData
 
-    IPD            = _makePulseFeatureAccessor("IPD")
+    IPD            = _makePulseFeatureAccessor("Ipd")
     PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
     #QualityValue   = _makePulseFeatureAccessor("QualityValue")
     InsertionQV    = _makePulseFeatureAccessor("InsertionQV")

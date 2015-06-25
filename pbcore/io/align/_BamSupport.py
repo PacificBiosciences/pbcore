@@ -43,7 +43,7 @@ PULSE_FEATURE_TAGS = { "InsertionQV"    : ("iq", "qv",   np.uint8),
                        "DeletionTag"    : ("dt", "base", np.int8 ),
                        "SubstitutionQV" : ("sq", "qv",   np.uint8),
                        "MergeQV"        : ("mq", "qv",   np.uint8),
-                       "IPD"            : ("ip", "time", np.uint8),
+                       "Ipd"            : ("ip", "time", np.uint8),
                        "PulseWidth"     : ("pw", "time", np.uint8) }
 
 
