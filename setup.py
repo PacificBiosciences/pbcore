@@ -31,5 +31,5 @@ setup(
     install_requires=[
         'h5py >= 2.0.1',
         'numpy >= 1.7.1',
-        'pysam == 0.8.1'
+        'pysam >= 0.8.1'
     ])
