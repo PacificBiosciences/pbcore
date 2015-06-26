@@ -432,7 +432,7 @@ class BamAlignment(AlignmentRecordMixin):
         # FIXME:
         # Temporary hack for when we encode kinetics losslessly
         # Need to revise RG to tell us the codec used.
-        if (featureName in ("IPD", "PulseWidth") and PBCORE_BAM_LOSSLESS_KINETICS):
+        if (featureName in ("Ipd", "PulseWidth") and PBCORE_BAM_LOSSLESS_KINETICS):
             dtype_ = np.uint16
             kind_ = "raw"
 
