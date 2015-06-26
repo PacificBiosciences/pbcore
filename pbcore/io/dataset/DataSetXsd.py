@@ -6822,7 +6822,7 @@ class CTD_ANON_79 (AlignmentSetType):
 
 # Complex type [anonymous] with content type ELEMENT_ONLY
 class CTD_ANON_80 (ContigSetType):
-    """DataSets of reference sequences. Replaces the reference.info.xml in Sequel."""
+    """DataSets of reference sequences. Replaces the reference.info.xml"""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
@@ -7211,7 +7211,7 @@ Namespace.addCategoryObject('elementBinding', BarcodeSet.name().localName(), Bar
 ConsensusAlignmentSet = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ConsensusAlignmentSet'), CTD_ANON_79, documentation='DataSets of aligned CCS reads.', location=pyxb.utils.utility.Location('/tmp/tmpl4vgfXxsds/PacBioSecondaryDataModel.xsd', 40, 1))
 Namespace.addCategoryObject('elementBinding', ConsensusAlignmentSet.name().localName(), ConsensusAlignmentSet)
 
-ReferenceSet = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReferenceSet'), CTD_ANON_80, documentation='DataSets of reference sequences. Replaces the reference.info.xml in Sequel.', location=pyxb.utils.utility.Location('/tmp/tmpl4vgfXxsds/PacBioSecondaryDataModel.xsd', 72, 1))
+ReferenceSet = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReferenceSet'), CTD_ANON_80, documentation='DataSets of reference sequences. Replaces the reference.info.xml', location=pyxb.utils.utility.Location('/tmp/tmpl4vgfXxsds/PacBioSecondaryDataModel.xsd', 72, 1))
 Namespace.addCategoryObject('elementBinding', ReferenceSet.name().localName(), ReferenceSet)
 
 ContigSet = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ContigSet'), CTD_ANON_81, documentation='DataSets of contigs sequences. Basically a thin metadata layer on top of a contigs FASTA (e.g. from HGAP).', location=pyxb.utils.utility.Location('/tmp/tmpl4vgfXxsds/PacBioSecondaryDataModel.xsd', 82, 1))
