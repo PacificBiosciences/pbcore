@@ -14,7 +14,8 @@ from functools import wraps
 from functools import partial
 from urlparse import urlparse
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
-                              FastaReader, IndexedFastaReader, CmpH5Reader)
+                              FastaReader, IndexedFastaReader, CmpH5Reader,
+                              IndexedBamReader)
 
 from pbcore.io.dataset import DataSetReader
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -297,7 +298,11 @@ class DataSet(object):
     def close(self):
         """Close all of the opened resource readers"""
         for reader in self._openReaders:
-            reader.close()
+            try:
+                reader.close()
+            except AttributeError:
+                log.info("Reader not opened properly, therefore not closed "
+                         "properly.")
         self._openReaders = []
 
     def __exit__(self, *exec_info):
@@ -305,9 +310,14 @@ class DataSet(object):
 
     def __len__(self):
         count = 0
-        for _ in self.records:
-            count += 1
+        if self.filters:
+            for _ in self.records:
+                count += 1
+        else:
+            for reader in self.resourceReaders():
+                count += len(reader)
         return count
+
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -994,8 +1004,8 @@ class DataSet(object):
                     location,
                     referenceFastaFname=refFile)
             except (IOError, ValueError):
-                log.warn("pbi file missing, operating with "
-                         "reduced functionality")
+                log.info("pbi file missing, operating with "
+                         "reduced speed and functionality")
                 resource = openAlignmentFile(location)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
@@ -1047,6 +1057,12 @@ class DataSet(object):
         for resource in self.resourceReaders():
             for record in resource:
                 yield record
+
+    @filtered
+    def __iter__(self):
+        """ Iterate over the records. (sorted for AlignmentSet objects)"""
+        for record in self.records:
+            yield record
 
     @property
     def subSetNames(self):
@@ -1103,6 +1119,12 @@ class DataSet(object):
                             refLens = self.refLengths
                         winend = refLens[name]
                     windowTuples.append((refID, int(winstart), int(winend)))
+        if not windowTuples:
+            for name, refId in nameIDs:
+                if not refLens:
+                    refLens = self.refLengths
+                refLen = refLens[name]
+                windowTuples.append((refId, 0, refLen))
         return windowTuples
 
     @property
@@ -1402,6 +1424,11 @@ class DataSet(object):
         res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
         return self._unifyResponses(res)
 
+    @property
+    def hasPbi(self):
+        res = self._pollResources(lambda x: isinstance(x, IndexedBamReader))
+        return self._unifyResponses(res)
+
     def referenceInfo(self, refName):
         responses = self._pollResources(
             lambda x, rn=refName: x.referenceInfo(rn), refName)
@@ -1541,6 +1568,17 @@ class AlignmentSet(DataSet):
             log.warn("Multiple references found, cannot open with reads")
         else:
             self._openFiles(refFile=reference[0])
+
+    @property
+    def records(self):
+        """ The records in this AlignmentSet, sorted by tStart. """
+        # we only care about aligned sequences here, so we can make this a
+        # chain of readsInReferences to add pre-filtering by rname, instead of
+        # going through every record and performing downstream filtering.
+        # This will make certain operations, like len(), potentially faster
+        for rname in self.refNames:
+            for read in self.readsInReference(rname):
+                yield read
 
 class ReferenceSet(DataSet):
     """DataSet type specific to References"""
