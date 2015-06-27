@@ -384,17 +384,17 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             issubclass(type(rowNumbers), np.integer)):
             return self.atRowNumber(rowNumbers)
         elif isinstance(rowNumbers, slice):
-            return [ self.atRowNumber(r)
-                     for r in xrange(*rowNumbers.indices(len(self)))]
+            return ( self.atRowNumber(r)
+                     for r in xrange(*rowNumbers.indices(len(self))))
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []
             else:
                 entryType = type(rowNumbers[0])
                 if entryType == int or issubclass(entryType, np.integer):
-                    return [ self.atRowNumber(r) for r in rowNumbers ]
+                    return ( self.atRowNumber(r) for r in rowNumbers )
                 elif entryType == bool or issubclass(entryType, np.bool_):
-                    return [ self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) ]
+                    return ( self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) )
         raise TypeError, "Invalid type for IndexedBamReader slicing"
 
     def __getattr__(self, key):
