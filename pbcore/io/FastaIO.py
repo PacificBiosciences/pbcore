@@ -360,7 +360,6 @@ class IndexedFastaRecord(object):
     def __init__(self, view, faiRecord):
         self.view = view
         self.faiRecord = faiRecord
-        self._md5 = md5.md5(self.sequence[:]).hexdigest()
 
     @property
     def name(self):
@@ -386,10 +385,6 @@ class IndexedFastaRecord(object):
     @deprecated
     def length(self):
         return self.faiRecord.length
-
-    @property
-    def md5 (self):
-        return self._md5
 
     def __len__(self):
         return self.faiRecord.length
