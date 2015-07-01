@@ -46,10 +46,6 @@ class TestFastaRecord:
         assert_equal(self.header, recordFromString.header)
         assert_equal(self.sequence, recordFromString.sequence)
 
-    def test_md5(self):
-        assert_equal("67fc75ce599ed0ca1fc8ed2dcbccc95d",
-                     self.record.md5)
-
     def test_reverse_complement1(self):
         assert_equal(self.rc1_record.header, self.rc_header)
         assert_equal(self.rc1_record.sequence, self.rc_sequence)
@@ -92,8 +88,6 @@ class TestFastaReader:
                      "TTGGGAATTTGGAAATTACCTATGTGCAGAGGAATTATGATCTTTCCTTCTTA"
                      "AAGGTTGGTGACTTTGATTTTCCT",
                      entries[0].sequence)
-        assert_equal("e3912e9ceacd6538ede8c1b2adda7423",
-                     entries[0].md5)
 
     def test_dosLineEndingsFasta(self):
         f = FastaReader(data.getDosFormattedFasta())

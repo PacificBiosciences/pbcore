@@ -46,7 +46,7 @@ from ._utils import splitFileContents
 from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
-import md5, mmap, numpy as np, re
+import mmap, numpy as np, re
 from collections import namedtuple, OrderedDict, Sequence
 from os.path import abspath, expanduser, isfile
 
@@ -77,7 +77,6 @@ class FastaRecord(object):
             assert self.DELIMITER not in sequence
             self._header = header
             self._sequence = sequence
-            self._md5 = md5.md5(self.sequence).hexdigest()
             self._id, self._comment = splitFastaHeader(header)
         except AssertionError:
             raise ValueError("Invalid FASTA record data")
@@ -134,13 +133,6 @@ class FastaRecord(object):
         Get the length of the FASTA sequence
         """
         return len(self._sequence)
-
-    @property
-    def md5(self):
-        """
-        The MD5 checksum (hex digest) of `sequence`
-        """
-        return self._md5
 
     @classmethod
     def fromString(cls, s):
@@ -209,11 +201,11 @@ class FastaReader(ReaderBase):
         >>> filename = data.getTinyFasta()
         >>> r = FastaReader(filename)
         >>> for record in r:
-        ...     print record.header, len(record.sequence), record.md5
-        ref000001|EGFR_Exon_2 183 e3912e9ceacd6538ede8c1b2adda7423
-        ref000002|EGFR_Exon_3 203 4bf218da37175a91869033024ac8f9e9
-        ref000003|EGFR_Exon_4 215 245bc7a046aad0788c22b071ed210f4d
-        ref000004|EGFR_Exon_5 157 c368b8191164a9d6ab76fd328e2803ca
+        ...     print record.header, len(record.sequence)
+        ref000001|EGFR_Exon_2 183
+        ref000002|EGFR_Exon_3 203
+        ref000003|EGFR_Exon_4 215
+        ref000004|EGFR_Exon_5 157
         >>> r.close()
 
     """
