@@ -8,7 +8,7 @@ import unittest
 from unittest.case import SkipTest
 
 from pbcore.io import openIndexedAlignmentFile
-from pbcore.io import DataSet, SubreadSet, ReferenceSet
+from pbcore.io import DataSet, SubreadSet, ReferenceSet, AlignmentSet
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetValidator import validateFile
 import pbcore.data.datasets as data
@@ -531,6 +531,46 @@ class TestDataSet(unittest.TestCase):
             #self.assertTrue(_overlap(0, 1000, read.tStart, read.tEnd))
         for read, start in zip(reads, read_starts):
             self.assertEqual(read.tStart, start)
+
+    def test_referenceInfo(self):
+        aln = AlignmentSet(data.getBam(0), data.getBam(1))
+        readers = aln.resourceReaders()
+        readers = aln.resourceReaders()
+        self.assertEqual(len(readers[0].referenceInfoTable), 1)
+        self.assertEqual(
+            str(readers[0].referenceInfo('lambda_NEB3011')),
+            "(0, 0, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
+            "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)")
+        self.assertEqual(
+            str(aln.referenceInfo('lambda_NEB3011')),
+            "(0, 0, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
+            "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)")
+        self.assertEqual(readers[0].referenceInfo('lambda_NEB3011'),
+                         aln.referenceInfo('lambda_NEB3011'))
+
+    def test_referenceInfoTable(self):
+        ds = DataSet(data.getXml(16))
+        also_lambda = ds.toExternalFiles()[0]
+        aln = AlignmentSet(data.getBam(0), data.getBam(1), also_lambda)
+        readers = aln.resourceReaders()
+
+        self.assertEqual(len(readers[0].referenceInfoTable), 1)
+        self.assertEqual(len(readers[1].referenceInfoTable), 59)
+        self.assertEqual(len(readers[2].referenceInfoTable), 1)
+        self.assertEqual(readers[0].referenceInfoTable.Name,
+                         readers[2].referenceInfoTable.Name)
+        self.assertEqual(len(aln.referenceInfoTable), 60)
+
+    def test_readGroupTable(self):
+        ds = DataSet(data.getXml(16))
+        also_lambda = ds.toExternalFiles()[0]
+        aln = AlignmentSet(data.getBam(0), data.getBam(1), also_lambda)
+        readers = aln.resourceReaders()
+
+        self.assertEqual(len(readers[0].readGroupTable), 1)
+        self.assertEqual(len(readers[1].readGroupTable), 1)
+        self.assertEqual(len(readers[2].readGroupTable), 1)
+        self.assertEqual(len(aln.readGroupTable), 3)
 
     def test_repr(self):
         ds = DataSet(data.getBam())

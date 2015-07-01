@@ -10,7 +10,7 @@ import copy
 import os
 import logging
 from functools import wraps
-from functools import partial
+import numpy as np
 from urlparse import urlparse
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
@@ -63,6 +63,14 @@ class DataSetMetaTypes(object):
     @classmethod
     def isValid(cls, dsId):
         return dsId in cls.ALL
+
+
+def _fileType(fname):
+    """Get the extension of fname (with h5 type)"""
+    ftype = fname.split('.')[-1]
+    if ftype == 'h5':
+        ftype = fname.split('.')[-2]
+    return ftype
 
 
 class MetaDataSet(type):
@@ -827,18 +835,18 @@ class DataSet(object):
             dataset._changePaths(osPathFunc)
 
     def _updateMetaType(self, resource):
-        file_type = self._fileType(resource.resourceId)
-        resource.metaType = self._metaTypeMapping().get(file_type, "")
+        """Infer and set the metatype of a resource if it doesn't already have
+        one."""
+        if not resource.metaType:
+            file_type = _fileType(resource.resourceId)
+            resource.metaType = self._metaTypeMapping().get(file_type, "")
 
-    def _metaTypeMapping(self):
+    @staticmethod
+    def _metaTypeMapping():
+        """The available mappings between file extension and MetaType (informed
+        by current class)."""
         # no metatypes for generic DataSet
         return {}
-
-    def _fileType(self, fname):
-        ftype = fname.split('.')[-1]
-        if ftype == 'h5':
-            ftype = fname.split('.')[-2]
-        return ftype
 
     def disableFilters(self):
         """Disable read filtering for this object"""
@@ -1167,6 +1175,7 @@ class DataSet(object):
 
     @property
     def refNames(self):
+        """A list of reference names (id)."""
         return [name for name, _ in self.refInfo('Name')]
 
     @property
@@ -1182,6 +1191,7 @@ class DataSet(object):
 
     @property
     def fullRefNames(self):
+        """A list of reference full names (full header)."""
         return [name for name, _ in self.refInfo('FullName')]
 
     def refInfo(self, key):
@@ -1347,6 +1357,7 @@ class DataSet(object):
         return lines
 
     def toExternalFiles(self):
+        """Returns a list of top level external resources (no indices)."""
         files = self.externalResources.resourceIds
         tbr = []
         for fname in files:
@@ -1448,9 +1459,12 @@ class DataSet(object):
         return len(self.externalResources)
 
     def _pollResources(self, func, refName=None):
+        """Collect the responses to func on each resource (or those with reads
+        mapping to refName)."""
         return [func(resource) for resource in self.resourceReaders(refName)]
 
     def _unifyResponses(self, responses, keyFunc=lambda x: x):
+        """Make sure all of the responses from resources are the same."""
         if len(responses) > 1:
             # Check the rest against the first:
             for res in responses[1:]:
@@ -1472,6 +1486,27 @@ class DataSet(object):
         responses = self._pollResources(
             lambda x, rn=refName: x.referenceInfo(rn), refName)
         return self._unifyResponses(responses, keyFunc=lambda x: x.MD5)
+
+    @property
+    def referenceInfoTable(self):
+        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
+        # instance). Use the resource readers directly instead.
+        responses = self._pollResources(lambda x: x.referenceInfoTable)
+        if len(responses) > 1:
+            assert not self.isCmpH5
+            tbr = reduce(np.append, responses)
+            return np.unique(tbr)
+        else:
+            return responses[0]
+
+    @property
+    def readGroupTable(self):
+        responses = self._pollResources(lambda x: x.readGroupTable)
+        if len(responses) > 1:
+            tbr = reduce(np.append, responses)
+            return tbr
+        else:
+            return responses[0]
 
     def hasPulseFeature(self, featureName):
         responses = self._pollResources(
@@ -1584,7 +1619,8 @@ class SubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.SUBREAD
 
-    def _metaTypeMapping(self):
+    @staticmethod
+    def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.SubreadFile.SubreadBamFile',
                 'bai':'PacBio.Index.BamIndex',
@@ -1639,7 +1675,8 @@ class AlignmentSet(DataSet):
             for read in self.readsInReference(rname):
                 yield read
 
-    def _metaTypeMapping(self):
+    @staticmethod
+    def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.SubreadFile.SubreadBamFile',
                 'bai':'PacBio.Index.BamIndex',
@@ -1784,7 +1821,8 @@ class ReferenceSet(DataSet):
             if contig.id == contig_id or contig.name == contig_id:
                 return contig
 
-    def _metaTypeMapping(self):
+    @staticmethod
+    def _metaTypeMapping():
         return {'fasta':'PacBio.ReferenceFile.ReferenceFastaFile',
                 'fai':'PacBio.Index.SamIndex',
                 'sa':'PacBio.Index.SaWriterIndex',
