@@ -99,6 +99,7 @@ class DataSet(object):
     specific subclasses"""
 
     __metaclass__ = MetaDataSet
+    datasetType = DataSetMetaTypes.ALL
 
     def __init__(self, *files):
         """DataSet constructor
@@ -448,6 +449,9 @@ class DataSet(object):
                 raise TypeError("Cannot cast from {s} to "
                                 "{t}".format(s=type(self).__name__, t=asType))
             tbr.__dict__.update(copy.deepcopy(self.__dict__))
+            # update the metatypes: (TODO: abstract out 'iterate over all
+            # resources and modify the element that contains them')
+            tbr.makePathsAbsolute()
             return tbr
         result = copy.deepcopy(self)
         result.newUuid()
@@ -590,7 +594,7 @@ class DataSet(object):
             atoms = [(rn, None, None) for rn in self.refNames]
 
         # The window length is used for balancing
-        # TODO once this can be balanced evenly, switch it to countRecords
+        # TODO switch it to countRecords
         balanceKey = lambda x: x[2] - x[1]
         if not chunks:
             chunks = len(atoms)
@@ -791,7 +795,7 @@ class DataSet(object):
         else:
             self._changePaths(os.path.relpath)
 
-    def _changePaths(self, osPathFunc):
+    def _changePaths(self, osPathFunc, checkMetaType=True):
         """Change all resourceId paths in this DataSet according to the
         osPathFunc provided.
 
@@ -808,6 +812,8 @@ class DataSet(object):
                 currentPath = currentPath.path
                 currentPath = osPathFunc(currentPath)
                 item.resourceId = currentPath
+                if checkMetaType:
+                    self._updateMetaType(item)
             try:
                 stack.extend(list(item.indices))
             except AttributeError:
@@ -819,6 +825,20 @@ class DataSet(object):
         # check all SubDatasets
         for dataset in self.subdatasets:
             dataset._changePaths(osPathFunc)
+
+    def _updateMetaType(self, resource):
+        file_type = self._fileType(resource.resourceId)
+        resource.metaType = self._metaTypeMapping().get(file_type, "")
+
+    def _metaTypeMapping(self):
+        # no metatypes for generic DataSet
+        return {}
+
+    def _fileType(self, fname):
+        ftype = fname.split('.')[-1]
+        if ftype == 'h5':
+            ftype = fname.split('.')[-2]
+        return ftype
 
     def disableFilters(self):
         """Disable read filtering for this object"""
@@ -1022,7 +1042,8 @@ class DataSet(object):
             except (IOError, ValueError):
                 log.info("pbi file missing, operating with "
                          "reduced speed and functionality")
-                resource = openAlignmentFile(location)
+                resource = openAlignmentFile(location,
+                                             referenceFastaFname=refFile)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -1524,7 +1545,8 @@ class ReadSet(DataSet):
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
 
 class HdfSubreadSet(ReadSet):
-    pass
+
+    datasetType = DataSetMetaTypes.HDF_SUBREAD
 
 
 class SubreadSet(ReadSet):
@@ -1560,6 +1582,16 @@ class SubreadSet(ReadSet):
         1
     """
 
+    datasetType = DataSetMetaTypes.SUBREAD
+
+    def _metaTypeMapping(self):
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.SubreadFile.SubreadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
 class ConsensusReadSet(ReadSet):
     """DataSet type specific to CCSreads. No type specific Metadata exists, so
     the base class version is OK (this just ensures type representation on
@@ -1580,10 +1612,14 @@ class ConsensusReadSet(ReadSet):
         <SubreadSetMetadata...
     """
 
+    datasetType = DataSetMetaTypes.CCS
+
 class AlignmentSet(DataSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
     so the base class version is OK (this just ensures type representation on
     output and expandability"""
+
+    datasetType = DataSetMetaTypes.ALIGNMENT
 
     def addReference(self, fname):
         reference = ReferenceSet(fname).externalResources.resourceIds
@@ -1603,9 +1639,18 @@ class AlignmentSet(DataSet):
             for read in self.readsInReference(rname):
                 yield read
 
+    def _metaTypeMapping(self):
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.SubreadFile.SubreadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+               }
+
+
 class ReferenceSet(DataSet):
     """DataSet type specific to References"""
 
+    datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files):
         super(ReferenceSet, self).__init__()
@@ -1739,10 +1784,17 @@ class ReferenceSet(DataSet):
             if contig.id == contig_id or contig.name == contig_id:
                 return contig
 
+    def _metaTypeMapping(self):
+        return {'fasta':'PacBio.ReferenceFile.ReferenceFastaFile',
+                'fai':'PacBio.Index.SamIndex',
+                'sa':'PacBio.Index.SaWriterIndex',
+               }
+
 
 class ContigSet(DataSet):
     """DataSet type specific to Contigs"""
 
+    datasetType = DataSetMetaTypes.CONTIG
 
     def __init__(self, *files):
         super(ContigSet, self).__init__()
@@ -1774,6 +1826,7 @@ class ContigSet(DataSet):
 class BarcodeSet(DataSet):
     """DataSet type specific to Barcodes"""
 
+    datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files):
         super(BarcodeSet, self).__init__()

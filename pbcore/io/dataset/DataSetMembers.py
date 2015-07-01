@@ -663,6 +663,10 @@ class ExternalResource(RecordWrapper):
     def metaType(self):
         return self.getV('attrib', 'MetaType')
 
+    @metaType.setter
+    def metaType(self, value):
+        return self.setV(value, 'attrib', 'MetaType')
+
     @property
     def resourceId(self):
         return self.getV('attrib', 'ResourceId')
@@ -737,6 +741,15 @@ class FileIndex(RecordWrapper):
     @resourceId.setter
     def resourceId(self, value):
         self.setV(value, 'attrib', 'ResourceId')
+
+    @property
+    def metaType(self):
+        return self.getV('attrib', 'MetaType')
+
+    @metaType.setter
+    def metaType(self, value):
+        return self.setV(value, 'attrib', 'MetaType')
+
 
 class DataSetMetadata(RecordWrapper):
     """The root of the DataSetMetadata element tree, used as base for subtype

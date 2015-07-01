@@ -94,6 +94,11 @@ def _openGenericFile(path):
     dictionary, return"""
     extRes = ExternalResource()
     extRes.resourceId = path
+    # Perhaps this should be in its own _openFastaFile function. Or
+    # _openBamFile should be rolled into this...
+    possible_indices = ['.fai']
+    extRes.addIndices([path + ext for ext in possible_indices if
+                       os.path.exists(path + ext)])
     extRess = ExternalResources()
     extRess.append(extRes)
     tbr = DataSetIO.DataSet()

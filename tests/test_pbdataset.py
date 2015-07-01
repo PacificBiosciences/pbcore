@@ -77,6 +77,13 @@ class TestDataSet(unittest.TestCase):
             "IdontExist.bam.pbi")
 
 
+    def test_empty_metatype(self):
+        inBam = data.getBam()
+        d = DataSet(inBam)
+        for extRes in d.externalResources:
+            self.assertEqual(extRes.metaType, "")
+
+
     def test_merge(self):
         ds1 = DataSet(data.getXml(0))
         ds2 = DataSet(data.getXml(1))

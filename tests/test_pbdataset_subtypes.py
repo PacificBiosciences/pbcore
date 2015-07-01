@@ -4,7 +4,7 @@ import unittest
 
 #from pbcore.util.Process import backticks
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
-                       ReferenceSet, ContigSet)
+                       ReferenceSet, ContigSet, AlignmentSet)
 import pbcore.data.datasets as data
 
 log = logging.getLogger(__name__)
@@ -30,6 +30,28 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds4).__name__, 'SubreadSet')
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
         self.assertEquals(len(ds4.metadata.collections), 1)
+
+    def test_autofilled_metatypes(self):
+        ds = ReferenceSet(data.getXml(18))
+        for extRes in ds.externalResources:
+            self.assertEqual(extRes.metaType,
+                             'PacBio.ReferenceFile.ReferenceFastaFile')
+            self.assertEqual(len(extRes.indices), 1)
+            for index in extRes.indices:
+                self.assertEqual(index.metaType, "PacBio.Index.SamIndex")
+        ds = AlignmentSet(data.getXml(16))
+        for extRes in ds.externalResources:
+            self.assertEqual(extRes.metaType,
+                             'PacBio.SubreadFile.SubreadBamFile')
+            self.assertEqual(len(extRes.indices), 2)
+            for index in extRes.indices:
+                if index.resourceId.endswith('pbi'):
+                    self.assertEqual(index.metaType,
+                                     "PacBio.Index.PacBioIndex")
+                if index.resourceId.endswith('bai'):
+                    self.assertEqual(index.metaType,
+                                     "PacBio.Index.BamIndex")
+
 
     def test_referenceset_contigs(self):
         names = [
