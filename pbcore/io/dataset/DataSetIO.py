@@ -1,4 +1,3 @@
-#! /usr/bin/env python2.7
 """
 Classes representing the elements of the DataSet type
 
@@ -38,6 +37,33 @@ def filtered(generator):
                     any([filt(read) for filt in filter_tests])):
                 yield read
     return wrapper
+
+
+def _toDsId(x):
+    return "PacBio.DataSet.{x}".format(x=x)
+
+
+class DataSetMetaTypes(object):
+    """
+    This mirrors the PacBioSecondaryDataModel.xsd definitions and be used
+    to reference a specific dataset type.
+    """
+    SUBREAD = _toDsId("SubreadSet")
+    HDF_SUBREAD = _toDsId("HdfSubreadSet")
+    ALIGNMENT = _toDsId("AlignmentSet")
+    BARCODE = _toDsId("BarcodeSet")
+    CCS_ALIGNMENT = _toDsId("ConsensusAlignmentSet")
+    CCS = _toDsId("ConsensusReadSet")
+    REFERENCE = _toDsId("ReferenceSet")
+    CONTIG = _toDsId("ContigSet")
+
+    ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
+           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG)
+
+    @classmethod
+    def isValid(cls, dsId):
+        return dsId in cls.ALL
+
 
 class MetaDataSet(type):
     """This metaclass acts as a factory for DataSet and subtypes,
