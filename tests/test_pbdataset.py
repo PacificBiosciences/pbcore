@@ -65,13 +65,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(
             type(SubreadSet(data.getBam()).copy(asType='DataSet')).__name__,
             'DataSet')
-        # Unkown types fall back to the base class. Users can cast to a
-        # more specific parent/sibling type at their own risk:
-        hds = DataSet(data.getHdfSubreadSet())
-        self.assertEquals(type(hds).__name__, 'DataSet')
-        self.assertEquals(hds.name, 'DataSet_HdfSubreadSet')
-        self.assertEquals(hds.objMetadata['MetaType'],
-                          'PacBio.DataSet.HdfSubreadSet')
         # Add external Resources:
         ds = DataSet()
         ds.externalResources.addResources(["IdontExist.bam"])

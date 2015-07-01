@@ -43,6 +43,9 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(contig.id, name)
             self.assertEqual(len(contig.sequence), seqlen)
 
+        for name in names:
+            self.assertTrue(ds.get_contig(name))
+
     def test_ref_names(self):
         ds = DataSet(data.getXml(18))
         refNames = ds.refNames

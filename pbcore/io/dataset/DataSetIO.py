@@ -136,15 +136,6 @@ class DataSet(object):
             >>> SubreadSet(data.getBam()).copy(asType='DataSet')
             ... # doctest:+ELLIPSIS
             <DataSet...
-            >>> # Unkown types fall back to the base class. Users can cast to a
-            >>> # more specific parent/sibling type at their own risk:
-            >>> hds = DataSet(data.getHdfSubreadSet())
-            >>> hds # doctest:+ELLIPSIS
-            <DataSet...
-            >>> hds.name
-            'DataSet_HdfSubreadSet'
-            >>> hds.objMetadata['MetaType']
-            'PacBio.DataSet.HdfSubreadSet'
             >>> # DataSets can also be manipulated after opening:
             >>> # Add external Resources:
             >>> ds = DataSet()
@@ -166,11 +157,7 @@ class DataSet(object):
         # NumRecords, BioSamples, Collections, etc.
         self._metadata = DataSetMetadata()
 
-        # List of ExternalResource objects
         self.externalResources = ExternalResources()
-
-        # list of dictionaries (one per "Filter"), containing the
-        # parameter:condition pairs for each parameter being filtered
         self._filters = Filters()
 
         # list of DataSet objects representing subsets
@@ -756,7 +743,7 @@ class DataSet(object):
         if os.path.exists(possibleRelStart):
             if os.path.exists(os.path.join(possibleRelStart, fname)):
                 return os.path.abspath(os.path.join(possibleRelStart, fname))
-        log.warn("File not found: {f}".format(f=fname))
+        log.error("Including unresolved file: {f}".format(f=fname))
         return fname
 
     def makePathsAbsolute(self, curStart="."):
@@ -766,12 +753,12 @@ class DataSet(object):
         Args:
             curStart: The location from which relative paths should emanate.
         """
-        self._changePaths(lambda x, s=curStart: self._resolveLocation(x,
-                                                                      s))
+        self._changePaths(
+            lambda x, s=curStart: self._resolveLocation(x, s))
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
-        ResourceIds relative URIs rather than absolute uris/paths.
+        ResourceIds relative paths rather than absolute paths.
         A less common use case for API consumers."""
         if outDir:
             self._changePaths(lambda x, s=outDir: os.path.relpath(x, s))
@@ -996,6 +983,9 @@ class DataSet(object):
             self.subdatasets.append(otherDataSet)
 
     def _openFiles(self, refFile=None):
+        """Open the files (assert they exist, assert they are of the proper
+        type before accessing any file)
+        """
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
@@ -1119,6 +1109,7 @@ class DataSet(object):
                             refLens = self.refLengths
                         winend = refLens[name]
                     windowTuples.append((refID, int(winstart), int(winend)))
+        # no tuples found: return full length of each reference
         if not windowTuples:
             for name, refId in nameIDs:
                 if not refLens:
@@ -1329,6 +1320,7 @@ class DataSet(object):
                     type(self).__name__: type(self)}
         return {'DataSet': DataSet,
                 'SubreadSet': SubreadSet,
+                'HdfSubreadSet': HdfSubreadSet,
                 'AlignmentSet': AlignmentSet,
                 'ContigSet': ContigSet,
                 'ConsensusReadSet': ConsensusReadSet,
@@ -1450,7 +1442,8 @@ class DataSet(object):
             responses = self._pollResources(lambda x: getattr(x, key))
             return self._unifyResponses(responses)
         else:
-            raise AttributeError
+            raise AttributeError("{c} has no attribute {a}".format(
+                c=self.__class__.__name__, a=key))
 
     def _chunkList(self, inlist, chunknum, balanceKey=len):
         """Divide <inlist> members into <chunknum> chunks roughly evenly using
@@ -1503,6 +1496,10 @@ class ReadSet(DataSet):
 
         # Pull generic values, kwargs, general treatment in super
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
+
+class HdfSubreadSet(ReadSet):
+    pass
+
 
 class SubreadSet(ReadSet):
     """DataSet type specific to Subreads
@@ -1629,6 +1626,12 @@ class ReferenceSet(DataSet):
                 self._metadata.contigs.extend(newMetadata.contigs)
 
     def _openFiles(self):
+        """Open the files (assert they exist, assert they are of the proper
+        type before accessing any file)
+        """
+        if self._openReaders:
+            log.debug("Closing old readers...")
+            self.close()
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
@@ -1668,6 +1671,7 @@ class ReferenceSet(DataSet):
         self._openFiles()
         for resource in self._openReaders:
             yield resource
+        self.close()
 
     @property
     def refNames(self):
@@ -1702,6 +1706,13 @@ class ReferenceSet(DataSet):
         for resource in self.resourceReaders():
             for contig in resource:
                 yield contig
+
+    def get_contig(self, contig_id):
+        """Get a contig by ID"""
+        for contig in self.contigs:
+            if contig.id == contig_id or contig.name == contig_id:
+                return contig
+
 
 class ContigSet(DataSet):
     """DataSet type specific to Contigs"""

@@ -59,6 +59,8 @@ def _parseFile(filename):
         fileLocation = url.netloc
     elif os.path.exists(fileLocation):
         fileLocation = os.path.abspath(fileLocation)
+    else:
+        log.error("{f} not found".format(f=fileLocation))
     dataSetRecord = handledTypes[fileType](fileLocation)
     dataSetRecord.makePathsAbsolute(curStart=os.path.dirname(fileLocation))
     return dataSetRecord
@@ -76,11 +78,7 @@ def _openFofnFile(path):
         return parseFiles(files)
 
 def _openUnknownFile(path):
-    """Open uri's with "file" prefix, if possible, by translating them to a
-    more specific prefix
-
-    Raises:
-        NotImplementedError: Opening the specified file is not yet possible
+    """Open non-uri files
     """
     if path.endswith('xml'):
         return _openXmlFile(path)
@@ -147,6 +145,7 @@ def _parseXmlDataSet(element):
     """
     dsTypeMap = {'DataSet': DataSetIO.DataSet,
                  'SubreadSet': DataSetIO.SubreadSet,
+                 'HdfSubreadSet': DataSetIO.HdfSubreadSet,
                  'ConsensusReadSet': DataSetIO.ConsensusReadSet,
                  'AlignmentSet': DataSetIO.AlignmentSet,
                  'ReferenceSet': DataSetIO.ReferenceSet,
