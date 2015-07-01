@@ -28,6 +28,7 @@ class TestIndexedFastaReader:
         assert_equal("ref000021|EGFR_Exon_22\tMetadataTest", r000021.header)
         assert_equal("ref000021|EGFR_Exon_22", r000021.id)
         assert_equal("MetadataTest", r000021.comment)
+        assert_equal("72d432d3dfb9533e9ae230e0da66a3b5", r000021.md5)
         assert_equal("CACTGCCTCATCTCTCACCATCCCAAGGTGCCTATCAAGTGGATGGCATTGGAATCAATT"
                      "TTACACAGAATCTATACCCACCAGAGTGATGTCTGGAGCTACGGTGAGTCATAATCCTGA"
                      "TGCTAATGAGTTTGTACTGAGGCCAAGCTGG",
