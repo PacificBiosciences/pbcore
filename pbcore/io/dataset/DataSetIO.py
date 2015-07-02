@@ -1041,8 +1041,7 @@ class DataSet(object):
         type before accessing any file).
         """
         log.debug("Opening resources")
-        k = 0
-        for extRes in self.externalResources:
+        for k, extRes in enumerate(self.externalResources):
             location = urlparse(extRes.resourceId).path
             sharedIndex = None
             if sharedIndices is not None:
