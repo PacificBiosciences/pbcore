@@ -1036,17 +1036,22 @@ class DataSet(object):
         else:
             self.subdatasets.append(otherDataSet)
 
-    def _openFiles(self, refFile=None):
+    def _openFiles(self, refFile=None, sharedIndices=None):
         """Open the files (assert they exist, assert they are of the proper
-        type before accessing any file)
+        type before accessing any file).
         """
         log.debug("Opening resources")
+        k = 0
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
+            sharedIndex = None
+            if sharedIndices is not None:
+                sharedIndex = sharedIndices[k]
             try:
                 resource = openIndexedAlignmentFile(
                     location,
-                    referenceFastaFname=refFile)
+                    referenceFastaFname=refFile,
+                    sharedIndex=sharedIndex)
             except (IOError, ValueError):
                 log.info("pbi file missing, operating with "
                          "reduced speed and functionality")
@@ -1682,7 +1687,6 @@ class AlignmentSet(DataSet):
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                }
-
 
 class ReferenceSet(DataSet):
     """DataSet type specific to References"""
