@@ -5,3 +5,9 @@ doc/_build
 *.pyc
 *.egg-info
 nosetests.xml
+
+.circleci/prefix
+.circleci/hdf5-1.8.12.tar.gz
+.circleci/hdf5-1.8.12
+
+.vagrant

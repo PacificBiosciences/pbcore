@@ -1,0 +1,13 @@
+machine:
+  python:
+    version: 2.7.6
+
+dependencies:
+  # We need to manually build (and cache) a more modern libhdf5 than
+  # ubuntu precise makes available via apt---there are bugs that
+  # affect us, in libhdf5 1.8.4
+  cache_directories:
+    - .circleci/prefix
+  pre:
+    - (cd .circleci && bash installHDF5.sh)
+    - HDF5_DIR=$PWD/.circleci/prefix pip install -r requirements-dev.txt
