@@ -332,14 +332,12 @@ class DataSet(object):
 
     def __len__(self):
         count = 0
-        if self.filters:
-            for _ in self.records:
-                count += 1
+        if self._filters:
+            count = len(self.indexRecords)
         else:
             for reader in self.resourceReaders():
                 count += len(reader)
         return count
-
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -972,6 +970,18 @@ class DataSet(object):
         for key, value in kwargs.items():
             self.metadata.addMetadata(key, value)
 
+    def updateCounts(self):
+        try:
+            if not self.hasPbi:
+                log.debug("Updating counts not supported without pbi")
+                return
+            self.metadata.numRecords = len(self)
+            self.metadata.totalLength = self._totalLength
+        except IOError as err:
+            log.debug("Files not found, metadata not "
+                      "populated")
+
+
     def addExternalResources(self, newExtResources):
         """Add additional ExternalResource objects, ensuring no duplicate
         resourceIds. Most often used by the __add__ method, rather than
@@ -1052,10 +1062,13 @@ class DataSet(object):
                     referenceFastaFname=refFile,
                     sharedIndex=sharedIndex)
             except (IOError, ValueError):
-                log.info("pbi file missing, operating with "
-                         "reduced speed and functionality")
+                log.info("pbi file missing for {f}, operating with "
+                         "reduced speed and functionality".format(
+                             f=location))
                 resource = openAlignmentFile(location,
                                              referenceFastaFname=refFile)
+            if not resource:
+                raise IOError("{f} fails to open".format(f=location))
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -1076,14 +1089,49 @@ class DataSet(object):
             ...         print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
+        if refName:
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                _ = int(refName)
+                refName = self._idToRname(refName)
+
         if not self._openReaders:
             self._openFiles()
         if refName:
             return [resource for resource in self._openReaders
                     if refName in resource.referenceInfoTable['FullName'] or
-                    refName in resource.referenceInfoTable['ID']]
+                    refName in resource.referenceInfoTable['Name']]
+                    #refName in resource.referenceInfoTable['ID']]
         else:
             return self._openReaders
+
+    @property
+    def indexRecords(self):
+        """Return a recarray summarizing all of the records in all of the
+        resources that conform to the filters."""
+        # Cannot do this on the merged reference info table as all of the
+        # ref.ID values are messed up... TODO: make sure this isn't a problem
+        # for referenceInfoTable, it probably is...
+        tbr = []
+        for rr in self.resourceReaders():
+            indices = rr.index
+            tIdMap = {n: name
+                      for n, name in enumerate(rr.referenceInfoTable['Name'])}
+            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
+
+            if not filts or self.noFiltering:
+                tbr.append(indices)
+                continue
+
+            mask = np.zeros(len(indices), dtype=bool)
+            log.info("{n} rows found in this pbi".format(n=len(indices)))
+            # remove reads per filter
+            for i, read in enumerate(indices):
+                if any([filt(read) for filt in filts]):
+                    mask[i] = True
+            tbr.append(np.extract(mask, indices))
+        tbr = reduce(np.append, tbr)
+        return tbr
 
     @property
     @filtered
@@ -1112,6 +1160,16 @@ class DataSet(object):
         """ Iterate over the records. (sorted for AlignmentSet objects)"""
         for record in self.records:
             yield record
+
+
+    @property
+    def _totalLength(self):
+        """Used to populate metadata in updateCounts"""
+        tot = 0
+        for record in self.indexRecords:
+            tot += record.aEnd - record.aStart
+        return tot
+
 
     @property
     def subSetNames(self):
@@ -1180,7 +1238,8 @@ class DataSet(object):
     @property
     def refNames(self):
         """A list of reference names (id)."""
-        return [name for name, _ in self.refInfo('Name')]
+        return [name for _, name in self.refInfo('Name')]
+        #return [name for name, _ in self.refInfo('Name')]
 
     @property
     def refLengths(self):
@@ -1196,7 +1255,8 @@ class DataSet(object):
     @property
     def fullRefNames(self):
         """A list of reference full names (full header)."""
-        return [name for name, _ in self.refInfo('FullName')]
+        return [name for _, name in self.refInfo('FullName')]
+        #return [name for name, _ in self.refInfo('FullName')]
 
     def refInfo(self, key):
         """The reference names present in the referenceInfoTable of the
@@ -1209,9 +1269,11 @@ class DataSet(object):
         # sample
         names = []
         infos = []
-        for resource in self.resourceReaders():
-            names.extend(resource.referenceInfoTable['FullName'])
-            infos.extend(resource.referenceInfoTable[key])
+        #for resource in self.resourceReaders():
+            #names.extend(resource.referenceInfoTable['FullName'])
+            #infos.extend(resource.referenceInfoTable[key])
+        names = self.referenceInfoTable['Name']
+        infos = self.referenceInfoTable[key]
         # remove dupes
         sampled = zip(names, infos)
         sampled = list(set(sampled))
@@ -1228,7 +1290,7 @@ class DataSet(object):
         this DataSet that are mapped to the specified reference genome.
 
         Args:
-            refName: the name of the reference that we are sampling
+            refName: the name of the reference that we are sampling.
 
         Yields:
             BamAlignment objects
@@ -1242,6 +1304,13 @@ class DataSet(object):
             hn: ...
         """
 
+        if not refName in self.refNames and not refName in self.fullRefNames:
+            try:
+                _ = int(refName)
+            except ValueError:
+                raise StopIteration
+            refName = self._idToRname(refName)
+
         # I would love to use readsInRange(refName, None, None), but
         # IndexedBamReader breaks this (works for regular BamReader).
 
@@ -1249,7 +1318,7 @@ class DataSet(object):
         refLen = 0
         for resource in self.resourceReaders():
             if (refName in resource.referenceInfoTable['Name'] or
-                    refName in resource.referenceInfoTable['ID'] or
+                    #refName in resource.referenceInfoTable['ID'] or
                     refName in resource.referenceInfoTable['FullName']):
                 refLen = resource.referenceInfo(refName).Length
         if refLen:
@@ -1287,6 +1356,14 @@ class DataSet(object):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
+        # This all breaks pretty horribly if refName is actually a refId.
+        if not refName in self.refNames and not refName in self.fullRefNames:
+            # we can think of this as an id then, I guess
+            _ = int(refName)
+            # we need the real refName, which may be hidden behind a mapping to
+            # resolve duplicate refIds between resources...
+            refName = self._idToRname(refName)
+
         # merge sort before yield
         if self.numExternalResources > 1:
             if justIndices:
@@ -1323,6 +1400,20 @@ class DataSet(object):
             for resource in self.resourceReaders():
                 for read in resource.readsInRange(refName, start, end):
                     yield read
+
+    def _idToRname(self, rId):
+        resNo, rId = self._referenceIdMap[rId]
+        if self.isCmpH5:
+            rId -= 1
+        if self.isCmpH5:
+            # This is so not how it is supposed to be. This is what CmpIO
+            # recognizes as the 'shortname' pretty much throughout...
+            refName = self.resourceReaders()[
+                resNo].referenceInfoTable[rId]['FullName']
+        else:
+            refName = self.resourceReaders()[
+                resNo].referenceInfoTable[rId]['Name']
+        return refName
 
     def toFofn(self, outfn=None, uri=False, relative=False):
         """Return a list of resource filenames (and write to optional outfile)
@@ -1409,14 +1500,20 @@ class DataSet(object):
     @property
     def filters(self):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self._cachedFilters = []
+        #self._filters.registerCallback(self.refilter)
+        self._filters.registerCallback(lambda x=self: x.reFilter())
         return self._filters
 
     @filters.setter
     def filters(self, value):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self._cachedFilters = []
+        self.reFilter
         self._filters = value
+
+    def reFilter(self):
+        self._cachedFilters = []
+        self.updateCounts()
+
 
     @property
     def numRecords(self):
@@ -1483,8 +1580,13 @@ class DataSet(object):
 
     @property
     def hasPbi(self):
-        res = self._pollResources(lambda x: isinstance(x, IndexedBamReader))
-        return self._unifyResponses(res)
+        try:
+            res = self._pollResources(lambda x: isinstance(x, IndexedBamReader))
+            return self._unifyResponses(res)
+        except ResourceMismatchError:
+            log.error("Updating counts to respect filters not possible "
+                      "without pbi")
+            return False
 
     def referenceInfo(self, refName):
         responses = self._pollResources(
@@ -1497,11 +1599,35 @@ class DataSet(object):
         # instance). Use the resource readers directly instead.
         responses = self._pollResources(lambda x: x.referenceInfoTable)
         if len(responses) > 1:
-            assert not self.isCmpH5
+            assert not self.isCmpH5 # see above
             tbr = reduce(np.append, responses)
-            return np.unique(tbr)
+            tbr = np.unique(tbr)
+            for i, rec in enumerate(tbr):
+                rec.ID = i
+            return tbr
         else:
             return responses[0]
+
+    @property
+    def _referenceIdMap(self):
+        """Map the dataset shifted refIds to the [resource, refId] they came
+        from.
+        """
+        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
+        # instance). Use the resource readers directly instead.
+        responses = self._pollResources(lambda x: x.referenceInfoTable)
+        if len(responses) > 1:
+            assert not self.isCmpH5 # see above
+            tbr = reduce(np.append, responses)
+            tbrMeta = []
+            for i, res in enumerate(responses):
+                for j in res['ID']:
+                    tbrMeta.append([i, j])
+            _, indices = np.unique(tbr, return_index=True)
+            tbrMeta = list(tbrMeta[i] for i in indices)
+            return {i: meta for i, meta in enumerate(tbrMeta)}
+        else:
+            return {i: [0, i] for i in responses[0]['ID']}
 
     @property
     def readGroupTable(self):
@@ -1555,7 +1681,8 @@ class ResourceMismatchError(Exception):
         self.responses = responses
 
     def __str__(self):
-        return "Resources responded differently: " + ', '.join(self.responses)
+        return "Resources responded differently: " + ', '.join(
+            map(str, self.responses))
 
 class ReadSet(DataSet):
     """Base type for read sets, should probably never be used as a concrete
@@ -1691,6 +1818,14 @@ class ReferenceSet(DataSet):
     """DataSet type specific to References"""
 
     datasetType = DataSetMetaTypes.REFERENCE
+
+    def updateCounts(self):
+        self.metadata.numRecords = 0
+        self.metadata.totalLength = 0
+        for res in self.resourceReaders():
+            self.metadata.numRecords += len(res)
+            for index in res.fai:
+                self.metadata.totalLength += index.length
 
     def __init__(self, *files):
         super(ReferenceSet, self).__init__()

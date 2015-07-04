@@ -40,6 +40,8 @@ def parseFiles(filenames):
         dataSetRecords.append(_parseFile(filename))
     tbr = reduce(lambda x, y: x + y, dataSetRecords)
     tbr.fileNames = filenames
+    tbr.updateCounts()
+    tbr.close()
     return tbr
 
 def _parseFile(filename):

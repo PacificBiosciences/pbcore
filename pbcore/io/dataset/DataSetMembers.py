@@ -296,6 +296,15 @@ class Filters(RecordWrapper):
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
+        self._callbacks = []
+
+    def registerCallback(self, func):
+        if func not in self._callbacks:
+            self._callbacks.append(func)
+
+    def _runCallbacks(self):
+        for func in self._callbacks:
+            func()
 
     def __getitem__(self, index):
         return Filter(self.record['children'][index])
@@ -375,42 +384,65 @@ class Filters(RecordWrapper):
               }
         return ops[op]
 
-    def tests(self, readType="bam"):
+    @property
+    def _bamAccMap(self):
+        # tStart/tEnd is a hack for overlapping ranges. you're not testing
+        # whether the tStart/tEnd is within a range, you're testing if it
+        # overlaps with the tStart/tEnd in the filter (overlaps with a
+        # reference window)
+        return {'rname': (lambda x: x.referenceName),
+                'length': (lambda x: int(x.readLength)),
+                'qname': (lambda x: x.qNameA),
+                'zm': (lambda x: int(x.HoleNumber)),
+                'bc': (lambda x: x.barcode),
+                'qs': (lambda x: int(x.qStart)),
+                'rq': (lambda x: int(x.MapQV)),
+                'pos': (lambda x: int(x.tStart)),
+                'accuracy': (lambda x: int(x.identity)),
+                'readstart': (lambda x: int(x.aStart)),
+                'tstart': (lambda x: int(x.tEnd)), # see above
+                'tend': (lambda x: int(x.tStart)), # see above
+               }
+
+    def _pbiAccMap(self, tIdMap):
+        # tStart/tEnd is a hack for overlapping ranges. you're not testing
+        # whether the tStart/tEnd is within a range, you're testing if it
+        # overlaps with the tStart/tEnd in the filter (overlaps with a
+        # reference window)
+        return {'rname': (lambda x, m=tIdMap: m[x.tId]),
+                'length': (lambda x: int(x.aEnd)-int(x.aStart)),
+                'qname': (lambda x: x.qId),
+                'zm': (lambda x: int(x.holeNumber)),
+                'pos': (lambda x: int(x.tStart)),
+                'readstart': (lambda x: int(x.aStart)),
+                'tstart': (lambda x: int(x.tEnd)), # see above
+                'tend': (lambda x: int(x.tStart)), # see above
+               }
+
+    @property
+    def _bamTypeMap(self):
+        return {'rname': str,
+                'length': int,
+                'qname': str,
+                'zm': int,
+                'bc': str,
+                'qs': int,
+                'rq': float,
+                'pos': int,
+                'tstart': int,
+                'tend': int,
+                'accuracy': int,
+                'readstart': int,
+               }
+
+    def tests(self, readType="bam", tIdMap=None):
         # Allows us to not process all of the filters each time. This is marked
         # as dirty (= []) by addFilters etc. Filtration can be turned off by
         # setting this to [lambda x: True], which can be reversed by marking
         # the cache dirty see disableFilters/enableFilters
         if readType.lower() == "bam":
-            # tStart/tEnd is a hack for overlapping ranges. you're not testing
-            # whether the tStart/tEnd is within a range, you're testing if it
-            # overlaps with the tStart/tEnd in the filter (overlaps with a
-            # reference window)
-            accMap = {'rname': (lambda x: x.referenceName),
-                      'length': (lambda x: int(x.readLength)),
-                      'qname': (lambda x: x.qNameA),
-                      'zm': (lambda x: int(x.HoleNumber)),
-                      'bc': (lambda x: x.barcode),
-                      'qs': (lambda x: int(x.qStart)),
-                      'rq': (lambda x: int(x.MapQV)),
-                      'pos': (lambda x: int(x.tStart)),
-                      'accuracy': (lambda x: int(x.identity)),
-                      'readstart': (lambda x: int(x.aStart)),
-                      'tstart': (lambda x: int(x.tEnd)),
-                      'tend': (lambda x: int(x.tStart)),
-                     }
-            typeMap = {'rname': str,
-                       'length': int,
-                       'qname': str,
-                       'zm': int,
-                       'bc': str,
-                       'qs': int,
-                       'rq': int,
-                       'pos': int,
-                       'tstart': int,
-                       'tend': int,
-                       'accuracy': int,
-                       'readstart': int,
-                      }
+            accMap = self._bamAccMap
+            typeMap = self._bamTypeMap
         elif readType.lower() == "fasta":
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(x.length)),
@@ -418,6 +450,11 @@ class Filters(RecordWrapper):
             typeMap = {'id': str,
                        'length': int,
                       }
+        elif readType.lower() == "pbi":
+            accMap = self._pbiAccMap(tIdMap)
+            typeMap = self._bamTypeMap
+        else:
+            raise TypeError("Read type not properly specified")
         tests = []
         for filt in self:
             reqTests = []
@@ -458,12 +495,15 @@ class Filters(RecordWrapper):
                 for i, (oper, val) in enumerate(options):
                     newFilts[i].addRequirement(name, oper, val)
             self.extend(newFilts)
+        self._runCallbacks()
 
     def removeRequirement(self, req):
+        log.debug("Removing requirement {r}".format(r=req))
         for i, filt in enumerate(self):
             empty = filt.removeRequirement(req)
             if empty:
                 self.pop(i)
+        self._runCallbacks()
 
 
 class Filter(RecordWrapper):

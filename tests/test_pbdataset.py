@@ -4,6 +4,7 @@ import re
 import logging
 import tempfile
 
+import numpy as np
 import unittest
 from unittest.case import SkipTest
 
@@ -82,6 +83,83 @@ class TestDataSet(unittest.TestCase):
         d = DataSet(inBam)
         for extRes in d.externalResources:
             self.assertEqual(extRes.metaType, "")
+
+    def test_updateCounts(self):
+        log.info("Testing updateCounts without filters")
+        ds = DataSet(data.getXml(16))
+        also_lambda = ds.toExternalFiles()[0]
+        aln = AlignmentSet(data.getBam(0), data.getBam(1), also_lambda)
+        readers = aln.resourceReaders()
+
+        expLen = 0
+        for reader in readers:
+            for record in reader:
+                expLen += record.readLength
+
+        expNum = 0
+        for reader in readers:
+            expNum += len(reader)
+
+        accLen = aln.metadata.totalLength
+        accNum = aln.metadata.numRecords
+
+        self.assertEqual(expLen, accLen)
+        self.assertEqual(expNum, accNum)
+
+        # Does it respect filters?
+        log.info("Testing whether filters are respected")
+        aln.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        accLen = aln.metadata.totalLength
+        accNum = aln.metadata.numRecords
+
+        def count(gen):
+            count = 0
+            for _ in gen:
+                count += 1
+            return count
+
+        expLen = 0
+        for reader in readers:
+            for record in reader:
+                expLen += record.readLength
+
+        bfile = openIndexedAlignmentFile(data.getBam(1))
+        rWin = (bfile.referenceInfo('E.faecalis.1').ID,
+                0,
+                bfile.referenceInfo('E.faecalis.1').Length)
+        reads = bfile.readsInRange(*rWin)
+        expNum = count(reads)
+        expLen = 0
+        reads = bfile.readsInRange(*rWin)
+        for read in reads:
+            expLen += read.readLength
+
+        self.assertEqual(expLen, accLen)
+        self.assertEqual(expNum, accNum)
+
+    def test_referenceInfoTableMerging(self):
+        log.info("Testing refIds, etc. after merging")
+        ds = DataSet(data.getXml(16))
+        also_lambda = ds.toExternalFiles()[0]
+        aln = AlignmentSet(data.getBam(0), data.getBam(1), also_lambda)
+        readers = aln.resourceReaders()
+
+        ids = sorted([i for _, i in aln.refInfo('ID')])
+        self.assertEqual(range(len(ids)), ids)
+
+        accNames = aln.refNames
+        expNames = reduce(np.append,
+                          [reader.referenceInfoTable['Name']
+                           for reader in readers])
+        expNames = np.unique(expNames)
+        self.assertEqual(sorted(expNames), sorted(accNames))
+
+        accNames = aln.fullRefNames
+        expNames = reduce(np.append,
+                          [reader.referenceInfoTable['FullName']
+                           for reader in readers])
+        expNames = np.unique(expNames)
+        self.assertEqual(sorted(expNames), sorted(accNames))
 
 
     def test_merge(self):
@@ -182,10 +260,6 @@ class TestDataSet(unittest.TestCase):
         # TODO: turn back on when pyxb present:
         #validateFile(outfile)
         ds2 = DataSet(outfile)
-        # The original file (and the copy) should have no
-        # DataSetMetadata
-        assert not ds1.metadata
-        assert not ds2.metadata
         self.assertTrue(ds1 == ds2)
 
     def test_addFilters(self):
@@ -455,6 +529,7 @@ class TestDataSet(unittest.TestCase):
                                           'E.faecalis.2': 1482})
 
     def test_reads_in_contig(self):
+        log.info("Testing reads in contigs")
         ds = DataSet(data.getXml(13))
         refs = ['E.faecalis.1', 'E.faecalis.2']
         readRefs = ['E.faecalis.1'] * 2 + ['E.faecalis.2'] * 9
