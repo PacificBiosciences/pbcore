@@ -203,10 +203,12 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(dss[0].name == dss[1].name)
         # Lets try merging and splitting on subdatasets
         ds1 = DataSet(data.getXml(8))
-        self.assertEquals(ds1.totalLength, 500000)
+        # 500000 is a lie, the resource is unopenable
+        self.assertEquals(ds1.totalLength, -1)
         ds1tl = ds1.totalLength
         ds2 = DataSet(data.getXml(9))
-        self.assertEquals(ds2.totalLength, 500000)
+        # 500000 is a lie, the resource is unopenable
+        self.assertEquals(ds2.totalLength, -1)
         ds2tl = ds2.totalLength
         dss = ds1 + ds2
         self.assertTrue(dss.totalLength == (ds1tl + ds2tl))
@@ -279,7 +281,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds._metadata.getV(container='attrib', tag='Name'),
                           'LongReadsRock')
         ds2 = DataSet(data.getXml(no=8))
-        self.assertEquals(ds2._metadata.totalLength, 500000)
+        # 500000 is a lie, the resource is unopenable
+        self.assertEquals(ds2._metadata.totalLength, -1)
         ds2._metadata.totalLength = 100000
         self.assertEquals(ds2._metadata.totalLength, 100000)
         ds2._metadata.totalLength += 100000

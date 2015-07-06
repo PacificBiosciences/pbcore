@@ -32,10 +32,14 @@ def filtered(generator):
     @wraps(generator)
     def wrapper(dset, *args, **kwargs):
         filter_tests = dset.processFilters()
-        for read in generator(dset, *args, **kwargs):
-            if (dset.noFiltering or
-                    any([filt(read) for filt in filter_tests])):
+        no_filter = dset.noFiltering
+        if no_filter:
+            for read in generator(dset, *args, **kwargs):
                 yield read
+        else:
+            for read in generator(dset, *args, **kwargs):
+                if any(filt(read) for filt in filter_tests):
+                    yield read
     return wrapper
 
 
@@ -512,12 +516,14 @@ class DataSet(object):
             >>> # otherwise specified.
             >>> # Lets try merging and splitting on subdatasets:
             >>> ds1 = DataSet(data.getXml(8))
+            >>> #500000 is a lie, the resource is unopenable
             >>> ds1.totalLength
-            500000
+            -1
             >>> ds1tl = ds1.totalLength
             >>> ds2 = DataSet(data.getXml(9))
+            >>> #500000 is a lie, the resource is unopenable
             >>> ds2.totalLength
-            500000
+            -1
             >>> ds2tl = ds2.totalLength
             >>> # merge:
             >>> dss = ds1 + ds2
@@ -700,10 +706,6 @@ class DataSet(object):
             >>> ds1 = DataSet(data.getXml())
             >>> ds1.write(outfile, validate=False)
             >>> ds2 = DataSet(outfile)
-            >>> # The original file (and the copy) should have no
-            >>> # DataSetMetadata
-            >>> assert not ds1.metadata
-            >>> assert not ds2.metadata
             >>> ds1 == ds2
             True
         """
@@ -942,8 +944,9 @@ class DataSet(object):
             >>> # but most will be loaded and modified:
             >>> import pbcore.data.datasets as data
             >>> ds2 = DataSet(data.getXml(no=8))
+            >>> #500000 is a lie, the resource is unopenable
             >>> ds2._metadata.totalLength
-            500000
+            -1
             >>> ds2._metadata.totalLength = 100000
             >>> ds2._metadata.totalLength
             100000
@@ -977,9 +980,12 @@ class DataSet(object):
                 return
             self.metadata.numRecords = len(self)
             self.metadata.totalLength = self._totalLength
-        except IOError as err:
+        # I would prefer to just catch IOError and UnavailableFeature
+        except Exception:
             log.debug("Files not found, metadata not "
                       "populated")
+            self.metadata.numRecords = -1
+            self.metadata.totalLength = -1
 
 
     def addExternalResources(self, newExtResources):
@@ -1046,21 +1052,17 @@ class DataSet(object):
         else:
             self.subdatasets.append(otherDataSet)
 
-    def _openFiles(self, refFile=None, sharedIndices=None):
+    def _openFiles(self, refFile=None):
         """Open the files (assert they exist, assert they are of the proper
-        type before accessing any file).
+        type before accessing any file)
         """
         log.debug("Opening resources")
-        for k, extRes in enumerate(self.externalResources):
+        for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
-            sharedIndex = None
-            if sharedIndices is not None:
-                sharedIndex = sharedIndices[k]
             try:
                 resource = openIndexedAlignmentFile(
                     location,
-                    referenceFastaFname=refFile,
-                    sharedIndex=sharedIndex)
+                    referenceFastaFname=refFile)
             except (IOError, ValueError):
                 log.info("pbi file missing for {f}, operating with "
                          "reduced speed and functionality".format(
@@ -1813,6 +1815,7 @@ class AlignmentSet(DataSet):
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                }
+
 
 class ReferenceSet(DataSet):
     """DataSet type specific to References"""
