@@ -15,6 +15,7 @@ from urlparse import urlparse
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
+from pbcore.io.FastaIO import splitFastaHeader
 
 from pbcore.io.dataset import DataSetReader
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -71,9 +72,11 @@ class DataSetMetaTypes(object):
 
 def _fileType(fname):
     """Get the extension of fname (with h5 type)"""
-    ftype = fname.split('.')[-1]
-    if ftype == 'h5':
-        ftype = fname.split('.')[-2]
+    remainder, ftype = os.path.splitext(fname)
+    if ftype == '.h5':
+        _, prefix = os.path.splitext(remainder)
+        ftype = prefix + ftype
+    ftype = ftype.strip('.')
     return ftype
 
 
@@ -639,7 +642,7 @@ class DataSet(object):
         results = [self.copy() for _ in range(chunks)]
 
         # replace default (complete) ExternalResource lists
-        log.debug("Distributing chunkg")
+        log.debug("Distributing chunks")
         chunks = self._chunkList(atoms, chunks, balanceKey)
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
@@ -1103,7 +1106,6 @@ class DataSet(object):
             return [resource for resource in self._openReaders
                     if refName in resource.referenceInfoTable['FullName'] or
                     refName in resource.referenceInfoTable['Name']]
-                    #refName in resource.referenceInfoTable['ID']]
         else:
             return self._openReaders
 
@@ -1204,7 +1206,7 @@ class DataSet(object):
         windowing the reference. Much nesting or duplication and the correct
         results are really not guaranteed"""
         windowTuples = []
-        nameIDs = self.refInfo('ID')
+        nameIDs = self.refInfo('Name')
         refLens = None
         for name, refID in nameIDs:
             for filt in self._filters:
@@ -1240,8 +1242,10 @@ class DataSet(object):
     @property
     def refNames(self):
         """A list of reference names (id)."""
+        if self.isCmpH5:
+            return [splitFastaHeader(name)[0] for _, name in
+                    self.refInfo('FullName')]
         return [name for _, name in self.refInfo('Name')]
-        #return [name for name, _ in self.refInfo('Name')]
 
     @property
     def refLengths(self):
@@ -1258,7 +1262,6 @@ class DataSet(object):
     def fullRefNames(self):
         """A list of reference full names (full header)."""
         return [name for _, name in self.refInfo('FullName')]
-        #return [name for name, _ in self.refInfo('FullName')]
 
     def refInfo(self, key):
         """The reference names present in the referenceInfoTable of the
@@ -1715,6 +1718,10 @@ class ReadSet(DataSet):
 class HdfSubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.HDF_SUBREAD
+
+    @staticmethod
+    def _metaTypeMapping():
+        return {'bax.h5':'PacBio.SubreadFile.SubreadBaxFile', }
 
 
 class SubreadSet(ReadSet):

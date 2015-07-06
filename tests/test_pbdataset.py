@@ -439,23 +439,25 @@ class TestDataSet(unittest.TestCase):
         dss = ds3.split(contigs=True)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
-        self.assertEqual(refWindows, [(0, 0, 48502)])
+        self.assertEqual(refWindows, [('lambda_NEB3011', 0, 48502)])
 
         dss = ds3.split(contigs=True, chunks=1)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
-        self.assertEqual(refWindows, [(0, 0, 48502)])
+        self.assertEqual(refWindows, [('lambda_NEB3011', 0, 48502)])
 
         dss = ds3.split(contigs=True, chunks=2)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
-        self.assertEqual(refWindows, [(0, 0, 24251), (0, 24251, 48502)])
+        self.assertEqual(refWindows, [('lambda_NEB3011', 0, 24251),
+        ('lambda_NEB3011', 24251, 48502)])
 
         dss = ds3.split(contigs=True, chunks=3)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
-        self.assertEqual(refWindows, [(0, 0, 16167), (0, 16167, 32334),
-                                      (0, 32334, 48502)])
+        self.assertEqual(refWindows, [('lambda_NEB3011', 0, 16167),
+                                      ('lambda_NEB3011', 16167, 32334),
+                                      ('lambda_NEB3011', 32334, 48502)])
 
     def test_filter_reference_contigs(self):
         ds2 = ReferenceSet(data.getRef())
@@ -501,7 +503,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(str(dss[0].filters),
                          '( rname = lambda_NEB3011 AND tstart > 0 '
                          'AND tend < 24251 )')
-        self.assertEqual(dss[0].refWindows, [(0, 0, 24251)])
+        self.assertEqual(dss[0].refWindows, [('lambda_NEB3011', 0, 24251)])
         ds = DataSet(data.getBam())
         ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011'),
                                          ('=', 'lambda_NEB3011')],
@@ -513,7 +515,8 @@ class TestDataSet(unittest.TestCase):
                          '( rname = lambda_NEB3011 AND tstart '
                          '< 0 AND tend > 99 ) OR ( rname = lambd'
                          'a_NEB3011 AND tstart < 100 AND tend > 299 )')
-        self.assertEqual(ds.refWindows, [(0, 0, 99), (0, 100, 299)])
+        self.assertEqual(ds.refWindows, [('lambda_NEB3011', 0, 99),
+                                         ('lambda_NEB3011', 100, 299)])
 
 
     def test_refLengths(self):

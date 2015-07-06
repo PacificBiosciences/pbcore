@@ -136,7 +136,8 @@ def _openXmlFile(path):
         >>> dsr.filters != None
         True
     """
-    tree = ET.parse(path)
+    with open(path, 'rb') as xml_file:
+        tree = ET.parse(xml_file)
     root = tree.getroot()
     return _parseXmlDataSet(root)
 
