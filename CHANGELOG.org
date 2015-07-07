@@ -1,3 +1,6 @@
+* Version 1.2.0
+- Support for the new BGZF-based bam.pbi file format
+
 * Version 1.1.0
 - Added dataset functionality to pbcore.io
 - Added dataset.py tools for CLI manipulation of DataSet XML files
