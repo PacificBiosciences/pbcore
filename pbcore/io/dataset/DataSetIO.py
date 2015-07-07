@@ -1833,7 +1833,7 @@ class ReferenceSet(DataSet):
         self.metadata.numRecords = 0
         self.metadata.totalLength = 0
         for res in self.resourceReaders():
-            self.metadata.numRecords += len(res)
+            self.metadata.numRecords += sum(1 for _ in res)
             for index in res.fai:
                 self.metadata.totalLength += index.length
 
