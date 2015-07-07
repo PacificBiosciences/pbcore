@@ -399,7 +399,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
 
     def __getattr__(self, key):
         if key in self.pbi.columnNames:
-            return self.pbi[key]
+            return getattr(self.pbi, key)
         else:
             raise AttributeError, "no such column in pbi index"
 
