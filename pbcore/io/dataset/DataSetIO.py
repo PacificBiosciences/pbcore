@@ -343,7 +343,7 @@ class DataSet(object):
             count = len(self.indexRecords)
         else:
             for reader in self.resourceReaders():
-                count += len(reader)
+                count += sum(1 for _ in reader)
         return count
 
     def newUuid(self, setter=True):
