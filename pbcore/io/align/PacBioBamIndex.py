@@ -89,9 +89,13 @@ class PacBioBamIndex(object):
             nMM               = peek("u4", self.nReads)
             mapQV             = peek("u1", self.nReads)
 
+            # Computed columns
+            nIns = aEnd - aStart - nM - nMM
+            nDel = tEnd - tStart - nM - nMM
+
             mapping = np.rec.fromarrays(
-                [tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, mapQV],
-                names="tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, mapQV")
+                [tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, nIns, nDel, mapQV],
+                names="tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, nIns, nDel, mapQV")
 
             tbl = nlr.merge_arrays([tbl, mapping], flatten=True).view(np.recarray)
 
