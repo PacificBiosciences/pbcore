@@ -67,31 +67,31 @@ class PacBioBamIndex(object):
 
         if True:
             # BASIC data always present
-            rgId       = peek("i4", self.nReads)
-            qStart     = peek("i4", self.nReads)
-            qEnd       = peek("i4", self.nReads)
-            holeNumber = peek("i4", self.nReads)
-            readQual   = peek("u2", self.nReads)
-            fileOffset = peek("i8", self.nReads)
+            qId               = peek("i4", self.nReads)
+            qStart            = peek("i4", self.nReads)
+            qEnd              = peek("i4", self.nReads)
+            holeNumber        = peek("i4", self.nReads)
+            readQual          = peek("u2", self.nReads)
+            virtualFileOffset = peek("i8", self.nReads)
 
             tbl = np.rec.fromarrays(
-                [rgId, qStart, qEnd, holeNumber, readQual, fileOffset],
-                names="rgId, qStart, qEnd, holeNumber, readQual, fileOffset")
+                [qId, qStart, qEnd, holeNumber, readQual, virtualFileOffset],
+                names="qId, qStart, qEnd, holeNumber, readQual, virtualFileOffset")
 
         if (self.pbiFlags & PBI_FLAGS_MAPPED):
-            tId        = peek("i4", self.nReads)
-            tStart     = peek("u4", self.nReads)
-            tEnd       = peek("u4", self.nReads)
-            aStart     = peek("u4", self.nReads)
-            aEnd       = peek("u4", self.nReads)
-            revStrand  = peek("u1", self.nReads)
-            nM         = peek("u4", self.nReads)
-            nMM        = peek("u4", self.nReads)
-            mapQV      = peek("u1", self.nReads)
+            tId               = peek("i4", self.nReads)
+            tStart            = peek("u4", self.nReads)
+            tEnd              = peek("u4", self.nReads)
+            aStart            = peek("u4", self.nReads)
+            aEnd              = peek("u4", self.nReads)
+            isReverseStrand   = peek("u1", self.nReads)
+            nM                = peek("u4", self.nReads)
+            nMM               = peek("u4", self.nReads)
+            mapQV             = peek("u1", self.nReads)
 
             mapping = np.rec.fromarrays(
-                [tId, tStart, tEnd, aStart, aEnd, revStrand, nM, nMM, mapQV],
-                names="tId, tStart, tEnd, aStart, aEnd, revStrand, nM, nMM, mapQV")
+                [tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, mapQV],
+                names="tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, mapQV")
 
             tbl = nlr.merge_arrays([tbl, mapping], flatten=True).view(np.recarray)
 
