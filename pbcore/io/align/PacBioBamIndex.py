@@ -169,6 +169,3 @@ class PacBioBamIndex(object):
                             (self.tStart  < winEnd) &
                             (self.tEnd    > winStart))
         return ix
-
-
-f = PacBioBamIndex("/Users/dalexander/Dropbox/Sources/git-bifx/PostPrimary/pbbam/tests/data/test_group_query/test2.bam.pbi")
