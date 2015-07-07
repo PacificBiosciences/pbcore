@@ -106,6 +106,11 @@ class MetaDataSet(type):
             dataset.__init__()
         if not dataset.uuid:
             dataset.newUuid()
+        log.debug('Updating counts')
+        dataset.fileNames = files
+        dataset.updateCounts()
+        dataset.close()
+        log.debug('Done creating {c}'.format(c=cls.__name__))
         return dataset
 
 
@@ -1243,9 +1248,12 @@ class DataSet(object):
     def refNames(self):
         """A list of reference names (id)."""
         if self.isCmpH5:
-            return [splitFastaHeader(name)[0] for _, name in
+            return [self._cleanCmpName(name) for _, name in
                     self.refInfo('FullName')]
         return [name for _, name in self.refInfo('Name')]
+
+    def _cleanCmpName(self, name):
+        return splitFastaHeader(name)[0]
 
     @property
     def refLengths(self):
@@ -1594,9 +1602,19 @@ class DataSet(object):
             return False
 
     def referenceInfo(self, refName):
-        responses = self._pollResources(
-            lambda x, rn=refName: x.referenceInfo(rn), refName)
-        return self._unifyResponses(responses, keyFunc=lambda x: x.MD5)
+        if not self.isCmpH5:
+            for row in self.referenceInfoTable:
+                if row.Name == refName:
+                    return row
+        else:
+            for row in self.referenceInfoTable:
+                if row.FullName.startswith(refName):
+                    return row
+
+
+        #responses = self._pollResources(
+            #lambda x, rn=refName: x.referenceInfo(rn), refName)
+        #return self._unifyResponses(responses, keyFunc=lambda x: x.MD5)
 
     @property
     def referenceInfoTable(self):
@@ -1611,7 +1629,11 @@ class DataSet(object):
                 rec.ID = i
             return tbr
         else:
-            return responses[0]
+            table = responses[0]
+            if self.isCmpH5:
+                for rec in table:
+                    rec.Name = self._cleanCmpName(rec.FullName)
+            return table
 
     @property
     def _referenceIdMap(self):
@@ -1830,12 +1852,19 @@ class ReferenceSet(DataSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def updateCounts(self):
-        self.metadata.numRecords = 0
-        self.metadata.totalLength = 0
-        for res in self.resourceReaders():
-            self.metadata.numRecords += sum(1 for _ in res)
-            for index in res.fai:
-                self.metadata.totalLength += index.length
+        try:
+            self.metadata.numRecords = 0
+            self.metadata.totalLength = 0
+            for res in self.resourceReaders():
+                #self.metadata.numRecords += len(res)
+                self.metadata.numRecords += sum(1 for _ in res)
+                for index in res.fai:
+                    self.metadata.totalLength += index.length
+        except Exception:
+            # This will be fixed soon, or log an appropriate error
+            # (additionally, unindexed fasta files will soon be disallowed)
+            self.metadata.numRecords = -1
+            self.metadata.totalLength = -1
 
     def __init__(self, *files):
         super(ReferenceSet, self).__init__()
@@ -1895,7 +1924,7 @@ class ReferenceSet(DataSet):
                 resource = IndexedFastaReader(location)
             except IOError:
                 if not self._indexedOnly:
-                    log.warn('Companion reference index (.fai) missing. '
+                    log.debug('Companion reference index (.fai) missing. '
                              'Use "samtools faidx <refname>" to generate one.')
                     resource = FastaReader(location)
                 else:
@@ -1908,7 +1937,17 @@ class ReferenceSet(DataSet):
         self._openFiles()
         return True
 
-    def resourceReaders(self):
+    @property
+    def isIndexed(self):
+        try:
+            res = self._pollResources(
+                lambda x: isinstance(x, IndexedFastaReader))
+            return self._unifyResponses(res)
+        except ResourceMismatchError:
+            log.error("Not all resource are equally indexed.")
+            return False
+
+    def resourceReaders(self, refName=None):
         """A generator of fastaReader objects for the ExternalResources in this
         ReferenceSet.
 
@@ -1924,10 +1963,13 @@ class ReferenceSet(DataSet):
             ...         print 'hn: %i' % row.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
+        if refName:
+            log.error("Specifying a contig name not yet implemented")
         self._openFiles()
-        for resource in self._openReaders:
-            yield resource
-        self.close()
+        return self._openReaders
+        #for resource in self._openReaders:
+            #yield resource
+        #self.close()
 
     @property
     def refNames(self):

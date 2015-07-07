@@ -39,9 +39,7 @@ def parseFiles(filenames):
     for filename in filenames:
         dataSetRecords.append(_parseFile(filename))
     tbr = reduce(lambda x, y: x + y, dataSetRecords)
-    tbr.fileNames = filenames
-    tbr.updateCounts()
-    tbr.close()
+    log.debug("Done parsing files")
     return tbr
 
 def _parseFile(filename):

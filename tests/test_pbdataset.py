@@ -624,10 +624,8 @@ class TestDataSet(unittest.TestCase):
             "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)")
         self.assertEqual(
             str(aln.referenceInfo('lambda_NEB3011')),
-            "(0, 0, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
+            "(1, 0, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
             "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)")
-        self.assertEqual(readers[0].referenceInfo('lambda_NEB3011'),
-                         aln.referenceInfo('lambda_NEB3011'))
 
     def test_referenceInfoTable(self):
         ds = DataSet(data.getXml(16))
