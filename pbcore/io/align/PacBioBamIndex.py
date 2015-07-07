@@ -30,11 +30,21 @@
 
 # Author: David Alexander
 
-import h5py
-import numpy as np
 from os.path import abspath, expanduser
-from functools import wraps
-from collections import namedtuple
+from _bgzf import BgzfReader
+from struct import unpack
+
+import numpy as np
+import numpy.lib.recfunctions as nlr
+
+
+PBI_HEADER_LEN              = 32
+
+PBI_FLAGS_BASIC             = 0
+PBI_FLAGS_MAPPED            = 1
+PBI_FLAGS_COORDINATE_SORTED = 2
+PBI_FLAGS_BARCODE_ADAPTER   = 4
+
 
 class PacBioBamIndex(object):
     """
@@ -42,62 +52,98 @@ class PacBioBamIndex(object):
     *semantic* queries on PacBio BAM files without iterating over the
     entire file.  By convention, the PacBio BAM index has extension
     "bam.pbi".
-
-    The bam.pbi index is an HDF5 file containing two data frames
-    (groups containing arrays (frame columns) of common length):
-
-      - A table with a row per BAM record, columns reflecting
-        precomputed statistics per record
-
-      - A table with a row per reference contig (tid) in the BAM,
-        indicating the range of rows pertaining to the
     """
-    def _loadColumns(self, f):
-        g = f["PacBioBamIndex/Columns"]
-        columnNamesAndColumns = sorted([ (k, v[:]) for (k, v) in g.iteritems() ])
-        columnNames, columns = zip(*columnNamesAndColumns)
-        return np.rec.fromarrays(columns, names=columnNames)
+    def _loadHeader(self, f):
+        buf = f.read(PBI_HEADER_LEN)
+        header = unpack("< 4s BBBx H I 18x", buf)
+        (self.magic, self.vPatch, self.vMinor,
+         self.vMajor, self.pbiFlags, self.nReads) = header
 
-    def _loadVersion(self, f):
-        return f["PacBioBamIndex"].attrs["Version"]
+    def _loadMainIndex(self, f):
+
+        def peek(type_, length):
+            flavor, width = type_
+            return np.frombuffer(f.read(length*int(width)), "<" + type_)
+
+        if True:
+            # BASIC data always present
+            rgId       = peek("i4", self.nReads)
+            qStart     = peek("i4", self.nReads)
+            qEnd       = peek("i4", self.nReads)
+            holeNumber = peek("i4", self.nReads)
+            readQual   = peek("u2", self.nReads)
+            fileOffset = peek("i8", self.nReads)
+
+            tbl = np.rec.fromarrays(
+                [rgId, qStart, qEnd, holeNumber, readQual, fileOffset],
+                names="rgId, qStart, qEnd, holeNumber, readQual, fileOffset")
+
+        if (self.pbiFlags & PBI_FLAGS_MAPPED):
+            tId        = peek("i4", self.nReads)
+            tStart     = peek("u4", self.nReads)
+            tEnd       = peek("u4", self.nReads)
+            aStart     = peek("u4", self.nReads)
+            aEnd       = peek("u4", self.nReads)
+            revStrand  = peek("u1", self.nReads)
+            nM         = peek("u4", self.nReads)
+            nMM        = peek("u4", self.nReads)
+            mapQV      = peek("u1", self.nReads)
+
+            mapping = np.rec.fromarrays(
+                [tId, tStart, tEnd, aStart, aEnd, revStrand, nM, nMM, mapQV],
+                names="tId, tStart, tEnd, aStart, aEnd, revStrand, nM, nMM, mapQV")
+
+            tbl = nlr.merge_arrays([tbl, mapping], flatten=True).view(np.recarray)
+
+        if (self.pbiFlags & PBI_FLAGS_BARCODE_ADAPTER):
+            # TODO!
+            pass
+
+        self._tbl = tbl
 
     def _loadOffsets(self, f):
-        pass
+        if (self.pbiFlags & PBI_FLAGS_COORDINATE_SORTED):
+            # TODO!
+            pass
 
     def __init__(self, pbiFilename):
         pbiFilename = abspath(expanduser(pbiFilename))
-        with h5py.File(pbiFilename, "r") as f:
+        with BgzfReader(pbiFilename) as f:
             try:
-                self._version = self._loadVersion(f)
-                self._columns = self._loadColumns(f)
-                self._offsets = self._loadOffsets(f)
+                self._loadHeader(f)
+                self._loadMainIndex(f)
+                self._loadOffsets(f)
             except Exception as e:
                 raise IOError, "Malformed bam.pbi file: " + str(e)
 
-
     @property
     def version(self):
-        return self._version
+        return (self.vMajor, self.vMinor, self.vPatch)
 
     @property
     def columnNames(self):
-        return list(self._columns.dtype.names)
+        return list(self._tbl.dtype.names)
 
     def __getattr__(self, columnName):
         if columnName in self.columnNames:
-            return self._columns[columnName]
+            return self._tbl[columnName]
         else:
             raise AttributeError, "pbi has no column named '%s'" % columnName
 
     def __getitem__(self, rowNumber):
-        return self._columns[rowNumber]
+        # We do this dance to get a useable recarray slice--to
+        # work around https://github.com/numpy/numpy/issues/3581
+        if not np.isscalar(rowNumber):
+            raise Exception, "Unimplemented!"
+        return np.rec.fromrecords([self._tbl[rowNumber]],
+                                  dtype=self._tbl.dtype)[0]
 
     def __dir__(self):
         # Special magic for IPython tab completion
         return self.columnNames
 
     def __len__(self):
-        return len(self._columns)
+        return len(self._tbl)
 
     def __iter__(self):
         for i in xrange(len(self)):
@@ -119,3 +165,6 @@ class PacBioBamIndex(object):
                             (self.tStart  < winEnd) &
                             (self.tEnd    > winStart))
         return ix
+
+
+f = PacBioBamIndex("/Users/dalexander/Dropbox/Sources/git-bifx/PostPrimary/pbbam/tests/data/test_group_query/test2.bam.pbi")
