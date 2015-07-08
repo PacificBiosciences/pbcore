@@ -1,5 +1,7 @@
 * Version 1.2.0
 - Support for the new BGZF-based bam.pbi file format
+- Support for PacBio BAM spec version 3.0b7; previous versions are
+  rejected
 
 * Version 1.1.0
 - Added dataset functionality to pbcore.io
