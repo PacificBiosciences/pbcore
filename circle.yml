@@ -11,3 +11,7 @@ dependencies:
   pre:
     - (cd .circleci && bash installHDF5.sh)
     - HDF5_DIR=$PWD/.circleci/prefix pip install -r requirements-dev.txt
+    
+test:
+  override:
+    - make test # Run doctests in addition to the usual unit tests
