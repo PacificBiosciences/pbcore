@@ -294,21 +294,14 @@ class BamAlignment(AlignmentRecordMixin):
     def barcodeName(self):
         raise Unimplemented()
 
-    @requiresReference
     def transcript(self, orientation="native", style="gusfield"):
         """
         A text representation of the alignment moves (see Gusfield).
         This can be useful in pretty-printing an alignment.
         """
         uc = self.unrolledCigar(orientation)
-        ref = np.fromstring(self.reference(aligned=True, orientation=orientation), dtype=np.int8)
-        read = np.fromstring(self.read(aligned=True, orientation=orientation), dtype=np.int8)
-        isMatch = (ref == read)
-
-        # Disambiguate the "M" op
-        cigarPlus = uc
-        cigarPlus[(~isMatch) & (cigarPlus == BAM_CMATCH)] = BAM_CDIFF   # 'X'
-        cigarPlus[( isMatch) & (cigarPlus == BAM_CMATCH)] = BAM_CEQUAL  # '='
+        if "M" in uc:
+            raise IncompatibleFile("CIGAR op 'M' illegal in PacBio BAM files")
 
         #                                    MIDNSHP=X
         _exoneratePlusTrans = np.fromstring("Z  ZZZZ|*", dtype=np.int8)
@@ -316,10 +309,10 @@ class BamAlignment(AlignmentRecordMixin):
         _cigarTrans         = np.fromstring("ZIDZZZZMM", dtype=np.int8)
         _gusfieldTrans      = np.fromstring("ZIDZZZZMR", dtype=np.int8)
 
-        if   style == "exonerate+": return _exoneratePlusTrans [cigarPlus].tostring()
-        elif style == "exonerate":  return _exonerateTrans     [cigarPlus].tostring()
-        elif style == "cigar":      return _cigarTrans         [cigarPlus].tostring()
-        else:                       return _gusfieldTrans      [cigarPlus].tostring()
+        if   style == "exonerate+": return _exoneratePlusTrans [uc].tostring()
+        elif style == "exonerate":  return _exonerateTrans     [uc].tostring()
+        elif style == "cigar":      return _cigarTrans         [uc].tostring()
+        else:                       return _gusfieldTrans      [uc].tostring()
 
 
     @requiresReference
