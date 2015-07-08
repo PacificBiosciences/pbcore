@@ -41,9 +41,6 @@ import os
 
 __all__ = [ "BamAlignment" ]
 
-# Temporary hack while we await a means to get tag types from pysam
-PBCORE_BAM_LOSSLESS_KINETICS = os.environ.get("PBCORE_BAM_LOSSLESS_KINETICS")
-
 def _unrollCigar(cigar, exciseSoftClips=False):
     """
     Run-length decode the cigar (input is BAM packed CIGAR, not a cigar string)
@@ -418,16 +415,14 @@ class BamAlignment(AlignmentRecordMixin):
         if self.isUnmapped and (orientation != "native" or aligned == True):
             raise UnavailableFeature, \
                 "Cannot get genome oriented/aligned features from unmapped BAM record"
-        # 1. Extract in native orientation
-        tag, kind_, dtype_ = PULSE_FEATURE_TAGS[featureName]
-        data_ = self.peer.opt(tag)
 
-        # FIXME:
-        # Temporary hack for when we encode kinetics losslessly
-        # Need to revise RG to tell us the codec used.
-        if (featureName in ("Ipd", "PulseWidth") and PBCORE_BAM_LOSSLESS_KINETICS):
-            dtype_ = np.uint16
-            kind_ = "raw"
+        # 0. Get the "concrete" feature name.  (Example: Ipd could be
+        # Ipd:Frames or Ipd:CodecV1)
+        concreteFeatureName = self.bam._featureNameMappings[self.qId][featureName]
+
+        # 1. Extract in native orientation
+        tag, kind_, dtype_ = PULSE_FEATURE_TAGS[concreteFeatureName]
+        data_ = self.peer.opt(tag)
 
         if isinstance(data_, str):
             data = np.fromstring(data_, dtype=dtype_)
@@ -442,7 +437,7 @@ class BamAlignment(AlignmentRecordMixin):
         # 2. Decode
         if kind_ == "qv":
             data -= 33
-        elif kind_ == "time":
+        elif kind_ == "codecV1":
             data = codeToFrames(data)
 
         # 3. Clip

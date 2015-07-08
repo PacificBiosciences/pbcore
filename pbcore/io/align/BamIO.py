@@ -98,7 +98,8 @@ class _BamReaderBase(ReaderBase):
     def _loadReadGroupInfo(self):
         rgs = self.peer.header["RG"]
         readGroupTable_ = []
-        pulseFeaturesInAll_ = frozenset(PULSE_FEATURE_TAGS.keys())
+        self._featureNameMappings = {}  # RGID -> ("abstract feature name" -> actual feature name)
+
         for rg in rgs:
             rgID = rgAsInt(rg["ID"])
             rgName = rg["PU"]
@@ -113,7 +114,16 @@ class _BamReaderBase(ReaderBase):
             #rgFrameRate = ds["FRAMERATEHZ"]
             rgFrameRate = 75.0
             readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate))
-            pulseFeaturesInAll_ = pulseFeaturesInAll_.intersection(ds.keys())
+
+            # Look for the features manifest entries within the DS tag,
+            # and build an "indirection layer", i.e. to get from
+            # "Ipd"  to "Ipd:Frames"
+            # (This is a bit messy.  Can we separate the manifest from
+            # the rest of the DS content?)
+            featureNameMapping = { key.split(":")[0] : key
+                                   for key in ds.keys()
+                                   if key in PULSE_FEATURE_TAGS }
+            self._featureNameMappings[rgID] = featureNameMapping
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -128,8 +138,10 @@ class _BamReaderBase(ReaderBase):
         self._readGroupDict = { rg.ID : rg
                                 for rg in self._readGroupTable }
 
-        self._pulseFeaturesAvailable = pulseFeaturesInAll_
-
+        # The pulse features "available" to clients of this file are the intersection
+        # of pulse features available from each read group.
+        self._pulseFeaturesAvailable = set.intersection(
+            *[set(mapping.keys()) for mapping in self._featureNameMappings.values()])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
