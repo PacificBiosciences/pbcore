@@ -95,7 +95,7 @@ def _makeFramepoints():
         nextOnes = next + grain * np.arange(0, T)
         next = nextOnes[-1] + grain
         framepoints = framepoints + list(nextOnes)
-    return np.array(framepoints, dtype=int)
+    return np.array(framepoints, dtype=np.uint16)
 
 def _makeLookup(framepoints):
     # (frame -> code) involves some kind of rounding
