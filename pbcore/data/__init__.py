@@ -152,10 +152,10 @@ def getBcFofn():
 
 def getBamAndCmpH5():
     """
-    Get a "matched" BAM and cmp.h5 file
+    Get a "matched" (aligned) BAM and cmp.h5 file
     """
-    return (_getAbsPath("bam_mapping.bam"),
-            _getAbsPath("cmph5_mapping.cmp.h5"))
+    return (_getAbsPath("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.aligned_subreads.bam"),
+            _getAbsPath("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.aligned_subreads.cmp.h5"))
 
 def getBaxForBam():
     """
