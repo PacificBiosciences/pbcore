@@ -13,4 +13,4 @@ $(MOVIE1).aligned_subreads.bam: $(MOVIE1).subreads.bam lambdaNEB.fa
 	pbindex $@
 
 $(MOVIE1).aligned_subreads.cmp.h5: $(MOVIE1).1.bax.h5 lambdaNEB.fa
-	pbalign-2.3 --forQuiver $^ $@
+	pbalign-2.3 --forQuiver --metrics IPD,DeletionQV,DeletionTag,InsertionQV,MergeQV,SubstitutionQV $^ $@
