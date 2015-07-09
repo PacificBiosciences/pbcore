@@ -14,7 +14,7 @@ import shutil
 import os
 
 sam_str_ = """\
-@HD	VN:1.5\tSO:coordinate\tpb:3.0b5
+@HD	VN:1.5\tSO:coordinate\tpb:3.0b7
 @SQ\tSN:genome\tLN:28\tM5:734d5f3b2859595f4bd87a2fe6b7389b
 @RG\tID:1\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd=ip;BASECALLERVERSION=2.0.1.0.123678;FRAMERATEHZ=75.000000;BINDINGKIT=foo;SEQUENCINGKIT=bar\tPU:movie1
 @PG\tID:bax2bam-0.0.2\tPN:bax2bam\tVN:0.0.2\tDS:bax2bam
