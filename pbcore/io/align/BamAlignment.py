@@ -108,12 +108,16 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             clipLeft  = self.peer.qstart
             clipRight = self.peer.rlen - self.peer.qend
-        self.aStart = self.qStart + clipLeft
-        self.aEnd   = self.qEnd   - clipRight
-
+        # handle virtual qStart/qEnd for CCS READTYPE
+        if self.isCCS:
+            qs, qe = 0, self.qLen
+        else:
+            qs, qe = self.qStart, self.qEnd
+        # alignment start/end (aStart/aEnd)
+        self.aStart = qs + clipLeft
+        self.aEnd   = qe - clipRight
         # Cache of unrolled cigar, in genomic orientation
         self._unrolledCigar = None
-
 
     @property
     def reader(self):
@@ -129,10 +133,14 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def qStart(self):
+        if self.isCCS:
+            raise UnavailableFeature("No qStart for CCS READTYPE")
         return self.peer.opt("qs")
 
     @property
     def qEnd(self):
+        if self.isCCS:
+            raise UnavailableFeature("No qEnd for CCS READTYPE")
         return self.peer.opt("qe")
 
     @property
@@ -142,6 +150,10 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def tId(self):
         return self.peer.tid
+
+    @property
+    def isCCS(self):
+        return self.readType == "CCS"
 
     @property
     def isMapped(self):
@@ -244,7 +256,6 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def queryEnd(self):
         return self.qEnd
-
 
     #TODO: provide this in cmp.h5 but throw "unsupported"
     @property
@@ -444,8 +455,12 @@ class BamAlignment(AlignmentRecordMixin):
         # [s, e) delimits the range, within the query, that is in the aligned read.
         # This will be determined by the soft clips actually in the file as well as those
         # imposed by the clipping API here.
-        s = self.aStart - self.qStart
-        e = self.aEnd   - self.qStart
+        if self.isCCS:
+            s = self.aStart
+            e = self.aEnd
+        else:
+            s = self.aStart - self.qStart
+            e = self.aEnd   - self.qStart
         assert s >= 0 and e <= len(data)
         clipped = data[s:e]
 
@@ -498,8 +513,12 @@ class BamAlignment(AlignmentRecordMixin):
             raise UnavailableFeature, \
                 "Cannot get genome oriented/aligned features from unmapped BAM record"
         data = np.fromstring(self.peer.seq, dtype=np.int8)
-        s = self.aStart - self.qStart
-        e = self.aEnd   - self.qStart
+        if self.isCCS:
+            s = self.aStart
+            e = self.aEnd
+        else:
+            s = self.aStart - self.qStart
+            e = self.aEnd   - self.qStart
         l = self.qLen
         # clip
         assert l == len(data) and s >= 0 and e <= l

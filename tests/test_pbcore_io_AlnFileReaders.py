@@ -12,6 +12,7 @@ from collections import Counter
 
 from pbcore import data
 from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
+from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
 
@@ -373,3 +374,21 @@ class TestBasicBam(_BasicAlnFileReaderTests):
 class TestIndexedBam(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = IndexedBamReader
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+
+
+class TestCCSBam(object):
+    def __init__(self):
+        self.f = BamReader(data.getCCSBAM())
+
+    @SkipTest
+    def testBasicOperations(self):
+        EQ(False, self.f.isEmpty)
+        EQ(False, self.f.isSorted)
+        EQ(18,    len(self.f))
+
+    def testQStartEndUnavailable(self):
+        for aln in self.f:
+            with assert_raises(UnavailableFeature):
+                aln.qStart
+            with assert_raises(UnavailableFeature):
+                aln.qEnd

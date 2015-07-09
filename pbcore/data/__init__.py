@@ -68,6 +68,9 @@ def getBaxH5_v23():
 def getCCSH5():
     return _getAbsPath(MOVIE_NAME_CCS + '.1.ccs.h5')
 
+def getCCSBAM():
+    return _getAbsPath(MOVIE_NAME_CCS + '.ccs.bam')
+
 def getBcH5s():
     return [_getAbsPath('.'.join((MOVIE_NAME_BC, str(k), 'bc.h5')))
             for k in range(1,4)]
