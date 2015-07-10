@@ -308,9 +308,6 @@ class BamAlignment(AlignmentRecordMixin):
         This can be useful in pretty-printing an alignment.
         """
         uc = self.unrolledCigar(orientation)
-        if "M" in uc:
-            raise IncompatibleFile("CIGAR op 'M' illegal in PacBio BAM files")
-
         #                                    MIDNSHP=X
         _exoneratePlusTrans = np.fromstring("Z  ZZZZ|*", dtype=np.int8)
         _exonerateTrans     = np.fromstring("Z  ZZZZ| ", dtype=np.int8)
@@ -346,6 +343,8 @@ class BamAlignment(AlignmentRecordMixin):
 
         if self._unrolledCigar is None:
             self._unrolledCigar = _unrollCigar(self.peer.cigar, exciseSoftClips=True)
+            if BAM_CMATCH in self._unrolledCigar:
+                raise IncompatibleFile("CIGAR op 'M' illegal in PacBio BAM files")
 
         if (orientation == "native" and self.isReverseStrand):
             return self._unrolledCigar[::-1]
