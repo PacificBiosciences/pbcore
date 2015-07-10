@@ -1,0 +1,15 @@
+include *.md
+include *.org
+include *.txt
+include *.yml
+include Makefile
+recursive-include bin *.py
+recursive-include doc *.conf
+recursive-include doc *.css
+recursive-include doc *.jpg
+recursive-include doc *.png
+recursive-include doc *.py
+recursive-include doc *.rst
+recursive-include doc Makefile
+recursive-include pbcore Makefile
+recursive-include tests *.py
