@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pbcore.io &mdash; pbcore 0.9.3 documentation</title>
+    <title>pbcore.io &mdash; pbcore 1.2.1 documentation</title>
     
     <link rel="stylesheet" href="_static/pacbio.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.9.3',
+        VERSION:     '1.2.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,10 +23,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pbcore 0.9.3 documentation" href="index.html" /> 
+    <link rel="top" title="pbcore 1.2.1 documentation" href="index.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -35,25 +35,25 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pbcore 1.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="pbcore-io">
 <h1>pbcore.io<a class="headerlink" href="#pbcore-io" title="Permalink to this headline">¶</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">pbcore.io</span></tt> package provides a number of lightweight interfaces
+<p>The <code class="docutils literal"><span class="pre">pbcore.io</span></code> package provides a number of lightweight interfaces
 to PacBio data files and other standard bioinformatics file formats.
-Preferred usage is to import classes directly from the <tt class="docutils literal"><span class="pre">pbcore.io</span></tt>
+Preferred usage is to import classes directly from the <code class="docutils literal"><span class="pre">pbcore.io</span></code>
 package, e.g.:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">CmpH5Reader</span>
 </pre></div>
 </div>
-<p>The classes within <tt class="docutils literal"><span class="pre">pbcore.io</span></tt> adhere to a few conventions, in order
+<p>The classes within <code class="docutils literal"><span class="pre">pbcore.io</span></code> adhere to a few conventions, in order
 to provide a uniform API:</p>
 <blockquote>
 <div><ul>
@@ -85,17 +85,21 @@ start using BAM files, your best bet is to use the following generic
 factory functions:</p>
 <dl class="function">
 <dt id="pbcore.io.openIndexedAlignmentFile">
-<tt class="descclassname">pbcore.io.</tt><tt class="descname">openIndexedAlignmentFile</tt><big>(</big><em>fname</em>, <em>referenceFasta=None</em><big>)</big><a class="headerlink" href="#pbcore.io.openIndexedAlignmentFile" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pbcore.io.</code><code class="descname">openIndexedAlignmentFile</code><span class="sig-paren">(</span><em>fname</em>, <em>referenceFastaFname=None</em>, <em>sharedIndex=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.openIndexedAlignmentFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory function to get a handle to a reader for an alignment file
 (cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
 requires bam.pbi index for BAM</p>
+<p>The reference FASTA, if provided, must have a FASTA index
+(fasta.fai).</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="pbcore.io.openAlignmentFile">
-<tt class="descclassname">pbcore.io.</tt><tt class="descname">openAlignmentFile</tt><big>(</big><em>fname</em>, <em>referenceFasta=None</em><big>)</big><a class="headerlink" href="#pbcore.io.openAlignmentFile" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pbcore.io.</code><code class="descname">openAlignmentFile</code><span class="sig-paren">(</span><em>fname</em>, <em>referenceFastaFname=None</em>, <em>sharedIndex=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.openAlignmentFile" title="Permalink to this definition">¶</a></dt>
 <dd><p>Factory function to get a handle to a reader for an alignment file
 (cmp.h5 or BAM), not requiring index capability</p>
+<p>(A <cite>sharedIndex</cite> can still be passed for opening a cmp.h5, for which
+the index is compulsory.)</p>
 </dd></dl>
 
 <div class="admonition note">
@@ -114,8 +118,8 @@ companion file).</p>
 reads, built on top of the HDF5 standard.  Originally there was just
 one <cite>bas.h5</cite>, but eventually &#8220;multistreaming&#8221; came along and we had to
 split the file into three <cite>bax.h5</cite> <em>parts</em> and one <cite>bas.h5</cite> file
-containing pointers to the <em>parts</em>.  Use <tt class="docutils literal"><span class="pre">BasH5Reader</span></tt> to read any
-kind of <cite>bas.h5</cite> file, and <tt class="docutils literal"><span class="pre">BaxH5Reader</span></tt> to read a <cite>bax.h5</cite>.</p>
+containing pointers to the <em>parts</em>.  Use <code class="docutils literal"><span class="pre">BasH5Reader</span></code> to read any
+kind of <cite>bas.h5</cite> file, and <code class="docutils literal"><span class="pre">BaxH5Reader</span></code> to read a <cite>bax.h5</cite>.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">In contrast to GFF, for example, the <cite>bas.h5</cite> read coordinate
@@ -124,7 +128,7 @@ convention as Python and the C++ STL.</p>
 </div>
 <dl class="class">
 <dt id="pbcore.io.BasH5Reader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BasH5Reader</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">BasH5Reader</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <cite>BasH5Reader</cite> provides access to the basecall and pulse metric
 data encoded in PacBio bas.h5 files.  To access data using a
 <cite>BasH5Reader</cite>, the standard idiom is:</p>
@@ -193,39 +197,39 @@ Iteration over the <cite>BasH5Reader</cite> object allows you to iterate over
 the <cite>Zmw</cite> objects providing usable sequence.</p>
 <dl class="class">
 <dt id="pbcore.io.BasH5Reader.CCSZmwRead">
-<em class="property">class </em><tt class="descname">CCSZmwRead</tt><big>(</big><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.CCSZmwRead" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descname">CCSZmwRead</code><span class="sig-paren">(</span><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.CCSZmwRead" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class providing access to the CCS (circular consensus sequencing)
 data calculated for a ZMW.</p>
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.CCSZmwRead.readName">
-<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.CCSZmwRead.readName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readName</code><a class="headerlink" href="#pbcore.io.BasH5Reader.CCSZmwRead.readName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.BasH5Reader.Zmw">
-<em class="property">class </em><tt class="descclassname">BasH5Reader.</tt><tt class="descname">Zmw</tt><big>(</big><em>baxH5</em>, <em>holeNumber</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">BasH5Reader.</code><code class="descname">Zmw</code><span class="sig-paren">(</span><em>baxH5</em>, <em>holeNumber</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Zmw represents all data from a ZMW (zero-mode waveguide) hole
 within a bas.h5 movie file.  Accessor methods provide convenient
 access to the read (or subreads), and to the region table entries
 for this hole.</p>
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.adapterRegions">
-<tt class="descname">adapterRegions</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapterRegions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapterRegions</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapterRegions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get adapter regions as intervals, performing clipping to the HQ region</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.adapterRegionsNoQC">
-<tt class="descname">adapterRegionsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapterRegionsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapterRegionsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapterRegionsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get adapter regions as intervals, without clipping to the HQ
 region.  Don&#8217;t use this unless you know what you&#8217;re doing.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.adapters">
-<tt class="descname">adapters</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapters" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapters</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adapters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the adapter hits as a list of ZmwRead objects.  Restricts
 focus, and clips to, the HQ region.  This method can be used
 by production code.</p>
@@ -233,7 +237,7 @@ by production code.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.adaptersNoQC">
-<tt class="descname">adaptersNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adaptersNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adaptersNoQC</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.adaptersNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the adapters, including data beyond the bounds of the HQ
 region.</p>
 <div class="admonition warning">
@@ -246,22 +250,22 @@ HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.baxH5">
-<tt class="descname">baxH5</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.baxH5" title="Permalink to this definition">¶</a></dt>
+<code class="descname">baxH5</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.baxH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.ccsRead">
-<tt class="descname">ccsRead</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.ccsRead" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ccsRead</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.ccsRead" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.holeNumber">
-<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.holeNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.holeNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.hqRegion">
-<tt class="descname">hqRegion</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.hqRegion" title="Permalink to this definition">¶</a></dt>
+<code class="descname">hqRegion</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.hqRegion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the HQ region interval.</p>
 <p>The HQ region is an interval of basecalls where the basecaller has
 inferred that a single sequencing reaction is taking place.
@@ -273,44 +277,44 @@ the HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.hqRegionSnr">
-<tt class="descname">hqRegionSnr</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.hqRegionSnr" title="Permalink to this definition">¶</a></dt>
+<code class="descname">hqRegionSnr</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.hqRegionSnr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the SNRs, as a vector by channel.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.index">
-<tt class="descname">index</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.index" title="Permalink to this definition">¶</a></dt>
+<code class="descname">index</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.index" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.insertRegions">
-<tt class="descname">insertRegions</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.insertRegions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insertRegions</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.insertRegions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get insert regions as intervals, clipped to the HQ region</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.insertRegionsNoQC">
-<tt class="descname">insertRegionsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.insertRegionsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insertRegionsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.insertRegionsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get insert regions as intervals, without clipping to the HQ
 region.  Don&#8217;t use this unless you know what you&#8217;re doing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.Zmw.listZmwMetrics">
-<tt class="descname">listZmwMetrics</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.listZmwMetrics" title="Permalink to this definition">¶</a></dt>
+<code class="descname">listZmwMetrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.listZmwMetrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the available ZMW metrics for this bax.h5 file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.numPasses">
-<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.numPasses" title="Permalink to this definition">¶</a></dt>
+<code class="descname">numPasses</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.numPasses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the number of passes (forward + back) across the SMRTbell
 insert, used to forming the CCS consensus.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.productivity">
-<tt class="descname">productivity</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.productivity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">productivity</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.productivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the &#8216;productivity&#8217; of this ZMW, which is the estimated
 number of polymerase reactions taking place within it.  For
 example, a doubly-loaded ZMW would have productivity 2.</p>
@@ -318,7 +322,7 @@ example, a doubly-loaded ZMW would have productivity 2.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.Zmw.read">
-<tt class="descname">read</tt><big>(</big><em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.read" title="Permalink to this definition">¶</a></dt>
+<code class="descname">read</code><span class="sig-paren">(</span><em>readStart=None</em>, <em>readEnd=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given no arguments, returns the entire (HQ-clipped) polymerase
 read.  With readStart, readEnd arguments, returns the
 specified extent of the polymerase read.</p>
@@ -326,7 +330,7 @@ specified extent of the polymerase read.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.Zmw.readNoQC">
-<tt class="descname">readNoQC</tt><big>(</big><em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.readNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readNoQC</code><span class="sig-paren">(</span><em>readStart=None</em>, <em>readEnd=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.readNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given no arguments, returns the entire polymerase read, <em>not
 HQ-clipped</em>.  With readStart, readEnd arguments, returns the
 specified extent of the polymerase read.</p>
@@ -340,7 +344,7 @@ HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.readScore">
-<tt class="descname">readScore</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.readScore" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readScore</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.readScore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the &#8220;read score&#8221;, a prediction of the accuracy (between 0 and 1) of the
 basecalls from this ZMW, from the <cite>ReadScore</cite> dataset in the
 file</p>
@@ -348,12 +352,12 @@ file</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.regionTable">
-<tt class="descname">regionTable</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.regionTable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regionTable</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.regionTable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.subreads">
-<tt class="descname">subreads</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.subreads" title="Permalink to this definition">¶</a></dt>
+<code class="descname">subreads</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.subreads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the subreads as a list of ZmwRead objects.  Restricts focus,
 and clips to, the HQ region.  This method can be used by
 production code.</p>
@@ -361,7 +365,7 @@ production code.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.subreadsNoQC">
-<tt class="descname">subreadsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.subreadsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">subreadsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.subreadsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the subreads, including data beyond the bounds of the HQ region.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -373,214 +377,214 @@ HQ region.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.Zmw.zmwMetric">
-<tt class="descname">zmwMetric</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.zmwMetric" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmwMetric</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.zmwMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value of metric &#8216;name&#8217; from the ZMW metrics.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.Zmw.zmwName">
-<tt class="descname">zmwName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.zmwName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmwName</code><a class="headerlink" href="#pbcore.io.BasH5Reader.Zmw.zmwName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.BasH5Reader.ZmwRead">
-<em class="property">class </em><tt class="descclassname">BasH5Reader.</tt><tt class="descname">ZmwRead</tt><big>(</big><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">BasH5Reader.</code><code class="descname">ZmwRead</code><span class="sig-paren">(</span><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead" title="Permalink to this definition">¶</a></dt>
 <dd><p>A ZmwRead represents the data features (basecalls as well as pulse
 features) recorded from the ZMW, delimited by readStart and readEnd.</p>
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.DeletionQV">
-<tt class="descname">DeletionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.DeletionTag">
-<tt class="descname">DeletionTag</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionTag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.DeletionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.IPD">
-<tt class="descname">IPD</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.IPD" title="Permalink to this definition">¶</a></dt>
+<code class="descname">IPD</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.IPD" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.InsertionQV">
-<tt class="descname">InsertionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">InsertionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.InsertionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.MergeQV">
-<tt class="descname">MergeQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.MergeQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">MergeQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.MergeQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.PreBaseFrames">
-<tt class="descname">PreBaseFrames</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.PreBaseFrames" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PreBaseFrames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.PreBaseFrames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.PulseWidth">
-<tt class="descname">PulseWidth</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.PulseWidth" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PulseWidth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.PulseWidth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.QualityValue">
-<tt class="descname">QualityValue</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.QualityValue" title="Permalink to this definition">¶</a></dt>
+<code class="descname">QualityValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.QualityValue" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.SubstitutionQV">
-<tt class="descname">SubstitutionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.SubstitutionTag">
-<tt class="descname">SubstitutionTag</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.SubstitutionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionTag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.SubstitutionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.WidthInFrames">
-<tt class="descname">WidthInFrames</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.WidthInFrames" title="Permalink to this definition">¶</a></dt>
+<code class="descname">WidthInFrames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.WidthInFrames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.basecalls">
-<tt class="descname">basecalls</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.basecalls" title="Permalink to this definition">¶</a></dt>
+<code class="descname">basecalls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.basecalls" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.baxH5">
-<tt class="descname">baxH5</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.baxH5" title="Permalink to this definition">¶</a></dt>
+<code class="descname">baxH5</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.baxH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.holeNumber">
-<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.holeNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.holeNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.offsetBegin">
-<tt class="descname">offsetBegin</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.offsetBegin" title="Permalink to this definition">¶</a></dt>
+<code class="descname">offsetBegin</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.offsetBegin" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.offsetEnd">
-<tt class="descname">offsetEnd</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.offsetEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">offsetEnd</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.offsetEnd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.qv">
-<tt class="descname">qv</tt><big>(</big><em>qvName</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.qv" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qv</code><span class="sig-paren">(</span><em>qvName</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.qv" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.readEnd">
-<tt class="descname">readEnd</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readEnd</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readEnd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.readName">
-<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readName</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.readStart">
-<tt class="descname">readStart</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readStart" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readStart</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.readStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.ZmwRead.zmw">
-<tt class="descname">zmw</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.zmw" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmw</code><a class="headerlink" href="#pbcore.io.BasH5Reader.ZmwRead.zmw" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.allSequencingZmws">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">allSequencingZmws</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.allSequencingZmws" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">allSequencingZmws</code><a class="headerlink" href="#pbcore.io.BasH5Reader.allSequencingZmws" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.ccsReads">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">ccsReads</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.ccsReads" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">ccsReads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.ccsReads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.chemistryBarcodeTriple">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">chemistryBarcodeTriple</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.chemistryBarcodeTriple" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">chemistryBarcodeTriple</code><a class="headerlink" href="#pbcore.io.BasH5Reader.chemistryBarcodeTriple" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.close">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.close" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.close" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.hasConsensusBasecalls">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">hasConsensusBasecalls</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.hasConsensusBasecalls" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">hasConsensusBasecalls</code><a class="headerlink" href="#pbcore.io.BasH5Reader.hasConsensusBasecalls" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.hasRawBasecalls">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">hasRawBasecalls</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.hasRawBasecalls" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">hasRawBasecalls</code><a class="headerlink" href="#pbcore.io.BasH5Reader.hasRawBasecalls" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.movieName">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.movieName" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">movieName</code><a class="headerlink" href="#pbcore.io.BasH5Reader.movieName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.parts">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">parts</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.parts" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">parts</code><a class="headerlink" href="#pbcore.io.BasH5Reader.parts" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.reads">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">reads</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.reads" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">reads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.reads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.sequencingChemistry">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">sequencingChemistry</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">sequencingChemistry</code><a class="headerlink" href="#pbcore.io.BasH5Reader.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5Reader.sequencingZmws">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">sequencingZmws</tt><a class="headerlink" href="#pbcore.io.BasH5Reader.sequencingZmws" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">sequencingZmws</code><a class="headerlink" href="#pbcore.io.BasH5Reader.sequencingZmws" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5Reader.subreads">
-<tt class="descclassname">BasH5Reader.</tt><tt class="descname">subreads</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5Reader.subreads" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">BasH5Reader.</code><code class="descname">subreads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5Reader.subreads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.BasH5IO.Zmw">
-<em class="property">class </em><tt class="descclassname">pbcore.io.BasH5IO.</tt><tt class="descname">Zmw</tt><big>(</big><em>baxH5</em>, <em>holeNumber</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.BasH5IO.</code><code class="descname">Zmw</code><span class="sig-paren">(</span><em>baxH5</em>, <em>holeNumber</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Zmw represents all data from a ZMW (zero-mode waveguide) hole
 within a bas.h5 movie file.  Accessor methods provide convenient
 access to the read (or subreads), and to the region table entries
 for this hole.</p>
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.adapterRegions">
-<tt class="descname">adapterRegions</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapterRegions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapterRegions</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapterRegions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get adapter regions as intervals, performing clipping to the HQ region</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.adapterRegionsNoQC">
-<tt class="descname">adapterRegionsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapterRegionsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapterRegionsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapterRegionsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get adapter regions as intervals, without clipping to the HQ
 region.  Don&#8217;t use this unless you know what you&#8217;re doing.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.adapters">
-<tt class="descname">adapters</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapters" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adapters</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adapters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the adapter hits as a list of ZmwRead objects.  Restricts
 focus, and clips to, the HQ region.  This method can be used
 by production code.</p>
@@ -588,7 +592,7 @@ by production code.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.adaptersNoQC">
-<tt class="descname">adaptersNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adaptersNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">adaptersNoQC</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.adaptersNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the adapters, including data beyond the bounds of the HQ
 region.</p>
 <div class="admonition warning">
@@ -601,22 +605,22 @@ HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.baxH5">
-<tt class="descname">baxH5</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.baxH5" title="Permalink to this definition">¶</a></dt>
+<code class="descname">baxH5</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.baxH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.ccsRead">
-<tt class="descname">ccsRead</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.ccsRead" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ccsRead</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.ccsRead" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.holeNumber">
-<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.holeNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.holeNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.hqRegion">
-<tt class="descname">hqRegion</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.hqRegion" title="Permalink to this definition">¶</a></dt>
+<code class="descname">hqRegion</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.hqRegion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the HQ region interval.</p>
 <p>The HQ region is an interval of basecalls where the basecaller has
 inferred that a single sequencing reaction is taking place.
@@ -628,44 +632,44 @@ the HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.hqRegionSnr">
-<tt class="descname">hqRegionSnr</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.hqRegionSnr" title="Permalink to this definition">¶</a></dt>
+<code class="descname">hqRegionSnr</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.hqRegionSnr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the SNRs, as a vector by channel.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.index">
-<tt class="descname">index</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.index" title="Permalink to this definition">¶</a></dt>
+<code class="descname">index</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.index" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.insertRegions">
-<tt class="descname">insertRegions</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.insertRegions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insertRegions</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.insertRegions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get insert regions as intervals, clipped to the HQ region</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.insertRegionsNoQC">
-<tt class="descname">insertRegionsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.insertRegionsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">insertRegionsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.insertRegionsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get insert regions as intervals, without clipping to the HQ
 region.  Don&#8217;t use this unless you know what you&#8217;re doing.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.Zmw.listZmwMetrics">
-<tt class="descname">listZmwMetrics</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.listZmwMetrics" title="Permalink to this definition">¶</a></dt>
+<code class="descname">listZmwMetrics</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.listZmwMetrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>List the available ZMW metrics for this bax.h5 file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.numPasses">
-<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.numPasses" title="Permalink to this definition">¶</a></dt>
+<code class="descname">numPasses</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.numPasses" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the number of passes (forward + back) across the SMRTbell
 insert, used to forming the CCS consensus.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.productivity">
-<tt class="descname">productivity</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.productivity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">productivity</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.productivity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the &#8216;productivity&#8217; of this ZMW, which is the estimated
 number of polymerase reactions taking place within it.  For
 example, a doubly-loaded ZMW would have productivity 2.</p>
@@ -673,7 +677,7 @@ example, a doubly-loaded ZMW would have productivity 2.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.Zmw.read">
-<tt class="descname">read</tt><big>(</big><em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.read" title="Permalink to this definition">¶</a></dt>
+<code class="descname">read</code><span class="sig-paren">(</span><em>readStart=None</em>, <em>readEnd=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given no arguments, returns the entire (HQ-clipped) polymerase
 read.  With readStart, readEnd arguments, returns the
 specified extent of the polymerase read.</p>
@@ -681,7 +685,7 @@ specified extent of the polymerase read.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.Zmw.readNoQC">
-<tt class="descname">readNoQC</tt><big>(</big><em>readStart=None</em>, <em>readEnd=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.readNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readNoQC</code><span class="sig-paren">(</span><em>readStart=None</em>, <em>readEnd=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.readNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given no arguments, returns the entire polymerase read, <em>not
 HQ-clipped</em>.  With readStart, readEnd arguments, returns the
 specified extent of the polymerase read.</p>
@@ -695,7 +699,7 @@ HQ region.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.readScore">
-<tt class="descname">readScore</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.readScore" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readScore</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.readScore" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the &#8220;read score&#8221;, a prediction of the accuracy (between 0 and 1) of the
 basecalls from this ZMW, from the <cite>ReadScore</cite> dataset in the
 file</p>
@@ -703,12 +707,12 @@ file</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.regionTable">
-<tt class="descname">regionTable</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.regionTable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">regionTable</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.regionTable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.subreads">
-<tt class="descname">subreads</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.subreads" title="Permalink to this definition">¶</a></dt>
+<code class="descname">subreads</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.subreads" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the subreads as a list of ZmwRead objects.  Restricts focus,
 and clips to, the HQ region.  This method can be used by
 production code.</p>
@@ -716,7 +720,7 @@ production code.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.subreadsNoQC">
-<tt class="descname">subreadsNoQC</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.subreadsNoQC" title="Permalink to this definition">¶</a></dt>
+<code class="descname">subreadsNoQC</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.subreadsNoQC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the subreads, including data beyond the bounds of the HQ region.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
@@ -728,125 +732,125 @@ HQ region.</p>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.Zmw.zmwMetric">
-<tt class="descname">zmwMetric</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.zmwMetric" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmwMetric</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.zmwMetric" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the value of metric &#8216;name&#8217; from the ZMW metrics.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.Zmw.zmwName">
-<tt class="descname">zmwName</tt><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.zmwName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmwName</code><a class="headerlink" href="#pbcore.io.BasH5IO.Zmw.zmwName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.BasH5IO.ZmwRead">
-<em class="property">class </em><tt class="descclassname">pbcore.io.BasH5IO.</tt><tt class="descname">ZmwRead</tt><big>(</big><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.BasH5IO.</code><code class="descname">ZmwRead</code><span class="sig-paren">(</span><em>baxH5</em>, <em>holeNumber</em>, <em>readStart</em>, <em>readEnd</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead" title="Permalink to this definition">¶</a></dt>
 <dd><p>A ZmwRead represents the data features (basecalls as well as pulse
 features) recorded from the ZMW, delimited by readStart and readEnd.</p>
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.DeletionQV">
-<tt class="descname">DeletionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.DeletionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.DeletionTag">
-<tt class="descname">DeletionTag</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionTag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.DeletionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.IPD">
-<tt class="descname">IPD</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.IPD" title="Permalink to this definition">¶</a></dt>
+<code class="descname">IPD</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.IPD" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.InsertionQV">
-<tt class="descname">InsertionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">InsertionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.InsertionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.MergeQV">
-<tt class="descname">MergeQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.MergeQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">MergeQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.MergeQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.PreBaseFrames">
-<tt class="descname">PreBaseFrames</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.PreBaseFrames" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PreBaseFrames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.PreBaseFrames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.PulseWidth">
-<tt class="descname">PulseWidth</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.PulseWidth" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PulseWidth</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.PulseWidth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.QualityValue">
-<tt class="descname">QualityValue</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.QualityValue" title="Permalink to this definition">¶</a></dt>
+<code class="descname">QualityValue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.QualityValue" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.SubstitutionQV">
-<tt class="descname">SubstitutionQV</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionQV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.SubstitutionTag">
-<tt class="descname">SubstitutionTag</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.SubstitutionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionTag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.SubstitutionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.WidthInFrames">
-<tt class="descname">WidthInFrames</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.WidthInFrames" title="Permalink to this definition">¶</a></dt>
+<code class="descname">WidthInFrames</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.WidthInFrames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.basecalls">
-<tt class="descname">basecalls</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.basecalls" title="Permalink to this definition">¶</a></dt>
+<code class="descname">basecalls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.basecalls" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.baxH5">
-<tt class="descname">baxH5</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.baxH5" title="Permalink to this definition">¶</a></dt>
+<code class="descname">baxH5</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.baxH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.holeNumber">
-<tt class="descname">holeNumber</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.holeNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.holeNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.offsetBegin">
-<tt class="descname">offsetBegin</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.offsetBegin" title="Permalink to this definition">¶</a></dt>
+<code class="descname">offsetBegin</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.offsetBegin" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.offsetEnd">
-<tt class="descname">offsetEnd</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.offsetEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">offsetEnd</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.offsetEnd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BasH5IO.ZmwRead.qv">
-<tt class="descname">qv</tt><big>(</big><em>qvName</em><big>)</big><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.qv" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qv</code><span class="sig-paren">(</span><em>qvName</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.qv" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.readEnd">
-<tt class="descname">readEnd</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readEnd</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readEnd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.readName">
-<tt class="descname">readName</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readName</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.readStart">
-<tt class="descname">readStart</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readStart" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readStart</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.readStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BasH5IO.ZmwRead.zmw">
-<tt class="descname">zmw</tt><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.zmw" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zmw</code><a class="headerlink" href="#pbcore.io.BasH5IO.ZmwRead.zmw" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -856,72 +860,72 @@ features) recorded from the ZMW, delimited by readStart and readEnd.</p>
 <h2>BAM format<a class="headerlink" href="#bam-format" title="Permalink to this headline">¶</a></h2>
 <p>The BAM format is a standard format described aligned and unaligned
 reads.  PacBio is transitioning from the cmp.h5 format to the BAM
-format.  For basic functionality, one should use <tt class="xref py py-class docutils literal"><span class="pre">BamReader</span></tt>;
-for full compatibility with the <tt class="xref py py-class docutils literal"><span class="pre">CmpH5Reader</span></tt> API (including
+format.  For basic functionality, one should use <code class="xref py py-class docutils literal"><span class="pre">BamReader</span></code>;
+for full compatibility with the <code class="xref py py-class docutils literal"><span class="pre">CmpH5Reader</span></code> API (including
 alignment index functionality) one should use
-<tt class="xref py py-class docutils literal"><span class="pre">IndexedBamReader</span></tt>, which requires the auxiliary <em>PacBio BAM
-index file</em> (<tt class="docutils literal"><span class="pre">bam.pbi</span></tt> file).</p>
+<code class="xref py py-class docutils literal"><span class="pre">IndexedBamReader</span></code>, which requires the auxiliary <em>PacBio BAM
+index file</em> (<code class="docutils literal"><span class="pre">bam.pbi</span></code> file).</p>
 <dl class="class">
 <dt id="pbcore.io.BamAlignment">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BamAlignment</tt><big>(</big><em>bamReader</em>, <em>pysamAlignedRead</em>, <em>rowNumber=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">BamAlignment</code><span class="sig-paren">(</span><em>bamReader</em>, <em>pysamAlignedRead</em>, <em>rowNumber=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="method">
 <dt id="pbcore.io.BamAlignment.DeletionQV">
-<tt class="descname">DeletionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.DeletionTag">
-<tt class="descname">DeletionTag</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionTag</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.HoleNumber">
-<tt class="descname">HoleNumber</tt><a class="headerlink" href="#pbcore.io.BamAlignment.HoleNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">HoleNumber</code><a class="headerlink" href="#pbcore.io.BamAlignment.HoleNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pbcore.io.BamAlignment.IPD">
+<code class="descname">IPD</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.IPD" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.InsertionQV">
-<tt class="descname">InsertionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">InsertionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.MapQV">
-<tt class="descname">MapQV</tt><a class="headerlink" href="#pbcore.io.BamAlignment.MapQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">MapQV</code><a class="headerlink" href="#pbcore.io.BamAlignment.MapQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.MergeQV">
-<tt class="descname">MergeQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.MergeQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">MergeQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.MergeQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pbcore.io.BamAlignment.QualityValue">
-<tt class="descname">QualityValue</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.QualityValue" title="Permalink to this definition">¶</a></dt>
+<dt id="pbcore.io.BamAlignment.PulseWidth">
+<code class="descname">PulseWidth</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.PulseWidth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.SubstitutionQV">
-<tt class="descname">SubstitutionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.BamAlignment.alignmentGroup">
-<tt class="descname">alignmentGroup</tt><a class="headerlink" href="#pbcore.io.BamAlignment.alignmentGroup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.barcode">
-<tt class="descname">barcode</tt><a class="headerlink" href="#pbcore.io.BamAlignment.barcode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcode</code><a class="headerlink" href="#pbcore.io.BamAlignment.barcode" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.barcodeName">
-<tt class="descname">barcodeName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.barcodeName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcodeName</code><a class="headerlink" href="#pbcore.io.BamAlignment.barcodeName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.clippedTo">
-<tt class="descname">clippedTo</tt><big>(</big><em>refStart</em>, <em>refEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.clippedTo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">clippedTo</code><span class="sig-paren">(</span><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.clippedTo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <cite>BamAlignment</cite> that refers to a subalignment of
 this alignment, as induced by clipping to reference
 coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
@@ -933,75 +937,114 @@ coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.identity">
-<tt class="descname">identity</tt><a class="headerlink" href="#pbcore.io.BamAlignment.identity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">identity</code><a class="headerlink" href="#pbcore.io.BamAlignment.identity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.isCCS">
+<code class="descname">isCCS</code><a class="headerlink" href="#pbcore.io.BamAlignment.isCCS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.isForwardStrand">
-<tt class="descname">isForwardStrand</tt><a class="headerlink" href="#pbcore.io.BamAlignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isForwardStrand</code><a class="headerlink" href="#pbcore.io.BamAlignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.isMapped">
+<code class="descname">isMapped</code><a class="headerlink" href="#pbcore.io.BamAlignment.isMapped" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.isReverseStrand">
-<tt class="descname">isReverseStrand</tt><a class="headerlink" href="#pbcore.io.BamAlignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isReverseStrand</code><a class="headerlink" href="#pbcore.io.BamAlignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.isUnmapped">
+<code class="descname">isUnmapped</code><a class="headerlink" href="#pbcore.io.BamAlignment.isUnmapped" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.mapQV">
+<code class="descname">mapQV</code><a class="headerlink" href="#pbcore.io.BamAlignment.mapQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.movieName">
-<tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.movieName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieName</code><a class="headerlink" href="#pbcore.io.BamAlignment.movieName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.numPasses">
-<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.BamAlignment.numPasses" title="Permalink to this definition">¶</a></dt>
+<code class="descname">numPasses</code><a class="headerlink" href="#pbcore.io.BamAlignment.numPasses" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.pulseFeature">
-<tt class="descname">pulseFeature</tt><big>(</big><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
+<code class="descname">pulseFeature</code><span class="sig-paren">(</span><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve the pulse feature as indicated.
 - <cite>aligned</cite>    : whether gaps should be inserted to reflect the alignment
 - <cite>orientation</cite>: &#8220;native&#8221; or &#8220;genomic&#8221;</p>
+<p>Note that this function assumes the the feature is stored in
+native orientation in the file, so it is not appropriate to
+use this method to fetch the read or the qual, which are
+oriented genomically in the file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.qEnd">
-<tt class="descname">qEnd</tt><a class="headerlink" href="#pbcore.io.BamAlignment.qEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qEnd</code><a class="headerlink" href="#pbcore.io.BamAlignment.qEnd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.qId">
+<code class="descname">qId</code><a class="headerlink" href="#pbcore.io.BamAlignment.qId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.qLen">
+<code class="descname">qLen</code><a class="headerlink" href="#pbcore.io.BamAlignment.qLen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.BamAlignment.qName">
+<code class="descname">qName</code><a class="headerlink" href="#pbcore.io.BamAlignment.qName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.qStart">
-<tt class="descname">qStart</tt><a class="headerlink" href="#pbcore.io.BamAlignment.qStart" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qStart</code><a class="headerlink" href="#pbcore.io.BamAlignment.qStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.queryEnd">
-<tt class="descname">queryEnd</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryEnd" title="Permalink to this definition">¶</a></dt>
+<code class="descname">queryEnd</code><a class="headerlink" href="#pbcore.io.BamAlignment.queryEnd" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.queryName">
-<tt class="descname">queryName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">queryName</code><a class="headerlink" href="#pbcore.io.BamAlignment.queryName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.queryStart">
-<tt class="descname">queryStart</tt><a class="headerlink" href="#pbcore.io.BamAlignment.queryStart" title="Permalink to this definition">¶</a></dt>
+<code class="descname">queryStart</code><a class="headerlink" href="#pbcore.io.BamAlignment.queryStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.read">
-<tt class="descname">read</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.read" title="Permalink to this definition">¶</a></dt>
+<code class="descname">read</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.read" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.readGroupInfo">
-<tt class="descname">readGroupInfo</tt><a class="headerlink" href="#pbcore.io.BamAlignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readGroupInfo</code><a class="headerlink" href="#pbcore.io.BamAlignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.readPositions">
-<tt class="descname">readPositions</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.readPositions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readPositions</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.readPositions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an array of read positions.</p>
 <p>If aligned is True, the array has the same length as the
 alignment and readPositions[i] = read position of the i&#8217;th
@@ -1013,37 +1056,37 @@ of the i&#8217;th base in the oriented reference segment.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.readType">
-<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.BamAlignment.readType" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readType</code><a class="headerlink" href="#pbcore.io.BamAlignment.readType" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.reader">
-<tt class="descname">reader</tt><a class="headerlink" href="#pbcore.io.BamAlignment.reader" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reader</code><a class="headerlink" href="#pbcore.io.BamAlignment.reader" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.reference">
-<tt class="descname">reference</tt><big>(</big><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.reference" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reference</code><span class="sig-paren">(</span><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.reference" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.referenceId">
-<tt class="descname">referenceId</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceId" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceId</code><a class="headerlink" href="#pbcore.io.BamAlignment.referenceId" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.referenceInfo">
-<tt class="descname">referenceInfo</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceInfo</code><a class="headerlink" href="#pbcore.io.BamAlignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.referenceName">
-<tt class="descname">referenceName</tt><a class="headerlink" href="#pbcore.io.BamAlignment.referenceName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceName</code><a class="headerlink" href="#pbcore.io.BamAlignment.referenceName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.referencePositions">
-<tt class="descname">referencePositions</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.referencePositions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referencePositions</code><span class="sig-paren">(</span><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.referencePositions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an array of reference positions.</p>
 <p>If aligned is True, the array has the same length as the
 alignment and referencePositions[i] = reference position of
@@ -1055,61 +1098,71 @@ base in the oriented read.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.sequencingChemistry">
-<tt class="descname">sequencingChemistry</tt><a class="headerlink" href="#pbcore.io.BamAlignment.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sequencingChemistry</code><a class="headerlink" href="#pbcore.io.BamAlignment.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.tId">
-<tt class="descname">tId</tt><a class="headerlink" href="#pbcore.io.BamAlignment.tId" title="Permalink to this definition">¶</a></dt>
+<code class="descname">tId</code><a class="headerlink" href="#pbcore.io.BamAlignment.tId" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.transcript">
-<tt class="descname">transcript</tt><big>(</big><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.transcript" title="Permalink to this definition">¶</a></dt>
+<code class="descname">transcript</code><span class="sig-paren">(</span><em>orientation='native'</em>, <em>style='gusfield'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.transcript" title="Permalink to this definition">¶</a></dt>
 <dd><p>A text representation of the alignment moves (see Gusfield).
 This can be useful in pretty-printing an alignment.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.BamAlignment.unrolledCigar">
-<tt class="descname">unrolledCigar</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.BamAlignment.unrolledCigar" title="Permalink to this definition">¶</a></dt>
+<code class="descname">unrolledCigar</code><span class="sig-paren">(</span><em>bamAln</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamAlignment.unrolledCigar" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run-length decode the CIGAR encoding, and orient.  Clipping ops are removed.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.BamAlignment.zScore">
-<tt class="descname">zScore</tt><a class="headerlink" href="#pbcore.io.BamAlignment.zScore" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zScore</code><a class="headerlink" href="#pbcore.io.BamAlignment.zScore" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.BamReader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">BamReader</tt><big>(</big><em>fname</em>, <em>referenceFastaFname=None</em><big>)</big><a class="headerlink" href="#pbcore.io.BamReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">BamReader</code><span class="sig-paren">(</span><em>fname</em>, <em>referenceFastaFname=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reader for a BAM with a bam.bai (SAMtools) index, but not a
 bam.pbi (PacBio) index.  Supports basic BAM operations.</p>
+<dl class="attribute">
+<dt id="pbcore.io.BamReader.index">
+<code class="descname">index</code><a class="headerlink" href="#pbcore.io.BamReader.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pbcore.io.BamReader.readsInRange">
-<tt class="descname">readsInRange</tt><big>(</big><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.BamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readsInRange</code><span class="sig-paren">(</span><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.BamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.IndexedBamReader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">IndexedBamReader</tt><big>(</big><em>fname</em>, <em>referenceFastaFname=None</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">IndexedBamReader</code><span class="sig-paren">(</span><em>fname</em>, <em>referenceFastaFname=None</em>, <em>sharedIndex=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.IndexedBamReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>IndexedBamReader</cite> is a BAM reader class that uses the
-<tt class="docutils literal"><span class="pre">bam.pbi</span></tt> (PacBio BAM index) file to enable random access by
+<code class="docutils literal"><span class="pre">bam.pbi</span></code> (PacBio BAM index) file to enable random access by
 &#8220;row number&#8221; and to provide access to precomputed semantic
 information about the BAM records</p>
 <dl class="method">
 <dt id="pbcore.io.IndexedBamReader.atRowNumber">
-<tt class="descname">atRowNumber</tt><big>(</big><em>rn</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader.atRowNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">atRowNumber</code><span class="sig-paren">(</span><em>rn</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.IndexedBamReader.atRowNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.IndexedBamReader.index">
+<code class="descname">index</code><a class="headerlink" href="#pbcore.io.IndexedBamReader.index" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.IndexedBamReader.readsInRange">
-<tt class="descname">readsInRange</tt><big>(</big><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.IndexedBamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readsInRange</code><span class="sig-paren">(</span><em>winId</em>, <em>winStart</em>, <em>winEnd</em>, <em>justIndices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.IndexedBamReader.readsInRange" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1127,9 +1180,9 @@ i.e. the same convention as Python and the C++ STL.</p>
 </div>
 <dl class="class">
 <dt id="pbcore.io.CmpH5Reader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">CmpH5Reader</tt><big>(</big><em>filenameOrH5File</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">CmpH5Reader</code><span class="sig-paren">(</span><em>filenameOrH5File</em>, <em>sharedIndex=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader" title="Permalink to this definition">¶</a></dt>
 <dd><p>The <cite>CmpH5Reader</cite> class is a lightweight and efficient API for
-accessing PacBio <tt class="docutils literal"><span class="pre">cmp.h5</span></tt> alignment files.  Alignment records
+accessing PacBio <code class="docutils literal"><span class="pre">cmp.h5</span></code> alignment files.  Alignment records
 can be obtained via random access (via Python indexing/slicing),
 iteration, or range queries (via readsInRange).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">pbcore.data</span>                <span class="c"># For an example data file</span>
@@ -1147,17 +1200,12 @@ iteration, or range queries (via readsInRange).</p>
 </div>
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.ReadGroupID">
-<tt class="descname">ReadGroupID</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.ReadGroupID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="pbcore.io.CmpH5Reader.alignmentGroup">
-<tt class="descname">alignmentGroup</tt><big>(</big><em>alnGroupId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentGroup" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ReadGroupID</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.ReadGroupID" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.alignmentIndex">
-<tt class="descname">alignmentIndex</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentIndex" title="Permalink to this definition">¶</a></dt>
+<code class="descname">alignmentIndex</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.alignmentIndex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the alignment index data structure, which is the
 central data structure in the cmp.h5 file, as a numpy
 recarray.</p>
@@ -1208,21 +1256,21 @@ accessed directly as a field of a <cite>CmpH5Alignment</cite> object</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.barcode">
-<tt class="descname">barcode</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcode</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict mapping of barcode name to integer barcode.
 Behavior undefined if file is not barcoded.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.barcodeName">
-<tt class="descname">barcodeName</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcodeName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcodeName</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcodeName" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a dict mapping of barcode integer id to name.
 Behavior undefined if file is not barcoded.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.barcodes">
-<tt class="descname">barcodes</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcodes" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcodes</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.barcodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an array of barcode integer ids, of the same length as the
 alignment array.</p>
 <p>Behavior undefined if file is not barcoded.</p>
@@ -1230,12 +1278,12 @@ alignment array.</p>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.close">
-<tt class="descname">close</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.close" title="Permalink to this definition">¶</a></dt>
+<code class="descname">close</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.close" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.hasPulseFeature">
-<tt class="descname">hasPulseFeature</tt><big>(</big><em>featureName</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.hasPulseFeature" title="Permalink to this definition">¶</a></dt>
+<code class="descname">hasPulseFeature</code><span class="sig-paren">(</span><em>featureName</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.hasPulseFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Are the datasets for pulse feature <cite>featureName</cite> loaded in
 this file?  Specifically, is it loaded for all movies within
 this cmp.h5?</p>
@@ -1248,43 +1296,51 @@ this cmp.h5?</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.holeNumber">
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.holeNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.index">
+<code class="descname">index</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.isBarcoded">
-<tt class="descname">isBarcoded</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.isBarcoded" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isBarcoded</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.isBarcoded" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.isEmpty">
-<tt class="descname">isEmpty</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.isEmpty" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isEmpty</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.isEmpty" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.isSorted">
-<tt class="descname">isSorted</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.isSorted" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isSorted</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.isSorted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.mapQV">
+<code class="descname">mapQV</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.mapQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.movieInfo">
-<tt class="descname">movieInfo</tt><big>(</big><em>movieId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieInfo</code><span class="sig-paren">(</span><em>movieId</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfo" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></tt>, which is compatible with BAM usage</p>
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <code class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></code>, which is compatible with BAM usage</p>
 </div>
 <p>Access information about a movie whose reads are represented
 in the file.</p>
-<p>The returned value is a record from the <tt class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></tt></p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">movieInfo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">Name</span>
-<span class="go">&#39;m110818_075520_42141_c100129202555500000315043109121112_s2_p0&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">TimeScale</span>
-<span class="go">1.0</span>
-</pre></div>
-</div>
+<p>The returned value is a record from the <code class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></code></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.movieInfoTable">
-<tt class="descname">movieInfoTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfoTable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieInfoTable</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieInfoTable" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupTable</span></tt>, which is compatible with BAM usage</p>
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <code class="xref py py-attr docutils literal"><span class="pre">readGroupTable</span></code>, which is compatible with BAM usage</p>
 </div>
 <p>Return a numpy recarray summarizing source movies for the
 reads in this file.</p>
@@ -1303,12 +1359,12 @@ NaN for pre-1.3 cmp.h5 files.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.movieNames">
-<tt class="descname">movieNames</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieNames" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieNames</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.movieNames" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.pulseFeaturesAvailable">
-<tt class="descname">pulseFeaturesAvailable</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.pulseFeaturesAvailable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">pulseFeaturesAvailable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.pulseFeaturesAvailable" title="Permalink to this definition">¶</a></dt>
 <dd><p>What pulse features are available in this cmp.h5 file?</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">pulseFeaturesAvailable</span><span class="p">()</span>
 <span class="go">[u&#39;QualityValue&#39;, u&#39;IPD&#39;, u&#39;PulseWidth&#39;, u&#39;InsertionQV&#39;, u&#39;DeletionQV&#39;]</span>
@@ -1316,22 +1372,27 @@ NaN for pre-1.3 cmp.h5 files.</p>
 </div>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Reader.qId">
+<code class="descname">qId</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.qId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.readGroupInfo">
-<tt class="descname">readGroupInfo</tt><big>(</big><em>movieId</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readGroupInfo</code><span class="sig-paren">(</span><em>rgId</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Access information about a movie whose reads are represented
 in the file.</p>
-<p>The returned value is a record from the <tt class="xref py py-attr docutils literal"><span class="pre">movieInfoTable</span></tt></p>
+<p>The returned value is a record from the <code class="xref py py-attr docutils literal"><span class="pre">readGroupTable</span></code></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.readGroupTable">
-<tt class="descname">readGroupTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupTable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readGroupTable</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.readGroupTable" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.readType">
-<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.readType" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readType</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.readType" title="Permalink to this definition">¶</a></dt>
 <dd><p>Either &#8220;standard&#8221; or &#8220;CCS&#8221;, indicating the type of reads that
 were aligned to the reference.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">readType</span>
@@ -1342,16 +1403,16 @@ were aligned to the reference.</p>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.readsInRange">
-<tt class="descname">readsInRange</tt><big>(</big><em>refKey</em>, <em>refStart</em>, <em>refEnd</em>, <em>justIndices=False</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsInRange" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readsInRange</code><span class="sig-paren">(</span><em>refKey</em>, <em>refStart</em>, <em>refEnd</em>, <em>justIndices=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.readsInRange" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of reads overlapping (i.e., intersecting&#8212;not
 necessarily spanning) a given reference window.</p>
-<p>If <cite>justIndices</cite> is <tt class="docutils literal"><span class="pre">False</span></tt>, the list returned will contain
+<p>If <cite>justIndices</cite> is <code class="docutils literal"><span class="pre">False</span></code>, the list returned will contain
 <cite>CmpH5Alignment</cite> objects.</p>
-<p>If <cite>justIndices</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, the list returned will contain
+<p>If <cite>justIndices</cite> is <code class="docutils literal"><span class="pre">True</span></code>, the list returned will contain
 row numbers in the alignment index table.  Slicing the
 <cite>CmpH5Reader</cite> object with these row numbers can be used to get
 the corresponding <cite>CmpH5Alignment</cite> objects.</p>
-<p>The contig key can be either the <tt class="docutils literal"><span class="pre">RefID</span></tt>, or the short name
+<p>The contig key can be either the <code class="docutils literal"><span class="pre">RefID</span></code>, or the short name
 (FASTA header up to first space).</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">readsInRange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span> 
 <span class="go">[CmpH5 alignment: -    1          0        290,</span>
@@ -1366,7 +1427,7 @@ the corresponding <cite>CmpH5Alignment</cite> objects.</p>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.referenceInfo">
-<tt class="descname">referenceInfo</tt><big>(</big><em>key</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceInfo</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Access information about a reference that was aligned against.
 Key can be reference ID (integer), name (&#8220;ref000001&#8221;), full
 name (e.g. &#8220;lambda_NEB3011&#8221;), truncated full name (full name
@@ -1384,7 +1445,7 @@ or MD5 sum hex string (e.g. &#8220;a1319ff90e994c8190a4fe6569d0822a&#8221;).</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.referenceInfoTable">
-<tt class="descname">referenceInfoTable</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfoTable" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceInfoTable</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.referenceInfoTable" title="Permalink to this definition">¶</a></dt>
 <dd><p id="referenceinfotable">Return a numpy recarray summarizing the references that were
 aligned against.</p>
 <p>The <cite>dtype</cite> of this recarray is:</p>
@@ -1403,19 +1464,19 @@ aligned against.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.sequencingChemistry">
-<tt class="descname">sequencingChemistry</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sequencingChemistry</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.softwareVersion">
-<tt class="descname">softwareVersion</tt><big>(</big><em>programName</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.softwareVersion" title="Permalink to this definition">¶</a></dt>
+<code class="descname">softwareVersion</code><span class="sig-paren">(</span><em>programName</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.softwareVersion" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the version of program <cite>programName</cite> that processed
 this file.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Reader.version">
-<tt class="descname">version</tt><a class="headerlink" href="#pbcore.io.CmpH5Reader.version" title="Permalink to this definition">¶</a></dt>
+<code class="descname">version</code><a class="headerlink" href="#pbcore.io.CmpH5Reader.version" title="Permalink to this definition">¶</a></dt>
 <dd><p>The CmpH5 format version string.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">version</span>
 <span class="go">&#39;1.2.0.SF&#39;</span>
@@ -1425,7 +1486,7 @@ this file.</p>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Reader.versionAtLeast">
-<tt class="descname">versionAtLeast</tt><big>(</big><em>minimalVersion</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Reader.versionAtLeast" title="Permalink to this definition">¶</a></dt>
+<code class="descname">versionAtLeast</code><span class="sig-paren">(</span><em>minimalVersion</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Reader.versionAtLeast" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compare the file version to <cite>minimalVersion</cite>.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="o">.</span><span class="n">versionAtLeast</span><span class="p">(</span><span class="s">&quot;1.3.0&quot;</span><span class="p">)</span>
 <span class="go">False</span>
@@ -1437,7 +1498,7 @@ this file.</p>
 
 <dl class="class">
 <dt id="pbcore.io.CmpH5Alignment">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">CmpH5Alignment</tt><big>(</big><em>cmph5</em>, <em>rowNumber</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">CmpH5Alignment</code><span class="sig-paren">(</span><em>cmph5</em>, <em>rowNumber</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment" title="Permalink to this definition">¶</a></dt>
 <dd><p>A lightweight class representing a single alignment record in a
 CmpH5 file, providing access to all columns of a single row of the
 alignment index, and on-demand access to the corresponding
@@ -1496,89 +1557,93 @@ Methods not prefixed with <em>aligned</em> excise the gaps.</p>
 <p>Sequence and pulse features are not cached.</p>
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.DeletionQV">
-<tt class="descname">DeletionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.DeletionTag">
-<tt class="descname">DeletionTag</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
+<code class="descname">DeletionTag</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.DeletionTag" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.IPD">
-<tt class="descname">IPD</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.IPD" title="Permalink to this definition">¶</a></dt>
+<code class="descname">IPD</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.IPD" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.InsertionQV">
-<tt class="descname">InsertionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">InsertionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.InsertionQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.MergeQV">
-<tt class="descname">MergeQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.MergeQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">MergeQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.MergeQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.PulseWidth">
-<tt class="descname">PulseWidth</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.PulseWidth" title="Permalink to this definition">¶</a></dt>
+<code class="descname">PulseWidth</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.PulseWidth" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.QualityValue">
-<tt class="descname">QualityValue</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.QualityValue" title="Permalink to this definition">¶</a></dt>
+<code class="descname">QualityValue</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.QualityValue" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.ReadGroupID">
-<tt class="descname">ReadGroupID</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.ReadGroupID" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ReadGroupID</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.ReadGroupID" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.SubstitutionQV">
-<tt class="descname">SubstitutionQV</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SubstitutionQV</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.SubstitutionQV" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.aEnd">
+<code class="descname">aEnd</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.aEnd" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.aStart">
+<code class="descname">aStart</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.aStart" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.accuracy">
-<tt class="descname">accuracy</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.accuracy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the accuracy of this alignment, calculated as
+<code class="descname">accuracy</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.accuracy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the identity of this alignment, calculated as
 (#matchs / read length)</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">accuracy</span>
-<span class="go">0.87050359712230219</span>
-</pre></div>
+<div class="deprecated">
+<p><span class="versionmodified">Deprecated since version 0.9.5: </span>Use <code class="xref py py-attr docutils literal"><span class="pre">identity</span></code></p>
 </div>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.alignmentArray">
-<tt class="descname">alignmentArray</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignmentArray" title="Permalink to this definition">¶</a></dt>
+<code class="descname">alignmentArray</code><span class="sig-paren">(</span><em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignmentArray" title="Permalink to this definition">¶</a></dt>
 <dd><p>Direct access to the raw, encoded aligment array, which is a
 packed representation of the aligned read and reference.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.CmpH5Alignment.alignmentGroup">
-<tt class="descname">alignmentGroup</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.alignmentGroup" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.barcode">
-<tt class="descname">barcode</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.barcode" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcode</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.barcode" title="Permalink to this definition">¶</a></dt>
 <dd><p>The barcode ID (integer key) for this alignment&#8217;s read
 Behavior undefined if file is not barcoded.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.barcodeName">
-<tt class="descname">barcodeName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.barcodeName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">barcodeName</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.barcodeName" title="Permalink to this definition">¶</a></dt>
 <dd><p>The barcode name (string) for this alignment&#8217;s read
 Behavior undefined if file is not barcoded.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.clippedTo">
-<tt class="descname">clippedTo</tt><big>(</big><em>refStart</em>, <em>refEnd</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.clippedTo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">clippedTo</code><span class="sig-paren">(</span><em>refStart</em>, <em>refEnd</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.clippedTo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new <cite>CmpH5Alignment</cite> that refers to a subalignment of
 this alignment, as induced by clipping to reference
 coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
@@ -1590,57 +1655,78 @@ coordinates <cite>refStart</cite> to <cite>refEnd</cite>.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.cmpH5">
-<tt class="descname">cmpH5</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.cmpH5" title="Permalink to this definition">¶</a></dt>
+<code class="descname">cmpH5</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.cmpH5" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.holeNumber">
+<code class="descname">holeNumber</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.holeNumber" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.identity">
+<code class="descname">identity</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.identity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the identity of this alignment, calculated as
+(#matchs / read length)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">c</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">identity</span>
+<span class="go">0.87050359712230219</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.isForwardStrand">
-<tt class="descname">isForwardStrand</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isForwardStrand</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isForwardStrand" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.isReverseStrand">
-<tt class="descname">isReverseStrand</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<code class="descname">isReverseStrand</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.isReverseStrand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.mapQV">
+<code class="descname">mapQV</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.mapQV" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.movieInfo">
-<tt class="descname">movieInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieInfo</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieInfo" title="Permalink to this definition">¶</a></dt>
 <dd><div class="deprecated">
-<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <tt class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></tt>, which is compatible with BAM usage</p>
+<p><span class="versionmodified">Deprecated since version 0.9.2: </span>Use <code class="xref py py-attr docutils literal"><span class="pre">readGroupInfo</span></code>, which is compatible with BAM usage</p>
 </div>
 <p>Returns a record (extracted from the cmph5&#8217;s <cite>movieInfoTable</cite>)
 containing information about the movie that the read was
 extracted from.  This record should be accessed using
 dot-notation, according to the column names documented in
 <cite>movieInfoTable</cite>.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">movieInfo</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mi</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">mi</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">mi</span><span class="o">.</span><span class="n">TimeScale</span>
-<span class="go">(&#39;m110818_075520_42141_c100129202555500000315043109121112_s2_p0&#39;, 1, 1.0)</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.movieName">
-<tt class="descname">movieName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">movieName</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.movieName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.numPasses">
-<tt class="descname">numPasses</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.numPasses" title="Permalink to this definition">¶</a></dt>
+<code class="descname">numPasses</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.numPasses" title="Permalink to this definition">¶</a></dt>
 <dd><p>(CCS only) The number subreads that were used to produce this CCS read.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.pulseFeature">
-<tt class="descname">pulseFeature</tt><big>(</big><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
+<code class="descname">pulseFeature</code><span class="sig-paren">(</span><em>featureName</em>, <em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.pulseFeature" title="Permalink to this definition">¶</a></dt>
 <dd><p>Access a pulse feature by name.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="pbcore.io.CmpH5Alignment.qId">
+<code class="descname">qId</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.qId" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.read">
-<tt class="descname">read</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.read" title="Permalink to this definition">¶</a></dt>
+<code class="descname">read</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.read" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the read portion of the alignment as a string.</p>
 <p>If <cite>aligned</cite> is true, the aligned representation is returned,
 including gaps; otherwise the unaligned read basecalls are
@@ -1655,13 +1741,13 @@ complementation of reverse-strand reads.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.readGroupInfo">
-<tt class="descname">readGroupInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readGroupInfo</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readGroupInfo" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the corresponding record from the <cite>readGroupTable</cite>.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.readPositions">
-<tt class="descname">readPositions</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readPositions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readPositions</code><span class="sig-paren">(</span><em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readPositions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an array of read positions such that
 readPositions[i] = read position of the i&#8217;th column
 in the alignment.  Insertions are grouped with the following
@@ -1671,17 +1757,17 @@ read base, in the specified orientation.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.readType">
-<tt class="descname">readType</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readType" title="Permalink to this definition">¶</a></dt>
+<code class="descname">readType</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.readType" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.reader">
-<tt class="descname">reader</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reader" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reader</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reader" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.reference">
-<tt class="descname">reference</tt><big>(</big><em>aligned=True</em>, <em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reference" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reference</code><span class="sig-paren">(</span><em>aligned=True</em>, <em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.reference" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the read portion of the alignment as a string.</p>
 <p>If <cite>aligned</cite> is true, the aligned representation of the
 reference is returned, including gaps; otherwise the unaligned
@@ -1694,22 +1780,22 @@ reads, the reference is reverse-complemented.  If
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.referenceId">
-<tt class="descname">referenceId</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceId" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceId</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceId" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.referenceInfo">
-<tt class="descname">referenceInfo</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceInfo</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceInfo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.referenceName">
-<tt class="descname">referenceName</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceName" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referenceName</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referenceName" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.referencePositions">
-<tt class="descname">referencePositions</tt><big>(</big><em>orientation='native'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referencePositions" title="Permalink to this definition">¶</a></dt>
+<code class="descname">referencePositions</code><span class="sig-paren">(</span><em>orientation='native'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.referencePositions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an array of reference positions such that
 referencePositions[i] = reference position of the i&#8217;th column
 in the alignment.  Insertions are grouped with the following
@@ -1719,31 +1805,31 @@ reference base, in the specified orientation.</p>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.rowNumber">
-<tt class="descname">rowNumber</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.rowNumber" title="Permalink to this definition">¶</a></dt>
+<code class="descname">rowNumber</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.rowNumber" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.sequencingChemistry">
-<tt class="descname">sequencingChemistry</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sequencingChemistry</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.sequencingChemistry" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.similarity">
-<tt class="descname">similarity</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.similarity" title="Permalink to this definition">¶</a></dt>
+<code class="descname">similarity</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.similarity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replicates the pctsimilarity field from blasr, calculated as
 #matches/mean(aligned_length, read_length)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.CmpH5Alignment.transcript">
-<tt class="descname">transcript</tt><big>(</big><em>orientation='native'</em>, <em>style='gusfield'</em><big>)</big><a class="headerlink" href="#pbcore.io.CmpH5Alignment.transcript" title="Permalink to this definition">¶</a></dt>
+<code class="descname">transcript</code><span class="sig-paren">(</span><em>orientation='native'</em>, <em>style='gusfield'</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.CmpH5Alignment.transcript" title="Permalink to this definition">¶</a></dt>
 <dd><p>A text representation of the alignment moves (see Gusfield).
 This can be useful in pretty-printing an alignment.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.CmpH5Alignment.zScore">
-<tt class="descname">zScore</tt><a class="headerlink" href="#pbcore.io.CmpH5Alignment.zScore" title="Permalink to this definition">¶</a></dt>
+<code class="descname">zScore</code><a class="headerlink" href="#pbcore.io.CmpH5Alignment.zScore" title="Permalink to this definition">¶</a></dt>
 <dd><p>(PacBio internal files only)</p>
 <p>The z-score of the alignment, using a null model of a random
 sequence alignment.</p>
@@ -1757,81 +1843,71 @@ sequence alignment.</p>
 <p>FASTA is a standard format for sequence data.  We recommmend using the
 <cite>FastaTable</cite> class, which provides random access to indexed FASTA
 files (using the conventional SAMtools &#8220;fai&#8221; index).</p>
-<dl class="class">
+<dl class="attribute">
 <dt id="pbcore.io.FastaTable">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaTable</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Random-access FASTA file reader.</p>
-<p>Requires that the lines of the FASTA file be fixed-length and that
-there is a FASTA index file (generated by <cite>samtools faidx</cite>) with
-name <cite>fastaFilename.fai</cite> in the same directory.</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">FastaTable</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore</span> <span class="kn">import</span> <span class="n">data</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">getFasta</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">FastaTable</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">t</span><span class="p">[:</span><span class="mi">4</span><span class="p">]</span> 
-<span class="go">[&lt;FastaTableRecord: ref000001|EGFR_Exon_2&gt;,</span>
-<span class="go">&lt;FastaTableRecord: ref000002|EGFR_Exon_3&gt;,</span>
-<span class="go">&lt;FastaTableRecord: ref000003|EGFR_Exon_4&gt;,</span>
-<span class="go">&lt;FastaTableRecord: ref000004|EGFR_Exon_5&gt;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-</pre></div>
-</div>
+<code class="descclassname">pbcore.io.</code><code class="descname">FastaTable</code><a class="headerlink" href="#pbcore.io.FastaTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal"><span class="pre">IndexedFastaReader</span></code></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.FastaRecord">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaRecord</tt><big>(</big><em>name</em>, <em>sequence</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaRecord" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastaRecord</code><span class="sig-paren">(</span><em>header</em>, <em>sequence</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>A FastaRecord object models a named sequence in a FASTA file.</p>
+<dl class="attribute">
+<dt id="pbcore.io.FastaRecord.comment">
+<code class="descname">comment</code><a class="headerlink" href="#pbcore.io.FastaRecord.comment" title="Permalink to this definition">¶</a></dt>
+<dd><p>The comment associated with the sequence in the FASTA file, equal to
+the contents of the FASTA header following the first whitespace</p>
+</dd></dl>
+
 <dl class="classmethod">
 <dt id="pbcore.io.FastaRecord.fromString">
-<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaRecord.fromString" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">fromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaRecord.fromString" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interprets a string as a FASTA record.  Does not make any
 assumptions about wrapping of the sequence string.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pbcore.io.FastaRecord.header">
+<code class="descname">header</code><a class="headerlink" href="#pbcore.io.FastaRecord.header" title="Permalink to this definition">¶</a></dt>
+<dd><p>The header of the sequence in the FASTA file, equal to the entire
+first line of the FASTA record following the &#8216;&gt;&#8217; character.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">You should almost certainly be using &#8220;id&#8221;, not &#8220;header&#8221;.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pbcore.io.FastaRecord.id">
-<tt class="descname">id</tt><a class="headerlink" href="#pbcore.io.FastaRecord.id" title="Permalink to this definition">¶</a></dt>
+<code class="descname">id</code><a class="headerlink" href="#pbcore.io.FastaRecord.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>The id of the sequence in the FASTA file, equal to the FASTA header
 up to the first whitespace.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastaRecord.length">
-<tt class="descname">length</tt><a class="headerlink" href="#pbcore.io.FastaRecord.length" title="Permalink to this definition">¶</a></dt>
+<code class="descname">length</code><a class="headerlink" href="#pbcore.io.FastaRecord.length" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the length of the FASTA sequence</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.FastaRecord.md5">
-<tt class="descname">md5</tt><a class="headerlink" href="#pbcore.io.FastaRecord.md5" title="Permalink to this definition">¶</a></dt>
-<dd><p>The MD5 checksum (hex digest) of <cite>sequence</cite></p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pbcore.io.FastaRecord.metadata">
-<tt class="descname">metadata</tt><a class="headerlink" href="#pbcore.io.FastaRecord.metadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>The metadata associated with the sequence in the FASTA file, equal to
-the contents of the FASTA header following the first whitespace</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pbcore.io.FastaRecord.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pbcore.io.FastaRecord.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name of the sequence in the FASTA file, equal to the entire
-FASTA header following the &#8216;&gt;&#8217; character</p>
+<code class="descname">name</code><a class="headerlink" href="#pbcore.io.FastaRecord.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>DEPRECATED: The name of the sequence in the FASTA file, equal to
+the entire FASTA header following the &#8216;&gt;&#8217; character</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.FastaRecord.reverseComplement">
-<tt class="descname">reverseComplement</tt><big>(</big><em>preserveHeader=False</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaRecord.reverseComplement" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reverseComplement</code><span class="sig-paren">(</span><em>preserveHeader=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaRecord.reverseComplement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new FastaRecord with the reverse-complemented DNA sequence.
 Optionally, supply a name</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastaRecord.sequence">
-<tt class="descname">sequence</tt><a class="headerlink" href="#pbcore.io.FastaRecord.sequence" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sequence</code><a class="headerlink" href="#pbcore.io.FastaRecord.sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>The sequence for the record as present in the FASTA file.
 (Newlines are removed but otherwise no sequence normalization
 is performed).</p>
@@ -1841,7 +1917,7 @@ is performed).</p>
 
 <dl class="class">
 <dt id="pbcore.io.FastaReader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastaReader</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Streaming reader for FASTA files, useable as a one-shot iterator
 over FastaRecord objects.  Agnostic about line wrapping.</p>
 <p>Example:</p>
@@ -1850,11 +1926,11 @@ over FastaRecord objects.  Agnostic about line wrapping.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">filename</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">getTinyFasta</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">FastaReader</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
-<span class="gp">... </span>    <span class="k">print</span> <span class="n">record</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">sequence</span><span class="p">),</span> <span class="n">record</span><span class="o">.</span><span class="n">md5</span>
-<span class="go">ref000001|EGFR_Exon_2 183 e3912e9ceacd6538ede8c1b2adda7423</span>
-<span class="go">ref000002|EGFR_Exon_3 203 4bf218da37175a91869033024ac8f9e9</span>
-<span class="go">ref000003|EGFR_Exon_4 215 245bc7a046aad0788c22b071ed210f4d</span>
-<span class="go">ref000004|EGFR_Exon_5 157 c368b8191164a9d6ab76fd328e2803ca</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">record</span><span class="o">.</span><span class="n">header</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">sequence</span><span class="p">)</span>
+<span class="go">ref000001|EGFR_Exon_2 183</span>
+<span class="go">ref000002|EGFR_Exon_3 203</span>
+<span class="go">ref000003|EGFR_Exon_4 215</span>
+<span class="go">ref000004|EGFR_Exon_5 157</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1862,7 +1938,7 @@ over FastaRecord objects.  Agnostic about line wrapping.</p>
 
 <dl class="class">
 <dt id="pbcore.io.FastaWriter">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastaWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastaWriter</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaWriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A FASTA file writer class</p>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">FastaWriter</span>
@@ -1875,9 +1951,9 @@ over FastaRecord objects.  Agnostic about line wrapping.</p>
 exit from the <cite>with</cite> block.)</p>
 <dl class="method">
 <dt id="pbcore.io.FastaWriter.writeRecord">
-<tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastaWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
+<code class="descname">writeRecord</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastaWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a FASTA record to the file.  If given one argument, it is
-interpreted as a <tt class="docutils literal"><span class="pre">FastaRecord</span></tt>.  Given two arguments, they
+interpreted as a <code class="docutils literal"><span class="pre">FastaRecord</span></code>.  Given two arguments, they
 are interpreted as the name and the sequence.</p>
 </dd></dl>
 
@@ -1889,8 +1965,8 @@ are interpreted as the name and the sequence.</p>
 <p>FASTQ is a standard format for sequence data with associated quality scores.</p>
 <dl class="class">
 <dt id="pbcore.io.FastqRecord">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqRecord</tt><big>(</big><em>name</em>, <em>sequence</em>, <em>quality=None</em>, <em>qualityString=None</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqRecord" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <tt class="docutils literal"><span class="pre">FastqRecord</span></tt> object models a named sequence and its quality
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastqRecord</code><span class="sig-paren">(</span><em>header</em>, <em>sequence</em>, <em>quality=None</em>, <em>qualityString=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <code class="docutils literal"><span class="pre">FastqRecord</span></code> object models a named sequence and its quality
 values in a FASTQ file.  For reference consult <a class="reference external" href="http://en.wikipedia.org/wiki/FASTQ_format">Wikipedia&#8217;s FASTQ
 entry</a>. We adopt the Sanger encoding convention, allowing the
 encoding of QV values in [0, 93] using ASCII 33 to 126. We only
@@ -1898,61 +1974,67 @@ support FASTQ files in the four-line convention (unwrapped).
 Wrapped FASTQ files are generally considered a bad idea as the &#64;,
 + delimiters can also appear in the quality string, thus parsing
 cannot be done safely.</p>
+<dl class="attribute">
+<dt id="pbcore.io.FastqRecord.comment">
+<code class="descname">comment</code><a class="headerlink" href="#pbcore.io.FastqRecord.comment" title="Permalink to this definition">¶</a></dt>
+<dd><p>The comment associated with the sequence in the FASTQ file, equal to
+the contents of the FASTQ header following the first whitespace</p>
+</dd></dl>
+
 <dl class="classmethod">
 <dt id="pbcore.io.FastqRecord.fromString">
-<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqRecord.fromString" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">fromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqRecord.fromString" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interprets a string as a FASTQ record. Only supports four-line
 format, as wrapped FASTQs can&#8217;t easily be safely parsed.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pbcore.io.FastqRecord.header">
+<code class="descname">header</code><a class="headerlink" href="#pbcore.io.FastqRecord.header" title="Permalink to this definition">¶</a></dt>
+<dd><p>The header of the sequence in the FASTQ file</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pbcore.io.FastqRecord.id">
-<tt class="descname">id</tt><a class="headerlink" href="#pbcore.io.FastqRecord.id" title="Permalink to this definition">¶</a></dt>
+<code class="descname">id</code><a class="headerlink" href="#pbcore.io.FastqRecord.id" title="Permalink to this definition">¶</a></dt>
 <dd><p>The id of the sequence in the FASTQ file, equal to the FASTQ header
 up to the first whitespace.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastqRecord.length">
-<tt class="descname">length</tt><a class="headerlink" href="#pbcore.io.FastqRecord.length" title="Permalink to this definition">¶</a></dt>
+<code class="descname">length</code><a class="headerlink" href="#pbcore.io.FastqRecord.length" title="Permalink to this definition">¶</a></dt>
 <dd><p>The length of the sequence</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pbcore.io.FastqRecord.metadata">
-<tt class="descname">metadata</tt><a class="headerlink" href="#pbcore.io.FastqRecord.metadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>The metadata associated with the sequence in the FASTQ file, equal to
-the contents of the FASTQ header following the first whitespace</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pbcore.io.FastqRecord.name">
-<tt class="descname">name</tt><a class="headerlink" href="#pbcore.io.FastqRecord.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name of the sequence in the FASTQ file</p>
+<code class="descname">name</code><a class="headerlink" href="#pbcore.io.FastqRecord.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>DEPRECATED: The name of the sequence in the FASTQ file</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastqRecord.quality">
-<tt class="descname">quality</tt><a class="headerlink" href="#pbcore.io.FastqRecord.quality" title="Permalink to this definition">¶</a></dt>
+<code class="descname">quality</code><a class="headerlink" href="#pbcore.io.FastqRecord.quality" title="Permalink to this definition">¶</a></dt>
 <dd><p>The quality values, as an array of integers</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastqRecord.qualityString">
-<tt class="descname">qualityString</tt><a class="headerlink" href="#pbcore.io.FastqRecord.qualityString" title="Permalink to this definition">¶</a></dt>
+<code class="descname">qualityString</code><a class="headerlink" href="#pbcore.io.FastqRecord.qualityString" title="Permalink to this definition">¶</a></dt>
 <dd><p>The quality values as an ASCII-encoded string</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pbcore.io.FastqRecord.reverseComplement">
-<tt class="descname">reverseComplement</tt><big>(</big><em>preserveHeader=False</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqRecord.reverseComplement" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reverseComplement</code><span class="sig-paren">(</span><em>preserveHeader=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqRecord.reverseComplement" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a new FastaRecord with the reverse-complemented DNA sequence.
 Optionally, supply a name</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pbcore.io.FastqRecord.sequence">
-<tt class="descname">sequence</tt><a class="headerlink" href="#pbcore.io.FastqRecord.sequence" title="Permalink to this definition">¶</a></dt>
+<code class="descname">sequence</code><a class="headerlink" href="#pbcore.io.FastqRecord.sequence" title="Permalink to this definition">¶</a></dt>
 <dd><p>The sequence for the record as present in the FASTQ file.</p>
 </dd></dl>
 
@@ -1960,7 +2042,7 @@ Optionally, supply a name</p>
 
 <dl class="class">
 <dt id="pbcore.io.FastqReader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastqReader</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reader for FASTQ files, useable as a one-shot iterator over
 FastqRecord objects.  FASTQ files must follow the four-line
 convention.</p>
@@ -1968,7 +2050,7 @@ convention.</p>
 
 <dl class="class">
 <dt id="pbcore.io.FastqWriter">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">FastqWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">FastqWriter</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqWriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A FASTQ file writer class</p>
 <p>Example:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">FastqWriter</span>
@@ -1981,9 +2063,9 @@ convention.</p>
 exit from the <cite>with</cite> block.)</p>
 <dl class="method">
 <dt id="pbcore.io.FastqWriter.writeRecord">
-<tt class="descname">writeRecord</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#pbcore.io.FastqWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
+<code class="descname">writeRecord</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.FastqWriter.writeRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write a FASTQ record to the file.  If given one argument, it is
-interpreted as a <tt class="docutils literal"><span class="pre">FastqRecord</span></tt>.  Given three arguments, they
+interpreted as a <code class="docutils literal"><span class="pre">FastqRecord</span></code>.  Given three arguments, they
 are interpreted as the name, sequence, and quality.</p>
 </dd></dl>
 
@@ -1995,7 +2077,7 @@ are interpreted as the name, sequence, and quality.</p>
 <p>The GFF format is an open and flexible standard for representing genomic features.</p>
 <dl class="class">
 <dt id="pbcore.io.Gff3Record">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">Gff3Record</tt><big>(</big><em>seqid</em>, <em>start</em>, <em>end</em>, <em>type</em>, <em>score='.'</em>, <em>strand='.'</em>, <em>phase='.'</em>, <em>source='.'</em>, <em>attributes=()</em><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">Gff3Record</code><span class="sig-paren">(</span><em>seqid</em>, <em>start</em>, <em>end</em>, <em>type</em>, <em>score='.'</em>, <em>strand='.'</em>, <em>phase='.'</em>, <em>source='.'</em>, <em>attributes=()</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.Gff3Record" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class for GFF record, providing uniform access to standard
 GFF fields and attributes.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pbcore.io</span> <span class="kn">import</span> <span class="n">Gff3Record</span>
@@ -2009,7 +2091,7 @@ GFF fields and attributes.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">del</span> <span class="n">record</span><span class="o">.</span><span class="n">baz</span>
 </pre></div>
 </div>
-<p>Attribute access using record.fieldName notation raises <tt class="docutils literal"><span class="pre">ValueError</span></tt>
+<p>Attribute access using record.fieldName notation raises <code class="docutils literal"><span class="pre">ValueError</span></code>
 if an attribute named fieldName doesn&#8217;t exist.  Use:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fieldName</span><span class="p">)</span>
 </pre></div>
@@ -2021,13 +2103,13 @@ if an attribute named fieldName doesn&#8217;t exist.  Use:</p>
 <p>to fetch the field or attribute with a custom default.</p>
 <dl class="method">
 <dt id="pbcore.io.Gff3Record.copy">
-<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record.copy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.Gff3Record.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a shallow copy</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="pbcore.io.Gff3Record.fromString">
-<em class="property">classmethod </em><tt class="descname">fromString</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#pbcore.io.Gff3Record.fromString" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">fromString</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.Gff3Record.fromString" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a string as a GFF record.
 Trailing whitespace is ignored.</p>
 </dd></dl>
@@ -2036,13 +2118,13 @@ Trailing whitespace is ignored.</p>
 
 <dl class="class">
 <dt id="pbcore.io.GffReader">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">GffReader</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.GffReader" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">GffReader</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.GffReader" title="Permalink to this definition">¶</a></dt>
 <dd><p>A GFF file reader class</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pbcore.io.GffWriter">
-<em class="property">class </em><tt class="descclassname">pbcore.io.</tt><tt class="descname">GffWriter</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#pbcore.io.GffWriter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pbcore.io.</code><code class="descname">GffWriter</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="headerlink" href="#pbcore.io.GffWriter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A GFF file writer class</p>
 </dd></dl>
 
@@ -2053,7 +2135,7 @@ Trailing whitespace is ignored.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -2069,12 +2151,14 @@ Trailing whitespace is ignored.</p>
 </li>
 </ul>
 
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/pbcore.io.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/pbcore.io.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -2091,7 +2175,7 @@ Trailing whitespace is ignored.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -2100,12 +2184,12 @@ Trailing whitespace is ignored.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">pbcore 0.9.3 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pbcore 1.2.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2011-2015, Pacific Biosciences.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>

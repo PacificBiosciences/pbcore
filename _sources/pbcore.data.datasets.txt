@@ -1,0 +1,10 @@
+pbcore.data.datasets package
+============================
+
+Module contents
+---------------
+
+.. automodule:: pbcore.data.datasets
+    :members:
+    :undoc-members:
+    :show-inheritance:

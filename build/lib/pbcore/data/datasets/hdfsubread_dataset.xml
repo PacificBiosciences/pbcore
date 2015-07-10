@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<HdfSubreadSet xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" MetaType="PacBio.DataSet.HdfSubreadSet" Name="DataSet_HdfSubreadSet" Tags="barcode moreTags mapping mytags" UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe519c" Version="2.3.0" CreatedAt="2015-01-27T09:00:01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<ExternalResourcess>
+        <ExternalResource Name="First Subreads BAM" Description="Points to an example Subreads BAM file." MetaType="SubreadFile.SubreadBamFile" ResourceId="file:///mnt/path/to/subreads0.bam" Tags="Example">
+            <FileIndices>
+                <FileIndex ResourceId="file:///mnt/path/to/subreads0.pbi"/>
+            </FileIndices>
+		</ExternalResource>
+        <ExternalResource Name="Second Subreads BAM" Description="Points to another example Subreads BAM file." MetaType="SubreadFile.SubreadBamFile" ResourceId="file:///mnt/path/to/subreads1.bam" Tags="Example">
+            <FileIndices>
+                <FileIndex ResourceId="file:///mnt/path/to/subreads1.pbi"/>
+            </FileIndices>
+		</ExternalResource>
+	</ExternalResourcess>
+	<Filters>
+		<Filter>
+            <Parameters>
+                <Parameter Name="rq" Value="0.75" Operator=">" />
+            </Parameters>
+        </Filter>
+		<Filter>
+            <Parameters>
+                <Parameter Name="QNAME" Value="100/0/0_100" Operator="=" />
+            </Parameters>
+		</Filter>
+	</Filters>
+	<DataSetMetadata>
+		<TotalLength>500000</TotalLength>
+		<NumRecords>500</NumRecords>
+		<Collections>
+			<CollectionMetadata Context="m152720_092723_00114_c100480560100000001823075906281381_s1_p0" InstrumentName="RS2" InstrumentId="43210">
+				<InstCtrlVer>2.3.0.0.140640</InstCtrlVer>
+				<SigProcVer>NRT@172.31.128.10:8082, SwVer=2300.140640, HwVer=1.0</SigProcVer>
+				<RunDetails>
+					<RunId>e903682f-e502-465c-a2b6-9dd77c9f43fc</RunId>
+					<Name>beta4_130726_biotin_DEV_vs_MFG_PB11K_9458p</Name>
+				</RunDetails>
+				<WellSample Name="Well Sample 1" UniqueId="aaa2df90-d44f-4a48-9f35-3b99473c68f5">
+					<PlateId>2014-12-24_141_NGAT_Igor_bisPNA Enrichment_Mag Bead Elution Buffers</PlateId>
+					<WellName>B01</WellName>
+					<Concentration>10</Concentration>
+					<SampleReuseEnabled>true</SampleReuseEnabled>
+					<StageHotstartEnabled>true</StageHotstartEnabled>
+					<SizeSelectionEnabled>true</SizeSelectionEnabled>
+					<UseCount>0</UseCount>
+					<Comments>Lorem ipsum</Comments>
+					<BioSamplePointers>
+						<BioSamplePointer>abc2df90-d44f-4a48-9f35-3b99473c68f5</BioSamplePointer>
+					</BioSamplePointers>
+				</WellSample>
+				<AutomationName>POC Protocol</AutomationName>
+				<CollectionNumber>0</CollectionNumber>
+				<CellIndex>0</CellIndex>
+				<CellPac Barcode="100480560100000001823075906281381"/>
+				<Primary>
+					<AutomationName>BasecallerV1</AutomationName>
+					<ConfigFileName>1-3-0_Standard_C2.xml</ConfigFileName>
+					<SequencingCondition/>
+					<ResultsFolder>Analysis_Results</ResultsFolder>
+					<CollectionPathUri>rsy://mp-rsync/vol56//RS_DATA_STAGING//2014-12-24_141_NGAT_Igor_bisPNA%20Enrichment_Mag%20Bead%20Elution%20Buffers_1094/B01_1</CollectionPathUri>
+					<CopyFiles>
+						<CollectionFileCopy>Fasta</CollectionFileCopy>
+					</CopyFiles>
+				</Primary>
+			</CollectionMetadata>
+		</Collections>
+		<BioSamples>
+			<BioSample UniqueId="abc2df90-d44f-4a48-9f35-3b99473c68f5" Name="consectetur purus" Description="Risus sit amet lectus vehicula vulputate quisque porta accumsan venenatis." CreatedAt="2015-01-20T13:27:23.9271737-08:00"/>
+		</BioSamples>
+	</DataSetMetadata>
+</HdfSubreadSet>
+<!-- TODO what do internal references look like?-->

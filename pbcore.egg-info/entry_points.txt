@@ -1,0 +1,3 @@
+[console_scripts]
+.open = pbcore.io.opener:entryPoint
+

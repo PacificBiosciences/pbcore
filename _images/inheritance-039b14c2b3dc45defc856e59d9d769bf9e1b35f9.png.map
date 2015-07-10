@@ -1,0 +1,39 @@
+<map id="inheritance1742c48be3" name="inheritance1742c48be3">
+<area shape="rect" id="node1" href="#pbcore.io.dataset.DataSetMembers.Automation" title="Automation" alt="" coords="176,116,248,136"/>
+<area shape="rect" id="node2" href="#pbcore.io.dataset.DataSetMembers.RecordWrapper" title="The base functionality of a metadata element." alt="" coords="9,622,98,642"/>
+<area shape="rect" id="node3" href="#pbcore.io.dataset.DataSetMembers.AutomationParameter" title="AutomationParameter" alt="" coords="152,154,272,173"/>
+<area shape="rect" id="node4" href="#pbcore.io.dataset.DataSetMembers.AutomationParameters" title="AutomationParameters" alt="" coords="150,191,275,211"/>
+<area shape="rect" id="node6" href="#pbcore.io.dataset.DataSetMembers.DataSetMetadata" title="The root of the DataSetMetadata element tree, used as base for subtype" alt="" coords="164,229,260,248"/>
+<area shape="rect" id="node11" href="#pbcore.io.dataset.DataSetMembers.BioSampleMetadata" title="The metadata for a single BioSample" alt="" coords="158,266,267,286"/>
+<area shape="rect" id="node12" href="#pbcore.io.dataset.DataSetMembers.BioSamplePointersMetadata" title="The BioSamplePointer members don&#39;t seem complex enough to justify" alt="" coords="139,304,286,323"/>
+<area shape="rect" id="node13" href="#pbcore.io.dataset.DataSetMembers.BioSamplesMetadata" title="The metadata for the list of BioSamples" alt="" coords="156,341,269,361"/>
+<area shape="rect" id="node14" href="#pbcore.io.dataset.DataSetMembers.CollectionMetadata" title="The metadata for a single collection. It contains Context," alt="" coords="159,379,266,398"/>
+<area shape="rect" id="node15" href="#pbcore.io.dataset.DataSetMembers.CollectionsMetadata" title="The Element should just have children: a list of" alt="" coords="156,416,268,436"/>
+<area shape="rect" id="node16" href="#pbcore.io.dataset.DataSetMembers.ContigMetadata" title="ContigMetadata" alt="" coords="167,454,258,473"/>
+<area shape="rect" id="node18" href="#pbcore.io.dataset.DataSetMembers.ContigsMetadata" title="ContigsMetadata" alt="" coords="164,491,260,511"/>
+<area shape="rect" id="node19" href="#pbcore.io.dataset.DataSetMembers.ContinuousDistribution" title="ContinuousDistribution" alt="" coords="149,529,276,548"/>
+<area shape="rect" id="node20" href="#pbcore.io.dataset.DataSetMembers.CopyFilesMetadata" title="The CopyFile members don&#39;t seem complex enough to justify" alt="" coords="160,566,265,586"/>
+<area shape="rect" id="node21" href="#pbcore.io.dataset.DataSetMembers.DiscreteDistribution" title="DiscreteDistribution" alt="" coords="157,604,268,623"/>
+<area shape="rect" id="node22" href="#pbcore.io.dataset.DataSetMembers.ExternalResource" title="ExternalResource" alt="" coords="164,641,261,661"/>
+<area shape="rect" id="node23" href="#pbcore.io.dataset.DataSetMembers.ExternalResources" title="ExternalResources" alt="" coords="161,679,263,698"/>
+<area shape="rect" id="node24" href="#pbcore.io.dataset.DataSetMembers.FileIndex" title="FileIndex" alt="" coords="183,716,242,736"/>
+<area shape="rect" id="node25" href="#pbcore.io.dataset.DataSetMembers.FileIndices" title="FileIndices" alt="" coords="180,754,245,773"/>
+<area shape="rect" id="node26" href="#pbcore.io.dataset.DataSetMembers.Filter" title="Filter" alt="" coords="186,791,239,811"/>
+<area shape="rect" id="node27" href="#pbcore.io.dataset.DataSetMembers.Filters" title="Filters" alt="" coords="186,829,239,848"/>
+<area shape="rect" id="node28" href="#pbcore.io.dataset.DataSetMembers.Parameter" title="Parameter" alt="" coords="180,866,244,886"/>
+<area shape="rect" id="node29" href="#pbcore.io.dataset.DataSetMembers.Parameters" title="Parameters" alt="" coords="178,904,247,923"/>
+<area shape="rect" id="node30" href="#pbcore.io.dataset.DataSetMembers.ParentTool" title="ParentTool" alt="" coords="179,941,246,961"/>
+<area shape="rect" id="node31" href="#pbcore.io.dataset.DataSetMembers.PrimaryMetadata" title="Doctest:" alt="" coords="164,979,260,998"/>
+<area shape="rect" id="node32" href="#pbcore.io.dataset.DataSetMembers.Provenance" title="The metadata concerning this dataset&#39;s provenance" alt="" coords="177,1016,247,1036"/>
+<area shape="rect" id="node34" href="#pbcore.io.dataset.DataSetMembers.RunDetailsMetadata" title="RunDetailsMetadata" alt="" coords="157,1054,268,1073"/>
+<area shape="rect" id="node35" href="#pbcore.io.dataset.DataSetMembers.StatsMetadata" title="The metadata from the machine sts.xml" alt="" coords="171,1091,254,1111"/>
+<area shape="rect" id="node37" href="#pbcore.io.dataset.DataSetMembers.WellSampleMetadata" title="WellSampleMetadata" alt="" coords="155,1129,269,1148"/>
+<area shape="rect" id="node5" href="#pbcore.io.dataset.DataSetMembers.BarcodeSetMetadata" title="The DataSetMetadata subtype specific to BarcodeSets." alt="" coords="326,173,438,192"/>
+<area shape="rect" id="node17" href="#pbcore.io.dataset.DataSetMembers.ContigSetMetadata" title="The DataSetMetadata subtype specific to ContigSets." alt="" coords="329,210,435,230"/>
+<area shape="rect" id="node33" href="#pbcore.io.dataset.DataSetMembers.ReferenceSetMetadata" title="The DataSetMetadata subtype specific to ReferenceSets." alt="" coords="321,248,443,267"/>
+<area shape="rect" id="node36" href="#pbcore.io.dataset.DataSetMembers.SubreadSetMetadata" title="The DataSetMetadata subtype specific to SubreadSets. Deals explicitly" alt="" coords="326,285,439,305"/>
+<area shape="rect" id="node7" href="#pbcore.io.dataset.DataSetMembers.BinBoundaryMismatchError" title="BinBoundaryMismatchError" alt="" coords="140,4,284,23"/>
+<area shape="rect" id="node8" href="#pbcore.io.dataset.DataSetMembers.BinMismatchError" title="BinMismatchError" alt="" coords="4,41,103,61"/>
+<area shape="rect" id="node9" href="#pbcore.io.dataset.DataSetMembers.BinNumberMismatchError" title="BinNumberMismatchError" alt="" coords="143,41,281,61"/>
+<area shape="rect" id="node10" href="#pbcore.io.dataset.DataSetMembers.BinWidthMismatchError" title="BinWidthMismatchError" alt="" coords="149,79,276,98"/>
+</map>
