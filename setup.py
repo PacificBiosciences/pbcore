@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from setuptools import setup, Extension, find_packages
 import sys
 
@@ -14,6 +17,7 @@ setup(
     version=__VERSION__,
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
+    description="A Python library for reading and writing PacBio® data files",
     license=open('LICENSES.txt').read(),
     packages = find_packages('.'),
     package_dir = {'':'.'},
