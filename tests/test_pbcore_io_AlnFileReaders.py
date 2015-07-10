@@ -353,6 +353,15 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         EQ(expected, c)
         EQ(expected, c2)
 
+    def testErrorCounts(self):
+        for aln in [self.fwdAln, self.revAln]:
+            counts = Counter(aln.transcript())
+            EQ(counts["M"], aln.nM)
+            EQ(counts["R"], aln.nMM)
+            EQ(counts["I"], aln.nIns)
+            EQ(counts["D"], aln.nDel)
+
+
     #     def testAlignedIdentity(self):
     #         pass
 
