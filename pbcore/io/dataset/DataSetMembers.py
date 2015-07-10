@@ -1105,6 +1105,19 @@ class StatsMetadata(RecordWrapper):
     """The metadata from the machine sts.xml"""
 
     def merge(self, other):
+        self.shortInsertFraction = (self.shortInsertFraction *
+                                    self.prodDist.bins[1] +
+                                    other.shortInsertFraction *
+                                    other.prodDist.bins[1])/(
+                                        self.prodDist.bins[1]
+                                        + other.prodDist.bins[1])
+        self.adapterDimerFraction = (self.adapterDimerFraction *
+                                     self.prodDist.bins[1] +
+                                     other.adapterDimerFraction *
+                                     other.prodDist.bins[1])/(
+                                         self.prodDist.bins[1]
+                                         + other.prodDist.bins[1])
+        self.numSequencingZmws += other.numSequencingZmws
         toHandle = [
             (self.prodDist, other.prodDist),
             (self.readTypeDist, other.readTypeDist),
@@ -1124,19 +1137,6 @@ class StatsMetadata(RecordWrapper):
             except ValueError:
                 if otherDist:
                     self.append(otherDist)
-        self.shortInsertFraction = (self.shortInsertFraction *
-                                    self.prodDist.bins[1] +
-                                    other.shortInsertFraction *
-                                    other.prodDist.bins[1])/(
-                                        self.prodDist.bins[1]
-                                        + other.prodDist.bins[1])
-        self.adapterDimerFraction = (self.adapterDimerFraction *
-                                     self.prodDist.bins[1] +
-                                     other.adapterDimerFraction *
-                                     other.prodDist.bins[1])/(
-                                         self.prodDist.bins[1]
-                                         + other.prodDist.bins[1])
-        self.numSequencingZmws += other.numSequencingZmws
 
     @property
     def prodDist(self):
@@ -1310,16 +1310,18 @@ class ContinuousDistribution(RecordWrapper):
 
     @property
     def bins(self):
-        counts = self.findChildren('BinCount')
+        binCounts = RecordWrapper(self.getV('children', 'BinCounts'))
+        counts = binCounts.findChildren('BinCount')
         counts = [int(count.metavalue) for count in counts]
         return counts
 
     @bins.setter
     def bins(self, newBins):
         """Replace the bins."""
-        self.removeChildren('BinCount')
-        self.extend([_emptyMember(tag='BinCount', text=str(mem))
-                     for mem in newBins])
+        binCounts = RecordWrapper(self.getV('children', 'BinCounts'))
+        binCounts.removeChildren('BinCount')
+        binCounts.extend([_emptyMember(tag='BinCount', text=str(mem))
+                          for mem in newBins])
 
     @property
     def labels(self):
@@ -1379,14 +1381,16 @@ class DiscreteDistribution(RecordWrapper):
 
     @property
     def bins(self):
+        binCounts = RecordWrapper(self.getV('children', 'BinCounts'))
         return [int(child.metavalue)
-                for child in self.findChildren('BinCount')]
+                for child in binCounts.findChildren('BinCount')]
 
     @bins.setter
     def bins(self, newBins):
         """Replace the bin values. This assumes the label order is
         maintained"""
-        for child, value in zip(self.findChildren('BinCount'), newBins):
+        binCounts = RecordWrapper(self.getV('children', 'BinCounts'))
+        for child, value in zip(binCounts.findChildren('BinCount'), newBins):
             child.metavalue = str(value)
 
     @property
@@ -1467,9 +1471,9 @@ class PrimaryMetadata(RecordWrapper):
 
     Doctest:
         >>> import os, tempfile
-        >>> from pbcore.io import DataSet
+        >>> from pbcore.io import SubreadSet
         >>> import pbcore.data.datasets as data
-        >>> ds1 = DataSet(data.getXml(8))
+        >>> ds1 = SubreadSet(data.getXml(5))
         >>> ds1.metadata.collections[0].primary.resultsFolder
         'Analysis_Results'
         >>> ds1.metadata.collections[0].primary.resultsFolder = (
@@ -1479,7 +1483,7 @@ class PrimaryMetadata(RecordWrapper):
         >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
         >>> outXml = 'xml:' + os.path.join(outdir, 'tempfile.xml')
         >>> ds1.write(outXml, validate=False)
-        >>> ds2 = DataSet(outXml)
+        >>> ds2 = SubreadSet(outXml)
         >>> ds2.metadata.collections[0].primary.resultsFolder
         'BetterAnalysis_Results'
     """
@@ -1525,7 +1529,7 @@ class BioSamplesMetadata(RecordWrapper):
         Doctest:
             >>> from pbcore.io import DataSet
             >>> import pbcore.data.datasets as data
-            >>> ds = DataSet(data.getXml(no=8))
+            >>> ds = DataSet(data.getSubreadSet())
             >>> ds.metadata.bioSamples[0].name
             'consectetur purus'
             >>> for bs in ds.metadata.bioSamples:

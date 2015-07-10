@@ -30,6 +30,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
 log = logging.getLogger(__name__)
 
 def filtered(generator):
+    """Wrap a generator with postfiltering"""
     @wraps(generator)
     def wrapper(dset, *args, **kwargs):
         filter_tests = dset.processFilters()
@@ -80,6 +81,26 @@ def _fileType(fname):
     return ftype
 
 
+def openDataSet(*files):
+    """Generic factory function to open DataSets (or attempt to open a subtype
+    if one can be inferred from the file(s).
+
+    A replacement for the generic DataSet(*files) constructor"""
+    if files:
+        # The factory that does the heavy lifting:
+        dataset = DataSetReader.parseFiles(files)
+    else:
+        dataset = DataSet()
+    if not dataset.uuid:
+        dataset.newUuid()
+    log.debug('Updating counts')
+    dataset.fileNames = files
+    dataset.updateCounts()
+    dataset.close()
+    log.debug('Done creating {c}'.format(c=str(dataset)))
+    return dataset
+
+
 class MetaDataSet(type):
     """This metaclass acts as a factory for DataSet and subtypes,
     intercepting constructor calls and returning a DataSet or subclass
@@ -94,6 +115,7 @@ class MetaDataSet(type):
 
         Returns:
             A dataset (or subtype) object.
+
         """
         if files:
             # The factory that does the heavy lifting:
@@ -157,13 +179,12 @@ class DataSet(object):
             >>> d.uuid == dOldUuid
             True
             >>> # Inputs can be many and varied
-            >>> ds1 = DataSet(data.getXml(no=0), data.getXml(no=1),
-            ...               data.getBam())
+            >>> ds1 = DataSet(data.getXml(8), data.getBam(1))
             >>> ds1.numExternalResources
-            5
+            2
             >>> ds1 = DataSet(data.getFofn())
             >>> ds1.numExternalResources
-            5
+            2
             >>> # DataSet types are autodetected:
             >>> DataSet(data.getSubreadSet()) # doctest:+ELLIPSIS
             <SubreadSet...
@@ -194,8 +215,8 @@ class DataSet(object):
             >>> ds.externalResources[-1].addIndices([pbiName])
             >>> ds.externalResources[-1].indices[0].resourceId == pbiName
             True
-        """
 
+        """
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
         self.objMetadata = {}
@@ -240,31 +261,23 @@ class DataSet(object):
 
         Doctest:
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
+            >>> from pbcore.io import AlignmentSet
             >>> from pbcore.io.dataset.DataSetWriter import toXml
-            >>> import timeit
-            >>> print "Secs per: %f" % (timeit.timeit("ds3 = ds1 + ds2",
-            ...               setup=("from pbcore.io import DataSet;"
-            ...                      "import pbcore.data.datasets as data; "
-            ...                      "ds1 = DataSet(data.getXml(no=8)); "
-            ...                      "ds2 = DataSet(data.getXml(no=9))"),
-            ...               number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
             >>> # xmls with different resourceIds: success
-            >>> ds1 = DataSet(data.getXml(no=8))
-            >>> ds2 = DataSet(data.getXml(no=9))
+            >>> ds1 = AlignmentSet(data.getXml(no=8))
+            >>> ds2 = AlignmentSet(data.getXml(no=11))
             >>> ds3 = ds1 + ds2
             >>> expected = ds1.numExternalResources + ds2.numExternalResources
             >>> ds3.numExternalResources == expected
             True
             >>> # xmls with different resourceIds but conflicting filters:
             >>> # failure to merge
-            >>> ds2 = DataSet(data.getXml(no=10))
+            >>> ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
             >>> ds3 = ds1 + ds2
             >>> ds3
             >>> # xmls with same resourceIds: ignores new inputs
-            >>> ds1 = DataSet(data.getXml(no=8))
-            >>> ds2 = DataSet(data.getXml(no=8))
+            >>> ds1 = AlignmentSet(data.getXml(no=8))
+            >>> ds2 = AlignmentSet(data.getXml(no=8))
             >>> ds3 = ds1 + ds2
             >>> expected = ds1.numExternalResources
             >>> ds3.numExternalResources == expected
@@ -365,15 +378,8 @@ class DataSet(object):
             The new Id, a properly formatted md5 hash of the Core DataSet
 
         Doctest:
-            >>> import timeit
-            >>> print "Secs per: %f" % (timeit.timeit("_ = ds1.newUuid()",
-            ...               setup=("from pbcore.io import DataSet;"
-            ...                      "import pbcore.data.datasets as data; "
-            ...                      "ds1 = DataSet(data.getXml(no=8))"),
-            ...               number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet()
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet()
             >>> old = ds.uuid
             >>> _ = ds.newUuid()
             >>> old != ds.uuid
@@ -393,17 +399,13 @@ class DataSet(object):
     def copy(self, asType=None):
         """Deep copy the representation of this DataSet
 
+        Args:
+            asType: The type of DataSet to return, e.g. 'AlignmentSet'
+
         Returns:
             A DataSet object that is identical but for UniqueId
 
         Doctest:
-            >>> import timeit
-            >>> print "Secs per: %f" % (timeit.timeit("_ = ds1.copy()",
-            ...               setup=("from pbcore.io import DataSet;"
-            ...                      "import pbcore.data.datasets as data; "
-            ...                      "ds1 = DataSet(data.getXml(no=8))"),
-            ...               number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
             >>> ds1 = DataSet(data.getXml())
@@ -438,7 +440,7 @@ class DataSet(object):
             ...                    ds1.subdatasets for ds2d in
             ...                    ds2.subdatasets])
             >>> # But types are maintained:
-            >>> ds1 = DataSet(data.getXml(no=8))
+            >>> ds1 = DataSet(data.getXml(no=10))
             >>> ds1.metadata # doctest:+ELLIPSIS
             <SubreadSetMetadata...
             >>> ds2 = ds1.copy()
@@ -485,34 +487,28 @@ class DataSet(object):
                     ExternalResource
             ignoreSubDatasets: F/T (False) do not split on datasets, only split
                                on ExternalResources
+            contigs: (False) split on contigs instead of external resources or
+                     subdatasets
         Returns:
-            A list of new DataSet objects (all other information deep
-            copied).
+            A list of new DataSet objects (all other information deep copied).
 
         Doctest:
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> import timeit
-            >>> print "Secs per: %f" % (timeit.timeit("dss = ds1.split()",
-            ...               setup=("from pbcore.io import DataSet;"
-            ...                      "import pbcore.data.datasets as data; "
-            ...                      "ds1 = DataSet(data.getXml(no=8)); "),
-            ...               number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
+            >>> from pbcore.io import AlignmentSet
             >>> # splitting is pretty intuitive:
-            >>> ds1 = DataSet(data.getXml())
+            >>> ds1 = AlignmentSet(data.getXml())
             >>> # but divides up extRes's, so have more than one:
             >>> ds1.numExternalResources > 1
             True
-            >>> # the default is one DataSet per ExtRes:
+            >>> # the default is one AlignmentSet per ExtRes:
             >>> dss = ds1.split()
             >>> len(dss) == ds1.numExternalResources
             True
-            >>> # but you can specify a number of DataSets to produce:
+            >>> # but you can specify a number of AlignmentSets to produce:
             >>> dss = ds1.split(chunks=1)
             >>> len(dss) == 1
             True
-            >>> dss = ds1.split(chunks=2)
+            >>> dss = ds1.split(chunks=2, ignoreSubDatasets=True)
             >>> len(dss) == 2
             True
             >>> # The resulting objects are similar:
@@ -523,22 +519,21 @@ class DataSet(object):
             >>> # Previously merged datasets are 'unmerged' upon split, unless
             >>> # otherwise specified.
             >>> # Lets try merging and splitting on subdatasets:
-            >>> ds1 = DataSet(data.getXml(8))
-            >>> #500000 is a lie, the resource is unopenable
+            >>> ds1 = AlignmentSet(data.getXml(8))
             >>> ds1.totalLength
-            -1
+            123588
             >>> ds1tl = ds1.totalLength
-            >>> ds2 = DataSet(data.getXml(9))
-            >>> #500000 is a lie, the resource is unopenable
+            >>> ds2 = AlignmentSet(data.getXml(11))
             >>> ds2.totalLength
-            -1
+            117086
             >>> ds2tl = ds2.totalLength
             >>> # merge:
             >>> dss = ds1 + ds2
             >>> dss.totalLength == (ds1tl + ds2tl)
             True
             >>> # unmerge:
-            >>> ds1, ds2 = dss.split(2)
+            >>> ds1, ds2 = sorted(
+            ... dss.split(2), key=lambda x: x.totalLength, reverse=True)
             >>> ds1.totalLength == ds1tl
             True
             >>> ds2.totalLength == ds2tl
@@ -599,6 +594,16 @@ class DataSet(object):
         return atoms
 
     def _split_contigs(self, chunks):
+        """Split a dataset into reference windows based on contigs.
+
+        Args:
+            chunks: The number of chunks to emit. If chunks < # contigs,
+                    contigs are grouped by size. If chunks == contigs, one
+                    contig is assigned to each dataset regardless of size. If
+                    chunks >= contigs, contigs are split into roughly equal
+                    chunks (<= 1.0 contig per file).
+
+        """
         # removed the non-trivial case so that it is still filtered to just
         # contigs with associated records
 
@@ -673,6 +678,13 @@ class DataSet(object):
         return results
 
     def _split_subdatasets(self, chunks):
+        """Split on subdatasets
+
+        Args:
+            chunks: Split in to <= chunks pieces. If chunks > subdatasets,
+                    fewer chunks will be produced.
+
+        """
         if not chunks or chunks > len(self.subdatasets):
             chunks = len(self.subdatasets)
 
@@ -746,18 +758,20 @@ class DataSet(object):
 
         Doctest:
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds1 = DataSet(data.getXml(8))
-            >>> ds1.loadStats(data.getStats())
-            >>> ds2 = DataSet(data.getXml(9))
-            >>> ds2.loadStats(data.getStats())
-            >>> ds3 = ds1 + ds2
-            >>> ds1.metadata.summaryStats.prodDist.bins
-            [1576, 901, 399, 0]
-            >>> ds2.metadata.summaryStats.prodDist.bins
-            [1576, 901, 399, 0]
-            >>> ds3.metadata.summaryStats.prodDist.bins
-            [3152, 1802, 798, 0]
+            >>> from pbcore.io import AlignmentSet
+            >>> ds1 = AlignmentSet(data.getXml(8))
+            >>> # TODO: renable when up to date sts.xml test files available
+            >>> #ds1.loadStats(data.getStats())
+            >>> #ds2 = AlignmentSet(data.getXml(11))
+            >>> #ds2.loadStats(data.getStats())
+            >>> #ds3 = ds1 + ds2
+            >>> #ds1.metadata.summaryStats.prodDist.bins
+            >>> #[1576, 901, 399, 0]
+            >>> #ds2.metadata.summaryStats.prodDist.bins
+            >>> #[1576, 901, 399, 0]
+            >>> #ds3.metadata.summaryStats.prodDist.bins
+            >>> #[3152, 1802, 798, 0]
+
         """
         statsMetadata = DataSetReader.parseStats(filename)
         self.metadata.append(statsMetadata)
@@ -784,6 +798,8 @@ class DataSet(object):
         return filters
 
     def _resolveLocation(self, fname, possibleRelStart):
+        """Find the absolute path of a file that exists relative to '.' or
+        possibleRelStart."""
         if os.path.exists(fname):
             return os.path.abspath(fname)
         if os.path.exists(possibleRelStart):
@@ -805,7 +821,12 @@ class DataSet(object):
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
         ResourceIds relative paths rather than absolute paths.
-        A less common use case for API consumers."""
+        A less common use case for API consumers.
+
+        Args:
+            outDir: The location from which relative paths should originate
+
+        """
         if outDir:
             self._changePaths(lambda x, s=outDir: os.path.relpath(x, s))
         else:
@@ -817,12 +838,15 @@ class DataSet(object):
 
         Args:
             osPathFunc: A function for modifying paths (e.g. os.path.abspath)
+            checkMetaType: Update the metatype of externalResources if needed
         """
         # check all ExternalResources
         stack = list(self.externalResources)
         while stack:
             item = stack.pop()
             resId = item.resourceId
+            if not resId:
+                continue
             currentPath = urlparse(resId)
             if currentPath.scheme == 'file' or not currentPath.scheme:
                 currentPath = currentPath.path
@@ -843,7 +867,7 @@ class DataSet(object):
             dataset._changePaths(osPathFunc)
 
     def _updateMetaType(self, resource):
-        """Infer and set the metatype of a resource if it doesn't already have
+        """Infer and set the metatype of 'resource' if it doesn't already have
         one."""
         if not resource.metaType:
             file_type = _fileType(resource.resourceId)
@@ -871,8 +895,6 @@ class DataSet(object):
         is already a reasonably compelling reason (the console script entry
         point). Most often used by the __add__ method.
 
-        TODO: How should this update conflicting filters?
-
         Args:
             newFilters: a Filters object or properly formatted Filters record
 
@@ -887,9 +909,10 @@ class DataSet(object):
             >>> print ds1.filters
             ( rq > 0.85 )
             >>> # Or load with a DataSet
-            >>> ds2 = DataSet(data.getXml(8))
+            >>> ds2 = DataSet(data.getXml(16))
             >>> print ds2.filters
-            ( rq > 0.75 ) OR ( qname == 100/0/0_100 )
+            ... # doctest:+ELLIPSIS
+            ( rname = E.faecalis...
         """
         self.filters.merge(copy.deepcopy(newFilters))
         self._cachedFilters = []
@@ -929,20 +952,7 @@ class DataSet(object):
                     (as an attribute)
 
         Doctest:
-            >>> import timeit
-            >>> print "Secs per: %f" % (timeit.timeit(
-            ...     "ds1 = DataSet(data.getXml(no=8))",
-            ...     setup=("from pbcore.io import DataSet;"
-            ...            "import pbcore.data.datasets as data"),
-            ...     number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
-            >>> print "Secs per: %f" % (timeit.timeit(
-            ...     "ds1.addMetadata(None, ReadLength='Looong')",
-            ...     setup=("from pbcore.io import DataSet;"
-            ...            "import pbcore.data.datasets as data; "
-            ...            "ds1 = DataSet(data.getXml(no=8)); "),
-            ...     number=100)/100.0) # doctest:+ELLIPSIS
-            Secs per: ...
+            >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet()
             >>> # it is possible to add new metadata:
@@ -950,22 +960,21 @@ class DataSet(object):
             >>> print ds._metadata.getV(container='attrib', tag='Name')
             LongReadsRock
             >>> # but most will be loaded and modified:
-            >>> import pbcore.data.datasets as data
             >>> ds2 = DataSet(data.getXml(no=8))
-            >>> #500000 is a lie, the resource is unopenable
             >>> ds2._metadata.totalLength
-            -1
+            123588
             >>> ds2._metadata.totalLength = 100000
             >>> ds2._metadata.totalLength
             100000
             >>> ds2._metadata.totalLength += 100000
             >>> ds2._metadata.totalLength
             200000
-            >>> ds3 = DataSet(data.getXml(no=8))
-            >>> ds3.loadStats(data.getStats())
-            >>> ds4 = DataSet(data.getXml(no=9))
-            >>> ds4.loadStats(data.getStats())
-            >>> ds5 = ds3 + ds4
+            >>> #TODO: renable when up to date sts.xml test files available
+            >>> #ds3 = DataSet(data.getXml(no=8))
+            >>> #ds3.loadStats(data.getStats())
+            >>> #ds4 = DataSet(data.getXml(no=11))
+            >>> #ds4.loadStats(data.getStats())
+            >>> #ds5 = ds3 + ds4
         """
         if newMetadata:
             # if this record is not wrapped, wrap for easier merging
@@ -1048,12 +1057,15 @@ class DataSet(object):
                 resourceIds.append(newExtRes.resourceId)
 
     def addDatasets(self, otherDataSet):
-        """Add 'subsets' to a DataSet object using other DataSets (some fields
-        may be missing).
+        """Add subsets to a DataSet object using other DataSets.
 
         The following method of enabling merge-based split prevents nesting of
-        datasets more than one deep. Most often used by the __add__ method,
-        rather than directly.
+        datasets more than one deep. Nested relationships are flattened.
+
+        .. note::
+
+            Most often used by the __add__ method, rather than directly.
+
         """
         if otherDataSet.subdatasets:
             self.subdatasets.extend(otherDataSet.subdatasets)
@@ -1087,6 +1099,10 @@ class DataSet(object):
         """A generator of Indexed*Reader objects for the ExternalResources
         in this DataSet.
 
+        Args:
+            refName: Only yield open resources if they have refName in their
+                     referenceInfoTable
+
         Yields:
             An open indexed alignment file
 
@@ -1098,6 +1114,7 @@ class DataSet(object):
             ...     for record in seqFile:
             ...         print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
             hn: ...
+
         """
         if refName:
             if (not refName in self.refNames and
@@ -1117,10 +1134,11 @@ class DataSet(object):
     @property
     def indexRecords(self):
         """Return a recarray summarizing all of the records in all of the
-        resources that conform to the filters."""
-        # Cannot do this on the merged reference info table as all of the
-        # ref.ID values are messed up... TODO: make sure this isn't a problem
-        # for referenceInfoTable, it probably is...
+        resources that conform to those filters addressing parameters cached in
+        the pbi.
+
+        """
+        assert self.hasPbi
         tbr = []
         for rr in self.resourceReaders():
             indices = rr.index
@@ -1250,7 +1268,7 @@ class DataSet(object):
         if self.isCmpH5:
             return [self._cleanCmpName(name) for _, name in
                     self.refInfo('FullName')]
-        return [name for _, name in self.refInfo('Name')]
+        return sorted([name for _, name in self.refInfo('Name')])
 
     def _cleanCmpName(self, name):
         return splitFastaHeader(name)[0]
@@ -1312,7 +1330,7 @@ class DataSet(object):
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet(data.getBam())
-            >>> for read in ds.readsInReference(ds.refNames[0]):
+            >>> for read in ds.readsInReference(ds.refNames[15]):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
@@ -1357,6 +1375,7 @@ class DataSet(object):
             start: the start of the range (inclusive, index relative to
                    reference)
             end: the end of the range (inclusive, index relative to reference)
+            justIndices: Not yet implemented
 
         Yields:
             BamAlignment objects
@@ -1365,7 +1384,7 @@ class DataSet(object):
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet(data.getBam())
-            >>> for read in ds.readsInRange(ds.refNames[0], 100, 150):
+            >>> for read in ds.readsInRange(ds.refNames[15], 100, 150):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
@@ -1415,6 +1434,15 @@ class DataSet(object):
                     yield read
 
     def _idToRname(self, rId):
+        """Map the DataSet.referenceInfoTable.ID to the superior unique
+        reference identifier: referenceInfoTable.Name
+
+        Args:
+            rId: The DataSet.referenceInfoTable.ID of interest
+
+        Returns:
+            The referenceInfoTable.Name corresponding to rId
+        """
         resNo, rId = self._referenceIdMap[rId]
         if self.isCmpH5:
             rId -= 1
@@ -1436,6 +1464,8 @@ class DataSet(object):
                    written. If None, the only emission is a returned list of
                    file names.
             uri: T/F (False) write the resource filenames as URIs.
+            relative: (False) emit paths relative to outfofn or '.' if no
+                      outfofn
 
         Returns:
             A list of filenames or uris
@@ -1513,20 +1543,24 @@ class DataSet(object):
     @property
     def filters(self):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        #self._filters.registerCallback(self.refilter)
         self._filters.registerCallback(lambda x=self: x.reFilter())
         return self._filters
 
     @filters.setter
     def filters(self, value):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self.reFilter
         self._filters = value
 
     def reFilter(self):
+        """
+        The filters on this dataset have changed, update DataSet state as
+        needed
+        """
         self._cachedFilters = []
         self.updateCounts()
-
+        # TODO, somethign like this but that works:
+        #if self.metadata.summaryStats:
+            #self.metadata.summaryStats = None
 
     @property
     def numRecords(self):
@@ -1534,6 +1568,9 @@ class DataSet(object):
         return self._metadata.numRecords
 
     def countRecords(self, rname=None, window=None):
+        """Count the number of records mapped to 'rname' that overlap with
+        'window'
+        """
         def count(iterable):
             count = 0
             for _ in iterable:
@@ -1588,20 +1625,24 @@ class DataSet(object):
 
     @property
     def isCmpH5(self):
+        """Test whether all resources are cmp.h5 files"""
         res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
         return self._unifyResponses(res)
 
     @property
     def hasPbi(self):
+        """Test whether all resources are opened as IndexedBamReader objects"""
         try:
-            res = self._pollResources(lambda x: isinstance(x, IndexedBamReader))
+            res = self._pollResources(lambda x: isinstance(x,
+                                                           IndexedBamReader))
             return self._unifyResponses(res)
         except ResourceMismatchError:
-            log.error("Updating counts to respect filters not possible "
-                      "without pbi")
+            log.error("Resources inconsistently indexed")
             return False
 
     def referenceInfo(self, refName):
+        """Select a row from the DataSet.referenceInfoTable using the reference
+        name as a unique key"""
         if not self.isCmpH5:
             for row in self.referenceInfoTable:
                 if row.Name == refName:
@@ -1611,13 +1652,13 @@ class DataSet(object):
                 if row.FullName.startswith(refName):
                     return row
 
-
-        #responses = self._pollResources(
-            #lambda x, rn=refName: x.referenceInfo(rn), refName)
-        #return self._unifyResponses(responses, keyFunc=lambda x: x.MD5)
-
     @property
     def referenceInfoTable(self):
+        """The merged reference info tables from the external resources.
+        Record.ID is remapped to a unique integer key (though using record.Name
+        is preferred). Record.Names are remapped for cmp.h5 files to be
+        consistent with bam files.
+        """
         # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
         # instance). Use the resource readers directly instead.
         responses = self._pollResources(lambda x: x.referenceInfoTable)
@@ -1658,6 +1699,7 @@ class DataSet(object):
 
     @property
     def readGroupTable(self):
+        """Combine the readGroupTables of each external resource"""
         responses = self._pollResources(lambda x: x.readGroupTable)
         if len(responses) > 1:
             tbr = reduce(np.append, responses)
@@ -1752,9 +1794,12 @@ class SubreadSet(ReadSet):
     DocTest:
 
         >>> from pbcore.io import DataSet, SubreadSet
+        >>> from pbcore.io.dataset.DataSetMembers import ExternalResources
         >>> import pbcore.data.datasets as data
-        >>> ds1 = DataSet(data.getXml(no=8))
-        >>> ds2 = DataSet(data.getXml(no=9))
+        >>> ds1 = DataSet(data.getXml(no=5))
+        >>> ds2 = DataSet(data.getXml(no=5))
+        >>> # So they don't conflict:
+        >>> ds2.externalResources = ExternalResources()
         >>> ds1 # doctest:+ELLIPSIS
         <SubreadSet...
         >>> ds1._metadata # doctest:+ELLIPSIS
@@ -1798,12 +1843,12 @@ class ConsensusReadSet(ReadSet):
     Doctest:
         >>> import pbcore.data.datasets as data
         >>> from pbcore.io import DataSet, ConsensusReadSet
-        >>> ds1 = DataSet(data.getXml(5))
+        >>> ds1 = DataSet(data.getXml(2))
         >>> ds1 # doctest:+ELLIPSIS
         <ConsensusReadSet...
         >>> ds1._metadata # doctest:+ELLIPSIS
         <SubreadSetMetadata...
-        >>> ds2 = ConsensusReadSet(data.getXml(5))
+        >>> ds2 = ConsensusReadSet(data.getXml(2))
         >>> ds2 # doctest:+ELLIPSIS
         <ConsensusReadSet...
         >>> ds2._metadata # doctest:+ELLIPSIS
@@ -1980,7 +2025,7 @@ class ReferenceSet(DataSet):
             if (self.noFiltering
                     or self._filters.testParam('id', contig.id, str)):
                 refNames.append(contig.id)
-        return list(set(refNames))
+        return sorted(list(set(refNames)))
 
     @property
     @filtered
