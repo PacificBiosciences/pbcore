@@ -36,7 +36,8 @@ __all__ = [ "openAlignmentFile",
 from pbcore.io import (IndexedFastaReader, FastaReader,
                        BaxH5Reader, BasH5Reader, BasH5Collection,
                        CmpH5Reader, BamReader, IndexedBamReader,
-                       GffReader, FastqReader)
+                       GffReader, FastqReader,
+                       PacBioBamIndex)
 
 def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
@@ -76,6 +77,7 @@ def _openersFor(ext):
     elif ext == "bax.h5":        return (BaxH5Reader,)
     elif ext == "fofn":          return (BasH5Collection,)
     elif ext == "bam":           return (IndexedBamReader, BamReader)
+    elif ext == "pbi":           return (PacBioBamIndex,)
     else:
         raise ValueError, ("No known opener class for extension %s" % ext)
 
@@ -105,7 +107,7 @@ def entryPoint():
     This entry point (callable from the command line as ".open")
     provides a convenient way to load up a data file for inspection.
     """
-    import sys, code
+    import sys, code, numpy as np
 
     if len(sys.argv) < 2:
         print "Requires at least one argument!"

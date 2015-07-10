@@ -38,6 +38,9 @@ import numpy as np
 import numpy.lib.recfunctions as nlr
 
 
+__all__ = [ "PacBioBamIndex" ]
+
+
 PBI_HEADER_LEN              = 32
 
 PBI_FLAGS_BASIC             = 0
