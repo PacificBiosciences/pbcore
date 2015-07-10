@@ -1,2 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<DataSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" CreatedAt="2015-06-17T14:46:34" MetaType="PacBio.DataSet.DataSet" Name="" Tags="" UniqueId="cf8cc0fc-792f-7497-235f-233e41133f6a" Version="2.3.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd"><ExternalResources><ExternalResource ResourceId="file:pbcore/data/datasets/lambda_contigs.fasta" /></ExternalResources></DataSet>

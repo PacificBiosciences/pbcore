@@ -15,8 +15,8 @@ class TestDataSet(unittest.TestCase):
 
 
     def test_subread_build(self):
-        ds1 = DataSet(data.getXml(no=8))
-        ds2 = DataSet(data.getXml(no=9))
+        ds1 = DataSet(data.getXml(no=5))
+        ds2 = DataSet(data.getXml(no=5))
         self.assertEquals(type(ds1).__name__, 'SubreadSet')
         self.assertEquals(ds1._metadata.__class__.__name__,
                           'SubreadSetMetadata')
@@ -32,14 +32,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(len(ds4.metadata.collections), 1)
 
     def test_autofilled_metatypes(self):
-        ds = ReferenceSet(data.getXml(18))
+        ds = ReferenceSet(data.getXml(9))
         for extRes in ds.externalResources:
             self.assertEqual(extRes.metaType,
                              'PacBio.ReferenceFile.ReferenceFastaFile')
             self.assertEqual(len(extRes.indices), 1)
             for index in extRes.indices:
                 self.assertEqual(index.metaType, "PacBio.Index.SamIndex")
-        ds = AlignmentSet(data.getXml(16))
+        ds = AlignmentSet(data.getXml(8))
         for extRes in ds.externalResources:
             self.assertEqual(extRes.metaType,
                              'PacBio.SubreadFile.SubreadBamFile')
@@ -55,12 +55,31 @@ class TestDataSet(unittest.TestCase):
 
     def test_referenceset_contigs(self):
         names = [
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/147739/0_3702',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/90702/10278_35281',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/135718/2228_18512',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/34381/28363_30724']
-        seqlens = [3702, 25003, 16284, 2361]
-        ds = ReferenceSet(data.getXml(18))
+            'A.baumannii.1', 'A.odontolyticus.1', 'B.cereus.1', 'B.cereus.2',
+            'B.cereus.4', 'B.cereus.6', 'B.vulgatus.1', 'B.vulgatus.2',
+            'B.vulgatus.3', 'B.vulgatus.4', 'B.vulgatus.5', 'C.beijerinckii.1',
+            'C.beijerinckii.2', 'C.beijerinckii.3', 'C.beijerinckii.4',
+            'C.beijerinckii.5', 'C.beijerinckii.6', 'C.beijerinckii.7',
+            'C.beijerinckii.8', 'C.beijerinckii.9', 'C.beijerinckii.10',
+            'C.beijerinckii.11', 'C.beijerinckii.12', 'C.beijerinckii.13',
+            'C.beijerinckii.14', 'D.radiodurans.1', 'D.radiodurans.2',
+            'E.faecalis.1', 'E.faecalis.2', 'E.coli.1', 'E.coli.2', 'E.coli.4',
+            'E.coli.5', 'E.coli.6', 'E.coli.7', 'H.pylori.1', 'L.gasseri.1',
+            'L.monocytogenes.1', 'L.monocytogenes.2', 'L.monocytogenes.3',
+            'L.monocytogenes.5', 'N.meningitidis.1', 'P.acnes.1',
+            'P.aeruginosa.1', 'P.aeruginosa.2', 'R.sphaeroides.1',
+            'R.sphaeroides.3', 'S.aureus.1', 'S.aureus.4', 'S.aureus.5',
+            'S.epidermidis.1', 'S.epidermidis.2', 'S.epidermidis.3',
+            'S.epidermidis.4', 'S.epidermidis.5', 'S.agalactiae.1',
+            'S.mutans.1', 'S.mutans.2', 'S.pneumoniae.1']
+        seqlens = [1458, 1462, 1472, 1473, 1472, 1472, 1449, 1449, 1449, 1449,
+                   1449, 1433, 1433, 1433, 1433, 1433, 1433, 1433, 1433, 1433,
+                   1433, 1433, 1433, 1433, 1433, 1423, 1423, 1482, 1482, 1463,
+                   1463, 1463, 1463, 1463, 1463, 1424, 1494, 1471, 1471, 1471,
+                   1471, 1462, 1446, 1457, 1457, 1386, 1388, 1473, 1473, 1473,
+                   1472, 1472, 1472, 1472, 1472, 1470, 1478, 1478, 1467]
+        ds = ReferenceSet(data.getXml(9))
+        log.debug([contig.id for contig in ds])
         for contig, name, seqlen in zip(ds.contigs, names, seqlens):
             self.assertEqual(contig.id, name)
             self.assertEqual(len(contig.sequence), seqlen)
@@ -68,30 +87,19 @@ class TestDataSet(unittest.TestCase):
         for name in names:
             self.assertTrue(ds.get_contig(name))
 
-    def test_ref_names(self):
-        ds = DataSet(data.getXml(18))
-        refNames = ds.refNames
-        expected = [
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/147739/0_3702',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/90702/10278_35281',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/135718/2228_18512',
-            'm150207_001141_42139_c100713842550000001823146504221590_s1_p0/34381/28363_30724'
-            ]
-        self.assertEqual(sorted(refNames), sorted(expected))
-
     def test_ccsread_build(self):
-        ds1 = DataSet(data.getXml(5))
+        ds1 = DataSet(data.getXml(2))
         self.assertEquals(type(ds1).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
-        ds2 = ConsensusReadSet(data.getXml(5))
+        ds2 = ConsensusReadSet(data.getXml(2))
         self.assertEquals(type(ds2).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
     def test_contigset_build(self):
-        ds1 = DataSet(data.getXml(6))
+        ds1 = DataSet(data.getXml(3))
         self.assertEquals(type(ds1).__name__, 'ContigSet')
         self.assertEquals(type(ds1._metadata).__name__, 'ContigSetMetadata')
-        ds2 = ContigSet(data.getXml(6))
+        ds2 = ContigSet(data.getXml(3))
         self.assertEquals(type(ds2).__name__, 'ContigSet')
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
         for contigmd in ds2.metadata.contigs:
