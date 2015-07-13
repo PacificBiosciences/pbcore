@@ -12,6 +12,7 @@ from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import DataSet, SubreadSet, ReferenceSet, AlignmentSet
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetValidator import validateFile
+from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 
 log = logging.getLogger(__name__)
@@ -83,6 +84,16 @@ class TestDataSet(unittest.TestCase):
         d = DataSet(inBam)
         for extRes in d.externalResources:
             self.assertEqual(extRes.metaType, "")
+
+    def test_updateCounts_without_pbi(self):
+        log.info("Testing updateCounts without pbi")
+        data_fname = data.getBam(0)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        tempout = os.path.join(outdir, os.path.basename(data_fname))
+        backticks('cp {i} {o}'.format(i=data_fname, o=tempout))
+        aln = AlignmentSet(tempout)
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
 
     def test_updateCounts(self):
         log.info("Testing updateCounts without filters")

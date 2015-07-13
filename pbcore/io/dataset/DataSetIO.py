@@ -361,7 +361,7 @@ class DataSet(object):
             count = len(self.indexRecords)
         else:
             for reader in self.resourceReaders():
-                count += sum(1 for _ in reader)
+                count += len(reader)
         return count
 
     def newUuid(self, setter=True):
@@ -774,7 +774,10 @@ class DataSet(object):
 
         """
         statsMetadata = DataSetReader.parseStats(filename)
-        self.metadata.append(statsMetadata)
+        if self.metadata.summaryStats:
+            self.metadata.summaryStats.merge(statsMetadata)
+        else:
+            self.metadata.append(statsMetadata)
 
     def processFilters(self):
         """Generate a list of functions to apply to a read, all of which return
@@ -994,7 +997,7 @@ class DataSet(object):
         try:
             if not self.hasPbi:
                 log.debug("Updating counts not supported without pbi")
-                return
+                raise IOError
             self.metadata.numRecords = len(self)
             self.metadata.totalLength = self._totalLength
         # I would prefer to just catch IOError and UnavailableFeature
@@ -1353,9 +1356,6 @@ class DataSet(object):
                     refName in resource.referenceInfoTable['FullName']):
                 refLen = resource.referenceInfo(refName).Length
         if refLen:
-            # TODO if the bam file is indexed readsInRange returns a list.
-            # Calling this on the alignment results in every read in a list all
-            # at once. We can block it into smaller calls...
             for read in self.readsInRange(refName, 0, refLen, justIndices):
                 yield read
 
@@ -1901,8 +1901,7 @@ class ReferenceSet(DataSet):
             self.metadata.numRecords = 0
             self.metadata.totalLength = 0
             for res in self.resourceReaders():
-                #self.metadata.numRecords += len(res)
-                self.metadata.numRecords += sum(1 for _ in res)
+                self.metadata.numRecords += len(res)
                 for index in res.fai:
                     self.metadata.totalLength += index.length
         except Exception:

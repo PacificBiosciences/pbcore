@@ -463,7 +463,8 @@ class Filters(RecordWrapper):
                 value = typeMap[param](req.value)
                 operator = self.opMap(req.operator)
                 reqTests.append(P(filter_read, accMap[param], operator, value))
-            tests.append(lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
+            tests.append(
+                lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
         return tests
 
     def addRequirement(self, **kwargs):
@@ -1395,7 +1396,9 @@ class DiscreteDistribution(RecordWrapper):
 
     @property
     def labels(self):
-        return [child.metavalue for child in self.findChildren('BinLabel')]
+        binLabels = RecordWrapper(self.getV('children', 'BinLabels'))
+        return [child.metavalue
+                for child in binLabels.findChildren('BinLabel')]
 
     @property
     def description(self):

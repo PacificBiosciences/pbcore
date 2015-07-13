@@ -9,7 +9,8 @@ import DataSetIO
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata, RecordWrapper,
-                                              Filters, AutomationParameters)
+                                              Filters, AutomationParameters,
+                                              StatsMetadata)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
@@ -210,6 +211,51 @@ def _updateDataset(element):
         autonele.append(_eleFromDictList(newParams.record))
     return element
 
+def _updateStats(element):
+    namer = functools.partial(
+        _namespaceTag,
+        "http://pacificbiosciences.com/PipelineStats/PipeStats.xsd")
+    binCounts = [
+        './/' + namer('MedianInsertDist') + '/' + namer('BinCount'),
+        './/' + namer('ProdDist') + '/' + namer('BinCount'),
+        './/' + namer('ReadTypeDist') + '/' + namer('BinCount'),
+        './/' + namer('ReadLenDist') + '/' + namer('BinCount'),
+        './/' + namer('ReadQualDist') + '/' + namer('BinCount'),
+        './/' + namer('InsertReadQualDist') + '/' + namer('BinCount'),
+        './/' + namer('InsertReadLenDist') + '/' + namer('BinCount'),
+        './/' + namer('ControlReadQualDist') + '/' + namer('BinCount'),
+        './/' + namer('ControlReadLenDist') + '/' + namer('BinCount'),
+        ]
+    binLabels = [
+        './/' + namer('ProdDist') + '/' + namer('BinLabel'),
+        './/' + namer('ReadTypeDist') + '/' + namer('BinLabel'),
+        ]
+    for tag in binCounts:
+        if element.findall(tag):
+            log.error("Outdated stats XML received")
+            finds = element.findall(tag)
+            parent = tag.split('Dist')[0] + 'Dist'
+            parent = element.find(parent)
+            for sub_ele in finds:
+                parent.remove(sub_ele)
+            binCounts = ET.Element(namer('BinCounts'))
+            for sub_ele in finds:
+                binCounts.append(sub_ele)
+            parent.append(binCounts)
+    for tag in binLabels:
+        if element.findall(tag):
+            log.error("Outdated stats XML received")
+            finds = element.findall(tag)
+            parent = tag.split('Dist')[0] + 'Dist'
+            parent = element.find(parent)
+            for sub_ele in finds:
+                parent.remove(sub_ele)
+            binCounts = ET.Element(namer('BinLabels'))
+            for sub_ele in finds:
+                binCounts.append(sub_ele)
+            parent.append(binCounts)
+    return element
+
 def _namespaceTag(xmlns, tagName):
     """Preface an XML tag name with the provided namespace"""
     return ''.join(["{", xmlns, "}", tagName])
@@ -292,7 +338,8 @@ def parseStats(filename):
         fileLocation = url.netloc
     tree = ET.parse(fileLocation)
     root = tree.getroot()
-    stats = RecordWrapper(_eleToDictList(root))
+    root = _updateStats(root)
+    stats = StatsMetadata(_eleToDictList(root))
     stats.record['tag'] = 'SummaryStats'
     whitelist = ['ShortInsertFraction', 'AdapterDimerFraction',
                  'MedianInsertDist', 'ProdDist', 'ReadTypeDist',
