@@ -95,7 +95,8 @@ def openDataSet(*files):
         dataset.newUuid()
     log.debug('Updating counts')
     dataset.fileNames = files
-    dataset.updateCounts()
+    if not dataset.totalLength or not dataset.numRecords:
+        dataset.updateCounts()
     dataset.close()
     log.debug('Done creating {c}'.format(c=str(dataset)))
     return dataset
@@ -128,9 +129,9 @@ class MetaDataSet(type):
             dataset.__init__()
         if not dataset.uuid:
             dataset.newUuid()
-        log.debug('Updating counts')
         dataset.fileNames = files
-        dataset.updateCounts()
+        if not dataset.totalLength or not dataset.numRecords:
+            dataset.updateCounts()
         dataset.close()
         log.debug('Done creating {c}'.format(c=cls.__name__))
         return dataset
@@ -760,17 +761,16 @@ class DataSet(object):
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds1 = AlignmentSet(data.getXml(8))
-            >>> # TODO: renable when up to date sts.xml test files available
-            >>> #ds1.loadStats(data.getStats())
-            >>> #ds2 = AlignmentSet(data.getXml(11))
-            >>> #ds2.loadStats(data.getStats())
-            >>> #ds3 = ds1 + ds2
-            >>> #ds1.metadata.summaryStats.prodDist.bins
-            >>> #[1576, 901, 399, 0]
-            >>> #ds2.metadata.summaryStats.prodDist.bins
-            >>> #[1576, 901, 399, 0]
-            >>> #ds3.metadata.summaryStats.prodDist.bins
-            >>> #[3152, 1802, 798, 0]
+            >>> ds1.loadStats(data.getStats())
+            >>> ds2 = AlignmentSet(data.getXml(11))
+            >>> ds2.loadStats(data.getStats())
+            >>> ds3 = ds1 + ds2
+            >>> ds1.metadata.summaryStats.prodDist.bins
+            [1576, 901, 399, 0]
+            >>> ds2.metadata.summaryStats.prodDist.bins
+            [1576, 901, 399, 0]
+            >>> ds3.metadata.summaryStats.prodDist.bins
+            [3152, 1802, 798, 0]
 
         """
         statsMetadata = DataSetReader.parseStats(filename)
@@ -972,12 +972,11 @@ class DataSet(object):
             >>> ds2._metadata.totalLength += 100000
             >>> ds2._metadata.totalLength
             200000
-            >>> #TODO: renable when up to date sts.xml test files available
-            >>> #ds3 = DataSet(data.getXml(no=8))
-            >>> #ds3.loadStats(data.getStats())
-            >>> #ds4 = DataSet(data.getXml(no=11))
-            >>> #ds4.loadStats(data.getStats())
-            >>> #ds5 = ds3 + ds4
+            >>> ds3 = DataSet(data.getXml(no=8))
+            >>> ds3.loadStats(data.getStats())
+            >>> ds4 = DataSet(data.getXml(no=11))
+            >>> ds4.loadStats(data.getStats())
+            >>> ds5 = ds3 + ds4
         """
         if newMetadata:
             # if this record is not wrapped, wrap for easier merging
@@ -998,6 +997,7 @@ class DataSet(object):
             if not self.hasPbi:
                 log.debug("Updating counts not supported without pbi")
                 raise IOError
+            log.debug('Updating counts')
             self.metadata.numRecords = len(self)
             self.metadata.totalLength = self._totalLength
         # I would prefer to just catch IOError and UnavailableFeature
@@ -1301,11 +1301,6 @@ class DataSet(object):
         Returns:
             A dictionary of refrence name: key_result pairs"""
         # sample
-        names = []
-        infos = []
-        #for resource in self.resourceReaders():
-            #names.extend(resource.referenceInfoTable['FullName'])
-            #infos.extend(resource.referenceInfoTable[key])
         names = self.referenceInfoTable['Name']
         infos = self.referenceInfoTable[key]
         # remove dupes
@@ -1347,7 +1342,6 @@ class DataSet(object):
 
         # I would love to use readsInRange(refName, None, None), but
         # IndexedBamReader breaks this (works for regular BamReader).
-
         # So I have to do a little hacking...
         refLen = 0
         for resource in self.resourceReaders():
@@ -1463,8 +1457,8 @@ class DataSet(object):
             outfn: (None) the file to which the resouce filenames are to be
                    written. If None, the only emission is a returned list of
                    file names.
-            uri: T/F (False) write the resource filenames as URIs.
-            relative: (False) emit paths relative to outfofn or '.' if no
+            uri: (t/F) write the resource filenames as URIs.
+            relative: (t/F) emit paths relative to outfofn or '.' if no
                       outfofn
 
         Returns:
@@ -1558,9 +1552,8 @@ class DataSet(object):
         """
         self._cachedFilters = []
         self.updateCounts()
-        # TODO, somethign like this but that works:
-        #if self.metadata.summaryStats:
-            #self.metadata.summaryStats = None
+        if self.metadata.summaryStats:
+            self.metadata.removeChildren('SummaryStats')
 
     @property
     def numRecords(self):
@@ -1898,6 +1891,7 @@ class ReferenceSet(DataSet):
 
     def updateCounts(self):
         try:
+            log.debug('Updating counts')
             self.metadata.numRecords = 0
             self.metadata.totalLength = 0
             for res in self.resourceReaders():
