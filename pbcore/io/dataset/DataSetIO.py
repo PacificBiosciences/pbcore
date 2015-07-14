@@ -97,6 +97,8 @@ def openDataSet(*files):
     dataset.fileNames = files
     if not dataset.totalLength or not dataset.numRecords:
         dataset.updateCounts()
+    elif dataset.totalLength <= 0 or dataset.numRecords <= 0:
+        dataset.updateCounts()
     dataset.close()
     log.debug('Done creating {c}'.format(c=str(dataset)))
     return dataset
@@ -130,9 +132,13 @@ class MetaDataSet(type):
         if not dataset.uuid:
             dataset.newUuid()
         dataset.fileNames = files
-        if not dataset.totalLength or not dataset.numRecords:
-            dataset.updateCounts()
-        dataset.close()
+        if type(dataset) != DataSet:
+            if not dataset.totalLength or not dataset.numRecords:
+                dataset.updateCounts()
+                dataset.close()
+            elif dataset.totalLength <= 0 or dataset.numRecords <= 0:
+                dataset.updateCounts()
+                dataset.close()
         log.debug('Done creating {c}'.format(c=cls.__name__))
         return dataset
 
@@ -1001,9 +1007,9 @@ class DataSet(object):
             self.metadata.numRecords = len(self)
             self.metadata.totalLength = self._totalLength
         # I would prefer to just catch IOError and UnavailableFeature
-        except Exception:
-            log.debug("Files not found, metadata not "
-                      "populated")
+        except Exception as e:
+            log.debug("Files not found ({e}), metadata not "
+                      "populated".format(e=str(e)))
             self.metadata.numRecords = -1
             self.metadata.totalLength = -1
 
@@ -1195,10 +1201,8 @@ class DataSet(object):
     @property
     def _totalLength(self):
         """Used to populate metadata in updateCounts"""
-        tot = 0
-        for record in self.indexRecords:
-            tot += record.aEnd - record.aStart
-        return tot
+        tmp = self.indexRecords
+        return sum(tmp['aEnd'] - tmp['aStart'])
 
 
     @property

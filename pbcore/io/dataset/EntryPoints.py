@@ -13,6 +13,9 @@ def createXml(args):
     log.debug("Dataset created")
     dset = dset.copy(asType=args.dsType)
     log.debug("Dataset cast")
+    log.debug("Updating counts")
+    dset.updateCounts()
+    log.debug("Done updating counts")
     dset.write(args.outfile, validate=args.novalidate, relPaths=args.relative)
     log.debug("Dataset written")
 
