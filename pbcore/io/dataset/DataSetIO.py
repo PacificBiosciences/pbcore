@@ -16,6 +16,7 @@ from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
 from pbcore.io.FastaIO import splitFastaHeader
+from pbcore.io import PacBioBamIndex
 
 from pbcore.io.dataset import DataSetReader
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -1202,7 +1203,11 @@ class DataSet(object):
     def _totalLength(self):
         """Used to populate metadata in updateCounts"""
         tmp = self.indexRecords
-        return sum(tmp['aEnd'] - tmp['aStart'])
+        if isinstance(tmp, np.ndarray):
+            return sum(tmp['aEnd'] - tmp['aStart'])
+        elif isinstance(tmp, PacBioBamIndex):
+            return sum(tmp.aEnd - tmp.aStart)
+
 
 
     @property
