@@ -106,9 +106,7 @@ class TestDataSet(unittest.TestCase):
         for contigmd in ds2.metadata.contigs:
             self.assertEquals(type(contigmd).__name__, 'ContigMetadata')
 
-    @unittest.skip("PLEASE FIX")
     def test_alignment_reference(self):
-        # FIXME currently broken!
         rs1 = ReferenceSet(data.getXml(9))
         fasta_res = rs1.externalResources[0]
         fasta_file = urlparse(fasta_res.resourceId).path

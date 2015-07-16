@@ -9,7 +9,8 @@ import unittest
 from unittest.case import SkipTest
 
 from pbcore.io import openIndexedAlignmentFile
-from pbcore.io import DataSet, SubreadSet, ReferenceSet, AlignmentSet
+from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
+                       openDataSet)
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
@@ -88,6 +89,45 @@ class TestDataSet(unittest.TestCase):
         for extRes in d.externalResources:
             self.assertEqual(extRes.metaType,
                              "PacBio.SubreadFile.SubreadBamFile")
+
+    def test_loading_reference(self):
+        log.info('Opening Reference')
+        r = ReferenceSet(data.getRef()).toExternalFiles()[0]
+        log.info('Done Opening Reference')
+        log.info('Opening AlignmentSet')
+        d = AlignmentSet(data.getBam(), referenceFastaFname=r)
+        log.info('Done Opening AlignmentSet')
+        self.assertNotEqual(d._referenceFile, None)
+        bfile = openIndexedAlignmentFile(data.getBam(),
+                                         referenceFastaFname=d._referenceFile)
+        self.assertTrue(bfile.isReferenceLoaded)
+        for res in d.resourceReaders():
+            self.assertTrue(res.isReferenceLoaded)
+
+        aln = AlignmentSet(data.getBam())
+        aln.addReference(r)
+        for res in aln.resourceReaders():
+            self.assertTrue(res.isReferenceLoaded)
+
+    def test_factory_function(self):
+        bam = data.getBam()
+        aln = data.getXml(8)
+        ref = data.getXml(9)
+        sub = data.getXml(10)
+        inTypes = [bam, aln, ref, sub]
+        expTypes = [DataSet, AlignmentSet, ReferenceSet, SubreadSet]
+        for infn, exp in zip(inTypes, expTypes):
+            ds = openDataSet(infn)
+            self.assertEqual(type(ds), exp)
+
+        ds = openDataSet(*inTypes)
+        self.assertEqual(type(ds), DataSet)
+        ds = openDataSet(*inTypes[1:])
+        self.assertEqual(type(ds), AlignmentSet)
+        ds = openDataSet(*inTypes[2:])
+        self.assertEqual(type(ds), ReferenceSet)
+        ds = openDataSet(*inTypes[3:])
+        self.assertEqual(type(ds), SubreadSet)
 
     def test_updateCounts_without_pbi(self):
         log.info("Testing updateCounts without pbi")

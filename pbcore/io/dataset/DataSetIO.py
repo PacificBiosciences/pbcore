@@ -52,6 +52,21 @@ def filtered(generator):
 def _toDsId(x):
     return "PacBio.DataSet.{x}".format(x=x)
 
+def fromDsId(x):
+    if DataSetMetaTypes.isValid(x):
+        types = DataSet.castableTypes()
+        return types[x.split('.')[-1]]
+
+def openDataSet(*files, **kwargs):
+    # infer from the first:
+    first = DataSet(files[0], **kwargs)
+    dType = first.objMetadata.get('MetaType')
+    tbrType = fromDsId(dType)
+    if tbrType:
+        return tbrType(*files, **kwargs)
+    else:
+        return DataSet(*files, **kwargs)
+
 
 class DataSetMetaTypes(object):
     """
@@ -183,7 +198,9 @@ class DataSet(object):
         self.fileNames = files
 
         # parse files
+        log.debug('Containers specified')
         populateDataSet(self, files)
+        log.debug('Done populating')
         # update uuid
         if not self.uuid:
             self.newUuid()
@@ -1007,14 +1024,24 @@ class DataSet(object):
                 raise
 
     def assertIndexed(self):
-        try:
-            tmp = self._strict
-            self._openFiles()
-        except Exception:
-            self._strict = tmp
-            raise
-        finally:
-            self._strict = tmp
+        if not self._openReaders:
+            try:
+                tmp = self._strict
+                self._openFiles()
+            except Exception:
+                self._strict = tmp
+                raise
+            finally:
+                self._strict = tmp
+        else:
+            for fname, reader in zip(self.toExternalFiles(),
+                                     self.resourceReaders()):
+                if (not isinstance(reader, IndexedBamReader) and
+                        not isinstance(reader, CmpH5Reader)):
+                    raise IOError(errno.EIO,
+                                  "File not indexed: {f}".format(f=fname),
+                                  fname)
+
 
     def addExternalResources(self, newExtResources, updateCount=True):
         """Add additional ExternalResource objects, ensuring no duplicate
@@ -1822,7 +1849,9 @@ class ReadSet(DataSet):
         if self._openReaders:
             log.debug("Closing old readers...")
             self.close()
-        log.debug("Opening resources")
+        log.debug("Opening SubreadSet resources")
+        if self._referenceFile:
+            log.debug("Using reference: {r}".format(r=self._referenceFile))
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
             try:
@@ -1937,7 +1966,7 @@ class ConsensusReadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.CCS
 
-class AlignmentSet(DataSet):
+class AlignmentSet(ReadSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
     so the base class version is OK (this just ensures type representation on
     output and expandability"""
@@ -1950,19 +1979,28 @@ class AlignmentSet(DataSet):
         Args:
             *files: handled by super
             referenceFastaFname=None: the reference fasta filename for this
-                                      alignment. Can also be a ReferenceSet XML
+                                      alignment.
             strict=False: see base class
             skipCounts=False: see base class
         """
         super(AlignmentSet, self).__init__(*files, **kwargs)
-        self._referenceFile = kwargs.get('referenceFastaFname', None)
+        fname = kwargs.get('referenceFastaFname', None)
+        if fname:
+            log.debug("referenceFastaFname received")
+            reference = ReferenceSet(fname).externalResources.resourceIds
+            if len(reference) > 1:
+                log.warn("Multiple references found, cannot open with reads")
+            else:
+                log.debug("Opening files with reference")
+                self._referenceFile = reference[0]
+                self._openFiles()
 
     def addReference(self, fname):
         reference = ReferenceSet(fname).externalResources.resourceIds
         if len(reference) > 1:
             log.warn("Multiple references found, cannot open with reads")
         else:
-            self._referenceFile = reference
+            self._referenceFile = reference[0]
             self._openFiles()
 
     @property
