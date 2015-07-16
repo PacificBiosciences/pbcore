@@ -1748,7 +1748,7 @@ class DataSet(object):
 
     @property
     def sequencingChemistry(self):
-        return self._checkIdentical('sequencingChemisty')
+        return self._checkIdentical('sequencingChemistry')
 
     @property
     def isSorted(self):

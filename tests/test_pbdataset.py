@@ -99,6 +99,15 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, -1)
         self.assertEqual(aln.numRecords, -1)
 
+    def test_attributes(self):
+        aln = AlignmentSet(data.getBam(0))
+        self.assertEqual(aln.sequencingChemistry, ['unknown'])
+        self.assertEqual(aln.isSorted, True)
+        self.assertEqual(aln.isEmpty, False)
+        self.assertEqual(aln.readType, 'standard')
+        self.assertEqual(len(aln.tStart), aln.metadata.numRecords)
+        self.assertEqual(len(aln.tEnd), aln.metadata.numRecords)
+
     def test_updateCounts(self):
         log.info("Testing updateCounts without filters")
         aln = AlignmentSet(data.getBam(0))
