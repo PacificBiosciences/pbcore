@@ -928,7 +928,7 @@ class ContigSetMetadata(DataSetMetadata):
     def __init__(self, record=None):
         if record:
             if (not isinstance(record, dict) and
-                    not isinstance(record, ContigMetadata) and
+                    not isinstance(record, ContigSetMetadata) and
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create ContigSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
@@ -1530,9 +1530,9 @@ class BioSamplesMetadata(RecordWrapper):
     """The metadata for the list of BioSamples
 
         Doctest:
-            >>> from pbcore.io import DataSet
+            >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
-            >>> ds = DataSet(data.getSubreadSet())
+            >>> ds = SubreadSet(data.getSubreadSet())
             >>> ds.metadata.bioSamples[0].name
             'consectetur purus'
             >>> for bs in ds.metadata.bioSamples:

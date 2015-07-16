@@ -9,13 +9,9 @@ import logging
 log = logging.getLogger(__name__)
 
 def createXml(args):
-    dset = DataSet(*args.infile)
+    dsTypes = DataSet.castableTypes()
+    dset = dsTypes[args.dsType](*args.infile)
     log.debug("Dataset created")
-    dset = dset.copy(asType=args.dsType)
-    log.debug("Dataset cast")
-    log.debug("Updating counts")
-    dset.updateCounts()
-    log.debug("Done updating counts")
     dset.write(args.outfile, validate=args.novalidate, relPaths=args.relative)
     log.debug("Dataset written")
 
@@ -37,7 +33,7 @@ def create_options(parser):
     parser.set_defaults(func=createXml)
 
 def filterXml(args):
-    log.error("Filtering is temporarily out of order")
+    log.error("Adding filters via CLI is temporarily out of order")
     exit(1)
     if args.infile.endswith('xml'):
         dataSet = DataSet(args.infile)

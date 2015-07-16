@@ -18,11 +18,15 @@ $(MOVIE1).aligned_subreads.cmp.h5: $(MOVIE1).1.bax.h5 lambdaNEB.fa
 testdata:
 	dataset.py create --type ReferenceSet --relative datasets/pbalchemysim0.reference.xml datasets/pbalchemysim0.reference.fasta
 	bax2bam datasets/pbalchemysim0.bas.h5 -o datasets/pbalchemysim0 --pulsefeatures DeletionTag,DeletionQV,InsertionQV,MergeQV,SubstitutionQV && \
+	samtools index datasets/pbalchemysim0.subreads.bam
+	pbindex datasets/pbalchemysim0.subreads.bam
 	dataset.py create --type SubreadSet --relative datasets/pbalchemysim0.subread.xml datasets/pbalchemysim0.subreads.bam
 	pbalign datasets/pbalchemysim0.subreads.bam datasets/pbalchemysim0.reference.fasta datasets/pbalchemysim0.pbalign.bam && \
 	dataset.py create --type AlignmentSet --relative datasets/pbalchemysim0.pbalign.xml datasets/pbalchemysim0.pbalign.bam
 	dataset.py split --contigs --chunks 2 datasets/pbalchemysim0.pbalign.xml
 	bax2bam datasets/pbalchemysim1.bas.h5 -o datasets/pbalchemysim1 --pulsefeatures DeletionTag,DeletionQV,InsertionQV,MergeQV,SubstitutionQV && \
+	samtools index datasets/pbalchemysim1.subreads.bam
+	pbindex datasets/pbalchemysim1.subreads.bam
 	dataset.py create --type SubreadSet --relative datasets/pbalchemysim1.subread.xml datasets/pbalchemysim1.subreads.bam
 	pbalign datasets/pbalchemysim1.subreads.bam datasets/pbalchemysim0.reference.fasta datasets/pbalchemysim1.pbalign.bam && \
 	dataset.py create --type AlignmentSet --relative datasets/pbalchemysim1.pbalign.xml datasets/pbalchemysim1.pbalign.bam

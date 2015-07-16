@@ -15,8 +15,8 @@ class TestDataSet(unittest.TestCase):
 
 
     def test_subread_build(self):
-        ds1 = DataSet(data.getXml(no=5))
-        ds2 = DataSet(data.getXml(no=5))
+        ds1 = SubreadSet(data.getXml(no=5))
+        ds2 = SubreadSet(data.getXml(no=5))
         self.assertEquals(type(ds1).__name__, 'SubreadSet')
         self.assertEquals(ds1._metadata.__class__.__name__,
                           'SubreadSetMetadata')
@@ -88,15 +88,15 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(ds.get_contig(name))
 
     def test_ccsread_build(self):
-        ds1 = DataSet(data.getXml(2))
+        ds1 = ConsensusReadSet(data.getXml(2), strict=False)
         self.assertEquals(type(ds1).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
-        ds2 = ConsensusReadSet(data.getXml(2))
+        ds2 = ConsensusReadSet(data.getXml(2), strict=False)
         self.assertEquals(type(ds2).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
     def test_contigset_build(self):
-        ds1 = DataSet(data.getXml(3))
+        ds1 = ContigSet(data.getXml(3))
         self.assertEquals(type(ds1).__name__, 'ContigSet')
         self.assertEquals(type(ds1._metadata).__name__, 'ContigSetMetadata')
         ds2 = ContigSet(data.getXml(3))

@@ -11,6 +11,7 @@ from unittest.case import SkipTest
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import DataSet, SubreadSet, ReferenceSet, AlignmentSet
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
+from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
@@ -46,10 +47,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds1.numExternalResources, 2)
         ds1 = DataSet(data.getFofn())
         self.assertEquals(ds1.numExternalResources, 2)
-        # DataSet types are autodetected:
-        self.assertEquals(type(DataSet(data.getSubreadSet())).__name__,
-                          'SubreadSet')
-        # But can also be used directly
+        # New! Use the correct constructor:
         self.assertEquals(type(SubreadSet(data.getSubreadSet())).__name__,
                           'SubreadSet')
         # Even with untyped inputs
@@ -78,12 +76,18 @@ class TestDataSet(unittest.TestCase):
             ds.externalResources[-1].indices[0].resourceId ==
             "IdontExist.bam.pbi")
 
-
     def test_empty_metatype(self):
         inBam = data.getBam()
         d = DataSet(inBam)
         for extRes in d.externalResources:
             self.assertEqual(extRes.metaType, "")
+
+    def test_nonempty_metatype(self):
+        inBam = data.getBam()
+        d = AlignmentSet(inBam)
+        for extRes in d.externalResources:
+            self.assertEqual(extRes.metaType,
+                             "PacBio.SubreadFile.SubreadBamFile")
 
     def test_updateCounts_without_pbi(self):
         log.info("Testing updateCounts without pbi")
@@ -91,7 +95,7 @@ class TestDataSet(unittest.TestCase):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         tempout = os.path.join(outdir, os.path.basename(data_fname))
         backticks('cp {i} {o}'.format(i=data_fname, o=tempout))
-        aln = AlignmentSet(tempout)
+        aln = AlignmentSet(tempout, strict=False)
         self.assertEqual(aln.totalLength, -1)
         self.assertEqual(aln.numRecords, -1)
 
@@ -246,7 +250,8 @@ class TestDataSet(unittest.TestCase):
                           [ds1d is ds2d for ds1d in
                            ds1.subdatasets for ds2d in
                            ds2.subdatasets])
-        ds1 = DataSet(data.getXml(no=10))
+        # TODO: once simulated files are indexable, turn on strict:
+        ds1 = SubreadSet(data.getXml(no=10), strict=False)
         self.assertEquals(type(ds1.metadata).__name__,
                           'SubreadSetMetadata')
         ds2 = ds1.copy()
@@ -307,13 +312,13 @@ class TestDataSet(unittest.TestCase):
         er2.resourceId = "test2.bam"
         er3 = ExternalResource()
         er3.resourceId = "test1.bam"
-        ds.addExternalResources([er1])
+        ds.addExternalResources([er1], updateCount=False)
         self.assertEquals(ds.numExternalResources, 1)
         # different resourceId: succeeds
-        ds.addExternalResources([er2])
+        ds.addExternalResources([er2], updateCount=False)
         self.assertEquals(ds.numExternalResources, 2)
         # same resourceId: fails
-        ds.addExternalResources([er3])
+        ds.addExternalResources([er3], updateCount=False)
         self.assertEquals(ds.numExternalResources, 2)
         for extRef in ds.externalResources:
             self.assertEqual(type(extRef).__name__, "ExternalResource")
@@ -336,7 +341,8 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(len(list(ds.records)), 112)
 
     def test_toFofn(self):
-        self.assertEquals(DataSet("bam1.bam", "bam2.bam").toFofn(),
+        self.assertEquals(DataSet("bam1.bam", "bam2.bam",
+                                  strict=False).toFofn(),
                           ['bam1.bam', 'bam2.bam'])
         realDS = DataSet(data.getXml(8))
         files = realDS.toFofn()
@@ -349,10 +355,11 @@ class TestDataSet(unittest.TestCase):
         self.assertFalse(os.path.isabs(files[0]))
 
     def test_toExternalFiles(self):
-        bogusDS = DataSet("bam1.bam", "bam2.bam")
+        bogusDS = DataSet("bam1.bam", "bam2.bam", strict=False)
         self.assertEqual(['bam1.bam', 'bam2.bam'],
                          bogusDS.externalResources.resourceIds)
-        self.assertEquals(DataSet("bam1.bam", "bam2.bam").toExternalFiles(),
+        self.assertEquals(DataSet("bam1.bam", "bam2.bam",
+                                  strict=False).toExternalFiles(),
                           ['bam1.bam', 'bam2.bam'])
         realDS = DataSet(data.getXml(8))
         files = realDS.toExternalFiles()
@@ -405,6 +412,16 @@ class TestDataSet(unittest.TestCase):
         ds2 = DataSet(data.getBam(0))
         reads = ds2.readsInRange("E.faecalis.1", 0, 1400)
         self.assertEqual(len(list(reads)), 20)
+
+        lengths = ds.refLengths
+        for rname, rId in ds.refInfo('ID'):
+            rn = ds._idToRname(rId)
+            self.assertEqual(rname, rn)
+            rlen = lengths[rn]
+            self.assertEqual(len(list(ds.readsInReference(rn))),
+                             len(list(ds.readsInReference(rId))))
+            self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
+                             len(list(ds.readsInRange(rId, 0, rlen))))
 
     def test_filter(self):
         ds2 = DataSet(data.getXml(8))

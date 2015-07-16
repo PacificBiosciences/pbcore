@@ -8,7 +8,9 @@ where they are stored, manipulated, filtered, merged, etc.
 import hashlib
 import copy
 import os
+import errno
 import logging
+import xml.dom.minidom
 from functools import wraps
 import numpy as np
 from urlparse import urlparse
@@ -17,8 +19,9 @@ from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               IndexedBamReader)
 from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.io import PacBioBamIndex
+from pbcore.io.align._BamSupport import IncompatibleFile
 
-from pbcore.io.dataset import DataSetReader
+from pbcore.io.dataset.DataSetReader import parseStats, populateDataSet
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -81,85 +84,22 @@ def _fileType(fname):
     ftype = ftype.strip('.')
     return ftype
 
-
-def openDataSet(*files):
-    """Generic factory function to open DataSets (or attempt to open a subtype
-    if one can be inferred from the file(s).
-
-    A replacement for the generic DataSet(*files) constructor"""
-    if files:
-        # The factory that does the heavy lifting:
-        dataset = DataSetReader.parseFiles(files)
-    else:
-        dataset = DataSet()
-    if not dataset.uuid:
-        dataset.newUuid()
-    log.debug('Updating counts')
-    dataset.fileNames = files
-    if not dataset.totalLength or not dataset.numRecords:
-        dataset.updateCounts()
-    elif dataset.totalLength <= 0 or dataset.numRecords <= 0:
-        dataset.updateCounts()
-    dataset.close()
-    log.debug('Done creating {c}'.format(c=str(dataset)))
-    return dataset
-
-
-class MetaDataSet(type):
-    """This metaclass acts as a factory for DataSet and subtypes,
-    intercepting constructor calls and returning a DataSet or subclass
-    instance as appropriate (inferred from file contents)."""
-
-
-    def __call__(cls, *files):
-        """Factory function for DataSet and subtypes
-
-        Args:
-            files: one or more files to parse
-
-        Returns:
-            A dataset (or subtype) object.
-
-        """
-        if files:
-            # The factory that does the heavy lifting:
-            dataset = DataSetReader.parseFiles(files)
-            # give the user what they call for, usually
-            if cls != DataSet and type(dataset) == DataSet:
-                dataset = dataset.copy(asType=cls.__name__)
-        else:
-            dataset = object.__new__(cls)
-            dataset.__init__()
-        if not dataset.uuid:
-            dataset.newUuid()
-        dataset.fileNames = files
-        if type(dataset) != DataSet:
-            if not dataset.totalLength or not dataset.numRecords:
-                dataset.updateCounts()
-                dataset.close()
-            elif dataset.totalLength <= 0 or dataset.numRecords <= 0:
-                dataset.updateCounts()
-                dataset.close()
-        log.debug('Done creating {c}'.format(c=cls.__name__))
-        return dataset
-
-
 class DataSet(object):
     """The record containing the DataSet information, with possible type
     specific subclasses"""
 
-    __metaclass__ = MetaDataSet
     datasetType = DataSetMetaTypes.ALL
 
-    def __init__(self, *files):
+    def __init__(self, *files, **kwargs):
         """DataSet constructor
 
         Initialize representations of the ExternalResources, MetaData,
         Filters, and LabeledSubsets, parse inputs if possible
 
         Args:
-            (HANDLED BY METACLASS __call__) *files: one or more filenames or
-                                                    uris to read
+            *files: one or more filenames or uris to read
+            strict=False: strictly require all index files
+            skipCounts=False: skip updating counts for faster opening
 
         Doctest:
             >>> import os, tempfile
@@ -193,10 +133,7 @@ class DataSet(object):
             >>> ds1 = DataSet(data.getFofn())
             >>> ds1.numExternalResources
             2
-            >>> # DataSet types are autodetected:
-            >>> DataSet(data.getSubreadSet()) # doctest:+ELLIPSIS
-            <SubreadSet...
-            >>> # But can also be used directly
+            >>> # Constructors should be used directly
             >>> SubreadSet(data.getSubreadSet()) # doctest:+ELLIPSIS
             <SubreadSet...
             >>> # Even with untyped inputs
@@ -225,6 +162,9 @@ class DataSet(object):
             True
 
         """
+        self._strict = kwargs.get('strict', False)
+        self._skipCounts = kwargs.get('skipCounts', False)
+
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
         self.objMetadata = {}
@@ -240,12 +180,26 @@ class DataSet(object):
         self.subdatasets = []
 
         # Why not keep this around... (filled by file reader)
-        self.fileNames = []
+        self.fileNames = files
+
+        # parse files
+        populateDataSet(self, files)
+        # update uuid
+        if not self.uuid:
+            self.newUuid()
+        # TODO take updated objMetadata from write and run it here...
 
         # State tracking:
         self._cachedFilters = []
         self.noFiltering = False
         self._openReaders = []
+
+        # update counts
+        if files:
+            if not self.totalLength or not self.numRecords:
+                self.updateCounts()
+            elif self.totalLength <= 0 or self.numRecords <= 0:
+                self.updateCounts()
 
     def __repr__(self):
         """Represent the dataset with an informative string:
@@ -291,28 +245,53 @@ class DataSet(object):
             >>> ds3.numExternalResources == expected
             True
         """
-        if (otherDataset.__class__.__name__ == self.__class__.__name__ or
-                otherDataset.__class__.__name__ == 'DataSet'):
-            if not self.filters.testCompatibility(otherDataset.filters):
+        return self.merge(otherDataset)
+
+    def merge(self, other, copyOnMerge=True):
+        if (other.__class__.__name__ == self.__class__.__name__ or
+                other.__class__.__name__ == 'DataSet' or
+                self.__class__.__name__ == 'DataSet'):
+            firstIn = False
+            if not self.toExternalFiles():
+                firstIn = True
+            if (not firstIn and
+                    not self.filters.testCompatibility(other.filters)):
                 log.warning("Filter incompatibility has blocked the addition "
                             "of two datasets")
                 return None
+            else:
+                self.addFilters(other.filters)
             self._cachedFilters = []
-            self._checkObjMetadata(otherDataset.objMetadata)
-            result = self.copy()
-            result.addMetadata(otherDataset.metadata)
-            result.addExternalResources(otherDataset.externalResources)
+            self._checkObjMetadata(other.objMetadata)
+            # There is probably a cleaner way to do this:
+            self.objMetadata.update(other.objMetadata)
+            if copyOnMerge:
+                result = self.copy()
+            else:
+                result = self
+            result.addMetadata(other.metadata)
+            # skip updating counts because other's metadata should be up to
+            # date
+            result.addExternalResources(other.externalResources,
+                                        updateCount=False)
             # DataSets may only be merged if they have identical filters,
             # So there is nothing new to add.
-            result.addDatasets(otherDataset.copy())
+            if other.subdatasets or not firstIn:
+                if copyOnMerge:
+                    result.addDatasets(other.copy())
+                else:
+                    result.addDatasets(other)
             # If this dataset has no subsets representing it, add self as a
             # subdataset to the result
-            if not self.subdatasets:
+            # TODO: this is a stopgap to prevent spurious subdatasets when
+            # creating datasets from dataset xml files...
+            if not self.subdatasets and not firstIn:
                 result.addDatasets(self.copy())
             return result
         else:
             raise TypeError('DataSets can only be merged with records of the '
                             'same type or of type DataSet')
+
 
     def __deepcopy__(self, memo):
         """Deep copy this Dataset by recursively deep copying the members
@@ -356,8 +335,11 @@ class DataSet(object):
             try:
                 reader.close()
             except AttributeError:
-                log.info("Reader not opened properly, therefore not closed "
-                         "properly.")
+                if not self._strict:
+                    log.info("Reader not opened properly, therefore not "
+                             "closed properly.")
+                else:
+                    raise
         self._openReaders = []
 
     def __exit__(self, *exec_info):
@@ -366,7 +348,7 @@ class DataSet(object):
     def __len__(self):
         count = 0
         if self._filters:
-            count = len(self.indexRecords)
+            count = self._length[0]
         else:
             for reader in self.resourceReaders():
                 count += len(reader)
@@ -448,7 +430,8 @@ class DataSet(object):
             ...                    ds1.subdatasets for ds2d in
             ...                    ds2.subdatasets])
             >>> # But types are maintained:
-            >>> ds1 = DataSet(data.getXml(no=10))
+            >>> # TODO: turn strict back on once sim sets are indexable
+            >>> ds1 = SubreadSet(data.getXml(no=10), strict=False)
             >>> ds1.metadata # doctest:+ELLIPSIS
             <SubreadSetMetadata...
             >>> ds2 = ds1.copy()
@@ -472,11 +455,12 @@ class DataSet(object):
         """
         if asType:
             try:
-                tbr = self._castableTypes[asType]()
+                tbr = self.__class__.castableTypes()[asType]()
             except KeyError:
                 raise TypeError("Cannot cast from {s} to "
-                                "{t}".format(s=type(self).__name__, t=asType))
-            tbr.__dict__.update(copy.deepcopy(self.__dict__))
+                                "{t}".format(s=type(self).__name__,
+                                             t=asType))
+            tbr.merge(self)
             # update the metatypes: (TODO: abstract out 'iterate over all
             # resources and modify the element that contains them')
             tbr.makePathsAbsolute()
@@ -716,7 +700,7 @@ class DataSet(object):
             results.append(newCopy)
         return results
 
-    def write(self, outFile, validate=True, relPaths=False):
+    def write(self, outFile, validate=True, relPaths=False, pretty=True):
         """Write to disk as an XML file
 
         Args:
@@ -748,12 +732,14 @@ class DataSet(object):
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
                 self.makePathsAbsolute()
-        xml = toXml(self)
+        xml_string = toXml(self)
+        if pretty:
+            xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml()
         if validate:
-            validateString(xml, relTo=outFile)
+            validateString(xml_string, relTo=outFile)
         fileName = urlparse(outFile).path.strip()
         with open(fileName, 'w') as outFile:
-            outFile.writelines(xml)
+            outFile.writelines(xml_string)
 
     def loadStats(self, filename):
         """Load pipeline statistics from a <moviename>.sts.xml file. The subset
@@ -780,7 +766,7 @@ class DataSet(object):
             [3152, 1802, 798, 0]
 
         """
-        statsMetadata = DataSetReader.parseStats(filename)
+        statsMetadata = parseStats(filename)
         if self.metadata.summaryStats:
             self.metadata.summaryStats.merge(statsMetadata)
         else:
@@ -935,10 +921,12 @@ class DataSet(object):
             newMetadata: The object metadata of a DataSet being considered for
                          merging
         """
-        if newMetadata.get('Version') > self.objMetadata.get('Version'):
-            raise ValueError("Wrong dataset version for merging {v1} vs "
-                             "{v2}".format(v1=newMetadata.get('Version'),
-                                           v2=self.objMetadata.get('Version')))
+        if self.objMetadata.get('Version'):
+            if newMetadata.get('Version') > self.objMetadata.get('Version'):
+                raise ValueError("Wrong dataset version for merging {v1} vs "
+                                 "{v2}".format(
+                                        v1=newMetadata.get('Version'),
+                                        v2=self.objMetadata.get('Version')))
 
 
     def addMetadata(self, newMetadata, **kwargs):
@@ -1000,22 +988,35 @@ class DataSet(object):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
-        try:
-            if not self.hasPbi:
-                log.debug("Updating counts not supported without pbi")
-                raise IOError
-            log.debug('Updating counts')
-            self.metadata.numRecords = len(self)
-            self.metadata.totalLength = self._totalLength
-        # I would prefer to just catch IOError and UnavailableFeature
-        except Exception as e:
-            log.debug("Files not found ({e}), metadata not "
-                      "populated".format(e=str(e)))
+        if self._skipCounts:
             self.metadata.numRecords = -1
             self.metadata.totalLength = -1
+            return
+        try:
+            self.assertIndexed()
+            log.debug('Updating counts')
+            self.metadata.numRecords, self.metadata.totalLength = self._length
+        # I would prefer to just catch IOError and UnavailableFeature
+        except Exception as e:
+            if not self._strict:
+                log.debug("File problem ({e}), metadata not "
+                          "populated".format(e=str(e)))
+                self.metadata.numRecords = -1
+                self.metadata.totalLength = -1
+            else:
+                raise
 
+    def assertIndexed(self):
+        try:
+            tmp = self._strict
+            self._openFiles()
+        except Exception:
+            self._strict = tmp
+            raise
+        finally:
+            self._strict = tmp
 
-    def addExternalResources(self, newExtResources):
+    def addExternalResources(self, newExtResources, updateCount=True):
         """Add additional ExternalResource objects, ensuring no duplicate
         resourceIds. Most often used by the __add__ method, rather than
         directly.
@@ -1036,15 +1037,15 @@ class DataSet(object):
             >>> er2.resourceId = "test2.bam"
             >>> er3 = ExternalResource()
             >>> er3.resourceId = "test1.bam"
-            >>> ds.addExternalResources([er1])
+            >>> ds.addExternalResources([er1], updateCount=False)
             >>> len(ds.externalResources)
             1
             >>> # different resourceId: succeeds
-            >>> ds.addExternalResources([er2])
+            >>> ds.addExternalResources([er2], updateCount=False)
             >>> len(ds.externalResources)
             2
             >>> # same resourceId: fails
-            >>> ds.addExternalResources([er3])
+            >>> ds.addExternalResources([er3], updateCount=False)
             >>> len(ds.externalResources)
             2
             >>> # but it is probably better to add them a little deeper:
@@ -1065,6 +1066,8 @@ class DataSet(object):
             else:
                 self.externalResources.append(newExtRes)
                 resourceIds.append(newExtRes.resourceId)
+        if updateCount:
+            self.updateCounts()
 
     def addDatasets(self, otherDataSet):
         """Add subsets to a DataSet object using other DataSets.
@@ -1086,6 +1089,9 @@ class DataSet(object):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
         """
+        if self._openReaders:
+            log.debug("Closing old readers...")
+            self.close()
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
@@ -1094,13 +1100,18 @@ class DataSet(object):
                     location,
                     referenceFastaFname=refFile)
             except (IOError, ValueError):
-                log.info("pbi file missing for {f}, operating with "
-                         "reduced speed and functionality".format(
-                             f=location))
-                resource = openAlignmentFile(location,
-                                             referenceFastaFname=refFile)
+                if not self._strict:
+                    log.info("pbi file missing for {f}, operating with "
+                             "reduced speed and functionality".format(
+                                 f=location))
+                    resource = openAlignmentFile(location,
+                                                 referenceFastaFname=refFile)
+                else:
+                    raise
             if not resource:
-                raise IOError("{f} fails to open".format(f=location))
+                raise IOError(errno.EIO,
+                              "{f} fails to open".format(f=location),
+                              location)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -1143,32 +1154,26 @@ class DataSet(object):
 
     @property
     def indexRecords(self):
-        """Return a recarray summarizing all of the records in all of the
-        resources that conform to those filters addressing parameters cached in
-        the pbi.
-
+        """Yields chunks of recarray summarizing all of the records in all of
+        the resources that conform to those filters addressing parameters
+        cached in the pbi.
         """
-        assert self.hasPbi
-        tbr = []
+        self.assertIndexed()
         for rr in self.resourceReaders():
             indices = rr.index
+            if not self._filters or self.noFiltering:
+                yield indices
+                continue
+
             tIdMap = {n: name
                       for n, name in enumerate(rr.referenceInfoTable['Name'])}
             filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
-
-            if not filts or self.noFiltering:
-                tbr.append(indices)
-                continue
-
             mask = np.zeros(len(indices), dtype=bool)
-            log.info("{n} rows found in this pbi".format(n=len(indices)))
             # remove reads per filter
             for i, read in enumerate(indices):
                 if any([filt(read) for filt in filts]):
                     mask[i] = True
-            tbr.append(np.extract(mask, indices))
-        tbr = reduce(np.append, tbr)
-        return tbr
+            yield np.extract(mask, indices)
 
     @property
     @filtered
@@ -1198,17 +1203,23 @@ class DataSet(object):
         for record in self.records:
             yield record
 
-
     @property
-    def _totalLength(self):
+    def _length(self):
         """Used to populate metadata in updateCounts"""
-        tmp = self.indexRecords
-        if isinstance(tmp, np.ndarray):
-            return sum(tmp['aEnd'] - tmp['aStart'])
-        elif isinstance(tmp, PacBioBamIndex):
-            return sum(tmp.aEnd - tmp.aStart)
-
-
+        length = 0
+        count = 0
+        endkey = 'aEnd'
+        startkey = 'aStart'
+        if self.isCmpH5:
+            endkey = 'rEnd'
+            startkey = 'rStart'
+        for rec in self.indexRecords:
+            count += len(rec)
+            if isinstance(rec, np.ndarray):
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                length += sum(rec.aEnd - rec.aStart)
+        return count, length
 
     @property
     def subSetNames(self):
@@ -1342,12 +1353,15 @@ class DataSet(object):
             hn: ...
         """
 
-        if not refName in self.refNames and not refName in self.fullRefNames:
-            try:
-                _ = int(refName)
-            except ValueError:
-                raise StopIteration
-            refName = self._idToRname(refName)
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames
+                    and not refName in self.fullRefNames):
+                try:
+                    refName = self._idToRname(int(refName))
+                except AttributeError:
+                    raise StopIteration
 
         # I would love to use readsInRange(refName, None, None), but
         # IndexedBamReader breaks this (works for regular BamReader).
@@ -1355,9 +1369,9 @@ class DataSet(object):
         refLen = 0
         for resource in self.resourceReaders():
             if (refName in resource.referenceInfoTable['Name'] or
-                    #refName in resource.referenceInfoTable['ID'] or
                     refName in resource.referenceInfoTable['FullName']):
                 refLen = resource.referenceInfo(refName).Length
+                break
         if refLen:
             for read in self.readsInRange(refName, 0, refLen, justIndices):
                 yield read
@@ -1391,25 +1405,30 @@ class DataSet(object):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
-        # This all breaks pretty horribly if refName is actually a refId.
-        if not refName in self.refNames and not refName in self.fullRefNames:
-            # we can think of this as an id then, I guess
-            _ = int(refName)
-            # we need the real refName, which may be hidden behind a mapping to
-            # resolve duplicate refIds between resources...
-            refName = self._idToRname(refName)
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                # we need the real refName, which may be hidden behind a
+                # mapping to resolve duplicate refIds between resources...
+                refName = self._idToRname(int(refName))
 
         # merge sort before yield
         if self.numExternalResources > 1:
             if justIndices:
                 try:
+                    #TODO: write tests for this
                     read_its = [iter(rr.readsInRange(refName, start, end,
                                                      justIndices))
                                 for rr in self.resourceReaders()]
                 except Exception:
-                    log.warn("This would be faster with a .pbi file")
-                    read_its = [iter(rr.readsInRange(refName, start, end))
-                                for rr in self.resourceReaders()]
+                    if not self._strict:
+                        log.warn("This would be faster with a .pbi file")
+                        read_its = [iter(rr.readsInRange(refName, start, end))
+                                    for rr in self.resourceReaders()]
+                    else:
+                        raise
             else:
                 read_its = [iter(rr.readsInRange(refName, start, end))
                             for rr in self.resourceReaders()]
@@ -1418,16 +1437,23 @@ class DataSet(object):
             # remove empty iterators
             read_its = [it for it, cur in zip(read_its, currents) if cur]
             currents = [cur for cur in currents if cur]
+            tStarts = [cur.tStart for cur in currents]
             while len(read_its) != 0:
                 # pick the first one to yield
-                first_i, first = min(enumerate(currents),
-                                     key=lambda x: x[1].tStart)
-                # update the buffer
+                # this should be a bit faster than taking the min of an
+                # enumeration of currents with a key function accessing a
+                # field...
+                first = min(tStarts)
+                first_i = tStarts.index(first)
+                first = currents[first_i]
+                # update the buffers
                 try:
                     currents[first_i] = next(read_its[first_i])
+                    tStarts[first_i] = currents[first_i].tStart
                 except StopIteration:
                     del read_its[first_i]
                     del currents[first_i]
+                    del tStarts[first_i]
                 yield first
         else:
             # the above will work in either case, but this might be ever so
@@ -1450,8 +1476,7 @@ class DataSet(object):
         if self.isCmpH5:
             rId -= 1
         if self.isCmpH5:
-            # This is so not how it is supposed to be. This is what CmpIO
-            # recognizes as the 'shortname' pretty much throughout...
+            # This is what CmpIO recognizes as the 'shortname'
             refName = self.resourceReaders()[
                 resNo].referenceInfoTable[rId]['FullName']
         else:
@@ -1478,7 +1503,7 @@ class DataSet(object):
 
         Doctest:
             >>> from pbcore.io import DataSet
-            >>> DataSet("bam1.bam", "bam2.bam").toFofn(uri=False)
+            >>> DataSet("bam1.bam", "bam2.bam", strict=False).toFofn(uri=False)
             ['bam1.bam', 'bam2.bam']
         """
         lines = [er.resourceId for er in self.externalResources]
@@ -1505,8 +1530,8 @@ class DataSet(object):
             tbr.append(self._resolveLocation(fname, '.'))
         return tbr
 
-    @property
-    def _castableTypes(self):
+    @classmethod
+    def castableTypes(cls):
         """The types to which this DataSet type may be cast. This is a property
         instead of a member variable as we can enforce casting limits here (and
         modify if needed by overriding them in subclasses).
@@ -1514,9 +1539,9 @@ class DataSet(object):
         Returns:
             A dictionary of MetaType->Class mappings, e.g. 'DataSet': DataSet
         """
-        if type(self).__name__ != 'DataSet':
+        if cls.__name__ != 'DataSet':
             return {'DataSet': DataSet,
-                    type(self).__name__: type(self)}
+                    cls.__name__: cls}
         return {'DataSet': DataSet,
                 'SubreadSet': SubreadSet,
                 'HdfSubreadSet': HdfSubreadSet,
@@ -1639,8 +1664,11 @@ class DataSet(object):
                                                            IndexedBamReader))
             return self._unifyResponses(res)
         except ResourceMismatchError:
-            log.error("Resources inconsistently indexed")
-            return False
+            if not self._strict:
+                log.error("Resources inconsistently indexed")
+                return False
+            else:
+                raise
 
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
@@ -1718,15 +1746,33 @@ class DataSet(object):
         responses = self._pollResources(lambda x: x.pulseFeaturesAvailable())
         return self._unifyResponses(responses)
 
-    def __getattr__(self, key):
-        identicalList = ['sequencingChemistry', 'isSorted', 'isEmpty',
-                         'readType', 'tStart', 'tEnd']
-        if key in identicalList:
-            responses = self._pollResources(lambda x: getattr(x, key))
-            return self._unifyResponses(responses)
-        else:
-            raise AttributeError("{c} has no attribute {a}".format(
-                c=self.__class__.__name__, a=key))
+    @property
+    def sequencingChemistry(self):
+        return self._checkIdentical('sequencingChemisty')
+
+    @property
+    def isSorted(self):
+        return self._checkIdentical('isSorted')
+
+    @property
+    def isEmpty(self):
+        return self._checkIdentical('isEmpty')
+
+    @property
+    def readType(self):
+        return self._checkIdentical('readType')
+
+    @property
+    def tStart(self):
+        return self._checkIdentical('tStart')
+
+    @property
+    def tEnd(self):
+        return self._checkIdentical('tEnd')
+
+    def _checkIdentical(self, key):
+        responses = self._pollResources(lambda x: getattr(x, key))
+        return self._unifyResponses(responses)
 
     def _chunkList(self, inlist, chunknum, balanceKey=len):
         """Divide <inlist> members into <chunknum> chunks roughly evenly using
@@ -1745,7 +1791,11 @@ class DataSet(object):
             chunkSizes[0][0] += balanceKey(item)
         return chunks
 
-class ResourceMismatchError(Exception):
+class InvalidDataSetIOError(Exception):
+    """The base class for all DataSetIO related custom exceptions (hopefully)
+    """
+
+class ResourceMismatchError(InvalidDataSetIOError):
 
     def __init__(self, responses):
         super(ResourceMismatchError, self).__init__()
@@ -1755,13 +1805,43 @@ class ResourceMismatchError(Exception):
         return "Resources responded differently: " + ', '.join(
             map(str, self.responses))
 
+
 class ReadSet(DataSet):
     """Base type for read sets, should probably never be used as a concrete
     class"""
 
-    def __init__(self, *files):
-        super(ReadSet, self).__init__()
-        self._metadata = SubreadSetMetadata()
+    def __init__(self, *files, **kwargs):
+        self._referenceFile = None
+        super(ReadSet, self).__init__(*files, **kwargs)
+        self._metadata = SubreadSetMetadata(self._metadata)
+
+    def _openFiles(self):
+        """Open the files (assert they exist, assert they are of the proper
+        type before accessing any file)
+        """
+        if self._openReaders:
+            log.debug("Closing old readers...")
+            self.close()
+        log.debug("Opening resources")
+        for extRes in self.externalResources:
+            location = urlparse(extRes.resourceId).path
+            try:
+                resource = openIndexedAlignmentFile(
+                    location,
+                    referenceFastaFname=self._referenceFile)
+            except (IOError, ValueError):
+                if not self._strict:
+                    log.info("pbi file missing for {f}, operating with "
+                             "reduced speed and functionality".format(
+                                 f=location))
+                    resource = openAlignmentFile(
+                        location, referenceFastaFname=self._referenceFile)
+                else:
+                    raise
+            if not resource:
+                raise IOError("{f} fails to open".format(f=location))
+            self._openReaders.append(resource)
+        log.debug("Done opening resources")
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
@@ -1795,11 +1875,11 @@ class SubreadSet(ReadSet):
 
     DocTest:
 
-        >>> from pbcore.io import DataSet, SubreadSet
+        >>> from pbcore.io import SubreadSet
         >>> from pbcore.io.dataset.DataSetMembers import ExternalResources
         >>> import pbcore.data.datasets as data
-        >>> ds1 = DataSet(data.getXml(no=5))
-        >>> ds2 = DataSet(data.getXml(no=5))
+        >>> ds1 = SubreadSet(data.getXml(no=5))
+        >>> ds2 = SubreadSet(data.getXml(no=5))
         >>> # So they don't conflict:
         >>> ds2.externalResources = ExternalResources()
         >>> ds1 # doctest:+ELLIPSIS
@@ -1828,6 +1908,9 @@ class SubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.SUBREAD
 
+    def __init__(self, *files, **kwargs):
+        super(SubreadSet, self).__init__(*files, **kwargs)
+
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
@@ -1844,13 +1927,8 @@ class ConsensusReadSet(ReadSet):
 
     Doctest:
         >>> import pbcore.data.datasets as data
-        >>> from pbcore.io import DataSet, ConsensusReadSet
-        >>> ds1 = DataSet(data.getXml(2))
-        >>> ds1 # doctest:+ELLIPSIS
-        <ConsensusReadSet...
-        >>> ds1._metadata # doctest:+ELLIPSIS
-        <SubreadSetMetadata...
-        >>> ds2 = ConsensusReadSet(data.getXml(2))
+        >>> from pbcore.io import ConsensusReadSet
+        >>> ds2 = ConsensusReadSet(data.getXml(2), strict=False)
         >>> ds2 # doctest:+ELLIPSIS
         <ConsensusReadSet...
         >>> ds2._metadata # doctest:+ELLIPSIS
@@ -1866,15 +1944,29 @@ class AlignmentSet(DataSet):
 
     datasetType = DataSetMetaTypes.ALIGNMENT
 
+    def __init__(self, *files, **kwargs):
+        """ An AlignmentSet
+
+        Args:
+            *files: handled by super
+            referenceFastaFname=None: the reference fasta filename for this
+                                      alignment. Can also be a ReferenceSet XML
+            strict=False: see base class
+            skipCounts=False: see base class
+        """
+        super(AlignmentSet, self).__init__(*files, **kwargs)
+        self._referenceFile = kwargs.get('referenceFastaFname', None)
+
     def addReference(self, fname):
         reference = ReferenceSet(fname).externalResources.resourceIds
         if len(reference) > 1:
             log.warn("Multiple references found, cannot open with reads")
         else:
-            self._openFiles(refFile=reference[0])
+            self._referenceFile = reference
+            self._openFiles()
 
     @property
-    def records(self):
+    def recordsByReference(self):
         """ The records in this AlignmentSet, sorted by tStart. """
         # we only care about aligned sequences here, so we can make this a
         # chain of readsInReferences to add pre-filtering by rname, instead of
@@ -1898,7 +1990,15 @@ class ReferenceSet(DataSet):
 
     datasetType = DataSetMetaTypes.REFERENCE
 
+    def __init__(self, *files, **kwargs):
+        super(ReferenceSet, self).__init__(*files, **kwargs)
+        self._metadata = ReferenceSetMetadata(self._metadata)
+
     def updateCounts(self):
+        if self._skipCounts:
+            self.metadata.numRecords = -1
+            self.metadata.totalLength = -1
+            return
         try:
             log.debug('Updating counts')
             self.metadata.numRecords = 0
@@ -1908,15 +2008,13 @@ class ReferenceSet(DataSet):
                 for index in res.fai:
                     self.metadata.totalLength += index.length
         except Exception:
-            # This will be fixed soon, or log an appropriate error
-            # (additionally, unindexed fasta files will soon be disallowed)
-            self.metadata.numRecords = -1
-            self.metadata.totalLength = -1
-
-    def __init__(self, *files):
-        super(ReferenceSet, self).__init__()
-        self._metadata = ReferenceSetMetadata()
-        self._indexedOnly = False
+            if not self._strict:
+                # This will be fixed soon, or log an appropriate error
+                # (additionally, unindexed fasta files will soon be disallowed)
+                self.metadata.numRecords = -1
+                self.metadata.totalLength = -1
+            else:
+                raise
 
     def processFilters(self):
         # Allows us to not process all of the filters each time. This is marked
@@ -1970,7 +2068,7 @@ class ReferenceSet(DataSet):
             try:
                 resource = IndexedFastaReader(location)
             except IOError:
-                if not self._indexedOnly:
+                if not self._strict:
                     log.debug('Companion reference index (.fai) missing. '
                              'Use "samtools faidx <refname>" to generate one.')
                     resource = FastaReader(location)
@@ -1980,7 +2078,7 @@ class ReferenceSet(DataSet):
         log.debug("Done opening resources")
 
     def assertIndexed(self):
-        self._indexedOnly = True
+        self._strict = True
         self._openFiles()
         return True
 
@@ -1991,8 +2089,11 @@ class ReferenceSet(DataSet):
                 lambda x: isinstance(x, IndexedFastaReader))
             return self._unifyResponses(res)
         except ResourceMismatchError:
-            log.error("Not all resource are equally indexed.")
-            return False
+            if not self._strict:
+                log.error("Not all resource are equally indexed.")
+                return False
+            else:
+                raise
 
     def resourceReaders(self, refName=None):
         """A generator of fastaReader objects for the ExternalResources in this
@@ -2014,9 +2115,6 @@ class ReferenceSet(DataSet):
             log.error("Specifying a contig name not yet implemented")
         self._openFiles()
         return self._openReaders
-        #for resource in self._openReaders:
-            #yield resource
-        #self.close()
 
     @property
     def refNames(self):
@@ -2071,9 +2169,9 @@ class ContigSet(DataSet):
 
     datasetType = DataSetMetaTypes.CONTIG
 
-    def __init__(self, *files):
-        super(ContigSet, self).__init__()
-        self._metadata = ContigSetMetadata()
+    def __init__(self, *files, **kwargs):
+        super(ContigSet, self).__init__(*files, **kwargs)
+        self._metadata = ContigSetMetadata(self._metadata)
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
@@ -2103,9 +2201,9 @@ class BarcodeSet(DataSet):
 
     datasetType = DataSetMetaTypes.BARCODE
 
-    def __init__(self, *files):
-        super(BarcodeSet, self).__init__()
-        self._metadata = BarcodeSetMetadata()
+    def __init__(self, *files, **kwargs):
+        super(BarcodeSet, self).__init__(*files, **kwargs)
+        self._metadata = BarcodeSetMetadata(self._metadata)
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the

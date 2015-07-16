@@ -5,54 +5,27 @@ import functools
 import xml.etree.ElementTree as ET
 import logging
 from urlparse import urlparse
-import DataSetIO
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
-                                              DataSetMetadata, RecordWrapper,
+                                              DataSetMetadata,
                                               Filters, AutomationParameters,
                                               StatsMetadata)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 
-__all__ = ['parseFiles']
-
 log = logging.getLogger(__name__)
 
-def parseFiles(filenames):
-    """Open files with a helper function, feed any available members into a
-    dictionary to be collected by the DataSet object
-
-    Args:
-        filenames: a list of filenames to parse
-    Returns:
-        A list of dictionaries of what will be copied into DataSet members
-    Doctest:
-        >>> from pbcore.io import DataSet
-        >>> import pbcore.data.datasets as data
-        >>> inBam = data.getBam()
-        >>> ds = parseFiles([inBam])
-        >>> type(ds).__name__
-        'DataSet'
-    """
-    dataSetRecords = []
-    # Create a DataSet object for each filename
+def populateDataSet(dset, filenames):
     for filename in filenames:
-        dataSetRecords.append(_parseFile(filename))
-    tbr = reduce(lambda x, y: x + y, dataSetRecords)
-    log.debug("Done parsing files")
-    return tbr
+        _addFile(dset, filename)
 
-def _parseFile(filename):
-    """Opens a single filename, returns a list of one or more member
-    dictionaries (more than one in the case of XML files or malformed
-    concatenated XML
-    files)."""
-    handledTypes = {'xml': _openXmlFile,
-                    'bam': _openBamFile,
-                    'fofn': _openFofnFile,
-                    '': _openUnknownFile,
-                    'file': _openUnknownFile}
+def _addFile(dset, filename):
+    handledTypes = {'xml': _addXmlFile,
+                    'bam': _addBamFile,
+                    'fofn': _addFofnFile,
+                    '': _addUnknownFile,
+                    'file': _addUnknownFile}
     url = urlparse(filename)
     fileType = url.scheme
     fileLocation = url.path.strip()
@@ -60,13 +33,31 @@ def _parseFile(filename):
         fileLocation = url.netloc
     elif os.path.exists(fileLocation):
         fileLocation = os.path.abspath(fileLocation)
-    else:
-        log.error("{f} not found".format(f=fileLocation))
-    dataSetRecord = handledTypes[fileType](fileLocation)
-    dataSetRecord.makePathsAbsolute(curStart=os.path.dirname(fileLocation))
-    return dataSetRecord
+    handledTypes[fileType](dset, fileLocation)
+    dset.makePathsAbsolute(curStart=os.path.dirname(fileLocation))
 
-def _openFofnFile(path):
+def _addXmlFile(dset, path):
+    with open(path, 'rb') as xml_file:
+        tree = ET.parse(xml_file)
+    root = tree.getroot()
+    dset.merge(_parseXml(dset, root), copyOnMerge=False)
+
+def _addBamFile(dset, path):
+    """Create and populate an Element object, put it in an available members
+    dictionary, return"""
+    extRes = ExternalResource()
+    extRes.resourceId = path
+    possible_indices = ['.pbi', '.bai', '.metadata.xml']
+    index_files = [path + ext for ext in possible_indices if
+                   os.path.exists(path + ext)]
+    if index_files:
+        extRes.addIndices(index_files)
+    extRess = ExternalResources()
+    extRess.append(extRes)
+    # We'll update them all at the end, skip updating counts for now
+    dset.addExternalResources(extRess, updateCount=False)
+
+def _addFofnFile(dset, path):
     """Open a fofn file by calling parseFiles on the new filename list"""
     with open(path, 'r') as fofnFile:
         files = []
@@ -76,21 +67,21 @@ def _openFofnFile(path):
                 files.append(tmp)
             else:
                 files.append(os.path.join(os.path.dirname(path), infn))
-        return parseFiles(files)
+        populateDataSet(dset, files)
 
-def _openUnknownFile(path):
+def _addUnknownFile(dset, path):
     """Open non-uri files
     """
     if path.endswith('xml'):
-        return _openXmlFile(path)
+        return _addXmlFile(dset, path)
     elif path.endswith('bam'):
-        return _openBamFile(path)
+        return _addBamFile(dset, path)
     elif path.endswith('fofn'):
-        return _openFofnFile(path)
+        return _addFofnFile(dset, path)
     else:
-        return _openGenericFile(path)
+        return _addGenericFile(dset, path)
 
-def _openGenericFile(path):
+def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
     extRes = ExternalResource()
@@ -102,45 +93,10 @@ def _openGenericFile(path):
                        os.path.exists(path + ext)])
     extRess = ExternalResources()
     extRess.append(extRes)
-    tbr = DataSetIO.DataSet()
-    tbr.addExternalResources(extRess)
-    tbr.newUuid()
-    return tbr
+    # We'll update them all at the end, skip updating counts for now
+    dset.addExternalResources(extRess, updateCount=False)
 
-def _openBamFile(path):
-    """Create and populate an Element object, put it in an available members
-    dictionary, return"""
-    extRes = ExternalResource()
-    extRes.resourceId = path
-    possible_indices = ['.pbi', '.bai', '.metadata.xml']
-    extRes.addIndices([path + ext for ext in possible_indices if
-                       os.path.exists(path + ext)])
-    extRess = ExternalResources()
-    extRess.append(extRes)
-    tbr = DataSetIO.DataSet()
-    tbr.addExternalResources(extRess)
-    tbr.newUuid()
-    return tbr
-
-def _openXmlFile(path):
-    """Open the XML file, extract information, create and populate Element
-    objects, put them in an available members dictionary, return
-
-    Doctest:
-        >>> import pbcore.data.datasets as data
-        >>> import xml.etree.ElementTree as ET
-        >>> dsr = _openXmlFile(data.getXml(8).split(':')[1])
-        >>> dsr.externalResources != None
-        True
-        >>> dsr.filters != None
-        True
-    """
-    with open(path, 'rb') as xml_file:
-        tree = ET.parse(xml_file)
-    root = tree.getroot()
-    return _parseXmlDataSet(root)
-
-def _parseXmlDataSet(element):
+def _parseXml(dset, element):
     """Parse an XML DataSet tag, or the root tag of a DataSet XML file (they
     should be equivalent)
 
@@ -150,20 +106,7 @@ def _parseXmlDataSet(element):
         >>> type(ds).__name__
         'SubreadSet'
     """
-    dsTypeMap = {'DataSet': DataSetIO.DataSet,
-                 'SubreadSet': DataSetIO.SubreadSet,
-                 'HdfSubreadSet': DataSetIO.HdfSubreadSet,
-                 'ConsensusReadSet': DataSetIO.ConsensusReadSet,
-                 'AlignmentSet': DataSetIO.AlignmentSet,
-                 'ReferenceSet': DataSetIO.ReferenceSet,
-                 'ContigSet': DataSetIO.ContigSet,
-                 'BarcodeSet': DataSetIO.BarcodeSet}
-    try:
-        result = dsTypeMap[_tagCleaner(element.tag)]()
-    except KeyError:
-        # Fall back to the base type (from which the others are formed) for
-        # unkown DataSet types
-        result = dsTypeMap['DataSet']()
+    result = type(dset)()
     result.objMetadata = element.attrib
     namer = functools.partial(_namespaceTag, XMLNS)
     element = _updateDataset(element)
@@ -171,7 +114,7 @@ def _parseXmlDataSet(element):
         if child.tag == namer('ExternalResources'):
             result.externalResources = _parseXmlExtResources(child)
         elif child.tag == namer('DataSets'):
-            result.subdatasets = _parseXmlDataSets(child)
+            result.subdatasets = _parseXmls(dset, child)
         elif child.tag == namer('Filters'):
             result.filters = _parseXmlFilters(child)
         elif child.tag == namer('DataSetMetadata'):
@@ -179,6 +122,14 @@ def _parseXmlDataSet(element):
         else:
             # Unknown tag found in XML
             pass
+    return result
+
+def _parseXmls(dset, element):
+    """DataSets can exist as elements in other datasets, representing subsets.
+    Pull these datasets, parse them, and return a list of them."""
+    result = []
+    for child in element:
+        result.append(_parseXml(type(dset)(), child))
     return result
 
 def _updateDataset(element):
@@ -291,14 +242,6 @@ def _eleToDictList(element):
         children.append(_eleToDictList(child))
     return {'tag': tag, 'text': text, 'attrib': attrib,
             'children': children}
-
-def _parseXmlDataSets(element):
-    """DataSets can exist as elements in other datasets, representing subsets.
-    Pull these datasets, parse them, and return a list of them."""
-    result = []
-    for child in element:
-        result.append(_parseXmlDataSet(child))
-    return result
 
 def _parseXmlFilters(element):
     """Pull filters from XML file, put them in a list of dictionaries, where
