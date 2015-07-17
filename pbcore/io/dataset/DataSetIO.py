@@ -52,16 +52,30 @@ def filtered(generator):
 def _toDsId(x):
     return "PacBio.DataSet.{x}".format(x=x)
 
-def fromDsId(x):
+def _dsIdToName(x):
+    if DataSetMetaTypes.isValid(x):
+        return x.split('.')[-1]
+
+def _dsIdToType(x):
     if DataSetMetaTypes.isValid(x):
         types = DataSet.castableTypes()
-        return types[x.split('.')[-1]]
+        return types[_dsIdToName(x)]
+
+def _dsIdToSuffix(x):
+    dsIds = DataSetMetaTypes.ALL
+    suffixMap = {dsId: _dsIdToName(dsId) for dsId in dsIds}
+    suffixMap[_toDsId("DataSet")] = 'DataSet'
+    if DataSetMetaTypes.isValid(x):
+        suffix = suffixMap[x]
+        suffix = suffix.lower()
+        suffix += '.xml'
+        return suffix
 
 def openDataSet(*files, **kwargs):
     # infer from the first:
     first = DataSet(files[0], **kwargs)
-    dType = first.objMetadata.get('MetaType')
-    tbrType = fromDsId(dType)
+    dsId = first.objMetadata.get('MetaType')
+    tbrType = _dsIdToType(dsId)
     if tbrType:
         return tbrType(*files, **kwargs)
     else:
@@ -204,7 +218,18 @@ class DataSet(object):
         # update uuid
         if not self.uuid:
             self.newUuid()
-        # TODO take updated objMetadata from write and run it here...
+
+        self.objMetadata.setdefault("Name", "")
+        self.objMetadata.setdefault("Tags", "")
+        dsType = self.objMetadata.setdefault(
+            "MetaType", "PacBio.DataSet." + self.__class__.__name__)
+        if self._strict:
+            if dsType != _toDsId('DataSet'):
+                if dsType not in self._castableDataSetTypes:
+                    raise IOError(errno.EIO,
+                                  "Cannot create {c} from {f}".format(
+                                      c=self.datasetType, f=dsType),
+                                  files[0])
 
         # State tracking:
         self._cachedFilters = []
@@ -486,7 +511,8 @@ class DataSet(object):
         result.newUuid()
         return result
 
-    def split(self, chunks=0, ignoreSubDatasets=False, contigs=False):
+    def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
+              maxChunks=0):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -549,7 +575,7 @@ class DataSet(object):
             True
         """
         if contigs:
-            return self._split_contigs(chunks)
+            return self._split_contigs(chunks, maxChunks)
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
@@ -602,7 +628,7 @@ class DataSet(object):
             largest[2] += 1
         return atoms
 
-    def _split_contigs(self, chunks):
+    def _split_contigs(self, chunks, maxChunks=0):
         """Split a dataset into reference windows based on contigs.
 
         Args:
@@ -622,7 +648,7 @@ class DataSet(object):
         log.debug("Finding contigs")
         if len(refNames) < 100:
             atoms = [(rn, None, None) for rn in refNames if
-                     next(self.readsInReference(rn), None)]
+                     next(self._indexReadsInReference(rn), None)]
         else:
             log.debug("Skipping records for each reference check")
             atoms = [(rn, None, None) for rn in self.refNames]
@@ -632,6 +658,8 @@ class DataSet(object):
         balanceKey = lambda x: x[2] - x[1]
         if not chunks:
             chunks = len(atoms)
+        if maxChunks and chunks > maxChunks:
+            chunks = maxChunks
         log.debug("Fetching reference lengths")
         refLens = self.refLengths
         # refwindow format: rId, start, end
@@ -738,11 +766,6 @@ class DataSet(object):
             >>> ds1 == ds2
             True
         """
-        # prep for writing, fill some fields that aren't filled elsewhere:
-        self.objMetadata.setdefault(
-            "MetaType", "PacBio.DataSet." + self.__class__.__name__)
-        self.objMetadata.setdefault("Name", "")
-        self.objMetadata.setdefault("Tags", "")
         # fix paths if validate:
         if validate:
             if relPaths:
@@ -755,6 +778,13 @@ class DataSet(object):
         if validate:
             validateString(xml_string, relTo=outFile)
         fileName = urlparse(outFile).path.strip()
+        if self._strict and not isinstance(self.datasetType, tuple):
+            if not fileName.endswith(_dsIdToSuffix(self.datasetType)):
+                raise IOError(errno.EIO,
+                              "Given filename does not meet standards, "
+                              "should end with {s}".format(
+                                  s=_dsIdToSuffix(self.datasetType)),
+                              fileName)
         with open(fileName, 'w') as outFile:
             outFile.writelines(xml_string)
 
@@ -1006,20 +1036,22 @@ class DataSet(object):
 
     def updateCounts(self):
         if self._skipCounts:
-            self.metadata.numRecords = -1
             self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
             return
         try:
             self.assertIndexed()
             log.debug('Updating counts')
-            self.metadata.numRecords, self.metadata.totalLength = self._length
+            numRecords, totalLength = self._length
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
         # I would prefer to just catch IOError and UnavailableFeature
         except Exception as e:
             if not self._strict:
                 log.debug("File problem ({e}), metadata not "
                           "populated".format(e=str(e)))
-                self.metadata.numRecords = -1
                 self.metadata.totalLength = -1
+                self.metadata.numRecords = -1
             else:
                 raise
 
@@ -1359,8 +1391,32 @@ class DataSet(object):
                        if self._filters.testParam('rname', name)]
         return sampled
 
+    def _indexReadsInReference(self, refName):
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames
+                    and not refName in self.fullRefNames):
+                try:
+                    refName = self._idToRname(int(refName))
+                except AttributeError:
+                    raise StopIteration
+
+        # I would love to use readsInRange(refName, None, None), but
+        # IndexedBamReader breaks this (works for regular BamReader).
+        # So I have to do a little hacking...
+        refLen = 0
+        for resource in self.resourceReaders():
+            if (refName in resource.referenceInfoTable['Name'] or
+                    refName in resource.referenceInfoTable['FullName']):
+                refLen = resource.referenceInfo(refName).Length
+                break
+        if refLen:
+            for read in self._indexReadsInRange(refName, 0, refLen):
+                yield read
+
     @filtered
-    def readsInReference(self, refName, justIndices=False):
+    def readsInReference(self, refName):
         """A generator of (usually) BamAlignment objects for the
         reads in one or more Bam files pointed to by the ExternalResources in
         this DataSet that are mapped to the specified reference genome.
@@ -1400,11 +1456,36 @@ class DataSet(object):
                 refLen = resource.referenceInfo(refName).Length
                 break
         if refLen:
-            for read in self.readsInRange(refName, 0, refLen, justIndices):
+            for read in self.readsInRange(refName, 0, refLen):
                 yield read
 
+
+    def _indexReadsInRange(self, refName, start, end):
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                # we need the real refName, which may be hidden behind a
+                # mapping to resolve duplicate refIds between resources...
+                refName = self._idToRname(int(refName))
+        for reader in self.resourceReaders():
+            tIdMap = {n: name
+                      for n, name in enumerate(
+                          reader.referenceInfoTable['Name'])}
+            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
+            index = reader.index
+            winId = reader.referenceInfo(refName).ID
+            for rec_i in index.rangeQuery(winId, start, end):
+                read = index[rec_i]
+                if filts:
+                    if any([filt(read) for filt in filts]):
+                        yield read
+                else:
+                    yield read
+
     @filtered
-    def readsInRange(self, refName, start, end, justIndices=False):
+    def readsInRange(self, refName, start, end, buffsize=50):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -1419,7 +1500,6 @@ class DataSet(object):
             start: the start of the range (inclusive, index relative to
                    reference)
             end: the end of the range (inclusive, index relative to reference)
-            justIndices: Not yet implemented
 
         Yields:
             BamAlignment objects
@@ -1443,45 +1523,72 @@ class DataSet(object):
 
         # merge sort before yield
         if self.numExternalResources > 1:
-            if justIndices:
-                try:
-                    #TODO: write tests for this
-                    read_its = [iter(rr.readsInRange(refName, start, end,
-                                                     justIndices))
-                                for rr in self.resourceReaders()]
-                except Exception:
-                    if not self._strict:
-                        log.warn("This would be faster with a .pbi file")
-                        read_its = [iter(rr.readsInRange(refName, start, end))
-                                    for rr in self.resourceReaders()]
+            if buffsize > 1:
+                read_its = [iter(rr.readsInRange(refName, start, end))
+                            for rr in self.resourceReaders()]
+                # scale to per reader buffsize:
+                # remove empty iterators
+                deep_buf = [[next(it, None) for _ in range(buffsize)]
+                            for it in read_its]
+                read_its = [it for it, cur in zip(read_its, deep_buf)
+                            if cur[0]]
+                deep_buf = [buf for buf in deep_buf if buf[0]]
+                buf_indices = [0 for _ in read_its]
+                tStarts = [cur[0].tStart for cur in deep_buf]
+                while len(read_its) != 0:
+                    # pick the first one to yield
+                    # this should be a bit faster than taking the min of an
+                    # enumeration of currents with a key function accessing a
+                    # field...
+                    first = min(tStarts)
+                    first_i = tStarts.index(first)
+                    buf_index = buf_indices[first_i]
+                    assert all([buf[buf_i] for buf, buf_i
+                                in zip(deep_buf, buf_indices)])
+                    first = deep_buf[first_i][buf_index]
+                    # update the buffers
+                    buf_index += 1
+                    buf_indices[first_i] += 1
+                    if buf_index == buffsize:
+                        buf_index = 0
+                        buf_indices[first_i] = 0
+                        deep_buf[first_i] = [next(read_its[first_i], None)
+                                             for _ in range(buffsize)]
+                    if not deep_buf[first_i][buf_index]:
+                        del read_its[first_i]
+                        del tStarts[first_i]
+                        del deep_buf[first_i]
+                        del buf_indices[first_i]
                     else:
-                        raise
+                        tStarts[first_i] = deep_buf[first_i][buf_index].tStart
+                    assert first
+                    yield first
             else:
                 read_its = [iter(rr.readsInRange(refName, start, end))
                             for rr in self.resourceReaders()]
-            # buffer one element from each generator
-            currents = [next(its, None) for its in read_its]
-            # remove empty iterators
-            read_its = [it for it, cur in zip(read_its, currents) if cur]
-            currents = [cur for cur in currents if cur]
-            tStarts = [cur.tStart for cur in currents]
-            while len(read_its) != 0:
-                # pick the first one to yield
-                # this should be a bit faster than taking the min of an
-                # enumeration of currents with a key function accessing a
-                # field...
-                first = min(tStarts)
-                first_i = tStarts.index(first)
-                first = currents[first_i]
-                # update the buffers
-                try:
-                    currents[first_i] = next(read_its[first_i])
-                    tStarts[first_i] = currents[first_i].tStart
-                except StopIteration:
-                    del read_its[first_i]
-                    del currents[first_i]
-                    del tStarts[first_i]
-                yield first
+                # buffer one element from each generator
+                currents = [next(its, None) for its in read_its]
+                # remove empty iterators
+                read_its = [it for it, cur in zip(read_its, currents) if cur]
+                currents = [cur for cur in currents if cur]
+                tStarts = [cur.tStart for cur in currents]
+                while len(read_its) != 0:
+                    # pick the first one to yield
+                    # this should be a bit faster than taking the min of an
+                    # enumeration of currents with a key function accessing a
+                    # field...
+                    first = min(tStarts)
+                    first_i = tStarts.index(first)
+                    first = currents[first_i]
+                    # update the buffers
+                    try:
+                        currents[first_i] = next(read_its[first_i])
+                        tStarts[first_i] = currents[first_i].tStart
+                    except StopIteration:
+                        del read_its[first_i]
+                        del currents[first_i]
+                        del tStarts[first_i]
+                    yield first
         else:
             # the above will work in either case, but this might be ever so
             # slightly faster
@@ -1557,6 +1664,13 @@ class DataSet(object):
             tbr.append(self._resolveLocation(fname, '.'))
         return tbr
 
+    @property
+    def _castableDataSetTypes(self):
+        if isinstance(self.datasetType, tuple):
+            return self.datasetType
+        else:
+            return (_toDsId('DataSet'), self.datasetType)
+
     @classmethod
     def castableTypes(cls):
         """The types to which this DataSet type may be cast. This is a property
@@ -1612,7 +1726,9 @@ class DataSet(object):
         needed
         """
         self._cachedFilters = []
-        self.updateCounts()
+        #self.updateCounts()
+        self.metadata.totalLength = -1
+        self.metadata.numRecords = -1
         if self.metadata.summaryStats:
             self.metadata.removeChildren('SummaryStats')
 
@@ -1868,7 +1984,9 @@ class ReadSet(DataSet):
                 else:
                     raise
             if not resource:
-                raise IOError("{f} fails to open".format(f=location))
+                raise IOError(errno.EIO,
+                              "{f} fails to open".format(f=location),
+                              location)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -1986,17 +2104,21 @@ class AlignmentSet(ReadSet):
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
-            log.debug("referenceFastaFname received")
-            reference = ReferenceSet(fname).externalResources.resourceIds
-            if len(reference) > 1:
-                log.warn("Multiple references found, cannot open with reads")
-            else:
-                log.debug("Opening files with reference")
-                self._referenceFile = reference[0]
-                self._openFiles()
+            self.addReference(fname)
+            #log.debug("referenceFastaFname received")
+            #reference = ReferenceSet(fname).externalResources.resourceIds
+            #if len(reference) > 1:
+                #log.warn("Multiple references found, cannot open with reads")
+            #else:
+                #log.debug("Opening files with reference")
+                #self._referenceFile = reference[0]
+                #self._openFiles()
 
     def addReference(self, fname):
-        reference = ReferenceSet(fname).externalResources.resourceIds
+        if isinstance(fname, ReferenceSet):
+            reference = fname.externalResources.resourceIds
+        else:
+            reference = ReferenceSet(fname).externalResources.resourceIds
         if len(reference) > 1:
             log.warn("Multiple references found, cannot open with reads")
         else:
@@ -2034,13 +2156,13 @@ class ReferenceSet(DataSet):
 
     def updateCounts(self):
         if self._skipCounts:
-            self.metadata.numRecords = -1
             self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
             return
         try:
             log.debug('Updating counts')
-            self.metadata.numRecords = 0
             self.metadata.totalLength = 0
+            self.metadata.numRecords = 0
             for res in self.resourceReaders():
                 self.metadata.numRecords += len(res)
                 for index in res.fai:
@@ -2049,8 +2171,8 @@ class ReferenceSet(DataSet):
             if not self._strict:
                 # This will be fixed soon, or log an appropriate error
                 # (additionally, unindexed fasta files will soon be disallowed)
-                self.metadata.numRecords = -1
                 self.metadata.totalLength = -1
+                self.metadata.numRecords = -1
             else:
                 raise
 

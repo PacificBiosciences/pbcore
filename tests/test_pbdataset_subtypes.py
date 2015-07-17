@@ -110,8 +110,24 @@ class TestDataSet(unittest.TestCase):
         rs1 = ReferenceSet(data.getXml(9))
         fasta_res = rs1.externalResources[0]
         fasta_file = urlparse(fasta_res.resourceId).path
+
+        ds1 = AlignmentSet(data.getXml(8),
+            referenceFastaFname=rs1)
+        aln_ref = None
+        for aln in ds1:
+            aln_ref = aln.reference()
+            break
+        self.assertTrue(aln_ref is not None)
+
         ds1 = AlignmentSet(data.getXml(8),
             referenceFastaFname=fasta_file)
+        aln_ref = None
+        for aln in ds1:
+            aln_ref = aln.reference()
+            break
+        self.assertTrue(aln_ref is not None)
+
+        ds1 = AlignmentSet(data.getXml(8))
         ds1.addReference(fasta_file)
         aln_ref = None
         for aln in ds1:

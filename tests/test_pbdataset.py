@@ -10,7 +10,8 @@ from unittest.case import SkipTest
 
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
-                       openDataSet)
+                       openDataSet, DataSetMetaTypes)
+from pbcore.io.dataset.DataSetIO import _dsIdToSuffix
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
@@ -120,14 +121,13 @@ class TestDataSet(unittest.TestCase):
             ds = openDataSet(infn)
             self.assertEqual(type(ds), exp)
 
-        ds = openDataSet(*inTypes)
-        self.assertEqual(type(ds), DataSet)
-        ds = openDataSet(*inTypes[1:])
-        self.assertEqual(type(ds), AlignmentSet)
-        ds = openDataSet(*inTypes[2:])
-        self.assertEqual(type(ds), ReferenceSet)
-        ds = openDataSet(*inTypes[3:])
-        self.assertEqual(type(ds), SubreadSet)
+    def test_dsIdToSuffix(self):
+        suffixes = ['subreadset.xml', 'hdfsubreadset.xml', 'alignmentset.xml',
+                    'barcodeset.xml', 'consensusreadset.xml',
+                    'consensusalignmentset.xml',
+                    'referenceset.xml', 'contigset.xml']
+        for dsId, exp in zip(DataSetMetaTypes.ALL, suffixes):
+            self.assertEqual(_dsIdToSuffix(dsId), exp)
 
     def test_updateCounts_without_pbi(self):
         log.info("Testing updateCounts without pbi")
@@ -174,6 +174,7 @@ class TestDataSet(unittest.TestCase):
 
         log.info("Testing whether filters are respected")
         aln.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        aln.updateCounts()
         accLen = aln.metadata.totalLength
         accNum = aln.metadata.numRecords
 
@@ -323,12 +324,16 @@ class TestDataSet(unittest.TestCase):
     def test_write(self):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfile = os.path.join(outdir, 'tempfile.xml')
-        ds1 = DataSet(data.getBam())
+        ds1 = AlignmentSet(data.getBam())
         ds1.write(outfile)
-        # TODO: turn back on when pyxb present:
-        #validateFile(outfile)
-        ds2 = DataSet(outfile)
+        log.debug('Validated file: {f}'.format(f=outfile))
+        validateFile(outfile)
+        ds2 = AlignmentSet(outfile)
         self.assertTrue(ds1 == ds2)
+
+        # Should fail when strict:
+        ds3 = AlignmentSet(data.getBam())
+        ds3.write(outfile)
 
     def test_addFilters(self):
         ds1 = DataSet()
@@ -507,6 +512,61 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(count(ds2.records), 53552)
         self.assertEqual(ds2.countRecords(), 53552)
 
+    def test_split_by_contigs_with_split_and_maxChunks(self):
+        # test to make sure the refWindows work when chunks == # refs
+        ds3 = DataSet(data.getBam())
+        dss = ds3.split(contigs=True)
+        self.assertEqual(len(dss), 12)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        # not all references have something mapped to them, refWindows doesn't
+        # care...
+        self.assertNotEqual(refWindows, sorted(ds3.refWindows))
+        random_few = [('C.beijerinckii.13', 0, 1433),
+                      ('B.vulgatus.4', 0, 1449),
+                      ('E.faecalis.1', 0, 1482)]
+        for reference in random_few:
+            found = False
+            for ref in refWindows:
+                if ref == reference:
+                    found = True
+            self.assertTrue(found)
+        old_refWindows = refWindows
+
+        dss = ds3.split(contigs=True, maxChunks=1)
+        self.assertEqual(len(dss), 1)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        self.assertEqual(refWindows, old_refWindows)
+
+        dss = ds3.split(contigs=True, maxChunks=24)
+        # This isn't expected if num refs >= 100, as map check isn't made
+        # for now (too expensive)
+        # There are only 12 refs represented in this set, however...
+        self.assertEqual(len(dss), 12)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            if not found:
+                log.debug(ref)
+            self.assertTrue(found)
+
+        dss = ds3.split(contigs=True, maxChunks=36)
+        self.assertEqual(len(dss), 12)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
     def test_split_by_contigs_with_split(self):
         # test to make sure the refWindows work when chunks == # refs
         ds3 = DataSet(data.getBam())
@@ -535,6 +595,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(refWindows, old_refWindows)
 
         dss = ds3.split(contigs=True, chunks=24)
+        self.assertEqual(len(dss), 24)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
 
@@ -550,6 +611,7 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(found)
 
         dss = ds3.split(contigs=True, chunks=36)
+        self.assertEqual(len(dss), 36)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         random_few = [('E.faecalis.2', 0, 494),

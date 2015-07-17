@@ -4,8 +4,11 @@ import os
 import re
 from urlparse import urlparse
 import xml.etree.ElementTree as ET
+import logging
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
+
+log = logging.getLogger(__name__)
 
 def validateResources(xmlroot, relTo=False):
     stack = [xmlroot]
@@ -31,10 +34,14 @@ def validateXml(xmlroot):
     # Conceal the first characters of UniqueIds if they are legal numbers that
     # would for some odd reason be considered invalid. Let all illegal
     # characters fall through to the validator.
-    from pbcore.io.dataset import DataSetXsd
-    fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
-                         ET.tostring(xmlroot))
-    DataSetXsd.CreateFromDocument(fixedString)
+    try:
+        from pbcore.io.dataset import DataSetXsd
+        log.debug('Validating with PyXb')
+        fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
+                             ET.tostring(xmlroot))
+        DataSetXsd.CreateFromDocument(fixedString)
+    except ImportError:
+        log.debug('PyXb not found, validation disabled')
 
 def validateFile(xmlfn):
     if ':' in xmlfn:

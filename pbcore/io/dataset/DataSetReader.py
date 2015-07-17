@@ -22,7 +22,7 @@ def populateDataSet(dset, filenames):
 
 def _addFile(dset, filename):
     handledTypes = {'xml': _addXmlFile,
-                    'bam': _addBamFile,
+                    'bam': _addGenericFile,
                     'fofn': _addFofnFile,
                     '': _addUnknownFile,
                     'file': _addUnknownFile}
@@ -42,21 +42,6 @@ def _addXmlFile(dset, path):
     root = tree.getroot()
     dset.merge(_parseXml(dset, root), copyOnMerge=False)
 
-def _addBamFile(dset, path):
-    """Create and populate an Element object, put it in an available members
-    dictionary, return"""
-    extRes = ExternalResource()
-    extRes.resourceId = path
-    possible_indices = ['.pbi', '.bai', '.metadata.xml']
-    index_files = [path + ext for ext in possible_indices if
-                   os.path.exists(path + ext)]
-    if index_files:
-        extRes.addIndices(index_files)
-    extRess = ExternalResources()
-    extRess.append(extRes)
-    # We'll update them all at the end, skip updating counts for now
-    dset.addExternalResources(extRess, updateCount=False)
-
 def _addFofnFile(dset, path):
     """Open a fofn file by calling parseFiles on the new filename list"""
     with open(path, 'r') as fofnFile:
@@ -75,7 +60,7 @@ def _addUnknownFile(dset, path):
     if path.endswith('xml'):
         return _addXmlFile(dset, path)
     elif path.endswith('bam'):
-        return _addBamFile(dset, path)
+        return _addGenericFile(dset, path)
     elif path.endswith('fofn'):
         return _addFofnFile(dset, path)
     else:
@@ -84,13 +69,18 @@ def _addUnknownFile(dset, path):
 def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
+    possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml']
+    for ext in possible_indices:
+        if path.endswith(ext):
+            log.debug('Index file {f} given as regular file, will be treated '
+                      ' as an index file instead'.format(f=path))
+            return
     extRes = ExternalResource()
     extRes.resourceId = path
-    # Perhaps this should be in its own _openFastaFile function. Or
-    # _openBamFile should be rolled into this...
-    possible_indices = ['.fai']
-    extRes.addIndices([path + ext for ext in possible_indices if
-                       os.path.exists(path + ext)])
+    index_files = [path + ext for ext in possible_indices if
+                   os.path.exists(path + ext)]
+    if index_files:
+        extRes.addIndices(index_files)
     extRess = ExternalResources()
     extRess.append(extRes)
     # We'll update them all at the end, skip updating counts for now

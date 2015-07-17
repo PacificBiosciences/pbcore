@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 # Not actually sure what this should be:
-XMLVERSION = '2.3.0'
+XMLVERSION = '3.0.0'
 
 __all__ = ['toXml']
 
@@ -41,8 +41,6 @@ def _toElementTree(dataSet, root=None, core=False):
     # 'if not root:' would conflict with testing root for children
     if root is None:
         rootType = type(dataSet).__name__
-        #rootType = dataSet.metadata.get(
-            #'MetaType', 'PacBio.DataSet.SubreadSet').split('.')[2]
         attribs = dataSet.objMetadata
         if core:
             attribs = _coreClean(attribs)
@@ -113,14 +111,7 @@ def _addDataSetMetadataElement(dataSet, root):
     """
     if dataSet.metadata:
         dsmd = ET.SubElement(root, 'DataSetMetadata')
-        #for key, value in dataSet.datasetMetadata.items():
-        #for key, value in dataSet.metadata.record.items():
         for child in dataSet.metadata.record['children']:
-            #dsmd.append(_eleFromEleDict(key, value))
-            #if isinstance(value, (int, float, str)):
-                #ET.SubElement(dsmd, key).text = value
-            #elif isinstance(value, dict):
-                #dsmd.append(_eleFromDict(key, value))
             dsmd.append(_eleFromDictList(child))
 
 def _eleFromDict(tag, eleAsDict):
@@ -154,11 +145,6 @@ def _addFiltersElement(dataset, root, core=False):
         filters = ET.SubElement(root, 'Filters')
         for child in dataset.filters.record['children']:
             filters.append(_eleFromDictList(child, core))
-        #for filt in dataset.filters:
-            #filtElement = ET.SubElement(filters, 'Filter')
-            #parameters = ET.SubElement(filtElement, 'Parameters')
-            #for key, value in filt.items():
-                #ET.SubElement(parameters, 'Parameter', Name=key, Value=value)
 
 def _addDataSetsElement(dataset, root):
     """Add DataSet Elements to root, which essentially nests ElementTrees.
