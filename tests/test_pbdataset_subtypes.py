@@ -7,6 +7,8 @@ import unittest
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet)
 import pbcore.data.datasets as data
+from pbcore.io.dataset.DataSetValidator import validateXml
+import xml.etree.ElementTree as ET
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +33,10 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds4).__name__, 'SubreadSet')
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
         self.assertEquals(len(ds4.metadata.collections), 1)
+
+    @unittest.skip("XSD can't handle multiple contigs?")
+    def test_valid_referencesets(self):
+        validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
     def test_autofilled_metatypes(self):
         ds = ReferenceSet(data.getXml(9))

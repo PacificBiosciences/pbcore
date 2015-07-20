@@ -288,6 +288,10 @@ class RecordWrapper(object):
     def description(self):
         return self.getV('attrib', 'Description')
 
+    @description.setter
+    def description(self, value):
+        return self.setV(value, 'attrib', 'Description')
+
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
 
@@ -891,36 +895,6 @@ class SubreadSetMetadata(DataSetMetadata):
                                             container='children'))
 
 
-class ReferenceSetMetadata(DataSetMetadata):
-    """The DataSetMetadata subtype specific to ReferenceSets."""
-
-
-    def __init__(self, record=None):
-        if record:
-            if (not isinstance(record, dict) and
-                    not isinstance(record, ReferenceSetMetadata) and
-                    type(record).__name__ != 'DataSetMetadata'):
-                raise TypeError("Cannot create ReferenceSetMetadata from "
-                                "{t}".format(t=type(record).__name__))
-        super(ReferenceSetMetadata, self).__init__(record)
-
-    def merge(self, other):
-        super(self.__class__, self).merge(other)
-        self.contigs.merge(other.contigs)
-
-    @property
-    def organism(self):
-        return self.getMemberV('Organism')
-
-    @property
-    def ploidy(self):
-        return self.getMemberV('Ploidy')
-
-    @property
-    def contigs(self):
-        return ContigsMetadata(self.getV('children', 'Contigs'))
-
-
 class ContigSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to ContigSets."""
 
@@ -939,8 +913,48 @@ class ContigSetMetadata(DataSetMetadata):
         self.contigs.merge(other.contigs)
 
     @property
+    def organism(self):
+        try:
+            return self.getMemberV('Organism')
+        except ValueError:
+            return None
+
+    @organism.setter
+    def organism(self, value):
+        self.setMemberV('Organism', value)
+
+    @property
+    def ploidy(self):
+        try:
+            return self.getMemberV('Ploidy')
+        except ValueError:
+            return None
+
+    @ploidy.setter
+    def ploidy(self, value):
+        self.setMemberV('Ploidy', value)
+
+    @property
     def contigs(self):
+        # to this so that the absence of contigs is adequately conveyed.
+        if not list(self.findChildren('Contigs')):
+            return None
         return ContigsMetadata(self.getV('children', 'Contigs'))
+
+    @contigs.setter
+    def contigs(self, value):
+        if not value:
+            self.append(ContigsMetadata())
+
+    def addContig(self, newContig):
+        if not self.contigs:
+            self.contigs = []
+        tmp = ContigMetadata()
+        tmp.name = newContig.id if newContig.id else ''
+        tmp.description = newContig.comment if newContig.comment else ''
+        tmp.digest = 'DEPRECATED'
+        tmp.length = len(newContig)
+        self.contigs.append(tmp)
 
 
 class BarcodeSetMetadata(DataSetMetadata):
@@ -963,6 +977,9 @@ class BarcodeSetMetadata(DataSetMetadata):
 
 class ContigsMetadata(RecordWrapper):
 
+    def __init__(self, record=None):
+        super(self.__class__, self).__init__(record)
+        self.record['tag'] = 'Contigs'
 
     def __getitem__(self, index):
         return ContigMetadata(self.record['children'][index])
@@ -977,14 +994,25 @@ class ContigsMetadata(RecordWrapper):
 
 class ContigMetadata(RecordWrapper):
 
+    def __init__(self, record=None):
+        super(self.__class__, self).__init__(record)
+        self.record['tag'] = 'Contig'
 
     @property
     def digest(self):
         return self.getV('attrib', 'Digest')
 
+    @digest.setter
+    def digest(self, value):
+        return self.setV(value, 'attrib', 'Digest')
+
     @property
     def length(self):
-        return self.getV('attrib', 'Length')
+        return int(self.getV('attrib', 'Length'))
+
+    @length.setter
+    def length(self, value):
+        return self.setV(str(value), 'attrib', 'Length')
 
 
 class CollectionsMetadata(RecordWrapper):

@@ -10,7 +10,15 @@ XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 
 log = logging.getLogger(__name__)
 
-def validateResources(xmlroot, relTo=False):
+def validateResources(xmlroot, relTo='.'):
+    """Validate the resources in an XML file.
+
+    Args:
+        xmlroot: The ET root of an xml tree
+        relTo: ('.') The path relative to which resources may reside. This will
+               work poorly if relTo is not set to the location of the incoming
+               XML file.
+    """
     stack = [xmlroot]
     while stack:
         element = stack.pop()
@@ -23,6 +31,23 @@ def validateResources(xmlroot, relTo=False):
                 if not os.path.isfile(os.path.join(os.path.dirname(relTo),
                                                    rfn)):
                     raise IOError, "{f} not found".format(f=rfn)
+
+def validateLxml(xml_fn, xsd_fn):
+    try:
+        from lxml import etree
+        schema = etree.XMLSchema(etree.parse(xsd_fn))
+        xml_file = etree.parse(xml_fn)
+        if not schema.validate(xml_file):
+            print schema.error_log
+    except ImportError:
+        log.debug('lxml not found, validation disabled')
+
+def validateMiniXsv(xml_fn, xsd_fn):
+    try:
+        from minixsv import pyxsval
+        pyxsval.parseAndValidate(xml_fn, xsd_fn)
+    except ImportError:
+        log.debug('minixsv not found, validation disabled')
 
 def validateXml(xmlroot, skipResources=False):
     # pyxb precompiles and therefore does not need the original xsd file.
@@ -52,7 +77,7 @@ def validateFile(xmlfn, skipResources=False):
         root = ET.parse(xmlfile).getroot()
         return validateXml(root, skipResources=skipResources)
 
-def validateString(xmlstring, relTo=None):
+def validateString(xmlstring, relTo='.'):
     #root = etree.parse(xmlfile)
     root = ET.fromstring(xmlstring)
     validateResources(root, relTo=relTo)

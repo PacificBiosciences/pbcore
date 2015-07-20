@@ -26,7 +26,6 @@ from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               SubreadSetMetadata,
-                                              ReferenceSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
                                               ExternalResources, Filters)
@@ -2105,14 +2104,6 @@ class AlignmentSet(ReadSet):
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
-            #log.debug("referenceFastaFname received")
-            #reference = ReferenceSet(fname).externalResources.resourceIds
-            #if len(reference) > 1:
-                #log.warn("Multiple references found, cannot open with reads")
-            #else:
-                #log.debug("Opening files with reference")
-                #self._referenceFile = reference[0]
-                #self._openFiles()
 
     def addReference(self, fname):
         if isinstance(fname, ReferenceSet):
@@ -2145,14 +2136,29 @@ class AlignmentSet(ReadSet):
                }
 
 
-class ReferenceSet(DataSet):
-    """DataSet type specific to References"""
+class ContigSet(DataSet):
+    """DataSet type specific to Contigs"""
 
-    datasetType = DataSetMetaTypes.REFERENCE
+    datasetType = DataSetMetaTypes.CONTIG
 
     def __init__(self, *files, **kwargs):
-        super(ReferenceSet, self).__init__(*files, **kwargs)
-        self._metadata = ReferenceSetMetadata(self._metadata)
+        super(ContigSet, self).__init__(*files, **kwargs)
+        self._metadata = ContigSetMetadata(self._metadata)
+        self._updateMetadata()
+
+    def _updateMetadata(self):
+        # update contig specific metadata:
+        if not self._metadata.organism:
+            self._metadata.organism = ''
+        if not self._metadata.ploidy:
+            self._metadata.ploidy = ''
+        if not self._metadata.contigs:
+            self._metadata.contigs = []
+            self._populateContigMetadata()
+
+    def _populateContigMetadata(self):
+        for contig in self.contigs:
+            self._metadata.addContig(contig)
 
     def updateCounts(self):
         if self._skipCounts:
@@ -2169,28 +2175,10 @@ class ReferenceSet(DataSet):
                     self.metadata.totalLength += index.length
         except Exception:
             if not self._strict:
-                # This will be fixed soon, or log an appropriate error
-                # (additionally, unindexed fasta files will soon be disallowed)
                 self.metadata.totalLength = -1
                 self.metadata.numRecords = -1
             else:
                 raise
-
-    def processFilters(self):
-        # Allows us to not process all of the filters each time. This is marked
-        # as dirty (= []) by addFilters etc. Filtration can be turned off by
-        # setting this to [lambda x: True], which can be reversed by marking
-        # the cache dirty. See disableFilters/enableFilters
-        if self._cachedFilters:
-            return self._cachedFilters
-        filters = self.filters.tests(readType="fasta")
-        # Having no filters means no opportunity to pass. Fix by filling with
-        # always-true (e.g. disableFilters())
-        if not filters:
-            self._cachedFilters = [lambda x: True]
-            return self._cachedFilters
-        self._cachedFilters = filters
-        return filters
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
@@ -2199,16 +2187,16 @@ class ReferenceSet(DataSet):
         # Validate, clean and prep input data
         if newMetadata:
             if isinstance(newMetadata, dict):
-                newMetadata = ReferenceSetMetadata(newMetadata)
-            elif isinstance(newMetadata, ReferenceSetMetadata) or (
+                newMetadata = ContigSetMetadata(newMetadata)
+            elif isinstance(newMetadata, ContigSetMetadata) or (
                     type(newMetadata).__name__ == 'DataSetMetadata'):
-                newMetadata = ReferenceSetMetadata(newMetadata.record)
+                newMetadata = ContigSetMetadata(newMetadata.record)
             else:
-                raise TypeError("Cannot extend ReferenceSetMetadata with "
+                raise TypeError("Cannot extend ContigSetMetadata with "
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ReferenceSet, self).addMetadata(newMetadata, **kwargs)
+        super(ContigSet, self).addMetadata(newMetadata, **kwargs)
 
         # Pull subtype specific values where important
         if newMetadata:
@@ -2230,30 +2218,13 @@ class ReferenceSet(DataSet):
             except IOError:
                 if not self._strict:
                     log.debug('Companion reference index (.fai) missing. '
-                             'Use "samtools faidx <refname>" to generate one.')
+                              'Use "samtools faidx <refname>" to generate '
+                              'one.')
                     resource = FastaReader(location)
                 else:
                     raise
             self._openReaders.append(resource)
         log.debug("Done opening resources")
-
-    def assertIndexed(self):
-        self._strict = True
-        self._openFiles()
-        return True
-
-    @property
-    def isIndexed(self):
-        try:
-            res = self._pollResources(
-                lambda x: isinstance(x, IndexedFastaReader))
-            return self._unifyResponses(res)
-        except ResourceMismatchError:
-            if not self._strict:
-                log.error("Not all resource are equally indexed.")
-                return False
-            else:
-                raise
 
     def resourceReaders(self, refName=None):
         """A generator of fastaReader objects for the ExternalResources in this
@@ -2275,17 +2246,6 @@ class ReferenceSet(DataSet):
             log.error("Specifying a contig name not yet implemented")
         self._openFiles()
         return self._openReaders
-
-    @property
-    def refNames(self):
-        """The reference names assigned to the External Resources, or contigs,
-        if no name assigned."""
-        refNames = []
-        for contig in self.contigs:
-            if (self.noFiltering
-                    or self._filters.testParam('id', contig.id, str)):
-                refNames.append(contig.id)
-        return sorted(list(set(refNames)))
 
     @property
     @filtered
@@ -2316,6 +2276,75 @@ class ReferenceSet(DataSet):
             if contig.id == contig_id or contig.name == contig_id:
                 return contig
 
+    def assertIndexed(self):
+        self._strict = True
+        self._openFiles()
+        return True
+
+    @property
+    def isIndexed(self):
+        try:
+            res = self._pollResources(
+                lambda x: isinstance(x, IndexedFastaReader))
+            return self._unifyResponses(res)
+        except ResourceMismatchError:
+            if not self._strict:
+                log.error("Not all resource are equally indexed.")
+                return False
+            else:
+                raise
+
+    @property
+    def contigNames(self):
+        """The names assigned to the External Resources, or contigs if no name
+        assigned."""
+        names = []
+        for contig in self.contigs:
+            if (self.noFiltering
+                    or self._filters.testParam('id', contig.id, str)):
+                names.append(contig.id)
+        return sorted(list(set(names)))
+
+
+    @staticmethod
+    def _metaTypeMapping():
+        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
+                'fai':'PacBio.Index.SamIndex',
+                'sa':'PacBio.Index.SaWriterIndex',
+               }
+
+
+class ReferenceSet(ContigSet):
+    """DataSet type specific to References"""
+
+    datasetType = DataSetMetaTypes.REFERENCE
+
+    def __init__(self, *files, **kwargs):
+        super(ReferenceSet, self).__init__(*files, **kwargs)
+
+    def processFilters(self):
+        # Allows us to not process all of the filters each time. This is marked
+        # as dirty (= []) by addFilters etc. Filtration can be turned off by
+        # setting this to [lambda x: True], which can be reversed by marking
+        # the cache dirty. See disableFilters/enableFilters
+        if self._cachedFilters:
+            return self._cachedFilters
+        filters = self.filters.tests(readType="fasta")
+        # Having no filters means no opportunity to pass. Fix by filling with
+        # always-true (e.g. disableFilters())
+        if not filters:
+            self._cachedFilters = [lambda x: True]
+            return self._cachedFilters
+        self._cachedFilters = filters
+        return filters
+
+    @property
+    def refNames(self):
+        """The reference names assigned to the External Resources, or contigs
+        if no name assigned."""
+        return self.contigNames
+
+
     @staticmethod
     def _metaTypeMapping():
         return {'fasta':'PacBio.ReferenceFile.ReferenceFastaFile',
@@ -2323,38 +2352,6 @@ class ReferenceSet(DataSet):
                 'sa':'PacBio.Index.SaWriterIndex',
                }
 
-
-class ContigSet(DataSet):
-    """DataSet type specific to Contigs"""
-
-    datasetType = DataSetMetaTypes.CONTIG
-
-    def __init__(self, *files, **kwargs):
-        super(ContigSet, self).__init__(*files, **kwargs)
-        self._metadata = ContigSetMetadata(self._metadata)
-
-    def addMetadata(self, newMetadata, **kwargs):
-        """Add metadata specific to this subtype, while leaning on the
-        superclass method for generic metadata. Also enforce metadata type
-        correctness."""
-        # Validate, clean and prep input data
-        if newMetadata:
-            if isinstance(newMetadata, dict):
-                newMetadata = ContigSetMetadata(newMetadata)
-            elif isinstance(newMetadata, ContigSetMetadata) or (
-                    type(newMetadata).__name__ == 'DataSetMetadata'):
-                newMetadata = ContigSetMetadata(newMetadata.record)
-            else:
-                raise TypeError("Cannot extend ContigSetMetadata with "
-                                "{t}".format(t=type(newMetadata).__name__))
-
-        # Pull generic values, kwargs, general treatment in super
-        super(ContigSet, self).addMetadata(newMetadata, **kwargs)
-
-        # Pull subtype specific values where important
-        if newMetadata:
-            if newMetadata.contigs:
-                self._metadata.contigs.extend(newMetadata.contigs)
 
 class BarcodeSet(DataSet):
     """DataSet type specific to Barcodes"""

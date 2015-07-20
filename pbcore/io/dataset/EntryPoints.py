@@ -144,15 +144,17 @@ def loadStatsXml_options(parser):
     parser.set_defaults(func=loadStatsXml)
 
 def validateXml(args):
-    validateFile(args.infile)
+    validateFile(args.infile, args.skipFiles)
     print("{f} is valid DataSet XML with valid ResourceId "
           "references".format(f=args.infile))
 
 def validate_options(parser):
     parser.description = 'Validate XML and ResourceId files'
-    #parser.add_argument("infile", type=validate_file,
     parser.add_argument("infile", type=str,
                         help="The XML file to validate")
+    parser.add_argument("--skipFiles",
+                        default=False, action='store_true',
+                        help="Skip validating external resources")
     parser.set_defaults(func=validateXml)
 
 def consolidateXml(args):

@@ -113,6 +113,9 @@ def _addDataSetMetadataElement(dataSet, root):
         dsmd = ET.SubElement(root, 'DataSetMetadata')
         for child in dataSet.metadata.record['children']:
             dsmd.append(_eleFromDictList(child))
+        #tl = dsmd.find('TotalLength')
+        #tl = dsmd.remove(tl)
+        #dsmd.insert(0, tl)
 
 def _eleFromDict(tag, eleAsDict):
     """A last ditch capture method for uknown Elements"""
