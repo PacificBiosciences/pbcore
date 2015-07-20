@@ -24,12 +24,13 @@ def validateResources(xmlroot, relTo=False):
                                                    rfn)):
                     raise IOError, "{f} not found".format(f=rfn)
 
-def validateXml(xmlroot):
+def validateXml(xmlroot, skipResources=False):
     # pyxb precompiles and therefore does not need the original xsd file.
     #if not os.path.isfile(XSD):
         #raise SystemExit, "Validation xsd {s} not found".format(s=XSD)
 
-    validateResources(xmlroot)
+    if not skipResources: # XXX generally a bad idea, but useful for pbvalidate
+        validateResources(xmlroot)
 
     # Conceal the first characters of UniqueIds if they are legal numbers that
     # would for some odd reason be considered invalid. Let all illegal
@@ -43,13 +44,13 @@ def validateXml(xmlroot):
     except ImportError:
         log.debug('PyXb not found, validation disabled')
 
-def validateFile(xmlfn):
+def validateFile(xmlfn, skipResources=False):
     if ':' in xmlfn:
         xmlfn = urlparse(xmlfn).path.strip()
     with open(xmlfn, 'r') as xmlfile:
         #root = etree.parse(xmlfile)
         root = ET.parse(xmlfile).getroot()
-        return validateXml(root)
+        return validateXml(root, skipResources=skipResources)
 
 def validateString(xmlstring, relTo=None):
     #root = etree.parse(xmlfile)
