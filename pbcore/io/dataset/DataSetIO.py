@@ -21,7 +21,8 @@ from pbcore.io.FastaIO import splitFastaHeader
 from pbcore.io import PacBioBamIndex
 from pbcore.io.align._BamSupport import IncompatibleFile
 
-from pbcore.io.dataset.DataSetReader import parseStats, populateDataSet
+from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
+                                             resolveLocation)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -839,17 +840,6 @@ class DataSet(object):
         self._cachedFilters = filters
         return filters
 
-    def _resolveLocation(self, fname, possibleRelStart):
-        """Find the absolute path of a file that exists relative to '.' or
-        possibleRelStart."""
-        if os.path.exists(fname):
-            return os.path.abspath(fname)
-        if os.path.exists(possibleRelStart):
-            if os.path.exists(os.path.join(possibleRelStart, fname)):
-                return os.path.abspath(os.path.join(possibleRelStart, fname))
-        log.error("Including unresolved file: {f}".format(f=fname))
-        return fname
-
     def makePathsAbsolute(self, curStart="."):
         """As part of the validation process, make all ResourceIds absolute
         URIs rather than relative paths. Generally not called by API users.
@@ -858,7 +848,7 @@ class DataSet(object):
             curStart: The location from which relative paths should emanate.
         """
         self._changePaths(
-            lambda x, s=curStart: self._resolveLocation(x, s))
+            lambda x, s=curStart: resolveLocation(x, s))
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
@@ -873,6 +863,25 @@ class DataSet(object):
             self._changePaths(lambda x, s=outDir: os.path.relpath(x, s))
         else:
             self._changePaths(os.path.relpath)
+
+    def _modResources(self, func):
+        # check all ExternalResources
+        stack = list(self.externalResources)
+        while stack:
+            item = stack.pop()
+            resId = item.resourceId
+            if not resId:
+                continue
+            func(item)
+            try:
+                stack.extend(list(item.indices))
+            except AttributeError:
+                # Some things just don't have indices
+                pass
+
+        # check all SubDatasets
+        for dataset in self.subdatasets:
+            dataset._modResources(func)
 
     def _changePaths(self, osPathFunc, checkMetaType=True):
         """Change all resourceId paths in this DataSet according to the
@@ -907,6 +916,9 @@ class DataSet(object):
         # check all SubDatasets
         for dataset in self.subdatasets:
             dataset._changePaths(osPathFunc)
+
+    def _populateMetaTypes(self):
+        self._modResources(self._updateMetaType)
 
     def _updateMetaType(self, resource):
         """Infer and set the metatype of 'resource' if it doesn't already have
@@ -1660,7 +1672,7 @@ class DataSet(object):
         files = self.externalResources.resourceIds
         tbr = []
         for fname in files:
-            tbr.append(self._resolveLocation(fname, '.'))
+            tbr.append(resolveLocation(fname, '.'))
         return tbr
 
     @property

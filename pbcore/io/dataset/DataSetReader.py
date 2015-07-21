@@ -16,9 +16,21 @@ XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 
 log = logging.getLogger(__name__)
 
+def resolveLocation(fname, possibleRelStart='.'):
+    """Find the absolute path of a file that exists relative to '.' or
+    possibleRelStart."""
+    if os.path.exists(fname):
+        return os.path.abspath(fname)
+    if os.path.exists(possibleRelStart):
+        if os.path.exists(os.path.join(possibleRelStart, fname)):
+            return os.path.abspath(os.path.join(possibleRelStart, fname))
+    log.error("Including unresolved file: {f}".format(f=fname))
+    return fname
+
 def populateDataSet(dset, filenames):
     for filename in filenames:
         _addFile(dset, filename)
+    dset._populateMetaTypes()
 
 def _addFile(dset, filename):
     handledTypes = {'xml': _addXmlFile,
@@ -34,13 +46,14 @@ def _addFile(dset, filename):
     elif os.path.exists(fileLocation):
         fileLocation = os.path.abspath(fileLocation)
     handledTypes[fileType](dset, fileLocation)
-    dset.makePathsAbsolute(curStart=os.path.dirname(fileLocation))
 
 def _addXmlFile(dset, path):
     with open(path, 'rb') as xml_file:
         tree = ET.parse(xml_file)
     root = tree.getroot()
-    dset.merge(_parseXml(dset, root), copyOnMerge=False)
+    tmp = _parseXml(dset, root)
+    tmp.makePathsAbsolute(curStart=os.path.dirname(path))
+    dset.merge(tmp, copyOnMerge=False)
 
 def _addFofnFile(dset, path):
     """Open a fofn file by calling parseFiles on the new filename list"""
@@ -76,6 +89,7 @@ def _addGenericFile(dset, path):
                       ' as an index file instead'.format(f=path))
             return
     extRes = ExternalResource()
+    path = resolveLocation(path)
     extRes.resourceId = path
     index_files = [path + ext for ext in possible_indices if
                    os.path.exists(path + ext)]
