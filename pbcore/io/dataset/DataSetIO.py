@@ -19,8 +19,9 @@ from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
-from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
-from pbcore.io import PacBioBamIndex
+from pbcore.io.FastaIO import (splitFastaHeader, FastaWriter, FastaRecord,
+                               IndexedFastaRecord)
+from pbcore.io import PacBioBamIndex, BaxH5Reader
 from pbcore.io.align._BamSupport import IncompatibleFile
 
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
@@ -585,7 +586,7 @@ class DataSet(object):
                 and not ignoreSubDatasets):
             return self._split_subdatasets(chunks)
 
-        atoms = self.externalResources
+        atoms = self.externalResources.resources
         balanceKey = len
 
         # If chunks not specified, split to one DataSet per
@@ -1952,7 +1953,10 @@ class DataSet(object):
             chunkSizes.sort()
             # Add one to the emptiest bin
             chunks[chunkSizes[0][1]].append(item)
-            chunkSizes[0][0] += balanceKey(item)
+            mass = balanceKey(item)
+            if mass == 0:
+                mass += 1
+            chunkSizes[0][0] += mass
         return chunks
 
 class InvalidDataSetIOError(Exception):
@@ -2032,6 +2036,25 @@ class ReadSet(DataSet):
 class HdfSubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.HDF_SUBREAD
+
+    def __init__(self, *files, **kwargs):
+        log.debug("Opening HdfSubreadSet")
+        kwargs['skipCounts'] = True
+        super(HdfSubreadSet, self).__init__(*files, **kwargs)
+
+    def _openFiles(self):
+        """Open the files (assert they exist, assert they are of the proper
+        type before accessing any file)
+        """
+        if self._openReaders:
+            log.debug("Closing old readers...")
+            self.close()
+        log.debug("Opening resources")
+        for extRes in self.externalResources:
+            location = urlparse(extRes.resourceId).path
+            resource = BaxH5Reader(location)
+            self._openReaders.append(resource)
+        log.debug("Done opening resources")
 
     @staticmethod
     def _metaTypeMapping():
@@ -2174,19 +2197,34 @@ class ContigSet(DataSet):
     def consolidate(self, outfn=None):
         """Consolidation should be implemented for window text in names and
         for filters in ContigSets"""
+
+        # In general "name" here refers to the contig.id only, which is why we
+        # also have to keep track of comments.
         log.debug("Beginning consolidation")
         # Get the possible keys
         names = self.contigNames
         winless_names = [self._removeWindow(name) for name in names]
 
         # Put them into buckets
-        matches = {name: np.array([con for con in self.contigs
-                                   if con.name == name or
-                                   self._removeWindow(con.name) == name])
-                   for name in winless_names}
+        matches = {}
+        for con in self.contigs:
+            conId = con.id
+            window = self._parseWindow(conId)
+            if not window is None:
+                conId = self._removeWindow(conId)
+            if conId not in matches:
+                matches[conId] = [con]
+            else:
+                matches[conId].append(con)
+        for name, match_list in matches.items():
+            matches[name] = np.array(match_list)
 
         writeTemp = False
+        # consolidate multiple files into one
+        if len(self.toExternalFiles()) > 1:
+            writeTemp = True
         writeMatches = {}
+        writeComments = {}
         for name, match_list in matches.items():
             if len(match_list) > 1:
                 log.debug("Multiple matches found for {i}".format(i=name))
@@ -2212,9 +2250,11 @@ class ContigSet(DataSet):
                 # set to write
                 writeTemp = True
                 writeMatches[new_name] = new_seq
+                writeComments[new_name] = match_list[0].comment
             else:
                 log.debug("One match found for {i}".format(i=name))
                 writeMatches[name] = match_list[0].sequence
+                writeComments[name] = match_list[0].comment
         if writeTemp:
             log.debug("Writing a new file is necessary")
             if not outfn:
@@ -2223,8 +2263,10 @@ class ContigSet(DataSet):
                 outfn = os.path.join(outdir,
                                      'consolidated.contigset.xml')
             with FastaWriter(outfn) as outfile:
-                log.debug("Writing...")
+                log.debug("Writing new resource {o}".format(o=outfn))
                 for name, seq in writeMatches.items():
+                    if writeComments[name]:
+                        name = ' '.join([name, writeComments[name]])
                     outfile.writeRecord(name, seq)
             # replace resources
             log.debug("Replacing resources")

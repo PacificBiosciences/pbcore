@@ -73,6 +73,7 @@ def splitXml(args):
                         ignoreSubDatasets=(not args.subdatasets),
                         contigs=args.contigs,
                         maxChunks=args.maxChunks)
+    log.debug("Split into {i} chunks".format(i=len(dss)))
     infix = 'chunk{i}'
     if args.contigs:
         infix += 'contigs'
@@ -88,6 +89,7 @@ def splitXml(args):
             args.outfiles = [os.path.join(args.outdir,
                                           os.path.basename(outfn))
                              for outfn in args.outfiles]
+            log.debug("Emitting {f}".format(f=', '.join(args.outfiles)))
     log.debug("Finished splitting")
     for out_fn, dset in zip(args.outfiles, dss):
         dset.write(out_fn)

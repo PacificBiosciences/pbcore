@@ -8,7 +8,9 @@ import os
 from pbcore.util.Process import backticks
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet,
-                       FastaReader, FastaWriter, IndexedFastaReader)
+                       FastaReader, FastaWriter, IndexedFastaReader,
+                       HdfSubreadSet)
+import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
 import xml.etree.ElementTree as ET
@@ -122,7 +124,6 @@ class TestDataSet(unittest.TestCase):
         inFas = os.path.join(outdir, 'infile.fasta')
         outFas1 = os.path.join(outdir, 'tempfile1.fasta')
         outFas2 = os.path.join(outdir, 'tempfile2.fasta')
-        print outFas1
 
         # copy fasta reference to hide fai and ensure FastaReader is used
         backticks('cp {i} {o}'.format(
@@ -159,6 +160,15 @@ class TestDataSet(unittest.TestCase):
         for name, seq in zip(singletons, exp_single_seqs):
             self.assertEqual(acc_file.get_contig(name).sequence, seq)
         self.assertEqual(acc_file.get_contig(double).sequence, exp_double_seq)
+
+
+    def test_split_hdfsubreadset(self):
+        hdfds = HdfSubreadSet(*upstreamData.getBaxH5_v23())
+        self.assertEqual(len(hdfds.toExternalFiles()), 3)
+        hdfdss = hdfds.split(chunks=2, ignoreSubDatasets=True)
+        self.assertEqual(len(hdfdss), 2)
+        self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
+        self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
 
     def test_alignment_reference(self):
