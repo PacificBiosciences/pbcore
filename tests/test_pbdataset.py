@@ -118,8 +118,14 @@ class TestDataSet(unittest.TestCase):
         inTypes = [bam, aln, ref, sub]
         expTypes = [DataSet, AlignmentSet, ReferenceSet, SubreadSet]
         for infn, exp in zip(inTypes, expTypes):
-            ds = openDataSet(infn)
+            # TODO enable this for all when simulated subread files can be
+            # pbi'd
+            if exp in [DataSet, ReferenceSet, AlignmentSet]:
+                ds = openDataSet(infn, strict=True)
+            else:
+                ds = openDataSet(infn)
             self.assertEqual(type(ds), exp)
+
 
     def test_dsIdToSuffix(self):
         suffixes = ['subreadset.xml', 'hdfsubreadset.xml', 'alignmentset.xml',

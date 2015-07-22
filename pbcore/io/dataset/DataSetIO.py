@@ -393,7 +393,9 @@ class DataSet(object):
     def __len__(self):
         count = 0
         if self._filters:
-            count = self._length[0]
+            log.warn("Base class DataSet length cannot be calculate when "
+                     "filters present")
+            return -1
         else:
             for reader in self.resourceReaders():
                 count += len(reader)
@@ -1053,25 +1055,8 @@ class DataSet(object):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
-        if self._skipCounts:
-            self.metadata.totalLength = -1
-            self.metadata.numRecords = -1
-            return
-        try:
-            self.assertIndexed()
-            log.debug('Updating counts')
-            numRecords, totalLength = self._length
-            self.metadata.totalLength = totalLength
-            self.metadata.numRecords = numRecords
-        # I would prefer to just catch IOError and UnavailableFeature
-        except Exception as e:
-            if not self._strict:
-                log.debug("File problem ({e}), metadata not "
-                          "populated".format(e=str(e)))
-                self.metadata.totalLength = -1
-                self.metadata.numRecords = -1
-            else:
-                raise
+        self.metadata.totalLength = -1
+        self.metadata.numRecords = -1
 
     def assertIndexed(self):
         if not self._openReaders:
@@ -1283,24 +1268,6 @@ class DataSet(object):
         """ Iterate over the records. (sorted for AlignmentSet objects)"""
         for record in self.records:
             yield record
-
-    @property
-    def _length(self):
-        """Used to populate metadata in updateCounts"""
-        length = 0
-        count = 0
-        endkey = 'aEnd'
-        startkey = 'aStart'
-        if self.isCmpH5:
-            endkey = 'rEnd'
-            startkey = 'rStart'
-        for rec in self.indexRecords:
-            count += len(rec)
-            if isinstance(rec, np.ndarray):
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                length += sum(rec.aEnd - rec.aStart)
-        return count, length
 
     @property
     def subSetNames(self):
@@ -2033,6 +2000,22 @@ class ReadSet(DataSet):
         # Pull generic values, kwargs, general treatment in super
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
 
+    @property
+    def _length(self):
+        """Used to populate metadata in updateCounts"""
+        length = -1
+        count = -1
+        return count, length
+
+    def __len__(self):
+        count = 0
+        if self._filters:
+            count = self._length[0]
+        else:
+            for reader in self.resourceReaders():
+                count += len(reader)
+        return count
+
 class HdfSubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.HDF_SUBREAD
@@ -2103,6 +2086,21 @@ class SubreadSet(ReadSet):
         log.debug("Opening SubreadSet")
         super(SubreadSet, self).__init__(*files, **kwargs)
 
+    @property
+    def _length(self):
+        """Used to populate metadata in updateCounts"""
+        length = 0
+        count = 0
+        endkey = 'qEnd'
+        startkey = 'qStart'
+        for rec in self.indexRecords:
+            count += len(rec)
+            if isinstance(rec, np.ndarray):
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                length += sum(rec.aEnd - rec.aStart)
+        return count, length
+
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
@@ -2162,6 +2160,55 @@ class AlignmentSet(ReadSet):
         else:
             self._referenceFile = reference[0]
             self._openFiles()
+
+    def updateCounts(self):
+        if self._skipCounts:
+            self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
+            return
+        try:
+            self.assertIndexed()
+            log.debug('Updating counts')
+            numRecords, totalLength = self._length
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+        # I would prefer to just catch IOError and UnavailableFeature
+        except Exception as e:
+            if not self._strict:
+                log.debug("File problem ({e}), metadata not "
+                          "populated".format(e=str(e)))
+                self.metadata.totalLength = -1
+                self.metadata.numRecords = -1
+            else:
+                raise
+
+    @property
+    def _length(self):
+        """Used to populate metadata in updateCounts"""
+        length = 0
+        count = 0
+        endkey = 'aEnd'
+        startkey = 'aStart'
+        if self.isCmpH5:
+            endkey = 'rEnd'
+            startkey = 'rStart'
+        for rec in self.indexRecords:
+            count += len(rec)
+            if isinstance(rec, np.ndarray):
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                length += sum(rec.aEnd - rec.aStart)
+        return count, length
+
+    def __len__(self):
+        count = 0
+        if self._filters:
+            count = self._length[0]
+        else:
+            for reader in self.resourceReaders():
+                count += len(reader)
+        return count
+
 
     @property
     def recordsByReference(self):
