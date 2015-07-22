@@ -2,10 +2,13 @@
 import logging
 from urlparse import urlparse
 import unittest
+import tempfile
+import os
 
-#from pbcore.util.Process import backticks
+from pbcore.util.Process import backticks
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
-                       ReferenceSet, ContigSet, AlignmentSet)
+                       ReferenceSet, ContigSet, AlignmentSet,
+                       FastaReader, FastaWriter, IndexedFastaReader)
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
 import xml.etree.ElementTree as ET
@@ -111,6 +114,52 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
         for contigmd in ds2.metadata.contigs:
             self.assertEquals(type(contigmd).__name__, 'ContigMetadata')
+
+    def test_contigset_consolidate(self):
+        #build set to merge
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+
+        inFas = os.path.join(outdir, 'infile.fasta')
+        outFas1 = os.path.join(outdir, 'tempfile1.fasta')
+        outFas2 = os.path.join(outdir, 'tempfile2.fasta')
+        print outFas1
+
+        # copy fasta reference to hide fai and ensure FastaReader is used
+        backticks('cp {i} {o}'.format(
+                      i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+                      o=inFas))
+        rs1 = ContigSet(inFas)
+
+        singletons = ['A.baumannii.1', 'A.odontolyticus.1']
+        double = 'B.cereus.1'
+        reader = rs1.resourceReaders()[0]
+        exp_double = rs1.get_contig(double)
+        exp_singles = [rs1.get_contig(name) for name in singletons]
+
+        # todo: modify the names first:
+        with FastaWriter(outFas1) as writer:
+            writer.writeRecord(exp_singles[0])
+            writer.writeRecord(exp_double.name + '_10_20', exp_double.sequence)
+        with FastaWriter(outFas2) as writer:
+            writer.writeRecord(exp_double.name + '_0_10',
+                               exp_double.sequence + 'ATCGATCGATCG')
+            writer.writeRecord(exp_singles[1])
+
+        exp_double_seq = ''.join([exp_double.sequence,
+                                  'ATCGATCGATCG',
+                                  exp_double.sequence])
+        exp_single_seqs = [rec.sequence for rec in exp_singles]
+
+        acc_file = ContigSet(outFas1, outFas2)
+        log.debug(acc_file.toExternalFiles())
+        acc_file.consolidate()
+        log.debug(acc_file.toExternalFiles())
+
+        # open acc and compare to exp
+        for name, seq in zip(singletons, exp_single_seqs):
+            self.assertEqual(acc_file.get_contig(name).sequence, seq)
+        self.assertEqual(acc_file.get_contig(double).sequence, exp_double_seq)
+
 
     def test_alignment_reference(self):
         rs1 = ReferenceSet(data.getXml(9))

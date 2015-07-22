@@ -11,18 +11,20 @@ import os
 import errno
 import logging
 import xml.dom.minidom
+import tempfile
 from functools import wraps
 import numpy as np
 from urlparse import urlparse
+from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
-from pbcore.io.FastaIO import splitFastaHeader
+from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io import PacBioBamIndex
 from pbcore.io.align._BamSupport import IncompatibleFile
 
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
-                                             resolveLocation)
+                                             resolveLocation, wrapNewResource)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -934,6 +936,10 @@ class DataSet(object):
         # no metatypes for generic DataSet
         return {}
 
+    def copyFiles(self, outdir):
+        backticks('cp {i} {o}'.format(i=' '.join(self.toExternalFiles()),
+                                      o=outdir))
+
     def disableFilters(self):
         """Disable read filtering for this object"""
         self.noFiltering = True
@@ -1127,6 +1133,9 @@ class DataSet(object):
                        self.externalResources]
 
         for newExtRes in newExtResources:
+            if isinstance(newExtRes, str):
+                newExtRes = wrapNewResource(newExtRes)
+
             # merge duplicates instead of adding them
             if newExtRes.resourceId in resourceIds:
                 first = resourceIds.index(newExtRes.resourceId)
@@ -1137,6 +1146,7 @@ class DataSet(object):
                 self.externalResources.append(newExtRes)
                 resourceIds.append(newExtRes.resourceId)
         if updateCount:
+            self._openFiles()
             self.updateCounts()
 
     def addDatasets(self, otherDataSet):
@@ -2067,6 +2077,7 @@ class SubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.SUBREAD
 
     def __init__(self, *files, **kwargs):
+        log.debug("Opening SubreadSet")
         super(SubreadSet, self).__init__(*files, **kwargs)
 
     @staticmethod
@@ -2112,6 +2123,7 @@ class AlignmentSet(ReadSet):
             strict=False: see base class
             skipCounts=False: see base class
         """
+        log.debug("Opening AlignmentSet")
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
@@ -2154,9 +2166,96 @@ class ContigSet(DataSet):
     datasetType = DataSetMetaTypes.CONTIG
 
     def __init__(self, *files, **kwargs):
+        log.debug("Opening ContigSet")
         super(ContigSet, self).__init__(*files, **kwargs)
         self._metadata = ContigSetMetadata(self._metadata)
         self._updateMetadata()
+
+    def consolidate(self, outfn=None):
+        """Consolidation should be implemented for window text in names and
+        for filters in ContigSets"""
+        log.debug("Beginning consolidation")
+        # Get the possible keys
+        names = self.contigNames
+        winless_names = [self._removeWindow(name) for name in names]
+
+        # Put them into buckets
+        matches = {name: np.array([con for con in self.contigs
+                                   if con.name == name or
+                                   self._removeWindow(con.name) == name])
+                   for name in winless_names}
+
+        writeTemp = False
+        writeMatches = {}
+        for name, match_list in matches.items():
+            if len(match_list) > 1:
+                log.debug("Multiple matches found for {i}".format(i=name))
+                # look for the quiver window indication scheme from quiver:
+                windows = np.array([self._parseWindow(match.id)
+                                    for match in match_list])
+                for win in windows:
+                    if win is None:
+                        log.debug("Windows not found for all items with a "
+                                  "matching id, consolidation aborted")
+                        return
+                # order windows
+                order = np.argsort([window[0] for window in windows])
+                match_list = match_list[order]
+                windows = windows[order]
+                # TODO: check to make sure windows/lengths are compatible,
+                # complete
+
+                # collapse matches
+                new_name = self._removeWindow(name)
+                new_seq = ''.join([match.sequence for match in match_list])
+
+                # set to write
+                writeTemp = True
+                writeMatches[new_name] = new_seq
+            else:
+                log.debug("One match found for {i}".format(i=name))
+                writeMatches[name] = match_list[0].sequence
+        if writeTemp:
+            log.debug("Writing a new file is necessary")
+            if not outfn:
+                log.debug("Writing to a temp directory as no path given")
+                outdir = tempfile.mkdtemp(suffix="consolidated-contigset")
+                outfn = os.path.join(outdir,
+                                     'consolidated.contigset.xml')
+            with FastaWriter(outfn) as outfile:
+                log.debug("Writing...")
+                for name, seq in writeMatches.items():
+                    outfile.writeRecord(name, seq)
+            # replace resources
+            log.debug("Replacing resources")
+            self.externalResources = ExternalResources()
+            self.addExternalResources([outfn])
+            # replace contig info
+            log.debug("Replacing metadata")
+            self._metadata.contigs = []
+            self._populateContigMetadata()
+
+    def _popSuffix(self, name):
+        observedSuffixes = ['|quiver']
+        for suff in observedSuffixes:
+            if name.endswith(suff):
+                log.debug("Suffix found: {s}".format(s=suff))
+                return name.replace(suff, ''), suff
+        return name, ''
+
+    def _removeWindow(self, name):
+        if isinstance(self._parseWindow(name), np.ndarray):
+            name, suff = self._popSuffix(name)
+            return '_'.join(name.split('_')[:-2]) + suff
+        return name
+
+    def _parseWindow(self, name):
+        name, _ = self._popSuffix(name)
+        possibilities = name.split('_')[-2:]
+        for pos in possibilities:
+            if not pos.isdigit():
+                return None
+        return np.array(map(int, possibilities))
 
     def _updateMetadata(self):
         # update contig specific metadata:
@@ -2284,6 +2383,7 @@ class ContigSet(DataSet):
 
     def get_contig(self, contig_id):
         """Get a contig by ID"""
+        # TODO: have this use getitem for indexed fasta readers:
         for contig in self.contigs:
             if contig.id == contig_id or contig.name == contig_id:
                 return contig
@@ -2317,7 +2417,6 @@ class ContigSet(DataSet):
                 names.append(contig.id)
         return sorted(list(set(names)))
 
-
     @staticmethod
     def _metaTypeMapping():
         return {'fasta':'PacBio.ContigFile.ContigFastaFile',
@@ -2332,6 +2431,7 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
+        log.debug("Opening ReferenceSet")
         super(ReferenceSet, self).__init__(*files, **kwargs)
 
     def processFilters(self):
@@ -2371,6 +2471,7 @@ class BarcodeSet(DataSet):
     datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files, **kwargs):
+        log.debug("Opening BarcodeSet")
         super(BarcodeSet, self).__init__(*files, **kwargs)
         self._metadata = BarcodeSetMetadata(self._metadata)
 

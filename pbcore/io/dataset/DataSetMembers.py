@@ -944,6 +944,7 @@ class ContigSetMetadata(DataSetMetadata):
     @contigs.setter
     def contigs(self, value):
         if not value:
+            self.removeChildren('Contigs')
             self.append(ContigsMetadata())
 
     def addContig(self, newContig):

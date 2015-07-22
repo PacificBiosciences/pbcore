@@ -2,7 +2,7 @@
 
 import os
 import argparse
-from pbcore.io import DataSet
+from pbcore.io import DataSet, ContigSet
 from pbcore.io.dataset.DataSetValidator import validateFile
 import logging
 
@@ -160,15 +160,17 @@ def validate_options(parser):
 def consolidateXml(args):
     """Combine BAMs and apply the filters described in the XML file, producing
     one consolidated XML"""
-    raise NotImplementedError(
-        "Consolidation requires sequence file manipulation, which may never "
-        "be in the scope of this API")
+    dset = ContigSet(args.infile)
+    dset.consolidate(args.datafile)
+    dset.write(args.xmlfile)
 
 def consolidate_options(parser):
     parser.description = 'Consolidate the XML files'
     #parser.add_argument("infile", type=validate_file,
     parser.add_argument("infile", type=str,
                         help="The XML file to consolidate")
-    parser.add_argument("outfile", type=str,
+    parser.add_argument("datafile", type=str,
+                        help="The resulting data file")
+    parser.add_argument("xmlfile", type=str,
                         help="The resulting XML file")
     parser.set_defaults(func=consolidateXml)

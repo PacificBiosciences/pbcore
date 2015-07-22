@@ -82,6 +82,13 @@ def _addUnknownFile(dset, path):
 def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
+    extRes = wrapNewResource(path)
+    extRess = ExternalResources()
+    extRess.append(extRes)
+    # We'll update them all at the end, skip updating counts for now
+    dset.addExternalResources(extRess, updateCount=False)
+
+def wrapNewResource(path):
     possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml']
     for ext in possible_indices:
         if path.endswith(ext):
@@ -95,10 +102,8 @@ def _addGenericFile(dset, path):
                    os.path.exists(path + ext)]
     if index_files:
         extRes.addIndices(index_files)
-    extRess = ExternalResources()
-    extRess.append(extRes)
-    # We'll update them all at the end, skip updating counts for now
-    dset.addExternalResources(extRess, updateCount=False)
+    return extRes
+
 
 def _parseXml(dset, element):
     """Parse an XML DataSet tag, or the root tag of a DataSet XML file (they
