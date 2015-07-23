@@ -56,6 +56,9 @@ class PBToolRunner(object):
     #
     def __init__(self, description):
         self._setupParsers(description)
+        self._addStandardArguments()
+
+    def _addStandardArguments(self):
         self.parser.add_argument(
             "--verbose", "-v",
             dest="verbosity", action="count",
