@@ -25,7 +25,8 @@ from pbcore.io import PacBioBamIndex, BaxH5Reader
 from pbcore.io.align._BamSupport import IncompatibleFile
 
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
-                                             resolveLocation, wrapNewResource)
+                                             resolveLocation, wrapNewResource,
+                                             xmlRootType)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -78,6 +79,13 @@ def openDataSet(*files, **kwargs):
     # infer from the first:
     first = DataSet(files[0], **kwargs)
     dsId = first.objMetadata.get('MetaType')
+    # hdfsubreadset metatypes are subreadset. Fix:
+    if files[0].endswith('xml'):
+        xml_rt = xmlRootType(files[0])
+        if _dsIdToName(dsId) != xml_rt:
+            log.warn("XML metatype does not match root tag")
+            if xml_rt == 'HdfSubreadSet':
+                dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     if tbrType:
         return tbrType(*files, **kwargs)
@@ -2144,7 +2152,7 @@ class AlignmentSet(ReadSet):
             strict=False: see base class
             skipCounts=False: see base class
         """
-        log.debug("Opening AlignmentSet")
+        log.debug("Opening AlignmentSet with {f}".format(f=files))
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:

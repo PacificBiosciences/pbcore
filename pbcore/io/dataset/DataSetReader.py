@@ -32,6 +32,12 @@ def populateDataSet(dset, filenames):
         _addFile(dset, filename)
     dset._populateMetaTypes()
 
+def xmlRootType(fname):
+    with open(fname, 'rb') as xml_file:
+        tree = ET.parse(xml_file)
+    root = tree.getroot()
+    return _tagCleaner(root.tag)
+
 def _addFile(dset, filename):
     handledTypes = {'xml': _addXmlFile,
                     'bam': _addGenericFile,
@@ -138,7 +144,7 @@ def _parseXmls(dset, element):
     Pull these datasets, parse them, and return a list of them."""
     result = []
     for child in element:
-        result.append(_parseXml(type(dset)(), child))
+        result.append(_parseXml(dset, child))
     return result
 
 def _updateDataset(element):
