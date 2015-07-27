@@ -681,10 +681,10 @@ class TestDataSet(unittest.TestCase):
         log.debug(dss[0].filters)
         log.debug(dss[1].filters)
         self.assertTrue(
-            '( rname = E.faecalis.2 AND tstart > 0 AND tend < 1482 ) '
+            '( rname = E.faecalis.2 ) '
             in str(dss[0].filters)
             or
-            '( rname = E.faecalis.2 AND tstart > 0 AND tend < 1482 ) '
+            '( rname = E.faecalis.2 ) '
             in str(dss[1].filters))
         ds = DataSet(data.getBam())
         ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011'),
@@ -895,8 +895,6 @@ class TestDataSet(unittest.TestCase):
                                   rep))
         self.assertTrue(re.search('pbalchemysim0.pbalign.bam', rep))
 
-    # TODO Turn back on when up to date stats metadata is available
-    @SkipTest
     def test_stats_metadata(self):
         ds = DataSet(data.getBam())
         ds.loadStats(data.getStats())
@@ -987,3 +985,13 @@ class TestDataSet(unittest.TestCase):
         ds3 = ds1 + ds2
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
                          [1, 1, 1, 0, 2, 2, 2])
+
+        # now lets test the subdataset metadata retention:
+        ss = SubreadSet(data.getXml(10))
+        ss.loadStats(data.getStats(0))
+        ss.loadStats(data.getStats(1))
+        self.assertEqual(153168.0, ss.metadata.summaryStats.numSequencingZmws)
+        self.assertEqual(
+            2876.0, ss.subdatasets[0].metadata.summaryStats.numSequencingZmws)
+        self.assertEqual(
+            150292.0, ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)

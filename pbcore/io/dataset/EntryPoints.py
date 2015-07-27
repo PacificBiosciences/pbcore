@@ -89,10 +89,18 @@ def splitXml(args):
             args.outfiles = [os.path.join(args.outdir,
                                           os.path.basename(outfn))
                              for outfn in args.outfiles]
-            log.debug("Emitting {f}".format(f=', '.join(args.outfiles)))
-    log.debug("Finished splitting")
+            num = len(dss)
+            end = ''
+            if num > 5:
+                num = 5
+                end = '...'
+            log.debug("Emitting {f} {e}".format(
+                f=', '.join(args.outfiles[:num]),
+                e=end))
+    log.debug("Finished splitting, now writing")
     for out_fn, dset in zip(args.outfiles, dss):
         dset.write(out_fn)
+    log.debug("Done writing files")
 
 def split_options(parser):
     parser.description = "Split the dataset"

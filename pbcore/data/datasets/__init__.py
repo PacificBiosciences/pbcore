@@ -15,9 +15,9 @@ XML_FILES = ["alignment.dataset.xml", #0
              "pbalchemysim0.reference.xml", #9
              "pbalchemysim0.subread.xml",
              "pbalchemysim1.pbalign.xml",
-             "pbalchemysim.pbalign.xml", # both 0 and 1 bam files
+             "pbalchemysim.pbalign.xml", # both sim0 and sim1 bam files
              "pbalchemysim1.subread.xml",
-             "subreadSetWithStats.xml", #14 # TODO: replace w regenable+new XSD
+             "subreadSetWithStats.xml", #14
              "pbalchemysim0.pbalign.chunk0contigs.xml",
              "pbalchemysim0.pbalign.chunk1contigs.xml",
             ]
@@ -37,7 +37,7 @@ def getXml(no=0):
     return _getAbsPath(XML_FILES[no])
 
 def getXmlWithStats():
-    return _getAbsPath(XML_FILES[9])
+    return _getAbsPath(XML_FILES[14])
 
 def getBam(no=0):
     return _getAbsPath(BAM_FILES[no])

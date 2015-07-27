@@ -351,7 +351,7 @@ class DataSet(object):
         (objMetadata, DataSet metadata, externalResources, filters and
         subdatasets)
         """
-        tbr = type(self)()
+        tbr = type(self)(skipCounts=True)
         memo[id(self)] = tbr
         tbr.objMetadata = copy.deepcopy(self.objMetadata, memo)
         tbr.metadata = copy.deepcopy(self._metadata, memo)
@@ -656,27 +656,32 @@ class DataSet(object):
         # contigs with associated records
 
         # The format is rID, start, end, for a reference window
-        refNames = self.refNames
+        log.debug("Fetching reference names and lengths")
+        # pull both at once so you only have to mess with the
+        # referenceInfoTable once.
+        refLens = self.refLengths
+        refNames = refLens.keys()
         log.debug("{i} references found".format(i=len(refNames)))
         log.debug("Finding contigs")
         if len(refNames) < 100:
-            atoms = [(rn, None, None) for rn in refNames if
+            atoms = [(rn, 0, 0) for rn in refNames if
                      next(self._indexReadsInReference(rn), None)]
         else:
             log.debug("Skipping records for each reference check")
-            atoms = [(rn, None, None) for rn in self.refNames]
+            atoms = [(rn, 0, 0) for rn in refNames]
 
         # The window length is used for balancing
-        # TODO switch it to countRecords
+        # TODO switch it to countRecords?
         balanceKey = lambda x: x[2] - x[1]
+
+        # By providing maxChunks and not chunks, this combination will set
+        # chunks down to < len(atoms) < maxChunks
         if not chunks:
             chunks = len(atoms)
         if maxChunks and chunks > maxChunks:
             chunks = maxChunks
-        log.debug("Fetching reference lengths")
-        refLens = self.refLengths
+
         # refwindow format: rId, start, end
-        atoms = [(rn, 0, refLens[rn]) for rn, _, _ in atoms]
         if chunks > len(atoms):
             # splitting atom format is slightly different (but more compatible
             # going forward with countRecords): (rId, size, segments)
@@ -707,7 +712,7 @@ class DataSet(object):
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
         for result, chunk in zip(results, chunks):
-            if not atoms[0][2] is None:
+            if atoms[0][2]:
                 result.filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk],
                     tStart=[('>', c[1]) for c in chunk],
@@ -826,8 +831,16 @@ class DataSet(object):
             [3152, 1802, 798, 0]
 
         """
-        statsMetadata = parseStats(filename)
+        if isinstance(filename, str):
+            statsMetadata = parseStats(filename)
+        else:
+            statsMetadata = filename
         if self.metadata.summaryStats:
+            newSub = self.copy()
+            newSub.metadata.removeChildren('SummaryStats')
+            newSub.loadStats(statsMetadata)
+            self.addDatasets(self.copy())
+            self.addDatasets(newSub)
             self.metadata.summaryStats.merge(statsMetadata)
         else:
             self.metadata.append(statsMetadata)
@@ -1375,15 +1388,19 @@ class DataSet(object):
         Args:
             key: a key for the referenceInfoTable of each resource
         Returns:
-            A dictionary of refrence name: key_result pairs"""
-        # sample
+            A list of tuples of refrence name, key_result pairs
+
+        """
+        log.debug("Sampling references")
         names = self.referenceInfoTable['Name']
         infos = self.referenceInfoTable[key]
-        # remove dupes
+
+        log.debug("Sampling removing duplicate reference entries")
         sampled = zip(names, infos)
         sampled = list(set(sampled))
-        # filter
-        if not self.noFiltering:
+
+        log.debug("Filtering reference entries")
+        if not self.noFiltering or not self._filters:
             sampled = [(name, info) for name, info in sampled
                        if self._filters.testParam('rname', name)]
         return sampled
@@ -1829,12 +1846,13 @@ class DataSet(object):
         is preferred). Record.Names are remapped for cmp.h5 files to be
         consistent with bam files.
         """
-        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
+        # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
         # instance). Use the resource readers directly instead.
         responses = self._pollResources(lambda x: x.referenceInfoTable)
         if len(responses) > 1:
             assert not self.isCmpH5 # see above
-            tbr = reduce(np.append, responses)
+            #tbr = reduce(np.append, responses)
+            tbr = np.concatenate(responses)
             tbr = np.unique(tbr)
             for i, rec in enumerate(tbr):
                 rec.ID = i

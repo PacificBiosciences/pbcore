@@ -31,6 +31,9 @@ testdata:
 	pbalign datasets/pbalchemysim1.subreads.bam datasets/pbalchemysim0.reference.fasta datasets/pbalchemysim1.pbalign.bam && \
 	dataset.py create --type AlignmentSet --relative datasets/pbalchemysim1.pbalign.xml datasets/pbalchemysim1.pbalign.bam
 	dataset.py create --type AlignmentSet --relative datasets/pbalchemysim.pbalign.xml datasets/pbalchemysim0.pbalign.bam datasets/pbalchemysim1.pbalign.bam
+	dataset.py create --type SubreadSet --relative datasets/subreadSetWithStats.xml datasets/pbalchemysim0.subread.xml
+	dataset.py loadstats datasets/subreadSetWithStats.xml datasets/m150430_142051_Mon_p1_b25.sts.xml
+	dataset.py loadstats datasets/subreadSetWithStats.xml datasets/m150616_053259_ethan_c100710482550000001823136404221563_s1_p0.sts.xml
 
 upstream_testdata:
 	dataset.py create --type ReferenceSet --relative datasets/lambda.reference.xml lambdaNEB.fa
