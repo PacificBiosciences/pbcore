@@ -63,7 +63,45 @@ class PacBioBamIndex(object):
         (self.magic, self.vPatch, self.vMinor,
          self.vMajor, self.pbiFlags, self.nReads) = header
 
+    @property
+    def hasMappingInfo(self):
+        return (self.pbiFlags & PBI_FLAGS_MAPPED)
+
+    @property
+    def hasAdapterInfo(self):
+        return (self.pbiFlags & PBI_FLAGS_BARCODE_ADAPTER)
+
     def _loadMainIndex(self, f):
+        # Main index holds subread and mapping info
+        SUBREADS_INDEX_DTYPE = [
+            ("qId"               , "i4"),
+            ("qStart"            , "i4"),
+            ("qEnd"              , "i4"),
+            ("holeNumber"        , "i4"),
+            ("readQual"          , "u2"),
+            ("virtualFileOffset" , "i8") ]
+
+        MAPPING_INDEX_DTYPE = [
+            ("tId"               , "i4"),
+            ("tStart"            , "u4"),
+            ("tEnd"              , "u4"),
+            ("aStart"            , "u4"),
+            ("aEnd"              , "u4"),
+            ("isReverseStrand"   , "u1"),
+            ("nM"                , "u4"),
+            ("nMM"               , "u4"),
+            ("mapQV"             , "u1") ]
+
+        COMPUTED_COLUMNS_DTYPE = [
+            ("nIns"              , "u4"),
+            ("nDel"              , "u4") ]
+
+        JOINT_DTYPE = SUBREADS_INDEX_DTYPE + MAPPING_INDEX_DTYPE + COMPUTED_COLUMNS_DTYPE
+
+        if self.hasMappingInfo:
+            tbl = np.zeros(shape=(self.nReads,), dtype=JOINT_DTYPE).view(np.recarray)
+        else:
+            tbl = np.zeros(shape=(self.nReads,), dtype=SUBREADS_INDEX_DTYPE).view(np.recarray)
 
         def peek(type_, length):
             flavor, width = type_
@@ -71,41 +109,16 @@ class PacBioBamIndex(object):
 
         if True:
             # BASIC data always present
-            qId               = peek("i4", self.nReads)
-            qStart            = peek("i4", self.nReads)
-            qEnd              = peek("i4", self.nReads)
-            holeNumber        = peek("i4", self.nReads)
-            readQual          = peek("u2", self.nReads)
-            virtualFileOffset = peek("i8", self.nReads)
+            for columnName, columnType in SUBREADS_INDEX_DTYPE:
+                tbl[columnName] = peek(columnType, self.nReads)
 
-            tbl = np.rec.fromarrays(
-                [qId, qStart, qEnd, holeNumber, readQual, virtualFileOffset],
-                names="qId, qStart, qEnd, holeNumber, readQual, virtualFileOffset")
-
-        if (self.pbiFlags & PBI_FLAGS_MAPPED):
-            tId               = peek("i4", self.nReads)
-            tStart            = peek("u4", self.nReads)
-            tEnd              = peek("u4", self.nReads)
-            aStart            = peek("u4", self.nReads)
-            aEnd              = peek("u4", self.nReads)
-            isReverseStrand   = peek("u1", self.nReads)
-            nM                = peek("u4", self.nReads)
-            nMM               = peek("u4", self.nReads)
-            mapQV             = peek("u1", self.nReads)
+        if self.hasMappingInfo:
+            for columnName, columnType in MAPPING_INDEX_DTYPE:
+                tbl[columnName] = peek(columnType, self.nReads)
 
             # Computed columns
-            nIns = aEnd - aStart - nM - nMM
-            nDel = tEnd - tStart - nM - nMM
-
-            mapping = np.rec.fromarrays(
-                [tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, nIns, nDel, mapQV],
-                names="tId, tStart, tEnd, aStart, aEnd, isReverseStrand, nM, nMM, nIns, nDel, mapQV")
-
-            tbl = nlr.merge_arrays([tbl, mapping], flatten=True).view(np.recarray)
-
-        if (self.pbiFlags & PBI_FLAGS_BARCODE_ADAPTER):
-            # TODO!
-            pass
+            tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
+            tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
 
         self._tbl = tbl
         self._checkForBrokenColumns()
