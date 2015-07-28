@@ -237,10 +237,12 @@ class DataSet(object):
         if self._strict:
             if dsType != _toDsId('DataSet'):
                 if dsType not in self._castableDataSetTypes:
-                    raise IOError(errno.EIO,
-                                  "Cannot create {c} from {f}".format(
-                                      c=self.datasetType, f=dsType),
-                                  files[0])
+                    if not (isinstance(self, HdfSubreadSet) and
+                            dsType == 'PacBio.DataSet.SubreadSet'):
+                        raise IOError(errno.EIO,
+                                      "Cannot create {c} from {f}".format(
+                                          c=self.datasetType, f=dsType),
+                                      files[0])
 
         # State tracking:
         self._cachedFilters = []
