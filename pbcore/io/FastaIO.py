@@ -218,7 +218,7 @@ class FastaReader(ReaderBase):
             for part in parts:
                 yield FastaRecord.fromString(">" + part)
         except AssertionError:
-            raise ValueError("Invalid FASTA file")
+            raise ValueError("Invalid FASTA file {f}".format(f=self.filename))
 
 
 class FastaWriter(WriterBase):
