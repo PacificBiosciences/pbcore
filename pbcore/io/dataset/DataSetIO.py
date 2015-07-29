@@ -527,9 +527,23 @@ class DataSet(object):
         return result
 
     def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
-              maxChunks=0):
+              maxChunks=0, breakContigs=False):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
+
+        Examples:
+            - split into exactly n datasets where each addresses a different
+              piece of the collection of contigs:
+                dset.split(contigs=True, chunks=n)
+
+            - split into at most n datasets where each addresses a different
+              piece of the collection of contigs, but contigs are kept whole:
+                dset.split(contigs=True, maxChunks=n)
+
+            - split into at most n datasets where each addresses a different
+              piece of the collection of contigs and the number of chunks is in
+              part based on the number of reads:
+                dset.split(contigs=True, maxChunks=n, breakContigs=True)
 
         Args:
             chunks: the number of chunks to split the DataSet. When chunks=0,
@@ -539,6 +553,12 @@ class DataSet(object):
                                on ExternalResources
             contigs: (False) split on contigs instead of external resources or
                      subdatasets
+            maxChunks: The upper limit on the number of chunks. If chunks=0
+                       and breakcontigs=False, keeping contigs whole places an
+                       additional upper bound on the number of chunks
+            breakContigs: Whether or not to break contigs when using maxChunks.
+                          If True, something resembling an efficient number of
+                          chunks for the dataset size will be produced.
         Returns:
             A list of new DataSet objects (all other information deep copied).
 
@@ -590,7 +610,7 @@ class DataSet(object):
             True
         """
         if contigs:
-            return self._split_contigs(chunks, maxChunks)
+            return self._split_contigs(chunks, maxChunks, breakContigs)
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
@@ -643,7 +663,8 @@ class DataSet(object):
             largest[2] += 1
         return atoms
 
-    def _split_contigs(self, chunks, maxChunks=0):
+    def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
+                       targetSize=5000):
         """Split a dataset into reference windows based on contigs.
 
         Args:
@@ -683,6 +704,18 @@ class DataSet(object):
         if maxChunks and chunks > maxChunks:
             chunks = maxChunks
 
+        # Decide whether to intelligently limit chunk size:
+        if maxChunks and breakContigs:
+            # The bounds:
+            minNum = 2
+            maxNum = maxChunks
+            # Adjust
+            dataSize = self.numRecords
+            chunks = int(dataSize/targetSize)
+            # Respect bounds:
+            chunks = minNum if chunks < minNum else chunks
+            chunks = maxNum if chunks > maxNum else chunks
+
         # refwindow format: rId, start, end
         if chunks > len(atoms):
             # splitting atom format is slightly different (but more compatible
@@ -702,7 +735,7 @@ class DataSet(object):
                 sub_segments.append(tmp)
                 segments.extend(sub_segments)
             atoms = segments
-        log.debug("Done defining chunks")
+        log.debug("Done defining {n} chunks".format(n=chunks))
 
         # duplicate
         log.debug("Making copies")
@@ -1974,7 +2007,7 @@ class ReadSet(DataSet):
     class"""
 
     def __init__(self, *files, **kwargs):
-        self._referenceFile = None
+        #self._referenceFile = None
         super(ReadSet, self).__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
@@ -1986,21 +2019,21 @@ class ReadSet(DataSet):
             log.debug("Closing old readers...")
             self.close()
         log.debug("Opening SubreadSet resources")
-        if self._referenceFile:
-            log.debug("Using reference: {r}".format(r=self._referenceFile))
         for extRes in self.externalResources:
+            refFile = extRes.reference
+            log.debug("Using reference: {r}".format(r=refFile))
             location = urlparse(extRes.resourceId).path
             try:
                 resource = openIndexedAlignmentFile(
                     location,
-                    referenceFastaFname=self._referenceFile)
+                    referenceFastaFname=refFile)
             except (IOError, ValueError):
                 if not self._strict:
                     log.info("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
                     resource = openAlignmentFile(
-                        location, referenceFastaFname=self._referenceFile)
+                        location, referenceFastaFname=refFile)
                 else:
                     raise
             if not resource:
@@ -2184,9 +2217,15 @@ class AlignmentSet(ReadSet):
         else:
             reference = ReferenceSet(fname).externalResources.resourceIds
         if len(reference) > 1:
-            log.warn("Multiple references found, cannot open with reads")
+            if len(reference) != self.numExternalResources:
+                raise ResourceMismatchError(
+                    "More than one reference found, but not enough for one "
+                    "per resource")
+            for res, ref in zip(self.externalResources, reference):
+                res.reference = ref
         else:
-            self._referenceFile = reference[0]
+            for res in self.externalResources:
+                res.reference = reference[0]
             self._openFiles()
 
     def updateCounts(self):

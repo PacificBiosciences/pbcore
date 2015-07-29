@@ -689,13 +689,6 @@ class ExternalResource(RecordWrapper):
             return True
         return False
 
-    #def __getitem__(self, index):
-        #return FileIndex(self.record['children'][index])
-
-    #def __iter__(self):
-        #for child in self.record['children']:
-            #yield FileIndex(child)
-
     def merge(self, other):
         if self.metaType:
             if self.metaType != other.metaType:
@@ -729,13 +722,76 @@ class ExternalResource(RecordWrapper):
         self.setV(value, 'attrib', 'Tags')
 
     @property
+    def bam(self):
+        return self.resourceId
+
+    @property
+    def pbi(self):
+        indices = self.indices
+        for index in indices:
+            if index.metaType == 'PacBio.Index.PacBioIndex':
+                return index.resourceId
+
+    @property
+    def bai(self):
+        indices = self.indices
+        for index in indices:
+            if index.metaType == 'PacBio.Index.BamIndex':
+                return index.resourceId
+
+    @property
+    def scraps(self):
+        return self._getSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile')
+
+    @scraps.setter
+    def scraps(self, value):
+        self._setSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile', value)
+
+    @property
+    def reference(self):
+        return self._getSubResByMetaType(
+            'PacBio.ReferenceFile.ReferenceFastaFile')
+
+    @reference.setter
+    def reference(self, value):
+        self._setSubResByMetaType('PacBio.ReferenceFile.ReferenceFastaFile',
+                                  value)
+
+    def _getSubResByMetaType(self, mType):
+        resources = self.externalResources
+        for res in resources:
+            if res.metaType == mType:
+                return res.resourceId
+
+    def _setSubResByMetaType(self, mType, value):
+        tmp = ExternalResource()
+        tmp.resourceId = value
+        tmp.metaType = mType
+        resources = self.externalResources
+        # externalresources objects have a tag by default, which means their
+        # truthiness is true. Perhaps a truthiness change is in order
+        if len(resources) == 0:
+            resources = ExternalResources()
+            resources.append(tmp)
+            self.append(resources)
+        else:
+            resources.append(tmp)
+
+    @property
+    def externalResources(self):
+        current = list(self.findChildren('ExternalResources'))
+        if current:
+            return ExternalResources(current[0])
+        else:
+            return ExternalResources()
+
+    @property
     def indices(self):
         current = list(self.findChildren('FileIndices'))
         if current:
             return FileIndices(current[0])
         else:
             return FileIndices()
-        #return [ind for ind in self]
 
     @indices.setter
     def indices(self, indexList):

@@ -98,9 +98,8 @@ class TestDataSet(unittest.TestCase):
         log.info('Opening AlignmentSet')
         d = AlignmentSet(data.getBam(), referenceFastaFname=r)
         log.info('Done Opening AlignmentSet')
-        self.assertNotEqual(d._referenceFile, None)
         bfile = openIndexedAlignmentFile(data.getBam(),
-                                         referenceFastaFname=d._referenceFile)
+                                         referenceFastaFname=r)
         self.assertTrue(bfile.isReferenceLoaded)
         for res in d.resourceReaders():
             self.assertTrue(res.isReferenceLoaded)
@@ -564,6 +563,17 @@ class TestDataSet(unittest.TestCase):
 
         dss = ds3.split(contigs=True, maxChunks=36)
         self.assertEqual(len(dss), 12)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True)
+        self.assertEqual(len(dss), 2)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:

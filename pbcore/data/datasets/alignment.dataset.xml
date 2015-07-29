@@ -5,6 +5,14 @@
             <FileIndices>
                 <FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="file:///mnt/path/to/alignments0.pbi"/>
             </FileIndices>
+            <ExternalResources>
+                <ExternalResource Name="Reference used to produce BAM file" Description="Points to the reference used to generate the above BAM file." MetaType="PacBio.ReferenceFile.ReferenceFastaFile" ResourceId="file:///mnt/path/to/reference.fasta" Tags="Example">
+                    <FileIndices>
+                        <FileIndex MetaType="PacBio.Index.SaWriterIndex" ResourceId="file:///mnt/path/to/reference.fasta.sa"/>
+                        <FileIndex MetaType="PacBio.Index.SamIndex" ResourceId="file:///mnt/path/to/reference.fasta.fai"/>
+                    </FileIndices>
+                </ExternalResource>
+            </ExternalResources>
         </ExternalResource>
         <ExternalResource Name="Second Alignments BAM" Description="Points to another example Alignments BAM file, by relative path." MetaType="PacBio.AlignmentFile.AlignmentBamFile" ResourceId="file:./alignments1.bam" Tags="Example">
             <FileIndices>

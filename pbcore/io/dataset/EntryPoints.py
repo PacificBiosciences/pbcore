@@ -36,7 +36,7 @@ def filterXml(args):
     log.error("Adding filters via CLI is temporarily out of order")
     exit(1)
     if args.infile.endswith('xml'):
-        dataSet = DataSet(args.infile)
+        dataSet = DataSet(args.infile, strict=args.strict)
         filters = []
         separators = ['<=', '>=', '!=', '==', '>', '<', '=']
         for filt in args.filters:
@@ -65,14 +65,15 @@ def filter_options(parser):
 
 def splitXml(args):
     log.debug("Starting split")
-    dataSet = DataSet(args.infile)
+    dataSet = DataSet(args.infile, strict=args.strict)
     chunks = len(args.outfiles)
     if args.chunks:
         chunks = args.chunks
     dss = dataSet.split(chunks=chunks,
                         ignoreSubDatasets=(not args.subdatasets),
                         contigs=args.contigs,
-                        maxChunks=args.maxChunks)
+                        maxChunks=args.maxChunks,
+                        breakContigs=args.breakContigs)
     log.debug("Split into {i} chunks".format(i=len(dss)))
     infix = 'chunk{i}'
     if args.contigs:
@@ -112,6 +113,8 @@ def split_options(parser):
                         help="Split contigs into <chunks> total windows")
     parser.add_argument("--maxChunks", default=False, type=int,
                         help="Split contig list into at most <chunks> groups")
+    parser.add_argument("--breakContigs", default=False, action='store_true',
+                        help="Break contigs to get closer to maxCounts")
     parser.add_argument("--subdatasets", default=False, action='store_true',
                         help="Split on subdatasets")
     parser.add_argument("--outdir", default=False, type=str,
@@ -123,7 +126,7 @@ def split_options(parser):
 def mergeXml(args):
     dss = []
     for infn in args.infiles:
-        dss.append(DataSet(infn))
+        dss.append(DataSet(infn, strict=args.strict))
     reduce(lambda ds1, ds2: ds1 + ds2, dss).write(args.outfile)
 
 def merge_options(parser):
@@ -136,7 +139,7 @@ def merge_options(parser):
     parser.set_defaults(func=mergeXml)
 
 def loadStatsXml(args):
-    dset = DataSet(args.infile)
+    dset = DataSet(args.infile, strict=args.strict)
     dset.loadStats(args.statsfile)
     if args.outfile:
         dset.write(args.outfile, validate=False)

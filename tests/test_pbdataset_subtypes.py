@@ -199,3 +199,70 @@ class TestDataSet(unittest.TestCase):
             aln_ref = aln.reference()
             break
         self.assertTrue(aln_ref is not None)
+
+    def test_nested_external_resources(self):
+        log.debug("Testing nested externalResources in AlignmentSets")
+        aln = AlignmentSet(data.getXml(0))
+        self.assertTrue(aln.externalResources[0].pbi)
+        self.assertTrue(aln.externalResources[0].reference)
+        self.assertEqual(
+            aln.externalResources[0].externalResources[0].metaType,
+            'PacBio.ReferenceFile.ReferenceFastaFile')
+        self.assertEqual(aln.externalResources[0].scraps, None)
+
+        log.debug("Testing nested externalResources in SubreadSets")
+        subs = SubreadSet(data.getXml(5))
+        self.assertTrue(subs.externalResources[0].scraps)
+        self.assertEqual(
+            subs.externalResources[0].externalResources[0].metaType,
+            'PacBio.SubreadFile.ScrapsBamFile')
+        self.assertEqual(subs.externalResources[0].reference, None)
+
+        log.debug("Testing added nested externalResoruces to SubreadSet")
+        subs = SubreadSet(data.getXml(10))
+        self.assertFalse(subs.externalResources[0].scraps)
+        subs.externalResources[0].scraps = 'fake.fasta'
+        self.assertTrue(subs.externalResources[0].scraps)
+        self.assertEqual(
+            subs.externalResources[0].externalResources[0].metaType,
+            'PacBio.SubreadFile.ScrapsBamFile')
+
+        log.debug("Testing adding nested externalResources to AlignmetnSet "
+                  "manually")
+        aln = AlignmentSet(data.getXml(8))
+        self.assertTrue(aln.externalResources[0].bai)
+        self.assertTrue(aln.externalResources[0].pbi)
+        self.assertFalse(aln.externalResources[0].reference)
+        aln.externalResources[0].reference = 'fake.fasta'
+        self.assertTrue(aln.externalResources[0].reference)
+        self.assertEqual(
+            aln.externalResources[0].externalResources[0].metaType,
+            'PacBio.ReferenceFile.ReferenceFastaFile')
+
+        # Disabling until this feature is considered valuable. At the moment I
+        # think it might cause accidental pollution.
+        #log.debug("Testing adding nested externalResources to AlignmetnSet "
+        #          "on construction")
+        #aln = AlignmentSet(data.getXml(8), referenceFastaFname=data.getXml(9))
+        #self.assertTrue(aln.externalResources[0].bai)
+        #self.assertTrue(aln.externalResources[0].pbi)
+        #self.assertTrue(aln.externalResources[0].reference)
+        #self.assertEqual(
+        #    aln.externalResources[0].externalResources[0].metaType,
+        #    'PacBio.ReferenceFile.ReferenceFastaFile')
+
+        #log.debug("Testing adding nested externalResources to "
+        #          "AlignmentSets with multiple external resources "
+        #          "on construction")
+        #aln = AlignmentSet(data.getXml(12), referenceFastaFname=data.getXml(9))
+        #for i in range(1):
+        #    self.assertTrue(aln.externalResources[i].bai)
+        #    self.assertTrue(aln.externalResources[i].pbi)
+        #    self.assertTrue(aln.externalResources[i].reference)
+        #    self.assertEqual(
+        #        aln.externalResources[i].externalResources[0].metaType,
+        #        'PacBio.ReferenceFile.ReferenceFastaFile')
+
+
+
+
