@@ -2208,6 +2208,7 @@ class AlignmentSet(ReadSet):
         log.debug("Opening AlignmentSet with {f}".format(f=files))
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
+        self._referenceFile = fname
         if fname:
             self.addReference(fname)
 
