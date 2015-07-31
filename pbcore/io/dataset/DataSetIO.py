@@ -19,10 +19,8 @@ from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
-from pbcore.io.FastaIO import (splitFastaHeader, FastaWriter, FastaRecord,
-                               IndexedFastaRecord)
+from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io import PacBioBamIndex, BaxH5Reader
-from pbcore.io.align._BamSupport import IncompatibleFile
 
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, wrapNewResource,
@@ -248,6 +246,8 @@ class DataSet(object):
         self._cachedFilters = []
         self.noFiltering = False
         self._openReaders = []
+        self._referenceInfoTable = None
+        self._referenceDict = {}
 
         # update counts
         if files:
@@ -401,15 +401,17 @@ class DataSet(object):
         self.close()
 
     def __len__(self):
-        count = 0
-        if self._filters:
-            log.warn("Base class DataSet length cannot be calculate when "
-                     "filters present")
-            return -1
-        else:
-            for reader in self.resourceReaders():
-                count += len(reader)
-        return count
+        if self.numRecords == -1:
+            if self._filters:
+                log.warn("Base class DataSet length cannot be calculate when "
+                         "filters present")
+                return -1
+            else:
+                count = 0
+                for reader in self.resourceReaders():
+                    count += len(reader)
+                self.numRecords = count
+        return self.numRecords
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -1286,16 +1288,14 @@ class DataSet(object):
             if not self._filters or self.noFiltering:
                 yield indices
                 continue
+            nameMap = {name: n
+                       for n, name in enumerate(rr.referenceInfoTable['Name'])}
 
-            tIdMap = {n: name
-                      for n, name in enumerate(rr.referenceInfoTable['Name'])}
-            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
-            mask = np.zeros(len(indices), dtype=bool)
-            # remove reads per filter
-            for i, read in enumerate(indices):
-                if any([filt(read) for filt in filts]):
-                    mask[i] = True
-            yield np.extract(mask, indices)
+            passes = self._filters.filterIndexRecords(indices, nameMap)
+            # This is faster than np.extract or iterating over zip
+            for i in xrange(len(indices)):
+                if passes[i]:
+                    yield indices[i]
 
     @property
     @filtered
@@ -1405,6 +1405,11 @@ class DataSet(object):
         """A dict of refName: refLength"""
         return {name: length for name, length in self.refInfo('Length')}
 
+    @property
+    def refIds(self):
+        """A dict of refName: refLength"""
+        return {name: rId for name, rId in self.refInfo('ID')}
+
     def refLength(self, rname):
         """The length of reference 'rname'. This is expensive, so if you're
         going to do many lookups cache self.refLengths locally and use that."""
@@ -1430,7 +1435,7 @@ class DataSet(object):
         names = self.referenceInfoTable['Name']
         infos = self.referenceInfoTable[key]
 
-        log.debug("Sampling removing duplicate reference entries")
+        log.debug("Removing duplicate reference entries")
         sampled = zip(names, infos)
         sampled = list(set(sampled))
 
@@ -1775,7 +1780,6 @@ class DataSet(object):
         needed
         """
         self._cachedFilters = []
-        #self.updateCounts()
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
         if self.metadata.summaryStats:
@@ -1865,6 +1869,7 @@ class DataSet(object):
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
         name as a unique key"""
+        # TODO: upgrade to use _referenceDict
         if not self.isCmpH5:
             for row in self.referenceInfoTable:
                 if row.Name == refName:
@@ -1881,23 +1886,27 @@ class DataSet(object):
         is preferred). Record.Names are remapped for cmp.h5 files to be
         consistent with bam files.
         """
-        # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
-        # instance). Use the resource readers directly instead.
-        responses = self._pollResources(lambda x: x.referenceInfoTable)
-        if len(responses) > 1:
-            assert not self.isCmpH5 # see above
-            #tbr = reduce(np.append, responses)
-            tbr = np.concatenate(responses)
-            tbr = np.unique(tbr)
-            for i, rec in enumerate(tbr):
-                rec.ID = i
-            return tbr
-        else:
-            table = responses[0]
-            if self.isCmpH5:
-                for rec in table:
-                    rec.Name = self._cleanCmpName(rec.FullName)
-            return table
+        if self._referenceInfoTable is None:
+            # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
+            # instance). Use the resource readers directly instead.
+            responses = self._pollResources(lambda x: x.referenceInfoTable)
+            if len(responses) > 1:
+                assert not self.isCmpH5 # see above
+                tbr = np.concatenate(responses)
+                tbr = np.unique(tbr)
+                for i, rec in enumerate(tbr):
+                    rec.ID = i
+                self._referenceInfoTable = tbr
+            else:
+                table = responses[0]
+                if self.isCmpH5:
+                    for rec in table:
+                        rec.Name = self._cleanCmpName(rec.FullName)
+                self._referenceInfoTable = table
+            #TODO: Turn on when needed
+            #self._referenceDict.update(zip(self.refIds.values(),
+                                           #self._referenceInfoTable))
+        return self._referenceInfoTable
 
     @property
     def _referenceIdMap(self):
@@ -2007,7 +2016,6 @@ class ReadSet(DataSet):
     class"""
 
     def __init__(self, *files, **kwargs):
-        #self._referenceFile = None
         super(ReadSet, self).__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
@@ -2069,13 +2077,15 @@ class ReadSet(DataSet):
         return count, length
 
     def __len__(self):
-        count = 0
-        if self._filters:
-            count = self._length[0]
-        else:
-            for reader in self.resourceReaders():
-                count += len(reader)
-        return count
+        if self.numRecords == -1:
+            if self._filters:
+                self.updateCounts()
+            else:
+                count = 0
+                for reader in self.resourceReaders():
+                    count += len(reader)
+                self.numRecords = count
+        return self.numRecords
 
 class HdfSubreadSet(ReadSet):
 
@@ -2155,11 +2165,15 @@ class SubreadSet(ReadSet):
         endkey = 'qEnd'
         startkey = 'qStart'
         for rec in self.indexRecords:
-            count += len(rec)
             if isinstance(rec, np.ndarray):
+                count += len(rec)
                 length += sum(rec[endkey] - rec[startkey])
             elif isinstance(rec, PacBioBamIndex):
+                count += len(rec)
                 length += sum(rec.aEnd - rec.aStart)
+            else:
+                count += 1
+                length += rec.aEnd - rec.aStart
         return count, length
 
     @staticmethod
@@ -2208,7 +2222,6 @@ class AlignmentSet(ReadSet):
         log.debug("Opening AlignmentSet with {f}".format(f=files))
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
-        self._referenceFile = fname
         if fname:
             self.addReference(fname)
 
@@ -2228,6 +2241,11 @@ class AlignmentSet(ReadSet):
             for res in self.externalResources:
                 res.reference = reference[0]
             self._openFiles()
+
+    @property
+    def _referenceFile(self):
+        responses = [res.reference for res in self.externalResources]
+        return self._unifyResponses(responses)
 
     def updateCounts(self):
         if self._skipCounts:
@@ -2261,22 +2279,27 @@ class AlignmentSet(ReadSet):
             endkey = 'rEnd'
             startkey = 'rStart'
         for rec in self.indexRecords:
-            count += len(rec)
             if isinstance(rec, np.ndarray):
+                count += len(rec)
                 length += sum(rec[endkey] - rec[startkey])
             elif isinstance(rec, PacBioBamIndex):
+                count += len(rec)
                 length += sum(rec.aEnd - rec.aStart)
+            else:
+                count += 1
+                length += rec.aEnd - rec.aStart
         return count, length
 
     def __len__(self):
-        count = 0
-        if self._filters:
-            count = self._length[0]
-        else:
-            for reader in self.resourceReaders():
-                count += len(reader)
-        return count
-
+        if self.numRecords == -1:
+            if self._filters:
+                self.updateCounts()
+            else:
+                count = 0
+                for reader in self.resourceReaders():
+                    count += len(reader)
+                self.numRecords = count
+        return self.numRecords
 
     @property
     def recordsByReference(self):

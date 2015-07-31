@@ -49,6 +49,7 @@ serve two pruposes:
 import copy
 import operator as OP
 import re
+import numpy as np
 import logging
 from functools import partial as P
 
@@ -295,6 +296,7 @@ class RecordWrapper(object):
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
 
+
 class Filters(RecordWrapper):
 
     def __init__(self, record=None):
@@ -470,6 +472,26 @@ class Filters(RecordWrapper):
             tests.append(
                 lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
         return tests
+
+    def filterIndexRecords(self, indexRecords, nameMap):
+        filterResultList = []
+        typeMap = self._bamTypeMap
+        accMap = self._pbiAccMap({})
+        accMap['rname'] = lambda x: x.tId
+        for filt in self:
+            thisFilterResultList = []
+            for req in filt:
+                param = req.name
+                value = typeMap[param](req.value)
+                value = nameMap[value]
+                operator = self.opMap(req.operator)
+                reqResultsForRecords = operator(accMap[param](indexRecords),
+                                                value)
+                thisFilterResultList.append(reqResultsForRecords)
+            thisFilterResultList = np.logical_and.reduce(thisFilterResultList)
+            filterResultList.append(thisFilterResultList)
+        filterResultList = np.logical_or.reduce(filterResultList)
+        return filterResultList
 
     def addRequirement(self, **kwargs):
         """Use this to add requirements. Members of the list will be considered
