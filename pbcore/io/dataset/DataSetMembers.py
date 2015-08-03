@@ -425,6 +425,21 @@ class Filters(RecordWrapper):
                 'tend': (lambda x: int(x.tStart)), # see above
                }
 
+    def _pbiVecAccMap(self, tIdMap):
+        # tStart/tEnd is a hack for overlapping ranges. you're not testing
+        # whether the tStart/tEnd is within a range, you're testing if it
+        # overlaps with the tStart/tEnd in the filter (overlaps with a
+        # reference window)
+        return {'rname': (lambda x, m=tIdMap: m[x.tId]),
+                'length': (lambda x: x.aEnd - x.aStart),
+                'qname': (lambda x: x.qId),
+                'zm': (lambda x: x.holeNumber),
+                'pos': (lambda x: x.tStart),
+                'readstart': (lambda x: x.aStart),
+                'tstart': (lambda x: x.tEnd), # see above
+                'tend': (lambda x: x.tStart), # see above
+               }
+
     @property
     def _bamTypeMap(self):
         return {'rname': str,
@@ -476,14 +491,15 @@ class Filters(RecordWrapper):
     def filterIndexRecords(self, indexRecords, nameMap):
         filterResultList = []
         typeMap = self._bamTypeMap
-        accMap = self._pbiAccMap({})
+        accMap = self._pbiVecAccMap({})
         accMap['rname'] = lambda x: x.tId
         for filt in self:
             thisFilterResultList = []
             for req in filt:
                 param = req.name
                 value = typeMap[param](req.value)
-                value = nameMap[value]
+                if param == 'rname':
+                    value = nameMap[value]
                 operator = self.opMap(req.operator)
                 reqResultsForRecords = operator(accMap[param](indexRecords),
                                                 value)

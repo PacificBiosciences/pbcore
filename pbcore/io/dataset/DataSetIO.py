@@ -13,6 +13,7 @@ import logging
 import xml.dom.minidom
 import tempfile
 from functools import wraps
+import itertools
 import numpy as np
 from urlparse import urlparse
 from pbcore.util.Process import backticks
@@ -21,7 +22,7 @@ from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               IndexedBamReader)
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io import PacBioBamIndex, BaxH5Reader
-
+from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, wrapNewResource,
                                              xmlRootType)
@@ -405,7 +406,6 @@ class DataSet(object):
             if self._filters:
                 log.warn("Base class DataSet length cannot be calculate when "
                          "filters present")
-                return -1
             else:
                 count = 0
                 for reader in self.resourceReaders():
@@ -1122,6 +1122,8 @@ class DataSet(object):
                 tmp = self._strict
                 self._openFiles()
             except Exception:
+                # Catch everything to recover the strictness status, then raise
+                # whatever error was found.
                 self._strict = tmp
                 raise
             finally:
@@ -1407,7 +1409,7 @@ class DataSet(object):
 
     @property
     def refIds(self):
-        """A dict of refName: refLength"""
+        """A dict of refName: refId"""
         return {name: rId for name, rId in self.refInfo('ID')}
 
     def refLength(self, rname):
@@ -1437,7 +1439,7 @@ class DataSet(object):
 
         log.debug("Removing duplicate reference entries")
         sampled = zip(names, infos)
-        sampled = list(set(sampled))
+        sampled = set(sampled)
 
         log.debug("Filtering reference entries")
         if not self.noFiltering or not self._filters:
@@ -1575,20 +1577,30 @@ class DataSet(object):
                 # mapping to resolve duplicate refIds between resources...
                 refName = self._idToRname(int(refName))
 
+        # correct the cmp.h5 reference names before reads go out the door
+        if self.isCmpH5:
+            for res in self.resourceReaders():
+                for row in res.referenceInfoTable:
+                    row.FullName = row.FullName.split(' ')[0]
+
         # merge sort before yield
         if self.numExternalResources > 1:
             if buffsize > 1:
+                # create read/reader caches
                 read_its = [iter(rr.readsInRange(refName, start, end))
                             for rr in self.resourceReaders()]
-                # scale to per reader buffsize:
-                # remove empty iterators
                 deep_buf = [[next(it, None) for _ in range(buffsize)]
                             for it in read_its]
+
+                # remove empty iterators
                 read_its = [it for it, cur in zip(read_its, deep_buf)
                             if cur[0]]
                 deep_buf = [buf for buf in deep_buf if buf[0]]
+
+                # populate starting values/scratch caches
                 buf_indices = [0 for _ in read_its]
                 tStarts = [cur[0].tStart for cur in deep_buf]
+
                 while len(read_its) != 0:
                     # pick the first one to yield
                     # this should be a bit faster than taking the min of an
@@ -1597,8 +1609,6 @@ class DataSet(object):
                     first = min(tStarts)
                     first_i = tStarts.index(first)
                     buf_index = buf_indices[first_i]
-                    assert all([buf[buf_i] for buf, buf_i
-                                in zip(deep_buf, buf_indices)])
                     first = deep_buf[first_i][buf_index]
                     # update the buffers
                     buf_index += 1
@@ -1615,7 +1625,6 @@ class DataSet(object):
                         del buf_indices[first_i]
                     else:
                         tStarts[first_i] = deep_buf[first_i][buf_index].tStart
-                    assert first
                     yield first
             else:
                 read_its = [iter(rr.readsInRange(refName, start, end))
@@ -2249,6 +2258,7 @@ class AlignmentSet(ReadSet):
 
     def updateCounts(self):
         if self._skipCounts:
+            log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
             self.metadata.numRecords = -1
             return
@@ -2259,10 +2269,9 @@ class AlignmentSet(ReadSet):
             self.metadata.totalLength = totalLength
             self.metadata.numRecords = numRecords
         # I would prefer to just catch IOError and UnavailableFeature
-        except Exception as e:
+        except (IOError, UnavailableFeature):
             if not self._strict:
-                log.debug("File problem ({e}), metadata not "
-                          "populated".format(e=str(e)))
+                log.debug("File problem, metadata not populated")
                 self.metadata.totalLength = -1
                 self.metadata.numRecords = -1
             else:
@@ -2464,7 +2473,10 @@ class ContigSet(DataSet):
                 self.metadata.numRecords += len(res)
                 for index in res.fai:
                     self.metadata.totalLength += index.length
-        except Exception:
+        except (IOError, UnavailableFeature, TypeError):
+            # IOError for missing files
+            # UnavailableFeature for files without companion files
+            # TypeError for FastaReader, which doesn't have a len()
             if not self._strict:
                 self.metadata.totalLength = -1
                 self.metadata.numRecords = -1
