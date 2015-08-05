@@ -2,15 +2,28 @@
 
 import os
 import argparse
-from pbcore.io import DataSet, ContigSet
+from pbcore.io import DataSet, ContigSet, openDataSet
 from pbcore.io.dataset.DataSetValidator import validateFile
 import logging
 
 log = logging.getLogger(__name__)
 
+def summarizeXml(args):
+    dset = openDataSet(args.infile, strict=args.strict)
+    for fname in dset.toExternalFiles():
+        print fname
+    print "Number of records: {r}".format(r=dset.numRecords)
+    print "Total number of bases: {r}".format(r=dset.totalLength)
+
+def summarize_options(parser):
+    parser.description = "Summarize a DataSet XML file"
+    parser.add_argument("infile", type=str,
+                        help="The xml file to summarize")
+    parser.set_defaults(func=summarizeXml)
+
 def createXml(args):
     dsTypes = DataSet.castableTypes()
-    dset = dsTypes[args.dsType](*args.infile)
+    dset = dsTypes[args.dsType](*args.infile, strict=args.strict)
     log.debug("Dataset created")
     dset.write(args.outfile, validate=args.novalidate, relPaths=args.relative)
     log.debug("Dataset written")

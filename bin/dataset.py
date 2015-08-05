@@ -24,6 +24,7 @@ def get_subparsers():
            ('split', EntryPoints.split_options),
            ('validate', EntryPoints.validate_options),
            ('loadstats', EntryPoints.loadStatsXml_options),
+           ('summarize', EntryPoints.summarize_options),
            ('consolidate', EntryPoints.consolidate_options)]
     return sps
 
