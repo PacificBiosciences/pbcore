@@ -1,3 +1,10 @@
+* Version 1.2.2
+- Bug fixes and speed improvements to the
+- Dataset constructor APIs enhanced
+
+* Version 1.2.1
+- Same as 1.2.0; first version on PyPI
+
 * Version 1.2.0
 - Support for the new BGZF-based bam.pbi file format
 - Support for PacBio BAM spec version 3.0b7; previous versions are
