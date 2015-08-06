@@ -46,14 +46,35 @@ serve two pruposes:
             note: Assuming __getitem__ is implemented for the 'children' list
 """
 
+#import hashlib
+import uuid
+import datetime
 import copy
 import operator as OP
-import re
 import numpy as np
 import logging
 from functools import partial as P
+from pbcore.io.dataset.DataSetWriter import namespaces
 
 log = logging.getLogger(__name__)
+
+def newUuid(record):
+    # At some point the uuid may need to be a digest
+    #newId = str(hashlib.md5(str(record)).hexdigest())
+
+    # Group appropriately
+    #newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
+    #                  newId[20:]])
+    #return newId
+
+    # Today is not that day
+    return str(uuid.uuid4())
+
+def getTime():
+    return datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S")
+
+def getTimeStampedName(mType):
+    return "{m}-{t}".format(m=mType, t=getTime())
 
 class RecordWrapper(object):
     """The base functionality of a metadata element.
@@ -66,6 +87,8 @@ class RecordWrapper(object):
     def __init__(self, record=None):
         """Here, record is any element in the Metadata Element tree and a
         dictionary with four members: 'tag', 'attrib', 'text', and 'children'.
+
+        Now with a new member! 'namespace'
 
         Do not deepcopy, we rely on side effects for all persistent
         modifications.
@@ -114,7 +137,6 @@ class RecordWrapper(object):
         children will not be wrapped in a special wrapper object)"""
         for child in self.record['children']:
             yield RecordWrapper(child)
-            #yield child['text']
 
     def __repr__(self):
         """Return a pretty string represenation of this object:
@@ -123,9 +145,10 @@ class RecordWrapper(object):
         """
         c_tags = [c.record['tag'] for c in self]
         repr_d = dict(k=self.__class__.__name__, t=self.record['tag'],
+                      n=self.record['namespace'],
                       x=self.record['text'], a=self.record['attrib'],
                       c=c_tags)
-        rep = '<{k} tag:{t} text:{x} attribs:{a} children:{c}>'.format(
+        rep = '<{k} tag:{{{n}}}{t} text:{x} attribs:{a} children:{c}>'.format(
             **repr_d)
         return rep
 
@@ -201,6 +224,18 @@ class RecordWrapper(object):
     def tags(self):
         """Return the list of tags for children in this element"""
         return [child['tag'] for child in self.record['children']]
+
+    @property
+    def namespace(self):
+        return self.record['namespace']
+
+    @namespace.setter
+    def namespace(self, value):
+        self.record['namespace'] = value
+
+    @property
+    def attrib(self):
+        return self.record['attrib']
 
     @property
     def metaname(self):
@@ -573,7 +608,7 @@ class Filter(RecordWrapper):
         self.record['children'][0]['children'].pop(index)
 
     def addRequirement(self, name, operator, value):
-        param = Parameter()
+        param = Property()
         param.name = name
         param.operator = operator
         param.value = value
@@ -591,9 +626,9 @@ class Filter(RecordWrapper):
     @property
     def plist(self):
         if self.record['children']:
-            return Parameters(self.record['children'][0])
+            return Properties(self.record['children'][0])
         else:
-            temp = Parameters()
+            temp = Properties()
             self.append(temp)
             return temp
 
@@ -601,24 +636,24 @@ class Filter(RecordWrapper):
         pass
 
 
-class Parameters(RecordWrapper):
+class Properties(RecordWrapper):
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
-        return Parameter(self.record['children'][index])
+        return Property(self.record['children'][index])
 
     def __iter__(self):
         for child in self.record['children']:
-            yield Parameter(child)
+            yield Property(child)
 
     def merge(self, other):
         pass
 
 
-class Parameter(RecordWrapper):
+class Property(RecordWrapper):
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -655,6 +690,7 @@ class Parameter(RecordWrapper):
 
 class ExternalResources(RecordWrapper):
 
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
@@ -680,6 +716,24 @@ class ExternalResources(RecordWrapper):
         for child in self.record['children']:
             yield ExternalResource(child)
 
+    def merge(self, other):
+        # make sure we don't add dupes
+        curIds = [res.resourceId for res in self]
+
+        for newRes in other:
+            # merge instead
+            if newRes.resourceId in curIds:
+                indexof = curIds.index(newRes.resourceId)
+                self[indexof].merge(newRes)
+            else:
+                self.append(newRes)
+                curIds.append(newRes.resourceId)
+        # we may be missing some metadata
+        if not self.namespace:
+            self.namespace = other.namespace
+            self.attrib.update(other.attrib)
+
+
     def addResources(self, resourceIds):
         """Add a new external reference with the given uris. If you're looking
         to add ExternalResource objects, append() or extend() them instead.
@@ -688,11 +742,14 @@ class ExternalResources(RecordWrapper):
             resourceIds: a list of uris as strings
         """
         templist = []
-        for ref in resourceIds:
-            temp = ExternalResource()
-            temp.resourceId = ref
-            self.append(temp)
-            templist.append(temp)
+        for res in resourceIds:
+            toAdd = res
+            if not isinstance(res, ExternalResource):
+                temp = ExternalResource()
+                temp.resourceId = res
+                toAdd = temp
+            self.append(toAdd)
+            templist.append(toAdd)
         return templist
 
     @property
@@ -718,9 +775,12 @@ class ExternalResources(RecordWrapper):
 
 class ExternalResource(RecordWrapper):
 
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
+        self.attrib.setdefault('UniqueId', newUuid(self.record))
+        self.attrib.setdefault('TimeStampedName', '')
 
     def __eq__(self, other):
         if self.resourceId == other.resourceId:
@@ -742,6 +802,14 @@ class ExternalResource(RecordWrapper):
     @metaType.setter
     def metaType(self, value):
         return self.setV(value, 'attrib', 'MetaType')
+
+    @property
+    def timeStampedName(self):
+        return self.getV('attrib', 'TimeStampedName')
+
+    @timeStampedName.setter
+    def timeStampedName(self, value):
+        return self.setV(value, 'attrib', 'TimeStampedName')
 
     @property
     def resourceId(self):
@@ -805,6 +873,7 @@ class ExternalResource(RecordWrapper):
         tmp = ExternalResource()
         tmp.resourceId = value
         tmp.metaType = mType
+        tmp.timeStampedName = getTimeStampedName(mType)
         resources = self.externalResources
         # externalresources objects have a tag by default, which means their
         # truthiness is true. Perhaps a truthiness change is in order
@@ -855,6 +924,7 @@ class ExternalResource(RecordWrapper):
 
 class FileIndices(RecordWrapper):
 
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
@@ -869,9 +939,12 @@ class FileIndices(RecordWrapper):
 
 class FileIndex(RecordWrapper):
 
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
+        self.attrib.setdefault('UniqueId', newUuid(self.record))
+        self.attrib.setdefault('TimeStampedName', '')
 
     @property
     def resourceId(self):
@@ -889,6 +962,14 @@ class FileIndex(RecordWrapper):
     def metaType(self, value):
         return self.setV(value, 'attrib', 'MetaType')
 
+    @property
+    def timeStampedName(self):
+        return self.getV('attrib', 'TimeStampedName')
+
+    @timeStampedName.setter
+    def timeStampedName(self, value):
+        return self.setV(value, 'attrib', 'TimeStampedName')
+
 
 class DataSetMetadata(RecordWrapper):
     """The root of the DataSetMetadata element tree, used as base for subtype
@@ -898,6 +979,7 @@ class DataSetMetadata(RecordWrapper):
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
         super(DataSetMetadata, self).__init__(record)
+        self.record['tag'] = 'DataSetMetadata'
 
     def merge(self, other):
         self.numRecords += other.numRecords
@@ -907,6 +989,10 @@ class DataSetMetadata(RecordWrapper):
                 self.summaryStats.merge(other.summaryStats)
             else:
                 self.append(other.summaryStats)
+        if not self.namespace:
+            print "HERE"
+            self.namespace = other.namespace
+            self.attrib.update(other.attrib)
 
     @property
     def numRecords(self):
@@ -1004,7 +1090,10 @@ class ContigSetMetadata(DataSetMetadata):
 
     def merge(self, other):
         super(self.__class__, self).merge(other)
-        self.contigs.merge(other.contigs)
+        if self.contigs:
+            self.contigs.merge(other.contigs)
+        else:
+            self.contigs = other.contigs
 
     @property
     def organism(self):
@@ -1037,9 +1126,11 @@ class ContigSetMetadata(DataSetMetadata):
 
     @contigs.setter
     def contigs(self, value):
+        self.removeChildren('Contigs')
         if not value:
-            self.removeChildren('Contigs')
             self.append(ContigsMetadata())
+        else:
+            self.append(value)
 
     def addContig(self, newContig):
         if not self.contigs:
@@ -1600,17 +1691,17 @@ class PrimaryMetadata(RecordWrapper):
         >>> from pbcore.io import SubreadSet
         >>> import pbcore.data.datasets as data
         >>> ds1 = SubreadSet(data.getXml(5))
-        >>> ds1.metadata.collections[0].primary.resultsFolder
+        >>> ds1.metadata.collections[0].primary.outputOptions.resultsFolder
         'Analysis_Results'
-        >>> ds1.metadata.collections[0].primary.resultsFolder = (
+        >>> ds1.metadata.collections[0].primary.outputOptions.resultsFolder = (
         ...     'BetterAnalysis_Results')
-        >>> ds1.metadata.collections[0].primary.resultsFolder
+        >>> ds1.metadata.collections[0].primary.outputOptions.resultsFolder
         'BetterAnalysis_Results'
         >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
         >>> outXml = 'xml:' + os.path.join(outdir, 'tempfile.xml')
         >>> ds1.write(outXml, validate=False)
         >>> ds2 = SubreadSet(outXml)
-        >>> ds2.metadata.collections[0].primary.resultsFolder
+        >>> ds2.metadata.collections[0].primary.outputOptions.resultsFolder
         'BetterAnalysis_Results'
     """
 
@@ -1626,6 +1717,12 @@ class PrimaryMetadata(RecordWrapper):
     def sequencingCondition(self):
         return self.getMemberV('SequencingCondition')
 
+    @property
+    def outputOptions(self):
+        return OutputOptions(self.getV('children', 'OutputOptions'))
+
+
+class OutputOptions(RecordWrapper):
     @property
     def resultsFolder(self):
         return self.getMemberV('ResultsFolder')
@@ -1695,14 +1792,18 @@ class BioSampleMetadata(RecordWrapper):
         return self.getV('attrib', 'CreatedAt')
 
 
-def _emptyMember(tag=None, text=None, attrib=None, children=None):
+def _emptyMember(tag=None, text=None, attrib=None, children=None,
+                 namespace=None):
     """Return an empty stock Element representation"""
     if not tag:
         tag = ''
+    if not namespace:
+        namespace = ''
     if not text:
         text = ''
     if not attrib:
         attrib = {}
     if not children:
         children = []
-    return {'tag': tag, 'text': text, 'attrib': attrib, 'children': children}
+    return {'tag': tag, 'text': text, 'attrib': attrib, 'children': children,
+            'namespace': namespace}

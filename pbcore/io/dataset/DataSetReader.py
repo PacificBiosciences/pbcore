@@ -12,8 +12,6 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               StatsMetadata)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 
-XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
-
 log = logging.getLogger(__name__)
 
 def resolveLocation(fname, possibleRelStart='.'):
@@ -36,7 +34,7 @@ def xmlRootType(fname):
     with open(fname, 'rb') as xml_file:
         tree = ET.parse(xml_file)
     root = tree.getroot()
-    return _tagCleaner(root.tag)
+    return _splitTag(root.tag)[-1]
 
 def _addFile(dset, filename):
     handledTypes = {'xml': _addXmlFile,
@@ -57,7 +55,7 @@ def _addXmlFile(dset, path):
     with open(path, 'rb') as xml_file:
         tree = ET.parse(xml_file)
     root = tree.getroot()
-    tmp = _parseXml(dset, root)
+    tmp = _parseXml(type(dset), root)
     tmp.makePathsAbsolute(curStart=os.path.dirname(path))
     dset.merge(tmp, copyOnMerge=False)
 
@@ -85,6 +83,7 @@ def _addUnknownFile(dset, path):
     else:
         return _addGenericFile(dset, path)
 
+# TODO needs namespace
 def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
@@ -94,6 +93,7 @@ def _addGenericFile(dset, path):
     # We'll update them all at the end, skip updating counts for now
     dset.addExternalResources(extRess, updateCount=False)
 
+# TODO needs namespace
 def wrapNewResource(path):
     possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml']
     for ext in possible_indices:
@@ -111,7 +111,7 @@ def wrapNewResource(path):
     return extRes
 
 
-def _parseXml(dset, element):
+def _parseXml(dsetType, element):
     """Parse an XML DataSet tag, or the root tag of a DataSet XML file (they
     should be equivalent)
 
@@ -121,61 +121,29 @@ def _parseXml(dset, element):
         >>> type(ds).__name__
         'SubreadSet'
     """
-    result = type(dset)()
+    result = dsetType()
     result.objMetadata = element.attrib
-    namer = functools.partial(_namespaceTag, XMLNS)
-    element = _updateDataset(element)
     for child in element:
-        if child.tag == namer('ExternalResources'):
+        if child.tag.endswith('ExternalResources'):
             result.externalResources = _parseXmlExtResources(child)
-        elif child.tag == namer('DataSets'):
-            result.subdatasets = _parseXmls(dset, child)
-        elif child.tag == namer('Filters'):
+        elif child.tag.endswith('DataSets'):
+            result.subdatasets = _parseXmls(dsetType, child)
+        elif child.tag.endswith('Filters'):
             result.filters = _parseXmlFilters(child)
-        elif child.tag == namer('DataSetMetadata'):
+        elif child.tag.endswith('DataSetMetadata'):
             result.metadata = _parseXmlDataSetMetadata(child)
         else:
             # Unknown tag found in XML
             pass
     return result
 
-def _parseXmls(dset, element):
+def _parseXmls(dsetType, element):
     """DataSets can exist as elements in other datasets, representing subsets.
     Pull these datasets, parse them, and return a list of them."""
     result = []
     for child in element:
-        result.append(_parseXml(dset, child))
+        result.append(_parseXml(dsetType, child))
     return result
-
-def _updateDataset(element):
-    namer = functools.partial(_namespaceTag, XMLNS)
-    updateMap = {
-        './/' + namer('ExternalDataReferences'): 'ExternalResources',
-        './/' + namer('ExternalReference'): 'ExternalResource',
-        './/' + namer('BioSampleReferences'): 'BioSamplePointers',
-        './/' + namer('BioSampleReference'): 'BioSamplePointer',
-        './/' + namer('PacBioIndex'): 'FileIndex',
-        './/' + namer('CCSreadSet'): 'ConsensusReadSet',
-        }
-    for old, new in updateMap.items():
-        #while element.find('.//' + namer(old)) is not None:
-        while element.find(old) is not None:
-            log.error("Outdated XML received: {t}".format(
-                t=old.split('}')[-1]))
-            element.find(old).tag = namer(new)
-
-    auton = ('.//' + namer('CollectionMetadata') + '/' +
-             namer('AutomationName'))
-    if element.find(auton) is not None:
-        log.error("Outdated XML received: AutomationName")
-        autonele = element.find(auton)
-        autonele.tag = namer('Automation')
-        val = autonele.text
-        autonele.text = None
-        newParams = AutomationParameters()
-        newParams.addParameter(None, None)
-        autonele.append(_eleFromDictList(newParams.record))
-    return element
 
 def _updateStats(element):
     namer = functools.partial(
@@ -226,9 +194,9 @@ def _namespaceTag(xmlns, tagName):
     """Preface an XML tag name with the provided namespace"""
     return ''.join(["{", xmlns, "}", tagName])
 
-def _tagCleaner(tagName):
-    """Remove the namespace prefix from a tag name"""
-    return tagName.split('}')[-1]
+def _splitTag(tag):
+    """Split the namespace and tag name"""
+    return [part.strip('{') for part in tag.split('}')]
 
 def _parseXmlExtResources(element):
     """Parse the ExternalResources tag, populating a list of
@@ -238,16 +206,11 @@ def _parseXmlExtResources(element):
 def _parseXmlDataSetMetadata(element):
     """Parse the DataSetMetadata field of XML inputs. This data can be
     extremely extensive."""
-    result = []
-    for child in element:
-        result.append(_eleToDictList(child))
-    tbr = DataSetMetadata()
-    tbr.extend(result)
-    return tbr.record
+    return DataSetMetadata(_eleToDictList(element))
 
 def _eleToDictList(element):
     """A last ditch capture method for uknown Elements"""
-    tag = _tagCleaner(element.tag)
+    namespace, tag = _splitTag(element.tag)
     text = element.text
     if text:
         text = text.strip()
@@ -256,7 +219,7 @@ def _eleToDictList(element):
     for child in element:
         children.append(_eleToDictList(child))
     return {'tag': tag, 'text': text, 'attrib': attrib,
-            'children': children}
+            'children': children, 'namespace': namespace}
 
 def _parseXmlFilters(element):
     """Pull filters from XML file, put them in a list of dictionaries, where
@@ -271,20 +234,6 @@ def _parseXmlFilters(element):
         >>> filters = root[1]
         >>> str(_parseXmlFilters(filters))
         '( rq > 0.75 ) OR ( qname == 100/0/0_100 )'
-    """
-    """
-    namer = functools.partial(_namespaceTag, XMLNS)
-    result = []
-    for filtTag in filters:
-        #filt = Filter()
-        filt = {}
-        # This is essentially to skip the <Parameters> level
-        for child in filtTag:
-            if child.tag == namer('Parameters'):
-                for param in child:
-                    filt[param.attrib['Name'].lower()] = param.attrib['Value']
-        result.append(filt)
-    return result
     """
     return Filters(_eleToDictList(element))
 

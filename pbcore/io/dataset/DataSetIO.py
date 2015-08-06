@@ -6,6 +6,7 @@ where they are stored, manipulated, filtered, merged, etc.
 """
 
 import hashlib
+import datetime
 import copy
 import os
 import errno
@@ -13,7 +14,6 @@ import logging
 import xml.dom.minidom
 import tempfile
 from functools import wraps
-import itertools
 import numpy as np
 from urlparse import urlparse
 from pbcore.util.Process import backticks
@@ -24,15 +24,16 @@ from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io import PacBioBamIndex, BaxH5Reader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
-                                             resolveLocation, wrapNewResource,
-                                             xmlRootType)
+                                             resolveLocation, xmlRootType,
+                                             wrapNewResource)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
-                                              ExternalResources, Filters)
+                                              ExternalResources,
+                                              ExternalResource, Filters)
 
 log = logging.getLogger(__name__)
 
@@ -225,7 +226,8 @@ class DataSet(object):
         log.debug('Containers specified')
         populateDataSet(self, files)
         log.debug('Done populating')
-        # update uuid
+
+        # Populate required metadata
         if not self.uuid:
             self.newUuid()
 
@@ -242,6 +244,10 @@ class DataSet(object):
                                       "Cannot create {c} from {f}".format(
                                           c=self.datasetType, f=dsType),
                                       files[0])
+
+        if not self.objMetadata.get("TimeStampedName", ""):
+            self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
+                self.objMetadata["MetaType"])
 
         # State tracking:
         self._cachedFilters = []
@@ -307,9 +313,13 @@ class DataSet(object):
         if (other.__class__.__name__ == self.__class__.__name__ or
                 other.__class__.__name__ == 'DataSet' or
                 self.__class__.__name__ == 'DataSet'):
+            # determine whether or not this is the merge that is populating a
+            # dataset for the first time
             firstIn = False
-            if not self.toExternalFiles():
+            if len(self.externalResources) == 0:
                 firstIn = True
+
+            # Block on filters?
             if (not firstIn and
                     not self.filters.testCompatibility(other.filters)):
                 log.warning("Filter incompatibility has blocked the addition "
@@ -317,32 +327,48 @@ class DataSet(object):
                 return None
             else:
                 self.addFilters(other.filters)
+
+            # reset the filters, just in case
             self._cachedFilters = []
+
+            # block on object metadata?
             self._checkObjMetadata(other.objMetadata)
+
             # There is probably a cleaner way to do this:
             self.objMetadata.update(other.objMetadata)
             if copyOnMerge:
                 result = self.copy()
             else:
                 result = self
-            result.addMetadata(other.metadata)
+
+            # add in the metadata (not to be confused with obj metadata)
+            if firstIn:
+                result.metadata = other.metadata
+            else:
+                result.addMetadata(other.metadata)
+
             # skip updating counts because other's metadata should be up to
             # date
             result.addExternalResources(other.externalResources,
                                         updateCount=False)
+
             # DataSets may only be merged if they have identical filters,
             # So there is nothing new to add.
-            if other.subdatasets or not firstIn:
-                if copyOnMerge:
-                    result.addDatasets(other.copy())
-                else:
-                    result.addDatasets(other)
+
             # If this dataset has no subsets representing it, add self as a
             # subdataset to the result
             # TODO: this is a stopgap to prevent spurious subdatasets when
             # creating datasets from dataset xml files...
             if not self.subdatasets and not firstIn:
                 result.addDatasets(self.copy())
+
+            # add subdatasets
+            if other.subdatasets or not firstIn:
+                #if copyOnMerge:
+                result.addDatasets(other.copy())
+                #else:
+                    #result.addDatasets(other)
+
             return result
         else:
             raise TypeError('DataSets can only be merged with records of the '
@@ -457,7 +483,7 @@ class DataSet(object):
         Doctest:
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
-            >>> ds1 = DataSet(data.getXml())
+            >>> ds1 = DataSet(data.getXml(12))
             >>> # Deep copying datasets is easy:
             >>> ds2 = ds1.copy()
             >>> # But the resulting uuid's should be different.
@@ -568,7 +594,7 @@ class DataSet(object):
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> # splitting is pretty intuitive:
-            >>> ds1 = AlignmentSet(data.getXml())
+            >>> ds1 = AlignmentSet(data.getXml(12))
             >>> # but divides up extRes's, so have more than one:
             >>> ds1.numExternalResources > 1
             True
@@ -989,6 +1015,14 @@ class DataSet(object):
         if not resource.metaType:
             file_type = _fileType(resource.resourceId)
             resource.metaType = self._metaTypeMapping().get(file_type, "")
+        if not resource.timeStampedName:
+            mtype = resource.metaType
+            tsName = self._getTimeStampedName(mtype)
+            resource.timeStampedName = tsName
+
+    def _getTimeStampedName(self, mType):
+        time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S")
+        return "{m}-{t}".format(m=mType, t=time)
 
     @staticmethod
     def _metaTypeMapping():
@@ -1107,7 +1141,7 @@ class DataSet(object):
                 self.metadata.merge(newMetadata)
             # or initialize
             else:
-                self._metadata = newMetadata
+                self.metadata = newMetadata
 
         for key, value in kwargs.items():
             self.metadata.addMetadata(key, value)
@@ -1174,23 +1208,15 @@ class DataSet(object):
             >>> ds.externalResources.addResources(
             ...     ["test3.bam"])[0].addIndices(["test3.bam.bai"])
         """
-        # Build list of current resourceIds
-        resourceIds = [extRes.resourceId for extRes in
-                       self.externalResources]
-
-        for newExtRes in newExtResources:
-            if isinstance(newExtRes, str):
-                newExtRes = wrapNewResource(newExtRes)
-
-            # merge duplicates instead of adding them
-            if newExtRes.resourceId in resourceIds:
-                first = resourceIds.index(newExtRes.resourceId)
-                self.externalResources[first].merge(newExtRes)
-
-            # add non-duplicates, update the list of current resourceIds
-            else:
-                self.externalResources.append(newExtRes)
-                resourceIds.append(newExtRes.resourceId)
+        if not isinstance(newExtResources, ExternalResources):
+            tmp = ExternalResources()
+            # have to wrap them here, as wrapNewResource does quite a bit and
+            # importing into members would create a circular inport
+            tmp.addResources([wrapNewResource(res)
+                              if not isinstance(res, ExternalResource) else res
+                              for res in newExtResources])
+            newExtResources = tmp
+        self.externalResources.merge(newExtResources)
         if updateCount:
             self._openFiles()
             self.updateCounts()
@@ -1221,23 +1247,23 @@ class DataSet(object):
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
+            resource = None
             try:
                 resource = openIndexedAlignmentFile(
                     location,
                     referenceFastaFname=refFile)
             except (IOError, ValueError):
-                if not self._strict:
+                if not self._strict and not extRes.pbi:
                     log.info("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
-                    resource = openAlignmentFile(location,
-                                                 referenceFastaFname=refFile)
                 else:
                     raise
             if not resource:
-                raise IOError(errno.EIO,
-                              "{f} fails to open".format(f=location),
-                              location)
+                # If this doesn't work the exception shouldn't be caught
+                assert(not self._strict)
+                resource = openAlignmentFile(location,
+                                             referenceFastaFname=refFile)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -1799,6 +1825,11 @@ class DataSet(object):
         """The number of records in this DataSet (from the metadata)"""
         return self._metadata.numRecords
 
+    @numRecords.setter
+    def numRecords(self, value):
+        """The number of records in this DataSet (from the metadata)"""
+        self._metadata.numRecords = value
+
     def countRecords(self, rname=None, window=None):
         """Count the number of records mapped to 'rname' that overlap with
         'window'
@@ -2040,23 +2071,22 @@ class ReadSet(DataSet):
             refFile = extRes.reference
             log.debug("Using reference: {r}".format(r=refFile))
             location = urlparse(extRes.resourceId).path
+            resource = None
             try:
                 resource = openIndexedAlignmentFile(
                     location,
                     referenceFastaFname=refFile)
             except (IOError, ValueError):
-                if not self._strict:
+                if not self._strict and not extRes.pbi:
                     log.info("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
-                    resource = openAlignmentFile(
-                        location, referenceFastaFname=refFile)
                 else:
                     raise
             if not resource:
-                raise IOError(errno.EIO,
-                              "{f} fails to open".format(f=location),
-                              location)
+                assert(not self._strict)
+                resource = openAlignmentFile(
+                    location, referenceFastaFname=refFile)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
@@ -2504,7 +2534,19 @@ class ContigSet(DataSet):
         # Pull subtype specific values where important
         if newMetadata:
             if newMetadata.contigs:
-                self._metadata.contigs.extend(newMetadata.contigs)
+                self.metadata.contigs.extend(newMetadata.contigs)
+
+    @property
+    def metadata(self):
+        if not isinstance(self._metadata, ContigSetMetadata):
+           self._metadata = ContigSetMetadata(self._metadata)
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        if not isinstance(value, ContigSetMetadata):
+            value = ContigSetMetadata(value)
+        self._metadata = value
 
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper

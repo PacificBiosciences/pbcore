@@ -1,0 +1,57 @@
+<?xml version="1.0" ?>
+<pbds:AlignmentSet CreatedAt="2015-08-05T10:43:42" MetaType="PacBio.DataSet.AlignmentSet" Name="" Tags="" TimeStampedName="" UniqueId="4be3b4e4-6915-dac6-bccb-8f1eb791c6e6" Version="3.0.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="pbalchemysim0.pbalign.bam" TimeStampedName="PacBio.SubreadFile.SubreadBamFile-150805_172518" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="pbalchemysim0.pbalign.bam.pbi" TimeStampedName="PacBio.Index.PacBioIndex-150805_172518" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="pbalchemysim0.pbalign.bam.bai" TimeStampedName="PacBio.Index.BamIndex-150805_172518" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+		<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="pbalchemysim1.pbalign.bam" TimeStampedName="PacBio.SubreadFile.SubreadBamFile-150805_174342" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="pbalchemysim1.pbalign.bam.pbi" TimeStampedName="PacBio.Index.PacBioIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+				<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="pbalchemysim1.pbalign.bam.bai" TimeStampedName="PacBio.Index.BamIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>240674</pbds:TotalLength>
+		<pbds:NumRecords>177</pbds:NumRecords>
+	</pbds:DataSetMetadata>
+	<DataSets>
+		<AlignmentSet CreatedAt="2015-08-05T10:43:42" MetaType="PacBio.DataSet.AlignmentSet" Name="" Tags="" TimeStampedName="" UniqueId="67473387-ff6e-8320-f9ac-f5d2fe878d29" Version="3.0.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+			<pbbase:ExternalResources>
+				<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="pbalchemysim0.pbalign.bam" TimeStampedName="PacBio.SubreadFile.SubreadBamFile-150805_172518" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+					<pbbase:FileIndices>
+						<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="pbalchemysim0.pbalign.bam.pbi" TimeStampedName="PacBio.Index.PacBioIndex-150805_172518" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+						<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="pbalchemysim0.pbalign.bam.bai" TimeStampedName="PacBio.Index.BamIndex-150805_172518" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+					</pbbase:FileIndices>
+				</pbbase:ExternalResource>
+				<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="pbalchemysim1.pbalign.bam" TimeStampedName="PacBio.SubreadFile.SubreadBamFile-150805_174342" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+					<pbbase:FileIndices>
+						<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="pbalchemysim1.pbalign.bam.pbi" TimeStampedName="PacBio.Index.PacBioIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+						<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="pbalchemysim1.pbalign.bam.bai" TimeStampedName="PacBio.Index.BamIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+					</pbbase:FileIndices>
+				</pbbase:ExternalResource>
+			</pbbase:ExternalResources>
+			<pbds:DataSetMetadata>
+				<pbds:TotalLength>240674</pbds:TotalLength>
+				<pbds:NumRecords>177</pbds:NumRecords>
+			</pbds:DataSetMetadata>
+		</AlignmentSet>
+		<AlignmentSet CreatedAt="2015-08-05T10:43:42" MetaType="PacBio.DataSet.AlignmentSet" Name="" Tags="" TimeStampedName="" UniqueId="795a907f-37c3-8e8a-5642-ff677d4e466a" Version="3.0.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+			<pbbase:ExternalResources>
+				<pbbase:ExternalResource MetaType="PacBio.SubreadFile.SubreadBamFile" ResourceId="pbalchemysim1.pbalign.bam" TimeStampedName="PacBio.SubreadFile.SubreadBamFile-150805_174342" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+					<pbbase:FileIndices>
+						<pbbase:FileIndex MetaType="PacBio.Index.PacBioIndex" ResourceId="pbalchemysim1.pbalign.bam.pbi" TimeStampedName="PacBio.Index.PacBioIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+						<pbbase:FileIndex MetaType="PacBio.Index.BamIndex" ResourceId="pbalchemysim1.pbalign.bam.bai" TimeStampedName="PacBio.Index.BamIndex-150805_174342" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+					</pbbase:FileIndices>
+				</pbbase:ExternalResource>
+			</pbbase:ExternalResources>
+			<pbds:DataSetMetadata>
+				<pbds:TotalLength>117086</pbds:TotalLength>
+				<pbds:NumRecords>85</pbds:NumRecords>
+			</pbds:DataSetMetadata>
+		</AlignmentSet>
+	</DataSets>
+</pbds:AlignmentSet>

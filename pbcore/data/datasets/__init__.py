@@ -11,15 +11,15 @@ XML_FILES = ["alignment.dataset.xml", #0
              "subread.dataset.xml",
              "transformed_rs_subread_dataset.xml",
              "hdfsubread_dataset.xml",
-             "pbalchemysim0.pbalign.xml",
-             "pbalchemysim0.reference.xml", #9
-             "pbalchemysim0.subread.xml",
-             "pbalchemysim1.pbalign.xml",
-             "pbalchemysim.pbalign.xml", # both sim0 and sim1 bam files
-             "pbalchemysim1.subread.xml",
+             "pbalchemysim0.alignmentset.xml",
+             "pbalchemysim0.referenceset.xml", #9
+             "pbalchemysim0.subreadset.xml",
+             "pbalchemysim1.alignmentset.xml",
+             "pbalchemysim.alignmentset.xml", # both sim0 and sim1 bam files
+             "pbalchemysim1.subreadset.xml",
              "subreadSetWithStats.xml", #14
-             "pbalchemysim0.pbalign.chunk0contigs.xml",
-             "pbalchemysim0.pbalign.chunk1contigs.xml",
+             "pbalchemysim0.alignmentset.chunk0contigs.xml",
+             "pbalchemysim0.alignmentset.chunk1contigs.xml",
             ]
 BAM_FILES = ["pbalchemysim0.pbalign.bam",
              "pbalchemysim1.pbalign.bam",

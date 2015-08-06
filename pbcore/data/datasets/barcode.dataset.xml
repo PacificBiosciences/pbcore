@@ -1,11 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<BarcodeSet xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" MetaType="PacBio.DataSet.BarcodeSet" Name="DataSet_BarcodeSet" Tags="barcode moreTags mapping mytags" UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe519c" Version="2.3.0" CreatedAt="2015-01-27T09:00:01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
-	<ExternalResources>
-		<ExternalResource Name="First Barcodes FASTA" Description="Points to an example Barcodes FASTA file." MetaType="BarcodeFile.BarcodeFastaFile" ResourceId="file:///mnt/path/to/barcode.fasta" Tags="Example"/>
-	</ExternalResources>
-	<DataSetMetadata>
-		<TotalLength>400</TotalLength>
-		<NumRecords>30</NumRecords>
-		<BarcodeConstruction>paired</BarcodeConstruction>
-	</DataSetMetadata>
-</BarcodeSet>
+<pbds:BarcodeSet 
+    xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" 
+    xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" 
+    xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd"
+    UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe519c" 
+    TimeStampedName="barcodeset_150304_231155"
+    MetaType="PacBio.DataSet.BarcodeSet" 
+    Name="DataSet_BarcodeSet" 
+    Tags="barcode moreTags mapping mytags" 
+    Version="2.3.0" 
+    CreatedAt="2015-01-27T09:00:01">
+    <pbbase:ExternalResources>
+        <pbbase:ExternalResource 
+            Name="First Barcodes FASTA" 
+            Description="Points to an example Barcodes FASTA file." 
+            UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe719c" 
+            MetaType="PacBio.BarcodeFile.BarcodeFastaFile" 
+            TimeStampedName="barcode_fasta_150304_231155"
+            ResourceId="file:///mnt/path/to/barcode.fasta" 
+            Tags="Example"/>
+    </pbbase:ExternalResources>
+    <pbds:DataSetMetadata>
+        <pbds:TotalLength>400</pbds:TotalLength>
+        <pbds:NumRecords>30</pbds:NumRecords>
+        <pbds:BarcodeConstruction>paired</pbds:BarcodeConstruction>
+    </pbds:DataSetMetadata>
+</pbds:BarcodeSet>

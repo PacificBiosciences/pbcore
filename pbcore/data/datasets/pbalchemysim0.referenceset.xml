@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<pbds:ReferenceSet CreatedAt="2015-08-05T10:24:51" MetaType="PacBio.DataSet.ReferenceSet" Name="" Tags="" TimeStampedName="" UniqueId="76c0ea62-7887-fd36-d6f6-dd87526b4109" Version="3.0.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.ReferenceFile.ReferenceFastaFile" ResourceId="pbalchemysim0.reference.fasta" TimeStampedName="PacBio.ReferenceFile.ReferenceFastaFile-150805_172451" UniqueId="6699f7d3-8def-0af8-fd4d-19238d2352b2">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.SamIndex" ResourceId="pbalchemysim0.reference.fasta.fai" TimeStampedName="PacBio.Index.SamIndex-150805_172451" UniqueId="370dc654-d2a5-e575-92cc-6f9c75a403f4"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>85774</pbds:TotalLength>
+		<pbds:NumRecords>59</pbds:NumRecords>
+		<pbds:Organism/>
+		<pbds:Ploidy/>
+		<pbds:Contigs>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1458" Name="A.baumannii.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1462" Name="A.odontolyticus.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="B.cereus.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1473" Name="B.cereus.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="B.cereus.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="B.cereus.6"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1449" Name="B.vulgatus.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1449" Name="B.vulgatus.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1449" Name="B.vulgatus.3"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1449" Name="B.vulgatus.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1449" Name="B.vulgatus.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.3"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.6"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.7"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.8"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.9"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.10"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.11"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.12"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.13"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1433" Name="C.beijerinckii.14"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1423" Name="D.radiodurans.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1423" Name="D.radiodurans.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1482" Name="E.faecalis.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1482" Name="E.faecalis.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.6"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1463" Name="E.coli.7"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1424" Name="H.pylori.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1494" Name="L.gasseri.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1471" Name="L.monocytogenes.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1471" Name="L.monocytogenes.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1471" Name="L.monocytogenes.3"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1471" Name="L.monocytogenes.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1462" Name="N.meningitidis.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1446" Name="P.acnes.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1457" Name="P.aeruginosa.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1457" Name="P.aeruginosa.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1386" Name="R.sphaeroides.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1388" Name="R.sphaeroides.3"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1473" Name="S.aureus.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1473" Name="S.aureus.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1473" Name="S.aureus.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="S.epidermidis.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="S.epidermidis.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="S.epidermidis.3"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="S.epidermidis.4"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1472" Name="S.epidermidis.5"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1470" Name="S.agalactiae.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1478" Name="S.mutans.1"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1478" Name="S.mutans.2"/>
+			<pbds:Contig Description="" Digest="DEPRECATED" Length="1467" Name="S.pneumoniae.1"/>
+		</pbds:Contigs>
+	</pbds:DataSetMetadata>
+</pbds:ReferenceSet>

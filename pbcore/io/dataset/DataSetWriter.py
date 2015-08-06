@@ -3,7 +3,9 @@
 import copy, time
 import xml.etree.ElementTree as ET
 
+# TODO add in other namespaces
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
+
 # Not actually sure what this should be:
 XMLVERSION = '3.0.0'
 
@@ -25,6 +27,112 @@ def toXml(dataset, core=False):
     root = _toElementTree(dataset, root=None, core=core)
     return ET.tostring(root, encoding="UTF-8")
 
+def namespaces():
+    return {
+        'pbbase': 'http://pacificbiosciences.com/PacBioBaseDataModel.xsd',
+        'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
+        'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
+        'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd'}
+
+TAGS = [
+    "pbbase:AutomationParameter",
+    "pbbase:AutomationParameters",
+    "pbbase:BinCount",
+    "pbbase:BinCounts",
+    "pbbase:BinLabel",
+    "pbbase:BinLabels",
+    "pbbase:BinWidth",
+    "pbbase:ExternalResource",
+    "pbbase:ExternalResources",
+    "pbbase:FileIndex",
+    "pbbase:FileIndices",
+    "pbbase:MaxBinValue",
+    "pbbase:MaxOutlierValue",
+    "pbbase:MetricDescription",
+    "pbbase:MinBinValue",
+    "pbbase:MinOutlierValue",
+    "pbbase:NumBins",
+    "pbbase:Properties",
+    "pbbase:Property",
+    "pbbase:Sample95thPct",
+    "pbbase:SampleMean",
+    "pbbase:SampleMed",
+    "pbbase:SampleSize",
+    "pbbase:SampleStd",
+    "pbds:AdapterDimerFraction",
+    "pbds:BarcodeConstruction",
+    "pbds:ControlReadLenDist",
+    "pbds:ControlReadQualDist",
+    "pbds:DataSetMetadata",
+    "pbds:DataSet",
+    "pbds:DataSets",
+    "pbds:Filter",
+    "pbds:Filters",
+    "pbds:Provenance",
+    "pbds:ParentTool",
+    "pbds:InsertReadLenDist",
+    "pbds:InsertReadQualDist",
+    "pbds:MedianInsertDist",
+    "pbds:NumRecords",
+    "pbds:NumSequencingZmws",
+    "pbds:ProdDist",
+    "pbds:ReadLenDist",
+    "pbds:ReadQualDist",
+    "pbds:ReadTypeDist",
+    "pbds:ShortInsertFraction",
+    "pbds:HdfSubreadSet",
+    "pbds:SubreadSet",
+    "pbds:SummaryStats",
+    "pbds:TotalLength",
+    "pbmeta:Automation",
+    "pbmeta:AutomationName",
+    "pbmeta:CellIndex",
+    "pbmeta:CellPac",
+    "pbmeta:CollectionFileCopy",
+    "pbmeta:CollectionMetadata",
+    "pbmeta:CollectionNumber",
+    "pbmeta:CollectionPathUri",
+    "pbmeta:Collections",
+    "pbmeta:Concentration",
+    "pbmeta:ConfigFileName",
+    "pbmeta:CopyFiles",
+    "pbmeta:InstCtrlVer",
+    "pbmeta:MetricsVerbosity",
+    "pbmeta:Name",
+    "pbmeta:OutputOptions",
+    "pbmeta:PlateId",
+    "pbmeta:Primary",
+    "pbmeta:Readout",
+    "pbmeta:ResultsFolder",
+    "pbmeta:RunDetails",
+    "pbmeta:RunId",
+    "pbmeta:SampleReuseEnabled",
+    "pbmeta:SequencingCondition",
+    "pbmeta:SigProcVer",
+    "pbmeta:SizeSelectionEnabled",
+    "pbmeta:StageHotstartEnabled",
+    "pbmeta:UseCount",
+    "pbmeta:WellName",
+    "pbmeta:WellSample",
+    "pbsample:BioSample",
+    "pbsample:BioSamplePointer",
+    "pbsample:BioSamplePointers",
+    "pbsample:BioSamples",
+    "pbds:AlignmentSet",
+    "pbds:BarcodeSet",
+    "pbds:ConsensusReadSet",
+    "pbds:ContigSet",
+    "pbds:ReferenceSet",
+    "pbds:Ploidy",
+    "pbds:Organism",
+    "pbds:Contig",
+    "pbds:Contigs"
+]
+
+def register_namespaces():
+    for prefix, uri in namespaces().items():
+        ET.register_namespace(prefix, uri)
+
 def _toElementTree(dataSet, root=None, core=False):
     """Generate an ElementTree representation of this object. This is a
     function independent of "write" and "toXml" so that it can also be used
@@ -40,7 +148,9 @@ def _toElementTree(dataSet, root=None, core=False):
     """
     # 'if not root:' would conflict with testing root for children
     if root is None:
-        rootType = type(dataSet).__name__
+        register_namespaces()
+        rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+                                       t=type(dataSet).__name__)
         attribs = dataSet.objMetadata
         if core:
             attribs = _coreClean(attribs)
@@ -98,9 +208,7 @@ def _addExternalResourcesElement(dataSet, root, core=False):
         core=False: T/F strip out user editable attributes
     """
     if dataSet.externalResources:
-        dsmd = ET.SubElement(root, 'ExternalResources')
-        for child in dataSet.externalResources.record['children']:
-            dsmd.append(_eleFromDictList(child, core))
+        root.append(_eleFromDictList(dataSet.externalResources.record, core))
 
 def _addDataSetMetadataElement(dataSet, root):
     """Add DataSetMetadata Elements to the root ElementTree object. Full
@@ -110,27 +218,31 @@ def _addDataSetMetadataElement(dataSet, root):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataSet.metadata:
-        dsmd = ET.SubElement(root, 'DataSetMetadata')
-        for child in dataSet.metadata.record['children']:
-            dsmd.append(_eleFromDictList(child))
+        root.append(_eleFromDictList(dataSet.metadata.record))
+        # Metadata order matters....
         #tl = dsmd.find('TotalLength')
         #tl = dsmd.remove(tl)
         #dsmd.insert(0, tl)
 
-def _eleFromDict(tag, eleAsDict):
-    """A last ditch capture method for uknown Elements"""
-    ele = ET.Element(tag, eleAsDict['attrib'])
-    ele.text = eleAsDict['text']
-    for childTag, childDict in eleAsDict['children'].items():
-        ele.append(_eleFromDict(childTag, childDict))
-    return ele
+def _guessNs(tag):
+    for option in TAGS:
+        nsprefix, nstag = option.split(':')
+        if nstag == tag:
+            return namespaces()[nsprefix]
+    return ''
 
 def _eleFromDictList(eleAsDict, core=False):
     """A last ditch capture method for uknown Elements"""
+    if not eleAsDict['namespace']:
+        eleAsDict['namespace'] = _guessNs(eleAsDict['tag'])
     if core:
-        ele = ET.Element(eleAsDict['tag'], _coreClean(eleAsDict['attrib']))
+        ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
+                                             t=eleAsDict['tag']),
+                         _coreClean(eleAsDict['attrib']))
     else:
-        ele = ET.Element(eleAsDict['tag'], eleAsDict['attrib'])
+        ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
+                                             t=eleAsDict['tag']),
+                         eleAsDict['attrib'])
     ele.text = eleAsDict['text']
     for child in eleAsDict['children']:
         ele.append(_eleFromDictList(child))

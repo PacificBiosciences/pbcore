@@ -78,6 +78,44 @@ class TestDataSet(unittest.TestCase):
             ds.externalResources[-1].indices[0].resourceId ==
             "IdontExist.bam.pbi")
 
+    def test_split_cli(self):
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        cmd = "dataset.py split --outdir {o} --contigs --chunks 2 {d}".format(
+            o=outdir,
+            d=data.getXml(8))
+        log.debug(cmd)
+        o, r, m = backticks(cmd)
+        self.assertEqual(r, 0)
+        self.assertTrue(os.path.exists(
+            os.path.join(outdir, os.path.basename(data.getXml(15)))))
+        self.assertTrue(os.path.exists(
+            os.path.join(outdir, os.path.basename(data.getXml(16)))))
+
+    def test_create_cli(self):
+        log.debug("Absolute")
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        cmd = "dataset.py create --type AlignmentSet {o} {i1} {i2}".format(
+            o=os.path.join(outdir, 'pbalchemysim.alignmentset.xml'),
+            i1=data.getXml(8), i2=data.getXml(11))
+        log.debug(cmd)
+        o, r, m = backticks(cmd)
+        self.assertEqual(r, 0)
+        self.assertTrue(os.path.exists(
+            os.path.join(outdir, os.path.basename(data.getXml(12)))))
+
+        log.debug("Relative")
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        cmd = ("dataset.py create --relative --type AlignmentSet "
+               "{o} {i1} {i2}".format(
+                   o=os.path.join(outdir, 'pbalchemysim.alignmentset.xml'),
+                   i1=data.getXml(8),
+                   i2=data.getXml(11)))
+        log.debug(cmd)
+        o, r, m = backticks(cmd)
+        self.assertEqual(r, 0)
+        self.assertTrue(os.path.exists(
+            os.path.join(outdir, os.path.basename(data.getXml(12)))))
+
     def test_empty_metatype(self):
         inBam = data.getBam()
         d = DataSet(inBam)
@@ -263,7 +301,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(old != ds.uuid)
 
     def test_split(self):
-        ds1 = DataSet(data.getXml())
+        ds1 = DataSet(data.getXml(12))
         self.assertTrue(ds1.numExternalResources > 1)
         dss = ds1.split()
         self.assertTrue(len(dss) == ds1.numExternalResources)
@@ -288,7 +326,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds2.totalLength == ds2tl)
 
     def test_copy(self):
-        ds1 = DataSet(data.getXml())
+        ds1 = DataSet(data.getXml(12))
         ds2 = ds1.copy()
         self.assertFalse(ds1 == ds2)
         self.assertFalse(ds1.uuid == ds2.uuid)
