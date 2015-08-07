@@ -44,9 +44,9 @@ class TestDataSet(unittest.TestCase):
         validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
     def test_valid_hdfsubreadsets(self):
-        validateXml(ET.parse(data.getXml(17)).getroot())
-        validateXml(ET.parse(data.getXml(18)).getroot())
-        validateXml(ET.parse(data.getXml(19)).getroot())
+        validateXml(ET.parse(data.getXml(17)).getroot(), skipResources=True)
+        validateXml(ET.parse(data.getXml(18)).getroot(), skipResources=True)
+        validateXml(ET.parse(data.getXml(19)).getroot(), skipResources=True)
 
     def test_autofilled_metatypes(self):
         ds = ReferenceSet(data.getXml(9))
