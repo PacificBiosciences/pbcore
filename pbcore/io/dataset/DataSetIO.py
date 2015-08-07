@@ -2189,6 +2189,12 @@ class HdfSubreadSet(ReadSet):
         log.debug("Opening HdfSubreadSet")
         super(HdfSubreadSet, self).__init__(*files, **kwargs)
 
+        # The metatype for this dataset type is inconsistent, plaster over it
+        # here:
+        self.objMetadata["MetaType"] = "PacBio.DataSet.SubreadSet"
+        self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
+            self.objMetadata["MetaType"])
+
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
