@@ -127,7 +127,7 @@ class TestDataSet(unittest.TestCase):
         d = AlignmentSet(inBam)
         for extRes in d.externalResources:
             self.assertEqual(extRes.metaType,
-                             "PacBio.SubreadFile.SubreadBamFile")
+                             "PacBio.AlignmentFile.AlignmentBamFile")
 
     def test_loading_reference(self):
         log.info('Opening Reference')
@@ -557,7 +557,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_split_by_contigs_with_split_and_maxChunks(self):
         # test to make sure the refWindows work when chunks == # refs
-        ds3 = DataSet(data.getBam())
+        ds3 = AlignmentSet(data.getBam())
         dss = ds3.split(contigs=True)
         self.assertEqual(len(dss), 12)
         refWindows = sorted(reduce(lambda x, y: x + y,
@@ -599,6 +599,7 @@ class TestDataSet(unittest.TestCase):
                 log.debug(ref)
             self.assertTrue(found)
 
+        # test with maxchunks but no breaking contigs
         dss = ds3.split(contigs=True, maxChunks=36)
         self.assertEqual(len(dss), 12)
         refWindows = sorted(reduce(lambda x, y: x + y,
@@ -610,8 +611,24 @@ class TestDataSet(unittest.TestCase):
                     found = True
             self.assertTrue(found)
 
+        # test with maxchunks and breaking contigs is allowed (triggers
+        # targetsize, may result in fewer chunks)
         dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True)
         self.assertEqual(len(dss), 2)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        # test with previous setup and smaller targetSize, resulting in more
+        # chunks
+        dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True,
+                        targetSize=10)
+        self.assertEqual(len(dss), 9)
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:

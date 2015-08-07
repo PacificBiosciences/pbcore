@@ -555,7 +555,7 @@ class DataSet(object):
         return result
 
     def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
-              maxChunks=0, breakContigs=False):
+              maxChunks=0, breakContigs=False, targetSize=5000):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -638,7 +638,8 @@ class DataSet(object):
             True
         """
         if contigs:
-            return self._split_contigs(chunks, maxChunks, breakContigs)
+            return self._split_contigs(chunks, maxChunks, breakContigs,
+                                       targetSize=targetSize)
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
@@ -738,11 +739,14 @@ class DataSet(object):
             minNum = 2
             maxNum = maxChunks
             # Adjust
+            log.debug("Target numRecors per chunk: {i}".format(i=targetSize))
             dataSize = self.numRecords
+            log.debug("numRecors in dataset: {i}".format(i=dataSize))
             chunks = int(dataSize/targetSize)
             # Respect bounds:
             chunks = minNum if chunks < minNum else chunks
             chunks = maxNum if chunks > maxNum else chunks
+            log.debug("Resulting number of chunks: {i}".format(i=chunks))
 
         # refwindow format: rId, start, end
         if chunks > len(atoms):
@@ -1852,6 +1856,11 @@ class DataSet(object):
         """The total length of this DataSet"""
         return self._metadata.totalLength
 
+    @totalLength.setter
+    def totalLength(self, value):
+        """The total length of this DataSet"""
+        self._metadata.totalLength = value
+
     @property
     def uuid(self):
         """The UniqueId of this DataSet"""
@@ -2110,9 +2119,32 @@ class ReadSet(DataSet):
 
     @property
     def _length(self):
-        """Used to populate metadata in updateCounts"""
-        length = -1
-        count = -1
+        """Used to populate metadata in updateCounts. We're using the pbi here,
+        which is necessary and sufficient for both subreadsets and
+        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
+        duplicate code, we'll implement the hdf specific _length as an
+        overriding function where needed.
+
+        ..note:: Both mapped and unmapped bams can be either indexed or
+                 unindexed. This makes life more difficult, but we should expect a pbi
+                 for both subreadsets and alignmentsets"""
+        length = 0
+        count = 0
+        endkey = 'aEnd'
+        startkey = 'aStart'
+        if self.isCmpH5:
+            endkey = 'rEnd'
+            startkey = 'rStart'
+        for rec in self.indexRecords:
+            if isinstance(rec, np.ndarray):
+                count += len(rec)
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                count += len(rec)
+                length += sum(rec.aEnd - rec.aStart)
+            else:
+                count += 1
+                length += rec.aEnd - rec.aStart
         return count, length
 
     def __len__(self):
@@ -2126,13 +2158,33 @@ class ReadSet(DataSet):
                 self.numRecords = count
         return self.numRecords
 
+    def updateCounts(self):
+        if self._skipCounts:
+            log.debug("SkipCounts is true, skipping updateCounts()")
+            self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
+            return
+        try:
+            self.assertIndexed()
+            log.debug('Updating counts')
+            numRecords, totalLength = self._length
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+        except (IOError, UnavailableFeature):
+            if not self._strict:
+                log.debug("File problem, metadata not populated")
+                self.metadata.totalLength = -1
+                self.metadata.numRecords = -1
+            else:
+                raise
+
+
 class HdfSubreadSet(ReadSet):
 
     datasetType = DataSetMetaTypes.HDF_SUBREAD
 
     def __init__(self, *files, **kwargs):
         log.debug("Opening HdfSubreadSet")
-        kwargs['skipCounts'] = True
         super(HdfSubreadSet, self).__init__(*files, **kwargs)
 
     def _openFiles(self):
@@ -2149,9 +2201,41 @@ class HdfSubreadSet(ReadSet):
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
+    @property
+    def _length(self):
+        """Used to populate metadata in updateCounts"""
+        length = 0
+        count = 0
+        for rec in self.records:
+            count += 1
+            hqReg =rec.hqRegion
+            length += hqReg[1] - hqReg[0]
+        return count, length
+
+    def updateCounts(self):
+        """Overriding here so we don't have to assertIndexed"""
+        if self._skipCounts:
+            log.debug("SkipCounts is true, skipping updateCounts()")
+            self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
+            return
+        try:
+            log.debug('Updating counts')
+            numRecords, totalLength = self._length
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+        except (IOError, UnavailableFeature):
+            if not self._strict:
+                log.debug("File problem, metadata not populated")
+                self.metadata.totalLength = -1
+                self.metadata.numRecords = -1
+            else:
+                raise
+
     @staticmethod
     def _metaTypeMapping():
-        return {'bax.h5':'PacBio.SubreadFile.SubreadBaxFile', }
+        return {'bax.h5':'PacBio.SubreadFile.BaxFile',
+                'bas.h5':'PacBio.SubreadFile.BasFile', }
 
 
 class SubreadSet(ReadSet):
@@ -2194,26 +2278,9 @@ class SubreadSet(ReadSet):
 
     def __init__(self, *files, **kwargs):
         log.debug("Opening SubreadSet")
+        # until pbi's can be generated for subreadsets, this is necessary:
+        kwargs['skipCounts'] = True
         super(SubreadSet, self).__init__(*files, **kwargs)
-
-    @property
-    def _length(self):
-        """Used to populate metadata in updateCounts"""
-        length = 0
-        count = 0
-        endkey = 'qEnd'
-        startkey = 'qStart'
-        for rec in self.indexRecords:
-            if isinstance(rec, np.ndarray):
-                count += len(rec)
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                count += len(rec)
-                length += sum(rec.aEnd - rec.aStart)
-            else:
-                count += 1
-                length += rec.aEnd - rec.aStart
-        return count, length
 
     @staticmethod
     def _metaTypeMapping():
@@ -2240,6 +2307,15 @@ class ConsensusReadSet(ReadSet):
     """
 
     datasetType = DataSetMetaTypes.CCS
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
 
 class AlignmentSet(ReadSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
@@ -2286,60 +2362,6 @@ class AlignmentSet(ReadSet):
         responses = [res.reference for res in self.externalResources]
         return self._unifyResponses(responses)
 
-    def updateCounts(self):
-        if self._skipCounts:
-            log.debug("SkipCounts is true, skipping updateCounts()")
-            self.metadata.totalLength = -1
-            self.metadata.numRecords = -1
-            return
-        try:
-            self.assertIndexed()
-            log.debug('Updating counts')
-            numRecords, totalLength = self._length
-            self.metadata.totalLength = totalLength
-            self.metadata.numRecords = numRecords
-        # I would prefer to just catch IOError and UnavailableFeature
-        except (IOError, UnavailableFeature):
-            if not self._strict:
-                log.debug("File problem, metadata not populated")
-                self.metadata.totalLength = -1
-                self.metadata.numRecords = -1
-            else:
-                raise
-
-    @property
-    def _length(self):
-        """Used to populate metadata in updateCounts"""
-        length = 0
-        count = 0
-        endkey = 'aEnd'
-        startkey = 'aStart'
-        if self.isCmpH5:
-            endkey = 'rEnd'
-            startkey = 'rStart'
-        for rec in self.indexRecords:
-            if isinstance(rec, np.ndarray):
-                count += len(rec)
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                count += len(rec)
-                length += sum(rec.aEnd - rec.aStart)
-            else:
-                count += 1
-                length += rec.aEnd - rec.aStart
-        return count, length
-
-    def __len__(self):
-        if self.numRecords == -1:
-            if self._filters:
-                self.updateCounts()
-            else:
-                count = 0
-                for reader in self.resourceReaders():
-                    count += len(reader)
-                self.numRecords = count
-        return self.numRecords
-
     @property
     def recordsByReference(self):
         """ The records in this AlignmentSet, sorted by tStart. """
@@ -2354,7 +2376,7 @@ class AlignmentSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.SubreadFile.SubreadBamFile',
+        return {'bam':'PacBio.AlignmentFile.AlignmentBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                }
@@ -2455,6 +2477,9 @@ class ContigSet(DataSet):
             self._populateContigMetadata()
 
     def _popSuffix(self, name):
+        """Chunking and quivering adds suffixes to contig names, after the
+        normal ID and window. This complicates our dewindowing and
+        consolidation, so we'll remove them for now"""
         observedSuffixes = ['|quiver']
         for suff in observedSuffixes:
             if name.endswith(suff):
@@ -2463,12 +2488,17 @@ class ContigSet(DataSet):
         return name, ''
 
     def _removeWindow(self, name):
+        """Chunking and quivering appends a window to the contig ID, which
+        allows us to consolidate the contig chunks but also gets in the way of
+        contig identification by ID. Remove it temporarily"""
         if isinstance(self._parseWindow(name), np.ndarray):
             name, suff = self._popSuffix(name)
             return '_'.join(name.split('_')[:-2]) + suff
         return name
 
     def _parseWindow(self, name):
+        """Chunking and quivering appends a window to the contig ID, which
+        allows us to consolidate the contig chunks."""
         name, _ = self._popSuffix(name)
         possibilities = name.split('_')[-2:]
         for pos in possibilities:
@@ -2690,7 +2720,6 @@ class ReferenceSet(ContigSet):
         if no name assigned."""
         return self.contigNames
 
-
     @staticmethod
     def _metaTypeMapping():
         return {'fasta':'PacBio.ReferenceFile.ReferenceFastaFile',
@@ -2729,3 +2758,12 @@ class BarcodeSet(DataSet):
 
         # Pull subtype specific values where important
         # -> No type specific merging necessary, for now
+
+    @staticmethod
+    def _metaTypeMapping():
+        return {'fasta':'PacBio.BarcodeFile.BarcodeFastaFile',
+                'fai':'PacBio.Index.SamIndex',
+                'sa':'PacBio.Index.SaWriterIndex',
+               }
+
+

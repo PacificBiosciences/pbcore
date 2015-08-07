@@ -43,6 +43,11 @@ class TestDataSet(unittest.TestCase):
     def test_valid_referencesets(self):
         validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
+    def test_valid_hdfsubreadsets(self):
+        validateXml(ET.parse(data.getXml(17)).getroot())
+        validateXml(ET.parse(data.getXml(18)).getroot())
+        validateXml(ET.parse(data.getXml(19)).getroot())
+
     def test_autofilled_metatypes(self):
         ds = ReferenceSet(data.getXml(9))
         for extRes in ds.externalResources:
@@ -170,6 +175,79 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
         self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
+
+    def test_len(self):
+        # AlignmentSet
+        aln = AlignmentSet(data.getXml(8), strict=True)
+        self.assertEqual(len(aln), 92)
+        self.assertEqual(aln._length, (92, 123588))
+        self.assertEqual(aln.totalLength, 123588)
+        self.assertEqual(aln.numRecords, 92)
+        aln.totalLength = -1
+        aln.numRecords = -1
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
+        aln.updateCounts()
+        self.assertEqual(aln.totalLength, 123588)
+        self.assertEqual(aln.numRecords, 92)
+
+        # AlignmentSet with filters
+        aln = AlignmentSet(data.getXml(15), strict=True)
+        self.assertEqual(len(aln), 40)
+        self.assertEqual(aln._length, (40, 52023))
+        self.assertEqual(aln.totalLength, 52023)
+        self.assertEqual(aln.numRecords, 40)
+        aln.totalLength = -1
+        aln.numRecords = -1
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
+        aln.updateCounts()
+        self.assertEqual(aln.totalLength, 52023)
+        self.assertEqual(aln.numRecords, 40)
+
+        # SubreadSet
+        # TODO Turn this back on when pbi's are fixed for subreadsets
+        #sset = SubreadSet(data.getXml(10), strict=True)
+        #self.assertEqual(len(sset), 92)
+        #self.assertEqual(sset._length, (92, 123588))
+        #self.assertEqual(sset.totalLength, 123588)
+        #self.assertEqual(sset.numRecords, 92)
+        #sset.totalLength = -1
+        #sset.numRecords = -1
+        #self.assertEqual(sset.totalLength, -1)
+        #self.assertEqual(sset.numRecords, -1)
+        #sset.updateCounts()
+        #self.assertEqual(sset.totalLength, 123588)
+        #self.assertEqual(sset.numRecords, 92)
+
+        # HdfSubreadSet
+        # len means something else in bax/bas land. These numbers may actually
+        # be correct...
+        sset = HdfSubreadSet(data.getXml(17), strict=True)
+        self.assertEqual(len(sset), 9)
+        self.assertEqual(sset._length, (9, 128093))
+        self.assertEqual(sset.totalLength, 128093)
+        self.assertEqual(sset.numRecords, 9)
+        sset.totalLength = -1
+        sset.numRecords = -1
+        self.assertEqual(sset.totalLength, -1)
+        self.assertEqual(sset.numRecords, -1)
+        sset.updateCounts()
+        self.assertEqual(sset.totalLength, 128093)
+        self.assertEqual(sset.numRecords, 9)
+
+        # ReferenceSet
+        sset = ReferenceSet(data.getXml(9), strict=True)
+        self.assertEqual(len(sset), 59)
+        self.assertEqual(sset.totalLength, 85774)
+        self.assertEqual(sset.numRecords, 59)
+        sset.totalLength = -1
+        sset.numRecords = -1
+        self.assertEqual(sset.totalLength, -1)
+        self.assertEqual(sset.numRecords, -1)
+        sset.updateCounts()
+        self.assertEqual(sset.totalLength, 85774)
+        self.assertEqual(sset.numRecords, 59)
 
     def test_alignment_reference(self):
         rs1 = ReferenceSet(data.getXml(9))

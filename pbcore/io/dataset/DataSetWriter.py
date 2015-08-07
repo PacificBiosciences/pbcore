@@ -31,6 +31,7 @@ def namespaces():
     return {
         'pbbase': 'http://pacificbiosciences.com/PacBioBaseDataModel.xsd',
         'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
+        'pbstats': 'http://pacificbiosciences.com/PipelineStats/PipeStats.xsd',
         'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
         'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd'}
 

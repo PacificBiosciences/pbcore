@@ -86,7 +86,8 @@ def splitXml(args):
                         ignoreSubDatasets=(not args.subdatasets),
                         contigs=args.contigs,
                         maxChunks=args.maxChunks,
-                        breakContigs=args.breakContigs)
+                        breakContigs=args.breakContigs,
+                        targetSize=args.targetSize)
     log.debug("Split into {i} chunks".format(i=len(dss)))
     infix = 'chunk{i}'
     if args.contigs:
@@ -126,6 +127,8 @@ def split_options(parser):
                         help="Split contigs into <chunks> total windows")
     parser.add_argument("--maxChunks", default=False, type=int,
                         help="Split contig list into at most <chunks> groups")
+    parser.add_argument("--targetSize", default=5000, type=int,
+                        help="Target number of records per chunk")
     parser.add_argument("--breakContigs", default=False, action='store_true',
                         help="Break contigs to get closer to maxCounts")
     parser.add_argument("--subdatasets", default=False, action='store_true',

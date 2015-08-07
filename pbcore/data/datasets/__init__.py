@@ -20,6 +20,9 @@ XML_FILES = ["alignment.dataset.xml", #0
              "subreadSetWithStats.xml", #14
              "pbalchemysim0.alignmentset.chunk0contigs.xml",
              "pbalchemysim0.alignmentset.chunk1contigs.xml",
+             "pbalchemysim0.hdfsubreadset.xml",
+             "pbalchemysim1.hdfsubreadset.xml",
+             "pbalchemysim.hdfsubreadset.xml", #19
             ]
 BAM_FILES = ["pbalchemysim0.pbalign.bam",
              "pbalchemysim1.pbalign.bam",

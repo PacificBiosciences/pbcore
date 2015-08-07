@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<pbds:HdfSubreadSet CreatedAt="2015-08-07T09:31:57" MetaType="PacBio.DataSet.HdfSubreadSet" Name="" Tags="" TimeStampedName="PacBio.DataSet.HdfSubreadSet-150807_163157" UniqueId="dacff4ef-3689-dce4-a564-3232b3e95cc9" Version="3.0.0" xmlns="http://pacificbiosciences.com/PacBioDataModel.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="" ResourceId="/home/UNIXHOME/mdsmith/p4/mainline/software/smrtanalysis/bioinformatics/lib/python/pbcore/pbcore/data/datasets/pbalchemysim0.bas.h5" TimeStampedName="-150807_163157" UniqueId="27794e01-922c-44e8-8242-bb10030f3096"/>
+		<pbbase:ExternalResource MetaType="" ResourceId="/home/UNIXHOME/mdsmith/p4/mainline/software/smrtanalysis/bioinformatics/lib/python/pbcore/pbcore/data/datasets/pbalchemysim1.bas.h5" TimeStampedName="-150807_163157" UniqueId="b3cbf11e-10cf-4090-ac5c-100523c65843"/>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>-1</pbds:TotalLength>
+		<pbds:NumRecords>-1</pbds:NumRecords>
+	</pbds:DataSetMetadata>
+</pbds:HdfSubreadSet>
