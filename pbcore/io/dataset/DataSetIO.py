@@ -940,6 +940,7 @@ class DataSet(object):
         Args:
             curStart: The location from which relative paths should emanate.
         """
+        log.debug("Making paths absolute")
         self._changePaths(
             lambda x, s=curStart: resolveLocation(x, s))
 
@@ -952,6 +953,7 @@ class DataSet(object):
             outDir: The location from which relative paths should originate
 
         """
+        log.debug("Making paths relative")
         if outDir:
             self._changePaths(lambda x, s=outDir: os.path.relpath(x, s))
         else:
