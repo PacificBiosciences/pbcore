@@ -409,6 +409,9 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     def testSpecVersion(self):
         EQ("3.0b7",     self.f.version)
 
+    def testReadScore(self):
+        EQ(0.904, self.fwdAln.readScore)
+
 class TestIndexedBam(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = IndexedBamReader
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())

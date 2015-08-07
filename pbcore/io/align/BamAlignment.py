@@ -238,6 +238,20 @@ class BamAlignment(AlignmentRecordMixin):
         return self.bam.readGroupInfo(rgAsInt(self.peer.opt("RG")))
 
     @property
+    def readScore(self):
+        """
+        Return the "read score", a de novo prediction (not using any
+        alignment) of the accuracy (between 0 and 1) of this read.
+
+        .. note::
+
+            This capability was not available in `cmp.h5` files, so
+            use of this property can result in code that won't work on
+            legacy data.
+        """
+        return 0.001 * self.peer.opt("rq")
+
+    @property
     def readType(self):
         return self.readGroupInfo.ReadType
 
