@@ -23,7 +23,8 @@ def summarize_options(parser):
 
 def createXml(args):
     dsTypes = DataSet.castableTypes()
-    dset = dsTypes[args.dsType](*args.infile, strict=args.strict)
+    dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
+                                skipCounts=args.skipCounts)
     log.debug("Dataset created")
     dset.write(args.outfile, validate=args.novalidate, relPaths=args.relative)
     log.debug("Dataset written")

@@ -45,6 +45,8 @@ def get_parser():
                         help="Turn on debug level logging")
     parser.add_argument("--strict", default=False, action='store_true',
                         help="Turn on strict tests, raise all errors")
+    parser.add_argument("--skipCounts", default=False, action='store_true',
+                        help="Turn on strict tests, raise all errors")
     subparser_list = get_subparsers()
     parser = add_subparsers(parser, subparser_list)
     return parser
