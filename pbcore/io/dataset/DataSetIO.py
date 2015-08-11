@@ -2390,6 +2390,22 @@ class AlignmentSet(ReadSet):
                }
 
 
+class ConsensusAlignmentSet(AlignmentSet):
+    """
+    Dataset type for aligned CCS reads.  Essentially identical to AlignmentSet
+    aside from the contents of the underlying BAM files.
+    """
+    datasetType = DataSetMetaTypes.CCS_ALIGNMENT
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
 class ContigSet(DataSet):
     """DataSet type specific to Contigs"""
 

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pbds:ConsensusAlignmentSet 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd" 
+    xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" 
+    xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" 
+    UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe519c" 
+    TimeStampedName="consensusreadset_150304_231155" 
+    MetaType="PacBio.DataSet.ConsensusAlignmentSet" 
+    Name="DataSet_ConsensusAlignmentSet" 
+    Tags="barcode moreTags mapping mytags" 
+    Version="2.3.0" 
+    CreatedAt="2015-01-27T09:00:01">
+    <pbbase:ExternalResources>
+        <pbbase:ExternalResource 
+            UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5193" 
+            TimeStampedName="consensusread_bam_150304_231155" 
+            MetaType="PacBio.ConsensusReadFile.ConsensusReadBamFile" 
+            Name="First ConsensusRead BAM" 
+            Description="Points to an example ConsensusRead BAM file." 
+            ResourceId="file:///mnt/path/to/ccsreads0.bam" 
+            Tags="Example">
+            <pbbase:FileIndices>
+                <pbbase:FileIndex 
+                    UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5293" 
+                    TimeStampedName="bam_index_150304_231155" 
+                    MetaType="PacBio.Index.PacBioIndex" 
+                    ResourceId="file:///mnt/path/to/ccsreads0.pbi"/>
+            </pbbase:FileIndices>
+        </pbbase:ExternalResource>
+        <pbbase:ExternalResource 
+            UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5393" 
+            TimeStampedName="consensusread_bam_150304_231155" 
+            MetaType="PacBio.ConsensusReadFile.ConsensusReadBamFile" 
+            Name="Second ConsensusRead BAM" 
+            Description="Points to an example ConsensusRead BAM file." 
+            ResourceId="file:///mnt/path/to/ccsreads1.bam" 
+            Tags="Example">
+            <pbbase:FileIndices>
+                <pbbase:FileIndex 
+                    UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5493" 
+                    TimeStampedName="bam_index_150304_231155" 
+                    MetaType="PacBio.Index.PacBioIndex" 
+                    ResourceId="file:///mnt/path/to/ccsreads0.pbi"/>
+            </pbbase:FileIndices>
+        </pbbase:ExternalResource>
+    </pbbase:ExternalResources>
+</pbds:ConsensusAlignmentSet>

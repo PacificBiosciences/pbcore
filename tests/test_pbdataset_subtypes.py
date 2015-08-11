@@ -9,7 +9,7 @@ from pbcore.util.Process import backticks
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
-                       HdfSubreadSet)
+                       HdfSubreadSet, ConsensusAlignmentSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -111,6 +111,15 @@ class TestDataSet(unittest.TestCase):
         ds2 = ConsensusReadSet(data.getXml(2), strict=False)
         self.assertEquals(type(ds2).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
+
+    def test_ccsalignment_build(self):
+        ds1 = ConsensusAlignmentSet(data.getXml(20), strict=False)
+        self.assertEquals(type(ds1).__name__, 'ConsensusAlignmentSet')
+        self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
+        # XXX strict=True requires actual existing .bam files
+        #ds2 = ConsensusAlignmentSet(data.getXml(20), strict=True)
+        #self.assertEquals(type(ds2).__name__, 'ConsensusAlignmentSet')
+        #self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
     def test_contigset_build(self):
         ds1 = ContigSet(data.getXml(3))
