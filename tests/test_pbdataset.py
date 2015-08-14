@@ -338,6 +338,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sum([ len([ r for r in ds_ ]) for ds_ in dss ]), 1220)
         dss = ds1.split(chunks=9, zmws=True)
         self.assertEqual(sum([ len([ r for r in ds_ ]) for ds_ in dss ]), 1220)
+        self.assertEqual(dss[0].zmwRanges, [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0', 55, 1815)])
 
     def test_copy(self):
         ds1 = DataSet(data.getXml(12))

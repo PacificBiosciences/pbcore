@@ -1483,6 +1483,31 @@ class DataSet(object):
                 windowTuples.append((refId, 0, refLen))
         return windowTuples
 
+    # FIXME this is a workaround for the lack of support for ZMW chunking in
+    # pbbam, and should probably go away once that is available.
+    @property
+    def zmwRanges(self):
+        """
+        Return the end-inclusive range of ZMWs covered by the dataset if this
+        was explicitly set by filters via DataSet.split(zmws=True).
+        """
+        ranges = []
+        for filt in self._filters:
+            movie, start, end = None, 0, 0
+            values = []
+            for param in filt:
+                if param.name == "movie":
+                    movie = param.value
+                elif param.name == "zm":
+                    ival = int(param.value)
+                    if param.operator == '>':
+                        ival += 1
+                    elif param.operator == '<':
+                        ival -= 1
+                    values.append(ival)
+            ranges.append((movie, min(values), max(values)))
+        return ranges
+
     @property
     def refNames(self):
         """A list of reference names (id)."""
