@@ -5,8 +5,10 @@ These classes are often instantiated by the parser and passed to the DataSet,
 where they are stored, manipulated, filtered, merged, etc.
 """
 
+from collections import defaultdict
 import hashlib
 import datetime
+import math
 import copy
 import os
 import errno
@@ -555,7 +557,7 @@ class DataSet(object):
         return result
 
     def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
-              maxChunks=0, breakContigs=False, targetSize=5000):
+              maxChunks=0, breakContigs=False, targetSize=5000, zmws=False):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -640,6 +642,8 @@ class DataSet(object):
         if contigs:
             return self._split_contigs(chunks, maxChunks, breakContigs,
                                        targetSize=targetSize)
+        elif zmws:
+            return self._split_zmws(chunks)
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
@@ -787,6 +791,62 @@ class DataSet(object):
             else:
                 result.filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk])
+
+        # UniqueId was regenerated when the ExternalResource list was
+        # whole, therefore we need to regenerate it again here
+        log.debug("Generating new UUID")
+        for result in results:
+            result.newUuid()
+
+        # Update the basic metadata for the new DataSets from external
+        # resources, or at least mark as dirty
+        # TODO
+        return results
+
+    def _split_zmws(self, chunks):
+        files_to_movies = defaultdict(list)
+        n_bam = 0
+        for bam in self.resourceReaders():
+            n_bam += 1
+            if len(bam.readGroupTable) > 1:
+                raise RuntimeError("Multiple read groups in single .bam")
+        if chunks < n_bam:
+            return self.split(chunks=chunks)
+        n_chunks_per_bam = max(1, int(math.floor(float(chunks) / n_bam)))
+        if n_chunks_per_bam < 2:
+            log.warn("%d ZMW chunks requested but there are %d files" %
+                (chunks, n_bam))
+        n_chunks = n_bam * n_chunks_per_bam
+        if n_chunks != chunks:
+            log.info("Adjusted number of chunks to %d" % n_chunks)
+        log.debug("Making copies")
+        results = [self.copy() for _ in range(n_chunks)]
+        j_chunk = 0
+        for bam in self.resourceReaders():
+            rg = bam.readGroupTable[0]
+            n_zmws = len(bam.holeNumber)
+            i_zmw = 0
+            for i_chunk in range(n_chunks_per_bam):
+                result = results[j_chunk]
+                j_chunk += 1
+                zmw_start = bam.holeNumber[i_zmw]
+                if i_chunk == n_chunks_per_bam - 1:
+                    zmw_end = bam.holeNumber.max()
+                else:
+                    i_zmw += int(math.ceil(float(n_zmws / n_chunks_per_bam)))
+                    zmw_end = bam.holeNumber[i_zmw]
+                    while i_zmw < n_zmws-1:
+                        if zmw_end == bam.holeNumber[i_zmw+1]:
+                            i_zmw += 1
+                            zmw_end = bam.holeNumber[i_zmw]
+                        else:
+                            break
+                result.filters.addRequirement(
+                    movie=[('=', rg.MovieName)],
+                    zm=[('<', zmw_end+1)])
+                result.filters.addRequirement(
+                    zm=[('>', zmw_start-1)])
+                i_zmw += 1
 
         # UniqueId was regenerated when the ExternalResource list was
         # whole, therefore we need to regenerate it again here

@@ -412,9 +412,9 @@ class Filters(RecordWrapper):
 
     def opMap(self, op):
         ops = {'>=': OP.le,
-               '&gt;=': OP.le,
+               '&gt;=': OP.ge,
                '<=': OP.ge,
-               '&lt;=': OP.ge,
+               '&lt;=': OP.le,
                '==': OP.eq,
                '!=': OP.ne,
                '=': OP.eq,
@@ -434,6 +434,7 @@ class Filters(RecordWrapper):
         return {'rname': (lambda x: x.referenceName),
                 'length': (lambda x: int(x.readLength)),
                 'qname': (lambda x: x.qNameA),
+                'movie': (lambda x: x.movieName),
                 'zm': (lambda x: int(x.HoleNumber)),
                 'bc': (lambda x: x.barcode),
                 'qs': (lambda x: int(x.qStart)),
@@ -480,6 +481,7 @@ class Filters(RecordWrapper):
         return {'rname': str,
                 'length': int,
                 'qname': str,
+                'movie': str,
                 'zm': int,
                 'bc': str,
                 'qs': int,
