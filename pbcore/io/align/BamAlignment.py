@@ -76,7 +76,7 @@ def requiresReference(method):
 def requiresPbi(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
-        if bamAln.rowNumber is None:
+        if not bamAln.hasPbi:
             raise UnavailableFeature, "this feature requires a PacBio BAM index"
         else:
             return method(bamAln, *args, **kwargs)
@@ -122,6 +122,10 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def reader(self):
         return self.bam
+
+    @property
+    def hasPbi(self):
+        return self.rowNumber is not None
 
     @property
     def qId(self):
@@ -279,7 +283,7 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     @requiresMapping
     def identity(self):
-        if self.rowNumber is not None:
+        if self.hasPbi is not None:
             # Fast (has pbi)
             if self.readLength == 0:
                 return 0.
@@ -591,8 +595,11 @@ class BamAlignment(AlignmentRecordMixin):
             raise AttributeError, "no such column in pbi index"
 
     def __dir__(self):
-        if self.bam.pbi is not None:
-            return self.bam.pbi.columnNames
+        basicDir = self.__dict__.keys()
+        if self.hasPbi:
+            return basicDir + self.bam.pbi.columnNames
+        else:
+            return basicDir
 
 class ClippedBamAlignment(BamAlignment):
     def __init__(self, aln, tStart, tEnd, aStart, aEnd, unrolledCigar):
