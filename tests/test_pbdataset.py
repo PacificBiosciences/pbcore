@@ -877,6 +877,21 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(efaec2TimesFound, 1)
         self.assertEqual(efaec2TotFound, 1)
 
+    def test_get_item(self):
+        # Indexed files only for now:
+        # XXX Reactivate subreadsets when pbindex works for them
+        #toTest = [8, 10, 11, 12, 13, 15, 16]
+        toTest = [8, 11, 12, 15, 16]
+        for fileNo in toTest:
+            aln = openDataSet(data.getXml(fileNo))
+            items1 = [aln[i] for i in range(len(aln))]
+            aln = openDataSet(data.getXml(fileNo))
+            items2 = [aln[i] for i in range(len(aln))]
+            self.assertListEqual(items1, items2)
+            aln = openDataSet(data.getXml(fileNo))
+            for i, item in enumerate(aln):
+                self.assertEqual(item, aln[i])
+
     def test_reads_in_reference(self):
         ds = DataSet(data.getBam())
         refNames = ds.refNames

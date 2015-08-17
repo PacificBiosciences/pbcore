@@ -214,6 +214,21 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, 52023)
         self.assertEqual(aln.numRecords, 40)
 
+        # AlignmentSet with cmp.h5
+        aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
+        self.assertEqual(len(aln), 84)
+        self.assertEqual(aln._length, (84, 26103))
+        self.assertEqual(aln.totalLength, 26103)
+        self.assertEqual(aln.numRecords, 84)
+        aln.totalLength = -1
+        aln.numRecords = -1
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
+        aln.updateCounts()
+        self.assertEqual(aln.totalLength, 26103)
+        self.assertEqual(aln.numRecords, 84)
+
+
         # SubreadSet
         # TODO Turn this back on when pbi's are fixed for subreadsets
         #sset = SubreadSet(data.getXml(10), strict=True)

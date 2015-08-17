@@ -232,14 +232,23 @@ class DataSet(object):
         # Populate required metadata
         if not self.uuid:
             self.newUuid()
-
         self.objMetadata.setdefault("Name", "")
         self.objMetadata.setdefault("Tags", "")
         dsType = self.objMetadata.setdefault(
             "MetaType", "PacBio.DataSet." + self.__class__.__name__)
+        if not self.objMetadata.get("TimeStampedName", ""):
+            self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
+                self.objMetadata["MetaType"])
+
+        # Don't allow for creating datasets from inappropriate sources
+        # (XML files with mismatched types)
         if self._strict:
+            # except DataSet, from which anything is a good cast
             if dsType != _toDsId('DataSet'):
+                # use _castableDataSetTypes to contain good casts
                 if dsType not in self._castableDataSetTypes:
+                    # But make an exception for HdfSubreadSet, which has a
+                    # mismatched MetaType
                     if not (isinstance(self, HdfSubreadSet) and
                             dsType == 'PacBio.DataSet.SubreadSet'):
                         raise IOError(errno.EIO,
@@ -247,16 +256,13 @@ class DataSet(object):
                                           c=self.datasetType, f=dsType),
                                       files[0])
 
-        if not self.objMetadata.get("TimeStampedName", ""):
-            self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
-                self.objMetadata["MetaType"])
-
         # State tracking:
         self._cachedFilters = []
         self.noFiltering = False
         self._openReaders = []
         self._referenceInfoTable = None
         self._referenceDict = {}
+        self._indexMap = []
 
         # update counts
         if files:
@@ -312,6 +318,9 @@ class DataSet(object):
         return self.merge(otherDataset)
 
     def merge(self, other, copyOnMerge=True):
+        """Merge an 'other' dataset with this dataset, same as add operator,
+        but can take argumens
+        """
         if (other.__class__.__name__ == self.__class__.__name__ or
                 other.__class__.__name__ == 'DataSet' or
                 self.__class__.__name__ == 'DataSet'):
@@ -440,6 +449,16 @@ class DataSet(object):
                     count += len(reader)
                 self.numRecords = count
         return self.numRecords
+
+    def __getitem__(self, index):
+        if not self._indexMap:
+            self._generateIndexMap()
+        rr, ind = self._indexMap[index]
+        return self.resourceReaders()[rr][ind]
+
+    def _generateIndexMap(self):
+        for _ in self._indexRecords(cache=True):
+            pass
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -1062,8 +1081,9 @@ class DataSet(object):
                     self._updateMetaType(item)
             try:
                 stack.extend(list(item.indices))
+                stack.extend(list(item.externalResources))
             except AttributeError:
-                # Some things just don't have indices
+                # Some things just don't have indices or subresources
                 pass
 
         # check all DataSetMetadata
@@ -1306,6 +1326,7 @@ class DataSet(object):
     def _openFiles(self, refFile=None):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
+
         """
         if self._openReaders:
             log.debug("Closing old readers...")
@@ -1327,12 +1348,11 @@ class DataSet(object):
                     raise
             if not resource:
                 # If this doesn't work the exception shouldn't be caught
-                assert(not self._strict)
+                assert not self._strict
                 resource = openAlignmentFile(location,
                                              referenceFastaFname=refFile)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
-
 
     def resourceReaders(self, refName=False):
         """A generator of Indexed*Reader objects for the ExternalResources
@@ -1372,16 +1392,33 @@ class DataSet(object):
 
     @property
     def indexRecords(self):
-        """Yields chunks of recarray summarizing all of the records in all of
+        for rec in self._indexRecords():
+            yield rec
+
+    def _indexRecords(self, cache=False):
+        """Yields index records summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
         cached in the pbi.
         """
         self.assertIndexed()
-        for rr in self.resourceReaders():
+
+        # accounting early rather than late due to branching:
+        for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
-            if not self._filters or self.noFiltering:
+
+            if self.isCmpH5:
+                log.info("cmp.h5 AlignmentSet files don't support filtration")
                 yield indices
                 continue
+
+            if not self._filters or self.noFiltering:
+                for i, ind in enumerate(indices):
+                    if cache:
+                        self._indexMap.append((rrNum, i))
+                    yield ind
+                continue
+
+            # Filtration will be necessary:
             nameMap = {name: n
                        for n, name in enumerate(rr.referenceInfoTable['Name'])}
 
@@ -1389,6 +1426,8 @@ class DataSet(object):
             # This is faster than np.extract or iterating over zip
             for i in xrange(len(indices)):
                 if passes[i]:
+                    if cache:
+                        self._indexMap.append((rrNum, i))
                     yield indices[i]
 
     @property
@@ -1490,6 +1529,7 @@ class DataSet(object):
         """
         Return the end-inclusive range of ZMWs covered by the dataset if this
         was explicitly set by filters via DataSet.split(zmws=True).
+
         """
         ranges = []
         for filt in self._filters:
@@ -1607,8 +1647,8 @@ class DataSet(object):
             >>> for read in ds.readsInReference(ds.refNames[15]):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
-        """
 
+        """
         if isinstance(refName, np.int64):
             refName = str(refName)
         if refName.isdigit():
@@ -1634,6 +1674,11 @@ class DataSet(object):
 
 
     def _indexReadsInRange(self, refName, start, end):
+        """Return the index (pbi) records within a range.
+
+        ..note:: Not sorted by genomic location!
+
+        """
         if isinstance(refName, np.int64):
             refName = str(refName)
         if refName.isdigit():
@@ -1698,7 +1743,7 @@ class DataSet(object):
         if self.isCmpH5:
             for res in self.resourceReaders():
                 for row in res.referenceInfoTable:
-                    row.FullName = row.FullName.split(' ')[0]
+                    row.FullName = self._cleanCmpName(row.FullName)
 
         # merge sort before yield
         if self.numExternalResources > 1:
@@ -1924,12 +1969,10 @@ class DataSet(object):
     def countRecords(self, rname=None, window=None):
         """Count the number of records mapped to 'rname' that overlap with
         'window'
+
         """
         def count(iterable):
-            count = 0
-            for _ in iterable:
-                count += 1
-            return count
+            return sum(1 for _ in iterable)
 
         if window:
             return count(self.readsInRange(rname, *window))
@@ -2132,6 +2175,7 @@ class DataSet(object):
             chunkSizes[0][0] += mass
         return chunks
 
+
 class InvalidDataSetIOError(Exception):
     """The base class for all DataSetIO related custom exceptions (hopefully)
     """
@@ -2162,7 +2206,7 @@ class ReadSet(DataSet):
         if self._openReaders:
             log.debug("Closing old readers...")
             self.close()
-        log.debug("Opening SubreadSet resources")
+        log.debug("Opening ReadSet resources")
         for extRes in self.externalResources:
             refFile = extRes.reference
             log.debug("Using reference: {r}".format(r=refFile))
@@ -2213,8 +2257,10 @@ class ReadSet(DataSet):
         overriding function where needed.
 
         ..note:: Both mapped and unmapped bams can be either indexed or
-                 unindexed. This makes life more difficult, but we should expect a pbi
-                 for both subreadsets and alignmentsets"""
+                 unindexed. This makes life more difficult, but we should
+                 expect a pbi for both subreadsets and alignmentsets
+
+        """
         length = 0
         count = 0
         endkey = 'aEnd'
@@ -2301,7 +2347,7 @@ class HdfSubreadSet(ReadSet):
         count = 0
         for rec in self.records:
             count += 1
-            hqReg =rec.hqRegion
+            hqReg = rec.hqRegion
             length += hqReg[1] - hqReg[0]
         return count, length
 

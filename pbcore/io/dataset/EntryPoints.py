@@ -31,7 +31,10 @@ def createXml(args):
 
 
 def create_options(parser):
-    parser.description = 'Create an XML file from a fofn or bam'
+    parser.description = ('Create an XML file from a fofn or bam. Possible '
+                          'types: SubreadSet, AlignmentSet, ReferenceSet, '
+                          'HdfSubreadSet, BarcodeSet, ConsensusAlignmentSet, '
+                          'ConsensusReadSet, ContigSet')
     parser.add_argument("outfile", type=str, help="The XML to create")
     #parser.add_argument("infile", type=validate_file, nargs='+',
     parser.add_argument("infile", type=str, nargs='+',
