@@ -1914,6 +1914,7 @@ class DataSet(object):
                 'AlignmentSet': AlignmentSet,
                 'ContigSet': ContigSet,
                 'ConsensusReadSet': ConsensusReadSet,
+                'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
                 'BarcodeSet': BarcodeSet}
     @property
@@ -2230,6 +2231,38 @@ class ReadSet(DataSet):
             self._openReaders.append(resource)
         log.debug("Done opening resources")
 
+    @property
+    def _length(self):
+        """Used to populate metadata in updateCounts. We're using the pbi here,
+        which is necessary and sufficient for both subreadsets and
+        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
+        duplicate code, we'll implement the hdf specific _length as an
+        overriding function where needed.
+
+        ..note:: Both mapped and unmapped bams can be either indexed or
+                 unindexed. This makes life more difficult, but we should
+                 expect a pbi for both subreadsets and alignmentsets
+
+        """
+        length = 0
+        count = 0
+        endkey = 'qEnd'
+        startkey = 'qStart'
+        if self.isCmpH5:
+            endkey = 'qEnd'
+            startkey = 'qStart'
+        for rec in self.indexRecords:
+            if isinstance(rec, np.ndarray):
+                count += len(rec)
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                count += len(rec)
+                length += sum(rec.qEnd - rec.qStart)
+            else:
+                count += 1
+                length += rec.qEnd - rec.qStart
+        return count, length
+
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
         superclass method for generic metadata. Also enforce metadata type
@@ -2247,38 +2280,6 @@ class ReadSet(DataSet):
 
         # Pull generic values, kwargs, general treatment in super
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
-
-    @property
-    def _length(self):
-        """Used to populate metadata in updateCounts. We're using the pbi here,
-        which is necessary and sufficient for both subreadsets and
-        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
-        duplicate code, we'll implement the hdf specific _length as an
-        overriding function where needed.
-
-        ..note:: Both mapped and unmapped bams can be either indexed or
-                 unindexed. This makes life more difficult, but we should
-                 expect a pbi for both subreadsets and alignmentsets
-
-        """
-        length = 0
-        count = 0
-        endkey = 'aEnd'
-        startkey = 'aStart'
-        if self.isCmpH5:
-            endkey = 'rEnd'
-            startkey = 'rStart'
-        for rec in self.indexRecords:
-            if isinstance(rec, np.ndarray):
-                count += len(rec)
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                count += len(rec)
-                length += sum(rec.aEnd - rec.aStart)
-            else:
-                count += 1
-                length += rec.aEnd - rec.aStart
-        return count, length
 
     def __len__(self):
         if self.numRecords == -1:
@@ -2430,32 +2431,6 @@ class SubreadSet(ReadSet):
                 }
 
 
-class ConsensusReadSet(ReadSet):
-    """DataSet type specific to CCSreads. No type specific Metadata exists, so
-    the base class version is OK (this just ensures type representation on
-    output and expandability
-
-    Doctest:
-        >>> import pbcore.data.datasets as data
-        >>> from pbcore.io import ConsensusReadSet
-        >>> ds2 = ConsensusReadSet(data.getXml(2), strict=False)
-        >>> ds2 # doctest:+ELLIPSIS
-        <ConsensusReadSet...
-        >>> ds2._metadata # doctest:+ELLIPSIS
-        <SubreadSetMetadata...
-    """
-
-    datasetType = DataSetMetaTypes.CCS
-
-    @staticmethod
-    def _metaTypeMapping():
-        # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
-                }
-
-
 class AlignmentSet(ReadSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
     so the base class version is OK (this just ensures type representation on
@@ -2497,6 +2472,38 @@ class AlignmentSet(ReadSet):
             self._openFiles()
 
     @property
+    def _length(self):
+        """Used to populate metadata in updateCounts. We're using the pbi here,
+        which is necessary and sufficient for both subreadsets and
+        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
+        duplicate code, we'll implement the hdf specific _length as an
+        overriding function where needed.
+
+        ..note:: Both mapped and unmapped bams can be either indexed or
+                 unindexed. This makes life more difficult, but we should
+                 expect a pbi for both subreadsets and alignmentsets
+
+        """
+        length = 0
+        count = 0
+        endkey = 'aEnd'
+        startkey = 'aStart'
+        if self.isCmpH5:
+            endkey = 'rEnd'
+            startkey = 'rStart'
+        for rec in self.indexRecords:
+            if isinstance(rec, np.ndarray):
+                count += len(rec)
+                length += sum(rec[endkey] - rec[startkey])
+            elif isinstance(rec, PacBioBamIndex):
+                count += len(rec)
+                length += sum(rec.aEnd - rec.aStart)
+            else:
+                count += 1
+                length += rec.aEnd - rec.aStart
+        return count, length
+
+    @property
     def _referenceFile(self):
         responses = [res.reference for res in self.externalResources]
         return self._unifyResponses(responses)
@@ -2519,6 +2526,32 @@ class AlignmentSet(ReadSet):
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                }
+
+
+class ConsensusReadSet(ReadSet):
+    """DataSet type specific to CCSreads. No type specific Metadata exists, so
+    the base class version is OK (this just ensures type representation on
+    output and expandability
+
+    Doctest:
+        >>> import pbcore.data.datasets as data
+        >>> from pbcore.io import ConsensusReadSet
+        >>> ds2 = ConsensusReadSet(data.getXml(2), strict=False)
+        >>> ds2 # doctest:+ELLIPSIS
+        <ConsensusReadSet...
+        >>> ds2._metadata # doctest:+ELLIPSIS
+        <SubreadSetMetadata...
+    """
+
+    datasetType = DataSetMetaTypes.CCS
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
 
 
 class ConsensusAlignmentSet(AlignmentSet):
