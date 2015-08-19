@@ -10,7 +10,7 @@ from unittest.case import SkipTest
 
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
-                       openDataSet, DataSetMetaTypes)
+                       openDataSet, DataSetMetaTypes, HdfSubreadSet)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -157,12 +157,43 @@ class TestDataSet(unittest.TestCase):
         for infn, exp in zip(inTypes, expTypes):
             # TODO enable this for all when simulated subread files can be
             # pbi'd
-            if exp in [DataSet, ReferenceSet, AlignmentSet]:
+            if exp in [ReferenceSet, AlignmentSet]:
                 ds = openDataSet(infn, strict=True)
             else:
-                ds = openDataSet(infn)
+                ds = openDataSet(infn, strict=False)
             self.assertEqual(type(ds), exp)
 
+    def test_type_checking(self):
+        bam = data.getBam()
+        fasta = ReferenceSet(data.getXml(9)).toExternalFiles()[0]
+        bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
+        DataSet(bam, strict=False)
+        DataSet(fasta, strict=False)
+        DataSet(bax, strict=False)
+        with self.assertRaises(Exception):
+            DataSet(bam, strict=True)
+        with self.assertRaises(Exception):
+            DataSet(fasta, strict=True)
+        with self.assertRaises(Exception):
+            DataSet(bax, strict=True)
+
+        AlignmentSet(bam, strict=True)
+        with self.assertRaises(Exception):
+            AlignmentSet(fasta, strict=True)
+        with self.assertRaises(Exception):
+            AlignmentSet(bax, strict=True)
+
+        ReferenceSet(fasta, strict=True)
+        with self.assertRaises(Exception):
+            ReferenceSet(bam, strict=True)
+        with self.assertRaises(Exception):
+            ReferenceSet(bax, strict=True)
+
+        HdfSubreadSet(bax, strict=True)
+        with self.assertRaises(Exception):
+            HdfSubreadSet(bam, strict=True)
+        with self.assertRaises(Exception):
+            HdfSubreadSet(fasta, strict=True)
 
     def test_dsIdToSuffix(self):
         suffixes = ['subreadset.xml', 'hdfsubreadset.xml', 'alignmentset.xml',
@@ -301,7 +332,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(old != ds.uuid)
 
     def test_split(self):
-        ds1 = DataSet(data.getXml(12))
+        ds1 = openDataSet(data.getXml(12))
         self.assertTrue(ds1.numExternalResources > 1)
         dss = ds1.split()
         self.assertTrue(len(dss) == ds1.numExternalResources)
@@ -312,10 +343,10 @@ class TestDataSet(unittest.TestCase):
         self.assertFalse(dss[0].uuid == dss[1].uuid)
         self.assertTrue(dss[0].name == dss[1].name)
         # Lets try merging and splitting on subdatasets
-        ds1 = DataSet(data.getXml(8))
+        ds1 = openDataSet(data.getXml(8))
         self.assertEquals(ds1.totalLength, 123588)
         ds1tl = ds1.totalLength
-        ds2 = DataSet(data.getXml(11))
+        ds2 = openDataSet(data.getXml(11))
         self.assertEquals(ds2.totalLength, 117086)
         ds2tl = ds2.totalLength
         dss = ds1 + ds2
@@ -332,7 +363,7 @@ class TestDataSet(unittest.TestCase):
         # but it will add at least 3.5MB and I'm not sure if it's okay to
         # distribute
         test_file = "/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/0007_micro/Analysis_Results/m150404_101626_42267_c100807920800000001823174110291514_s1_p0.all.subreadset.xml"
-        ds1 = DataSet(test_file)
+        ds1 = openDataSet(test_file)
         self.assertEqual(len([ r for r in ds1 ]), 1220)
         dss = ds1.split(chunks=1, zmws=True)
         self.assertEqual(sum([ len([ r for r in ds_ ]) for ds_ in dss ]), 1220)
@@ -444,12 +475,12 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(extRef.resourceId, 'test2.bam')
 
     def test_resourceReaders(self):
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         for seqFile in ds.resourceReaders():
             self.assertEqual(len([row for row in seqFile]), 92)
 
     def test_records(self):
-        ds = DataSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(8))
         self.assertTrue(len(list(ds.records)), 112)
 
     def test_toFofn(self):
@@ -508,20 +539,20 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(chunks, [[5], [4, 1], [3, 2]])
 
     def test_ref_names(self):
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         refNames = ds.refNames
         self.assertEqual(sorted(refNames)[0], 'A.baumannii.1')
         self.assertEqual(len(refNames), 59)
 
     def test_reads_in_range(self):
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         refNames = ds.refNames
 
         rn = refNames[15]
         reads = ds.readsInRange(rn, 10, 100)
         self.assertEqual(len(list(reads)), 10)
 
-        ds2 = DataSet(data.getBam(0))
+        ds2 = AlignmentSet(data.getBam(0))
         reads = ds2.readsInRange("E.faecalis.1", 0, 1400)
         self.assertEqual(len(list(reads)), 20)
 
@@ -536,7 +567,7 @@ class TestDataSet(unittest.TestCase):
                              len(list(ds.readsInRange(rId, 0, rlen))))
 
     def test_filter(self):
-        ds2 = DataSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(8))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         self.assertEqual(len(list(ds2.records)), 20)
         ds2.disableFilters()
@@ -655,7 +686,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_split_by_contigs_with_split(self):
         # test to make sure the refWindows work when chunks == # refs
-        ds3 = DataSet(data.getBam())
+        ds3 = AlignmentSet(data.getBam())
         dss = ds3.split(contigs=True)
         self.assertEqual(len(dss), 12)
         refWindows = sorted(reduce(lambda x, y: x + y,
@@ -755,7 +786,7 @@ class TestDataSet(unittest.TestCase):
         #self.assertEqual(len(list(ds3.readsInSubDatasets())), 2)
 
     def test_refWindows(self):
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         dss = ds.split(chunks=2, contigs=True)
         self.assertEqual(len(dss), 2)
         log.debug(dss[0].filters)
@@ -766,7 +797,7 @@ class TestDataSet(unittest.TestCase):
             or
             '( rname = E.faecalis.2 ) '
             in str(dss[1].filters))
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011'),
                                          ('=', 'lambda_NEB3011')],
                                   tStart=[('<', '0'),
@@ -783,7 +814,7 @@ class TestDataSet(unittest.TestCase):
 
 
     def test_refLengths(self):
-        ds = DataSet(data.getBam(0))
+        ds = AlignmentSet(data.getBam(0))
         random_few = {'B.cereus.6': 1472, 'S.agalactiae.1': 1470,
                       'B.cereus.4': 1472}
         for key, value in random_few.items():
@@ -808,7 +839,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_reads_in_contig(self):
         log.info("Testing reads in contigs")
-        ds = DataSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(8))
         dss = ds.split(contigs=True)
         self.assertEqual(len(dss), 12)
         efaec1TimesFound = 0
@@ -829,7 +860,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(efaec2TimesFound, 1)
         self.assertEqual(efaec2TotFound, 3)
 
-        ds = DataSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(8))
         filt = Filters()
         filt.addRequirement(length=[('>', '100')])
         ds.addFilters(filt)
@@ -853,7 +884,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(efaec2TimesFound, 1)
         self.assertEqual(efaec2TotFound, 3)
 
-        ds = DataSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(8))
         filt = Filters()
         filt.addRequirement(length=[('>', '1000')])
         ds.addFilters(filt)
@@ -893,7 +924,7 @@ class TestDataSet(unittest.TestCase):
                 self.assertEqual(item, aln[i])
 
     def test_reads_in_reference(self):
-        ds = DataSet(data.getBam())
+        ds = AlignmentSet(data.getBam())
         refNames = ds.refNames
 
         # See test_ref_names for why this is expected:
@@ -901,14 +932,14 @@ class TestDataSet(unittest.TestCase):
         reads = ds.readsInReference(rn)
         self.assertEqual(len(list(reads)), 11)
 
-        ds2 = DataSet(data.getBam(0))
+        ds2 = AlignmentSet(data.getBam(0))
         reads = ds2.readsInReference("E.faecalis.1")
         self.assertEqual(len(list(reads)), 20)
 
         reads = ds2.readsInReference("E.faecalis.2")
         self.assertEqual(len(list(reads)), 3)
 
-        ds2 = DataSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(8))
         reads = ds2.readsInReference("E.faecalis.1")
         self.assertEqual(len(list(reads)), 20)
 
@@ -919,14 +950,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(reads)), 0)
 
     def test_staggered_reads_in_range(self):
-        ds = DataSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(8))
         refNames = ds.refNames
 
         rn = 'B.vulgatus.5'
         reads = list(ds.readsInRange(rn, 0, 10000))
-        ds2 = DataSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(11))
         reads2 = list(ds2.readsInRange(rn, 0, 10000))
-        dsBoth = DataSet(data.getXml(8), data.getXml(11))
+        dsBoth = AlignmentSet(data.getXml(8), data.getXml(11))
         readsBoth = list(dsBoth.readsInRange(rn, 0, 10000))
         self.assertEqual(len(reads), 2)
         self.assertEqual(len(reads2), 5)

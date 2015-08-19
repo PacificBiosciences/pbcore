@@ -19,6 +19,7 @@
         UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5193" 
         TimeStampedName="subread_bam_150304_231155" 
         MetaType="PacBio.SubreadFile.SubreadBamFile" 
+        ResourceId="file:///mnt/path/to/subreads0.bam" 
         Name="First Subreads BAM" 
         Description="Points to an example Subreads BAM file." 
         Tags="Example">

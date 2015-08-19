@@ -78,6 +78,10 @@ def _dsIdToSuffix(x):
         return suffix
 
 def openDataSet(*files, **kwargs):
+    # decrease the strictness:
+    prev = kwargs.get('strict', False)
+    kwargs['strict'] = False
+
     # infer from the first:
     first = DataSet(files[0], **kwargs)
     dsId = first.objMetadata.get('MetaType')
@@ -89,6 +93,9 @@ def openDataSet(*files, **kwargs):
             if xml_rt == 'HdfSubreadSet':
                 dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
+
+    # revert the strictness
+    kwargs['strict'] = prev
     if tbrType:
         return tbrType(*files, **kwargs)
     else:
@@ -125,6 +132,7 @@ def _fileType(fname):
         ftype = prefix + ftype
     ftype = ftype.strip('.')
     return ftype
+
 
 class DataSet(object):
     """The record containing the DataSet information, with possible type
@@ -229,32 +237,61 @@ class DataSet(object):
         populateDataSet(self, files)
         log.debug('Done populating')
 
+        # DataSet base class shouldn't really be used. It is ok-ish for just
+        # basic xml mainpulation. May start warning at some point, but
+        # openDataSet uses it, which would warn unnecessarily.
+        baseDataSet = False
+        if isinstance(self.datasetType, tuple):
+            baseDataSet = True
+
+        if self._strict and baseDataSet:
+            raise InvalidDataSetIOError("DataSet is an abstract class")
+
         # Populate required metadata
         if not self.uuid:
             self.newUuid()
         self.objMetadata.setdefault("Name", "")
         self.objMetadata.setdefault("Tags", "")
-        dsType = self.objMetadata.setdefault(
-            "MetaType", "PacBio.DataSet." + self.__class__.__name__)
+        if not baseDataSet:
+            dsType = self.objMetadata.setdefault("MetaType", self.datasetType)
+        else:
+            dsType = self.objMetadata.setdefault("MetaType",
+                                                 _toDsId('DataSet'))
         if not self.objMetadata.get("TimeStampedName", ""):
             self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
                 self.objMetadata["MetaType"])
 
         # Don't allow for creating datasets from inappropriate sources
         # (XML files with mismatched types)
-        if self._strict:
-            # except DataSet, from which anything is a good cast
-            if dsType != _toDsId('DataSet'):
-                # use _castableDataSetTypes to contain good casts
-                if dsType not in self._castableDataSetTypes:
-                    # But make an exception for HdfSubreadSet, which has a
-                    # mismatched MetaType
-                    if not (isinstance(self, HdfSubreadSet) and
-                            dsType == 'PacBio.DataSet.SubreadSet'):
-                        raise IOError(errno.EIO,
-                                      "Cannot create {c} from {f}".format(
-                                          c=self.datasetType, f=dsType),
-                                      files[0])
+        if not baseDataSet:
+            # use _castableDataSetTypes to contain good casts
+            if dsType not in self._castableDataSetTypes:
+                # But make an exception for HdfSubreadSet, which has a
+                # mismatched MetaType
+                if not (isinstance(self, HdfSubreadSet) and
+                        dsType == 'PacBio.DataSet.SubreadSet'):
+                    raise IOError(errno.EIO,
+                                  "Cannot create {c} from {f}".format(
+                                      c=self.datasetType, f=dsType),
+                                  files[0])
+
+        # Don't allow for creating datasets from inappropriate file types
+        # (external resources of improper types)
+        if not baseDataSet:
+            for fname in self.toExternalFiles():
+                # due to h5 file types, must be unpythonic:
+                found = False
+                for allowed in self._metaTypeMapping().keys():
+                    if fname.endswith(allowed):
+                        found = True
+                        break
+                if not found:
+                    allowed = self._metaTypeMapping().keys()
+                    raise IOError(errno.EIO,
+                                  "Cannot create {c} with resource of type "
+                                  "{t}, only {a}".format(c=dsType, t=fname,
+                                                         a=allowed))
+
 
         # State tracking:
         self._cachedFilters = []
@@ -449,16 +486,6 @@ class DataSet(object):
                     count += len(reader)
                 self.numRecords = count
         return self.numRecords
-
-    def __getitem__(self, index):
-        if not self._indexMap:
-            self._generateIndexMap()
-        rr, ind = self._indexMap[index]
-        return self.resourceReaders()[rr][ind]
-
-    def _generateIndexMap(self):
-        for _ in self._indexRecords(cache=True):
-            pass
 
     def newUuid(self, setter=True):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
@@ -706,6 +733,10 @@ class DataSet(object):
         # TODO
         return results
 
+    def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
+                       targetSize=5000):
+        raise TypeError("Only AlignmentSets may be split by contigs")
+
     def _split_atoms(self, atoms, num_chunks):
         """Divide up atomic units (e.g. contigs) into chunks (refId, size,
         segments)
@@ -714,113 +745,6 @@ class DataSet(object):
             largest = max(atoms, key=lambda x: x[1]/x[2])
             largest[2] += 1
         return atoms
-
-    def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000):
-        """Split a dataset into reference windows based on contigs.
-
-        Args:
-            chunks: The number of chunks to emit. If chunks < # contigs,
-                    contigs are grouped by size. If chunks == contigs, one
-                    contig is assigned to each dataset regardless of size. If
-                    chunks >= contigs, contigs are split into roughly equal
-                    chunks (<= 1.0 contig per file).
-
-        """
-        # removed the non-trivial case so that it is still filtered to just
-        # contigs with associated records
-
-        # The format is rID, start, end, for a reference window
-        log.debug("Fetching reference names and lengths")
-        # pull both at once so you only have to mess with the
-        # referenceInfoTable once.
-        refLens = self.refLengths
-        refNames = refLens.keys()
-        log.debug("{i} references found".format(i=len(refNames)))
-        log.debug("Finding contigs")
-        if len(refNames) < 100:
-            atoms = [(rn, 0, 0) for rn in refNames if
-                     next(self._indexReadsInReference(rn), None)]
-        else:
-            log.debug("Skipping records for each reference check")
-            atoms = [(rn, 0, 0) for rn in refNames]
-
-        # The window length is used for balancing
-        # TODO switch it to countRecords?
-        balanceKey = lambda x: x[2] - x[1]
-
-        # By providing maxChunks and not chunks, this combination will set
-        # chunks down to < len(atoms) < maxChunks
-        if not chunks:
-            chunks = len(atoms)
-        if maxChunks and chunks > maxChunks:
-            chunks = maxChunks
-
-        # Decide whether to intelligently limit chunk size:
-        if maxChunks and breakContigs:
-            # The bounds:
-            minNum = 2
-            maxNum = maxChunks
-            # Adjust
-            log.debug("Target numRecors per chunk: {i}".format(i=targetSize))
-            dataSize = self.numRecords
-            log.debug("numRecors in dataset: {i}".format(i=dataSize))
-            chunks = int(dataSize/targetSize)
-            # Respect bounds:
-            chunks = minNum if chunks < minNum else chunks
-            chunks = maxNum if chunks > maxNum else chunks
-            log.debug("Resulting number of chunks: {i}".format(i=chunks))
-
-        # refwindow format: rId, start, end
-        if chunks > len(atoms):
-            # splitting atom format is slightly different (but more compatible
-            # going forward with countRecords): (rId, size, segments)
-            atoms = [[rn, refLens[rn], 1] for rn, _, _ in atoms]
-            log.debug("Splitting atoms")
-            atoms = self._split_atoms(atoms, chunks)
-            segments = []
-            for atom in atoms:
-                segment_size = atom[1]/atom[2]
-                sub_segments = [(atom[0], segment_size * i, segment_size *
-                                 (i + 1)) for i in range(atom[2])]
-                # if you can't divide it evenly you may have some messiness
-                # with the last window. Fix it:
-                tmp = sub_segments.pop()
-                tmp = (tmp[0], tmp[1], refLens[tmp[0]])
-                sub_segments.append(tmp)
-                segments.extend(sub_segments)
-            atoms = segments
-        log.debug("Done defining {n} chunks".format(n=chunks))
-
-        # duplicate
-        log.debug("Making copies")
-        results = [self.copy() for _ in range(chunks)]
-
-        # replace default (complete) ExternalResource lists
-        log.debug("Distributing chunks")
-        chunks = self._chunkList(atoms, chunks, balanceKey)
-        log.debug("Done chunking")
-        log.debug("Modifying filters or resources")
-        for result, chunk in zip(results, chunks):
-            if atoms[0][2]:
-                result.filters.addRequirement(
-                    rname=[('=', c[0]) for c in chunk],
-                    tStart=[('>', c[1]) for c in chunk],
-                    tEnd=[('<', c[2]) for c in chunk])
-            else:
-                result.filters.addRequirement(
-                    rname=[('=', c[0]) for c in chunk])
-
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        for result in results:
-            result.newUuid()
-
-        # Update the basic metadata for the new DataSets from external
-        # resources, or at least mark as dirty
-        # TODO
-        return results
 
     def _split_zmws(self, chunks):
         files_to_movies = defaultdict(list)
@@ -1170,8 +1094,8 @@ class DataSet(object):
             if newMetadata.get('Version') > self.objMetadata.get('Version'):
                 raise ValueError("Wrong dataset version for merging {v1} vs "
                                  "{v2}".format(
-                                        v1=newMetadata.get('Version'),
-                                        v2=self.objMetadata.get('Version')))
+                                     v1=newMetadata.get('Version'),
+                                     v2=self.objMetadata.get('Version')))
 
 
     def addMetadata(self, newMetadata, **kwargs):
@@ -1235,28 +1159,6 @@ class DataSet(object):
     def updateCounts(self):
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
-
-    def assertIndexed(self):
-        if not self._openReaders:
-            try:
-                tmp = self._strict
-                self._openFiles()
-            except Exception:
-                # Catch everything to recover the strictness status, then raise
-                # whatever error was found.
-                self._strict = tmp
-                raise
-            finally:
-                self._strict = tmp
-        else:
-            for fname, reader in zip(self.toExternalFiles(),
-                                     self.resourceReaders()):
-                if (not isinstance(reader, IndexedBamReader) and
-                        not isinstance(reader, CmpH5Reader)):
-                    raise IOError(errno.EIO,
-                                  "File not indexed: {f}".format(f=fname),
-                                  fname)
-
 
     def addExternalResources(self, newExtResources, updateCount=True):
         """Add additional ExternalResource objects, ensuring no duplicate
@@ -1323,112 +1225,11 @@ class DataSet(object):
         else:
             self.subdatasets.append(otherDataSet)
 
-    def _openFiles(self, refFile=None):
-        """Open the files (assert they exist, assert they are of the proper
-        type before accessing any file)
+    def _openFiles(self):
+        raise RuntimeError("Not defined for this type of DataSet")
 
-        """
-        if self._openReaders:
-            log.debug("Closing old readers...")
-            self.close()
-        log.debug("Opening resources")
-        for extRes in self.externalResources:
-            location = urlparse(extRes.resourceId).path
-            resource = None
-            try:
-                resource = openIndexedAlignmentFile(
-                    location,
-                    referenceFastaFname=refFile)
-            except (IOError, ValueError):
-                if not self._strict and not extRes.pbi:
-                    log.info("pbi file missing for {f}, operating with "
-                             "reduced speed and functionality".format(
-                                 f=location))
-                else:
-                    raise
-            if not resource:
-                # If this doesn't work the exception shouldn't be caught
-                assert not self._strict
-                resource = openAlignmentFile(location,
-                                             referenceFastaFname=refFile)
-            self._openReaders.append(resource)
-        log.debug("Done opening resources")
-
-    def resourceReaders(self, refName=False):
-        """A generator of Indexed*Reader objects for the ExternalResources
-        in this DataSet.
-
-        Args:
-            refName: Only yield open resources if they have refName in their
-                     referenceInfoTable
-
-        Yields:
-            An open indexed alignment file
-
-        Doctest:
-            >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
-            >>> for seqFile in ds.resourceReaders():
-            ...     for record in seqFile:
-            ...         print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
-            hn: ...
-
-        """
-        if refName:
-            if (not refName in self.refNames and
-                    not refName in self.fullRefNames):
-                _ = int(refName)
-                refName = self._idToRname(refName)
-
-        if not self._openReaders:
-            self._openFiles()
-        if refName:
-            return [resource for resource in self._openReaders
-                    if refName in resource.referenceInfoTable['FullName'] or
-                    refName in resource.referenceInfoTable['Name']]
-        else:
-            return self._openReaders
-
-    @property
-    def indexRecords(self):
-        for rec in self._indexRecords():
-            yield rec
-
-    def _indexRecords(self, cache=False):
-        """Yields index records summarizing all of the records in all of
-        the resources that conform to those filters addressing parameters
-        cached in the pbi.
-        """
-        self.assertIndexed()
-
-        # accounting early rather than late due to branching:
-        for rrNum, rr in enumerate(self.resourceReaders()):
-            indices = rr.index
-
-            if self.isCmpH5:
-                log.info("cmp.h5 AlignmentSet files don't support filtration")
-                yield indices
-                continue
-
-            if not self._filters or self.noFiltering:
-                for i, ind in enumerate(indices):
-                    if cache:
-                        self._indexMap.append((rrNum, i))
-                    yield ind
-                continue
-
-            # Filtration will be necessary:
-            nameMap = {name: n
-                       for n, name in enumerate(rr.referenceInfoTable['Name'])}
-
-            passes = self._filters.filterIndexRecords(indices, nameMap)
-            # This is faster than np.extract or iterating over zip
-            for i in xrange(len(indices)):
-                if passes[i]:
-                    if cache:
-                        self._indexMap.append((rrNum, i))
-                    yield indices[i]
+    def resourceReaders(self):
+        raise RuntimeError("Not defined for this type of DataSet")
 
     @property
     @filtered
@@ -1442,8 +1243,8 @@ class DataSet(object):
 
         Doctest:
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet(data.getBam())
             >>> for record in ds.records:
             ...     print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
             hn: ...
@@ -1483,45 +1284,6 @@ class DataSet(object):
             for read in self.records:
                 yield read
 
-    @property
-    def refWindows(self):
-        """Going to be tricky unless the filters are really focused on
-        windowing the reference. Much nesting or duplication and the correct
-        results are really not guaranteed"""
-        windowTuples = []
-        nameIDs = self.refInfo('Name')
-        refLens = None
-        for name, refID in nameIDs:
-            for filt in self._filters:
-                thisOne = False
-                for param in filt:
-                    if param.name == 'rname':
-                        if param.value == name:
-                            thisOne = True
-                if thisOne:
-                    winstart = 0
-                    winend = -1
-                    for param in filt:
-                        if param.name == 'tstart':
-                            winstart = param.value
-                        if param.name == 'tend':
-                            winend = param.value
-                    # If the filter is just for rname, fill the window
-                    # boundaries (pricey but worth the guaranteed behavior)
-                    if winend == -1:
-                        if not refLens:
-                            refLens = self.refLengths
-                        winend = refLens[name]
-                    windowTuples.append((refID, int(winstart), int(winend)))
-        # no tuples found: return full length of each reference
-        if not windowTuples:
-            for name, refId in nameIDs:
-                if not refLens:
-                    refLens = self.refLengths
-                refLen = refLens[name]
-                windowTuples.append((refId, 0, refLen))
-        return windowTuples
-
     # FIXME this is a workaround for the lack of support for ZMW chunking in
     # pbbam, and should probably go away once that is available.
     @property
@@ -1547,301 +1309,6 @@ class DataSet(object):
                     values.append(ival)
             ranges.append((movie, min(values), max(values)))
         return ranges
-
-    @property
-    def refNames(self):
-        """A list of reference names (id)."""
-        if self.isCmpH5:
-            return [self._cleanCmpName(name) for _, name in
-                    self.refInfo('FullName')]
-        return sorted([name for _, name in self.refInfo('Name')])
-
-    def _cleanCmpName(self, name):
-        return splitFastaHeader(name)[0]
-
-    @property
-    def refLengths(self):
-        """A dict of refName: refLength"""
-        return {name: length for name, length in self.refInfo('Length')}
-
-    @property
-    def refIds(self):
-        """A dict of refName: refId"""
-        return {name: rId for name, rId in self.refInfo('ID')}
-
-    def refLength(self, rname):
-        """The length of reference 'rname'. This is expensive, so if you're
-        going to do many lookups cache self.refLengths locally and use that."""
-        lut = self.refLengths
-        return lut[rname]
-
-    @property
-    def fullRefNames(self):
-        """A list of reference full names (full header)."""
-        return [name for _, name in self.refInfo('FullName')]
-
-    def refInfo(self, key):
-        """The reference names present in the referenceInfoTable of the
-        ExtResources.
-
-        Args:
-            key: a key for the referenceInfoTable of each resource
-        Returns:
-            A list of tuples of refrence name, key_result pairs
-
-        """
-        log.debug("Sampling references")
-        names = self.referenceInfoTable['Name']
-        infos = self.referenceInfoTable[key]
-
-        log.debug("Removing duplicate reference entries")
-        sampled = zip(names, infos)
-        sampled = set(sampled)
-
-        log.debug("Filtering reference entries")
-        if not self.noFiltering or not self._filters:
-            sampled = [(name, info) for name, info in sampled
-                       if self._filters.testParam('rname', name)]
-        return sampled
-
-    def _indexReadsInReference(self, refName):
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames
-                    and not refName in self.fullRefNames):
-                try:
-                    refName = self._idToRname(int(refName))
-                except AttributeError:
-                    raise StopIteration
-
-        # I would love to use readsInRange(refName, None, None), but
-        # IndexedBamReader breaks this (works for regular BamReader).
-        # So I have to do a little hacking...
-        refLen = 0
-        for resource in self.resourceReaders():
-            if (refName in resource.referenceInfoTable['Name'] or
-                    refName in resource.referenceInfoTable['FullName']):
-                refLen = resource.referenceInfo(refName).Length
-                break
-        if refLen:
-            for read in self._indexReadsInRange(refName, 0, refLen):
-                yield read
-
-    @filtered
-    def readsInReference(self, refName):
-        """A generator of (usually) BamAlignment objects for the
-        reads in one or more Bam files pointed to by the ExternalResources in
-        this DataSet that are mapped to the specified reference genome.
-
-        Args:
-            refName: the name of the reference that we are sampling.
-
-        Yields:
-            BamAlignment objects
-
-        Doctest:
-            >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
-            >>> for read in ds.readsInReference(ds.refNames[15]):
-            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
-            hn: ...
-
-        """
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames
-                    and not refName in self.fullRefNames):
-                try:
-                    refName = self._idToRname(int(refName))
-                except AttributeError:
-                    raise StopIteration
-
-        # I would love to use readsInRange(refName, None, None), but
-        # IndexedBamReader breaks this (works for regular BamReader).
-        # So I have to do a little hacking...
-        refLen = 0
-        for resource in self.resourceReaders():
-            if (refName in resource.referenceInfoTable['Name'] or
-                    refName in resource.referenceInfoTable['FullName']):
-                refLen = resource.referenceInfo(refName).Length
-                break
-        if refLen:
-            for read in self.readsInRange(refName, 0, refLen):
-                yield read
-
-
-    def _indexReadsInRange(self, refName, start, end):
-        """Return the index (pbi) records within a range.
-
-        ..note:: Not sorted by genomic location!
-
-        """
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames and
-                    not refName in self.fullRefNames):
-                # we need the real refName, which may be hidden behind a
-                # mapping to resolve duplicate refIds between resources...
-                refName = self._idToRname(int(refName))
-        for reader in self.resourceReaders():
-            tIdMap = {n: name
-                      for n, name in enumerate(
-                          reader.referenceInfoTable['Name'])}
-            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
-            index = reader.index
-            winId = reader.referenceInfo(refName).ID
-            for rec_i in index.rangeQuery(winId, start, end):
-                read = index[rec_i]
-                if filts:
-                    if any([filt(read) for filt in filts]):
-                        yield read
-                else:
-                    yield read
-
-    @filtered
-    def readsInRange(self, refName, start, end, buffsize=50):
-        """A generator of (usually) BamAlignment objects for the reads in one
-        or more Bam files pointed to by the ExternalResources in this DataSet
-        that have at least one coordinate within the specified range in the
-        reference genome.
-
-        Rather than developing some convoluted approach for dealing with
-        auto-inferring the desired references, this method and self.refNames
-        should allow users to compose the desired query.
-
-        Args:
-            refName: the name of the reference that we are sampling
-            start: the start of the range (inclusive, index relative to
-                   reference)
-            end: the end of the range (inclusive, index relative to reference)
-
-        Yields:
-            BamAlignment objects
-
-        Doctest:
-            >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
-            >>> for read in ds.readsInRange(ds.refNames[15], 100, 150):
-            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
-            hn: ...
-        """
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames and
-                    not refName in self.fullRefNames):
-                # we need the real refName, which may be hidden behind a
-                # mapping to resolve duplicate refIds between resources...
-                refName = self._idToRname(int(refName))
-
-        # correct the cmp.h5 reference names before reads go out the door
-        if self.isCmpH5:
-            for res in self.resourceReaders():
-                for row in res.referenceInfoTable:
-                    row.FullName = self._cleanCmpName(row.FullName)
-
-        # merge sort before yield
-        if self.numExternalResources > 1:
-            if buffsize > 1:
-                # create read/reader caches
-                read_its = [iter(rr.readsInRange(refName, start, end))
-                            for rr in self.resourceReaders()]
-                deep_buf = [[next(it, None) for _ in range(buffsize)]
-                            for it in read_its]
-
-                # remove empty iterators
-                read_its = [it for it, cur in zip(read_its, deep_buf)
-                            if cur[0]]
-                deep_buf = [buf for buf in deep_buf if buf[0]]
-
-                # populate starting values/scratch caches
-                buf_indices = [0 for _ in read_its]
-                tStarts = [cur[0].tStart for cur in deep_buf]
-
-                while len(read_its) != 0:
-                    # pick the first one to yield
-                    # this should be a bit faster than taking the min of an
-                    # enumeration of currents with a key function accessing a
-                    # field...
-                    first = min(tStarts)
-                    first_i = tStarts.index(first)
-                    buf_index = buf_indices[first_i]
-                    first = deep_buf[first_i][buf_index]
-                    # update the buffers
-                    buf_index += 1
-                    buf_indices[first_i] += 1
-                    if buf_index == buffsize:
-                        buf_index = 0
-                        buf_indices[first_i] = 0
-                        deep_buf[first_i] = [next(read_its[first_i], None)
-                                             for _ in range(buffsize)]
-                    if not deep_buf[first_i][buf_index]:
-                        del read_its[first_i]
-                        del tStarts[first_i]
-                        del deep_buf[first_i]
-                        del buf_indices[first_i]
-                    else:
-                        tStarts[first_i] = deep_buf[first_i][buf_index].tStart
-                    yield first
-            else:
-                read_its = [iter(rr.readsInRange(refName, start, end))
-                            for rr in self.resourceReaders()]
-                # buffer one element from each generator
-                currents = [next(its, None) for its in read_its]
-                # remove empty iterators
-                read_its = [it for it, cur in zip(read_its, currents) if cur]
-                currents = [cur for cur in currents if cur]
-                tStarts = [cur.tStart for cur in currents]
-                while len(read_its) != 0:
-                    # pick the first one to yield
-                    # this should be a bit faster than taking the min of an
-                    # enumeration of currents with a key function accessing a
-                    # field...
-                    first = min(tStarts)
-                    first_i = tStarts.index(first)
-                    first = currents[first_i]
-                    # update the buffers
-                    try:
-                        currents[first_i] = next(read_its[first_i])
-                        tStarts[first_i] = currents[first_i].tStart
-                    except StopIteration:
-                        del read_its[first_i]
-                        del currents[first_i]
-                        del tStarts[first_i]
-                    yield first
-        else:
-            # the above will work in either case, but this might be ever so
-            # slightly faster
-            for resource in self.resourceReaders():
-                for read in resource.readsInRange(refName, start, end):
-                    yield read
-
-    def _idToRname(self, rId):
-        """Map the DataSet.referenceInfoTable.ID to the superior unique
-        reference identifier: referenceInfoTable.Name
-
-        Args:
-            rId: The DataSet.referenceInfoTable.ID of interest
-
-        Returns:
-            The referenceInfoTable.Name corresponding to rId
-        """
-        resNo, rId = self._referenceIdMap[rId]
-        if self.isCmpH5:
-            rId -= 1
-        if self.isCmpH5:
-            # This is what CmpIO recognizes as the 'shortname'
-            refName = self.resourceReaders()[
-                resNo].referenceInfoTable[rId]['FullName']
-        else:
-            refName = self.resourceReaders()[
-                resNo].referenceInfoTable[rId]['Name']
-        return refName
 
     def toFofn(self, outfn=None, uri=False, relative=False):
         """Return a list of resource filenames (and write to optional outfile)
@@ -1883,11 +1350,7 @@ class DataSet(object):
 
     def toExternalFiles(self):
         """Returns a list of top level external resources (no indices)."""
-        files = self.externalResources.resourceIds
-        tbr = []
-        for fname in files:
-            tbr.append(resolveLocation(fname, '.'))
-        return tbr
+        return self.externalResources.resourceIds
 
     @property
     def _castableDataSetTypes(self):
@@ -1967,21 +1430,6 @@ class DataSet(object):
         """The number of records in this DataSet (from the metadata)"""
         self._metadata.numRecords = value
 
-    def countRecords(self, rname=None, window=None):
-        """Count the number of records mapped to 'rname' that overlap with
-        'window'
-
-        """
-        def count(iterable):
-            return sum(1 for _ in iterable)
-
-        if window:
-            return count(self.readsInRange(rname, *window))
-        if rname:
-            return count(self.readsInReference(rname))
-        else:
-            count(self.records)
-
     @property
     def totalLength(self):
         """The total length of this DataSet"""
@@ -2012,10 +1460,10 @@ class DataSet(object):
         """The number of ExternalResources in this DataSet"""
         return len(self.externalResources)
 
-    def _pollResources(self, func, refName=None):
+    def _pollResources(self, func):
         """Collect the responses to func on each resource (or those with reads
         mapping to refName)."""
-        return [func(resource) for resource in self.resourceReaders(refName)]
+        return [func(resource) for resource in self.resourceReaders()]
 
     def _unifyResponses(self, responses, keyFunc=lambda x: x):
         """Make sure all of the responses from resources are the same."""
@@ -2025,12 +1473,6 @@ class DataSet(object):
                 if keyFunc(responses[0]) != keyFunc(res):
                     raise ResourceMismatchError(responses)
         return responses[0]
-
-    @property
-    def isCmpH5(self):
-        """Test whether all resources are cmp.h5 files"""
-        res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
-        return self._unifyResponses(res)
 
     @property
     def hasPbi(self):
@@ -2046,79 +1488,6 @@ class DataSet(object):
             else:
                 raise
 
-    def referenceInfo(self, refName):
-        """Select a row from the DataSet.referenceInfoTable using the reference
-        name as a unique key"""
-        # TODO: upgrade to use _referenceDict
-        if not self.isCmpH5:
-            for row in self.referenceInfoTable:
-                if row.Name == refName:
-                    return row
-        else:
-            for row in self.referenceInfoTable:
-                if row.FullName.startswith(refName):
-                    return row
-
-    @property
-    def referenceInfoTable(self):
-        """The merged reference info tables from the external resources.
-        Record.ID is remapped to a unique integer key (though using record.Name
-        is preferred). Record.Names are remapped for cmp.h5 files to be
-        consistent with bam files.
-        """
-        if self._referenceInfoTable is None:
-            # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
-            # instance). Use the resource readers directly instead.
-            responses = self._pollResources(lambda x: x.referenceInfoTable)
-            if len(responses) > 1:
-                assert not self.isCmpH5 # see above
-                tbr = np.concatenate(responses)
-                tbr = np.unique(tbr)
-                for i, rec in enumerate(tbr):
-                    rec.ID = i
-                self._referenceInfoTable = tbr
-            else:
-                table = responses[0]
-                if self.isCmpH5:
-                    for rec in table:
-                        rec.Name = self._cleanCmpName(rec.FullName)
-                self._referenceInfoTable = table
-            #TODO: Turn on when needed
-            #self._referenceDict.update(zip(self.refIds.values(),
-                                           #self._referenceInfoTable))
-        return self._referenceInfoTable
-
-    @property
-    def _referenceIdMap(self):
-        """Map the dataset shifted refIds to the [resource, refId] they came
-        from.
-        """
-        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
-        # instance). Use the resource readers directly instead.
-        responses = self._pollResources(lambda x: x.referenceInfoTable)
-        if len(responses) > 1:
-            assert not self.isCmpH5 # see above
-            tbr = reduce(np.append, responses)
-            tbrMeta = []
-            for i, res in enumerate(responses):
-                for j in res['ID']:
-                    tbrMeta.append([i, j])
-            _, indices = np.unique(tbr, return_index=True)
-            tbrMeta = list(tbrMeta[i] for i in indices)
-            return {i: meta for i, meta in enumerate(tbrMeta)}
-        else:
-            return {i: [0, i] for i in responses[0]['ID']}
-
-    @property
-    def readGroupTable(self):
-        """Combine the readGroupTables of each external resource"""
-        responses = self._pollResources(lambda x: x.readGroupTable)
-        if len(responses) > 1:
-            tbr = reduce(np.append, responses)
-            return tbr
-        else:
-            return responses[0]
-
     def hasPulseFeature(self, featureName):
         responses = self._pollResources(
             lambda x: x.hasPulseFeature(featureName))
@@ -2133,24 +1502,12 @@ class DataSet(object):
         return self._checkIdentical('sequencingChemistry')
 
     @property
-    def isSorted(self):
-        return self._checkIdentical('isSorted')
-
-    @property
     def isEmpty(self):
         return self._checkIdentical('isEmpty')
 
     @property
     def readType(self):
         return self._checkIdentical('readType')
-
-    @property
-    def tStart(self):
-        return self._checkIdentical('tStart')
-
-    @property
-    def tEnd(self):
-        return self._checkIdentical('tEnd')
 
     def _checkIdentical(self, key):
         responses = self._pollResources(lambda x: getattr(x, key))
@@ -2230,6 +1587,101 @@ class ReadSet(DataSet):
                     location, referenceFastaFname=refFile)
             self._openReaders.append(resource)
         log.debug("Done opening resources")
+
+    def __getitem__(self, index):
+        """Should respect filters for free, as _indexMap should only be
+        populated by filtered reads"""
+        if not self._indexMap:
+            self._generateIndexMap()
+        rr, ind = self._indexMap[index]
+        return self.resourceReaders()[rr][ind]
+
+    def _generateIndexMap(self):
+        for _ in self._indexRecords(cache=True):
+            pass
+
+    @property
+    def indexRecords(self):
+        for rec in self._indexRecords():
+            yield rec
+
+    @property
+    def readGroupTable(self):
+        """Combine the readGroupTables of each external resource"""
+        responses = self._pollResources(lambda x: x.readGroupTable)
+        if len(responses) > 1:
+            tbr = reduce(np.append, responses)
+            return tbr
+        else:
+            return responses[0]
+
+    def assertIndexed(self):
+        if not self._openReaders:
+            try:
+                tmp = self._strict
+                self._openFiles()
+            except Exception:
+                # Catch everything to recover the strictness status, then raise
+                # whatever error was found.
+                self._strict = tmp
+                raise
+            finally:
+                self._strict = tmp
+        else:
+            for fname, reader in zip(self.toExternalFiles(),
+                                     self.resourceReaders()):
+                if (not isinstance(reader, IndexedBamReader) and
+                        not isinstance(reader, CmpH5Reader)):
+                    raise IOError(errno.EIO,
+                                  "File not indexed: {f}".format(f=fname),
+                                  fname)
+
+    @property
+    def isCmpH5(self):
+        """Test whether all resources are cmp.h5 files"""
+        res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
+        return self._unifyResponses(res)
+
+    def _indexRecords(self, cache=False):
+        """Yields index records summarizing all of the records in all of
+        the resources that conform to those filters addressing parameters
+        cached in the pbi.
+        """
+        self.assertIndexed()
+
+        # accounting early rather than late due to branching:
+        for rrNum, rr in enumerate(self.resourceReaders()):
+            indices = rr.index
+
+            if self.isCmpH5:
+                log.info("cmp.h5 AlignmentSet files don't support filtration")
+                yield indices
+                continue
+
+            if not self._filters or self.noFiltering:
+                for i, ind in enumerate(indices):
+                    if cache:
+                        self._indexMap.append((rrNum, i))
+                    yield ind
+                continue
+
+            # Filtration will be necessary:
+            nameMap = {name: n
+                       for n, name in enumerate(rr.referenceInfoTable['Name'])}
+
+            passes = self._filters.filterIndexRecords(indices, nameMap)
+            # This is faster than np.extract or iterating over zip
+            for i in xrange(len(indices)):
+                if passes[i]:
+                    if cache:
+                        self._indexMap.append((rrNum, i))
+                    yield indices[i]
+
+    def resourceReaders(self):
+        """Open the files in this ReadSet"""
+        if not self._openReaders:
+            self._openFiles()
+        return self._openReaders
 
     @property
     def _length(self):
@@ -2471,6 +1923,439 @@ class AlignmentSet(ReadSet):
                 res.reference = reference[0]
             self._openFiles()
 
+    def resourceReaders(self, refName=False):
+        """A generator of Indexed*Reader objects for the ExternalResources
+        in this DataSet.
+
+        Args:
+            refName: Only yield open resources if they have refName in their
+                     referenceInfoTable
+
+        Yields:
+            An open indexed alignment file
+
+        Doctest:
+            >>> import pbcore.data.datasets as data
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet(data.getBam())
+            >>> for seqFile in ds.resourceReaders():
+            ...     for record in seqFile:
+            ...         print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
+            hn: ...
+
+        """
+        if refName:
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                _ = int(refName)
+                refName = self._idToRname(refName)
+
+        if not self._openReaders:
+            self._openFiles()
+        if refName:
+            return [resource for resource in self._openReaders
+                    if refName in resource.referenceInfoTable['FullName'] or
+                    refName in resource.referenceInfoTable['Name']]
+        else:
+            return self._openReaders
+
+    @property
+    def refNames(self):
+        """A list of reference names (id)."""
+        if self.isCmpH5:
+            return [self._cleanCmpName(name) for _, name in
+                    self.refInfo('FullName')]
+        return sorted([name for _, name in self.refInfo('Name')])
+
+    def _indexReadsInReference(self, refName):
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames
+                    and not refName in self.fullRefNames):
+                try:
+                    refName = self._idToRname(int(refName))
+                except AttributeError:
+                    raise StopIteration
+
+        # I would love to use readsInRange(refName, None, None), but
+        # IndexedBamReader breaks this (works for regular BamReader).
+        # So I have to do a little hacking...
+        refLen = 0
+        for resource in self.resourceReaders():
+            if (refName in resource.referenceInfoTable['Name'] or
+                    refName in resource.referenceInfoTable['FullName']):
+                refLen = resource.referenceInfo(refName).Length
+                break
+        if refLen:
+            for read in self._indexReadsInRange(refName, 0, refLen):
+                yield read
+
+    @property
+    def refWindows(self):
+        """Going to be tricky unless the filters are really focused on
+        windowing the reference. Much nesting or duplication and the correct
+        results are really not guaranteed"""
+        windowTuples = []
+        nameIDs = self.refInfo('Name')
+        refLens = None
+        for name, refID in nameIDs:
+            for filt in self._filters:
+                thisOne = False
+                for param in filt:
+                    if param.name == 'rname':
+                        if param.value == name:
+                            thisOne = True
+                if thisOne:
+                    winstart = 0
+                    winend = -1
+                    for param in filt:
+                        if param.name == 'tstart':
+                            winstart = param.value
+                        if param.name == 'tend':
+                            winend = param.value
+                    # If the filter is just for rname, fill the window
+                    # boundaries (pricey but worth the guaranteed behavior)
+                    if winend == -1:
+                        if not refLens:
+                            refLens = self.refLengths
+                        winend = refLens[name]
+                    windowTuples.append((refID, int(winstart), int(winend)))
+        # no tuples found: return full length of each reference
+        if not windowTuples:
+            for name, refId in nameIDs:
+                if not refLens:
+                    refLens = self.refLengths
+                refLen = refLens[name]
+                windowTuples.append((refId, 0, refLen))
+        return windowTuples
+
+    def countRecords(self, rname=None, window=None):
+        """Count the number of records mapped to 'rname' that overlap with
+        'window'
+
+        """
+        def count(iterable):
+            return sum(1 for _ in iterable)
+
+        if window:
+            return count(self.readsInRange(rname, *window))
+        if rname:
+            return count(self.readsInReference(rname))
+        else:
+            count(self.records)
+
+    @filtered
+    def readsInReference(self, refName):
+        """A generator of (usually) BamAlignment objects for the
+        reads in one or more Bam files pointed to by the ExternalResources in
+        this DataSet that are mapped to the specified reference genome.
+
+        Args:
+            refName: the name of the reference that we are sampling.
+
+        Yields:
+            BamAlignment objects
+
+        Doctest:
+            >>> import pbcore.data.datasets as data
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet(data.getBam())
+            >>> for read in ds.readsInReference(ds.refNames[15]):
+            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
+            hn: ...
+
+        """
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames
+                    and not refName in self.fullRefNames):
+                try:
+                    refName = self._idToRname(int(refName))
+                except AttributeError:
+                    raise StopIteration
+
+        # I would love to use readsInRange(refName, None, None), but
+        # IndexedBamReader breaks this (works for regular BamReader).
+        # So I have to do a little hacking...
+        refLen = 0
+        for resource in self.resourceReaders():
+            if (refName in resource.referenceInfoTable['Name'] or
+                    refName in resource.referenceInfoTable['FullName']):
+                refLen = resource.referenceInfo(refName).Length
+                break
+        if refLen:
+            for read in self.readsInRange(refName, 0, refLen):
+                yield read
+
+    def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
+                       targetSize=5000):
+        """Split a dataset into reference windows based on contigs.
+
+        Args:
+            chunks: The number of chunks to emit. If chunks < # contigs,
+                    contigs are grouped by size. If chunks == contigs, one
+                    contig is assigned to each dataset regardless of size. If
+                    chunks >= contigs, contigs are split into roughly equal
+                    chunks (<= 1.0 contig per file).
+
+        """
+        # removed the non-trivial case so that it is still filtered to just
+        # contigs with associated records
+
+        # The format is rID, start, end, for a reference window
+        log.debug("Fetching reference names and lengths")
+        # pull both at once so you only have to mess with the
+        # referenceInfoTable once.
+        refLens = self.refLengths
+        refNames = refLens.keys()
+        log.debug("{i} references found".format(i=len(refNames)))
+        log.debug("Finding contigs")
+        if len(refNames) < 100:
+            atoms = [(rn, 0, 0) for rn in refNames if
+                     next(self._indexReadsInReference(rn), None)]
+        else:
+            log.debug("Skipping records for each reference check")
+            atoms = [(rn, 0, 0) for rn in refNames]
+
+        # The window length is used for balancing
+        # TODO switch it to countRecords?
+        balanceKey = lambda x: x[2] - x[1]
+
+        # By providing maxChunks and not chunks, this combination will set
+        # chunks down to < len(atoms) < maxChunks
+        if not chunks:
+            chunks = len(atoms)
+        if maxChunks and chunks > maxChunks:
+            chunks = maxChunks
+
+        # Decide whether to intelligently limit chunk size:
+        if maxChunks and breakContigs:
+            # The bounds:
+            minNum = 2
+            maxNum = maxChunks
+            # Adjust
+            log.debug("Target numRecors per chunk: {i}".format(i=targetSize))
+            dataSize = self.numRecords
+            log.debug("numRecors in dataset: {i}".format(i=dataSize))
+            chunks = int(dataSize/targetSize)
+            # Respect bounds:
+            chunks = minNum if chunks < minNum else chunks
+            chunks = maxNum if chunks > maxNum else chunks
+            log.debug("Resulting number of chunks: {i}".format(i=chunks))
+
+        # refwindow format: rId, start, end
+        if chunks > len(atoms):
+            # splitting atom format is slightly different (but more compatible
+            # going forward with countRecords): (rId, size, segments)
+            atoms = [[rn, refLens[rn], 1] for rn, _, _ in atoms]
+            log.debug("Splitting atoms")
+            atoms = self._split_atoms(atoms, chunks)
+            segments = []
+            for atom in atoms:
+                segment_size = atom[1]/atom[2]
+                sub_segments = [(atom[0], segment_size * i, segment_size *
+                                 (i + 1)) for i in range(atom[2])]
+                # if you can't divide it evenly you may have some messiness
+                # with the last window. Fix it:
+                tmp = sub_segments.pop()
+                tmp = (tmp[0], tmp[1], refLens[tmp[0]])
+                sub_segments.append(tmp)
+                segments.extend(sub_segments)
+            atoms = segments
+        log.debug("Done defining {n} chunks".format(n=chunks))
+
+        # duplicate
+        log.debug("Making copies")
+        results = [self.copy() for _ in range(chunks)]
+
+        # replace default (complete) ExternalResource lists
+        log.debug("Distributing chunks")
+        chunks = self._chunkList(atoms, chunks, balanceKey)
+        log.debug("Done chunking")
+        log.debug("Modifying filters or resources")
+        for result, chunk in zip(results, chunks):
+            if atoms[0][2]:
+                result.filters.addRequirement(
+                    rname=[('=', c[0]) for c in chunk],
+                    tStart=[('>', c[1]) for c in chunk],
+                    tEnd=[('<', c[2]) for c in chunk])
+            else:
+                result.filters.addRequirement(
+                    rname=[('=', c[0]) for c in chunk])
+
+        # UniqueId was regenerated when the ExternalResource list was
+        # whole, therefore we need to regenerate it again here
+        log.debug("Generating new UUID")
+        for result in results:
+            result.newUuid()
+
+        # Update the basic metadata for the new DataSets from external
+        # resources, or at least mark as dirty
+        # TODO
+        return results
+
+    def _indexReadsInRange(self, refName, start, end):
+        """Return the index (pbi) records within a range.
+
+        ..note:: Not sorted by genomic location!
+
+        """
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                # we need the real refName, which may be hidden behind a
+                # mapping to resolve duplicate refIds between resources...
+                refName = self._idToRname(int(refName))
+        for reader in self.resourceReaders():
+            tIdMap = {n: name
+                      for n, name in enumerate(
+                          reader.referenceInfoTable['Name'])}
+            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
+            index = reader.index
+            winId = reader.referenceInfo(refName).ID
+            for rec_i in index.rangeQuery(winId, start, end):
+                read = index[rec_i]
+                if filts:
+                    if any([filt(read) for filt in filts]):
+                        yield read
+                else:
+                    yield read
+
+    @filtered
+    def readsInRange(self, refName, start, end, buffsize=50):
+        """A generator of (usually) BamAlignment objects for the reads in one
+        or more Bam files pointed to by the ExternalResources in this DataSet
+        that have at least one coordinate within the specified range in the
+        reference genome.
+
+        Rather than developing some convoluted approach for dealing with
+        auto-inferring the desired references, this method and self.refNames
+        should allow users to compose the desired query.
+
+        Args:
+            refName: the name of the reference that we are sampling
+            start: the start of the range (inclusive, index relative to
+                   reference)
+            end: the end of the range (inclusive, index relative to reference)
+
+        Yields:
+            BamAlignment objects
+
+        Doctest:
+            >>> import pbcore.data.datasets as data
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet(data.getBam())
+            >>> for read in ds.readsInRange(ds.refNames[15], 100, 150):
+            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
+            hn: ...
+        """
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                # we need the real refName, which may be hidden behind a
+                # mapping to resolve duplicate refIds between resources...
+                refName = self._idToRname(int(refName))
+
+        # correct the cmp.h5 reference names before reads go out the door
+        if self.isCmpH5:
+            for res in self.resourceReaders():
+                for row in res.referenceInfoTable:
+                    row.FullName = self._cleanCmpName(row.FullName)
+
+        # merge sort before yield
+        if self.numExternalResources > 1:
+            if buffsize > 1:
+                # create read/reader caches
+                read_its = [iter(rr.readsInRange(refName, start, end))
+                            for rr in self.resourceReaders()]
+                deep_buf = [[next(it, None) for _ in range(buffsize)]
+                            for it in read_its]
+
+                # remove empty iterators
+                read_its = [it for it, cur in zip(read_its, deep_buf)
+                            if cur[0]]
+                deep_buf = [buf for buf in deep_buf if buf[0]]
+
+                # populate starting values/scratch caches
+                buf_indices = [0 for _ in read_its]
+                tStarts = [cur[0].tStart for cur in deep_buf]
+
+                while len(read_its) != 0:
+                    # pick the first one to yield
+                    # this should be a bit faster than taking the min of an
+                    # enumeration of currents with a key function accessing a
+                    # field...
+                    first = min(tStarts)
+                    first_i = tStarts.index(first)
+                    buf_index = buf_indices[first_i]
+                    first = deep_buf[first_i][buf_index]
+                    # update the buffers
+                    buf_index += 1
+                    buf_indices[first_i] += 1
+                    if buf_index == buffsize:
+                        buf_index = 0
+                        buf_indices[first_i] = 0
+                        deep_buf[first_i] = [next(read_its[first_i], None)
+                                             for _ in range(buffsize)]
+                    if not deep_buf[first_i][buf_index]:
+                        del read_its[first_i]
+                        del tStarts[first_i]
+                        del deep_buf[first_i]
+                        del buf_indices[first_i]
+                    else:
+                        tStarts[first_i] = deep_buf[first_i][buf_index].tStart
+                    yield first
+            else:
+                read_its = [iter(rr.readsInRange(refName, start, end))
+                            for rr in self.resourceReaders()]
+                # buffer one element from each generator
+                currents = [next(its, None) for its in read_its]
+                # remove empty iterators
+                read_its = [it for it, cur in zip(read_its, currents) if cur]
+                currents = [cur for cur in currents if cur]
+                tStarts = [cur.tStart for cur in currents]
+                while len(read_its) != 0:
+                    # pick the first one to yield
+                    # this should be a bit faster than taking the min of an
+                    # enumeration of currents with a key function accessing a
+                    # field...
+                    first = min(tStarts)
+                    first_i = tStarts.index(first)
+                    first = currents[first_i]
+                    # update the buffers
+                    try:
+                        currents[first_i] = next(read_its[first_i])
+                        tStarts[first_i] = currents[first_i].tStart
+                    except StopIteration:
+                        del read_its[first_i]
+                        del currents[first_i]
+                        del tStarts[first_i]
+                    yield first
+        else:
+            # the above will work in either case, but this might be ever so
+            # slightly faster
+            for resource in self.resourceReaders():
+                for read in resource.readsInRange(refName, start, end):
+                    yield read
+
+    @property
+    def isSorted(self):
+        return self._checkIdentical('isSorted')
+
+    @property
+    def tStart(self):
+        return self._checkIdentical('tStart')
+
+    @property
+    def tEnd(self):
+        return self._checkIdentical('tEnd')
+
     @property
     def _length(self):
         """Used to populate metadata in updateCounts. We're using the pbi here,
@@ -2519,12 +2404,146 @@ class AlignmentSet(ReadSet):
             for read in self.readsInReference(rname):
                 yield read
 
+    def referenceInfo(self, refName):
+        """Select a row from the DataSet.referenceInfoTable using the reference
+        name as a unique key"""
+        # TODO: upgrade to use _referenceDict
+        if not self.isCmpH5:
+            for row in self.referenceInfoTable:
+                if row.Name == refName:
+                    return row
+        else:
+            for row in self.referenceInfoTable:
+                if row.FullName.startswith(refName):
+                    return row
+
+    @property
+    def referenceInfoTable(self):
+        """The merged reference info tables from the external resources.
+        Record.ID is remapped to a unique integer key (though using record.Name
+        is preferred). Record.Names are remapped for cmp.h5 files to be
+        consistent with bam files.
+        """
+        if self._referenceInfoTable is None:
+            # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
+            # instance). Use the resource readers directly instead.
+            responses = self._pollResources(lambda x: x.referenceInfoTable)
+            if len(responses) > 1:
+                assert not self.isCmpH5 # see above
+                tbr = np.concatenate(responses)
+                tbr = np.unique(tbr)
+                for i, rec in enumerate(tbr):
+                    rec.ID = i
+                self._referenceInfoTable = tbr
+            else:
+                table = responses[0]
+                if self.isCmpH5:
+                    for rec in table:
+                        rec.Name = self._cleanCmpName(rec.FullName)
+                self._referenceInfoTable = table
+            #TODO: Turn on when needed
+            #self._referenceDict.update(zip(self.refIds.values(),
+                                           #self._referenceInfoTable))
+        return self._referenceInfoTable
+
+    @property
+    def _referenceIdMap(self):
+        """Map the dataset shifted refIds to the [resource, refId] they came
+        from.
+        """
+        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
+        # instance). Use the resource readers directly instead.
+        responses = self._pollResources(lambda x: x.referenceInfoTable)
+        if len(responses) > 1:
+            assert not self.isCmpH5 # see above
+            tbr = reduce(np.append, responses)
+            tbrMeta = []
+            for i, res in enumerate(responses):
+                for j in res['ID']:
+                    tbrMeta.append([i, j])
+            _, indices = np.unique(tbr, return_index=True)
+            tbrMeta = list(tbrMeta[i] for i in indices)
+            return {i: meta for i, meta in enumerate(tbrMeta)}
+        else:
+            return {i: [0, i] for i in responses[0]['ID']}
+
+    def _cleanCmpName(self, name):
+        return splitFastaHeader(name)[0]
+
+    @property
+    def refLengths(self):
+        """A dict of refName: refLength"""
+        return {name: length for name, length in self.refInfo('Length')}
+
+    @property
+    def refIds(self):
+        """A dict of refName: refId"""
+        return {name: rId for name, rId in self.refInfo('ID')}
+
+    def refLength(self, rname):
+        """The length of reference 'rname'. This is expensive, so if you're
+        going to do many lookups cache self.refLengths locally and use that."""
+        lut = self.refLengths
+        return lut[rname]
+
+    @property
+    def fullRefNames(self):
+        """A list of reference full names (full header)."""
+        return [name for _, name in self.refInfo('FullName')]
+
+    def refInfo(self, key):
+        """The reference names present in the referenceInfoTable of the
+        ExtResources.
+
+        Args:
+            key: a key for the referenceInfoTable of each resource
+        Returns:
+            A list of tuples of refrence name, key_result pairs
+
+        """
+        log.debug("Sampling references")
+        names = self.referenceInfoTable['Name']
+        infos = self.referenceInfoTable[key]
+
+        log.debug("Removing duplicate reference entries")
+        sampled = zip(names, infos)
+        sampled = set(sampled)
+
+        log.debug("Filtering reference entries")
+        if not self.noFiltering or not self._filters:
+            sampled = [(name, info) for name, info in sampled
+                       if self._filters.testParam('rname', name)]
+        return sampled
+
+    def _idToRname(self, rId):
+        """Map the DataSet.referenceInfoTable.ID to the superior unique
+        reference identifier: referenceInfoTable.Name
+
+        Args:
+            rId: The DataSet.referenceInfoTable.ID of interest
+
+        Returns:
+            The referenceInfoTable.Name corresponding to rId
+        """
+        resNo, rId = self._referenceIdMap[rId]
+        if self.isCmpH5:
+            rId -= 1
+        if self.isCmpH5:
+            # This is what CmpIO recognizes as the 'shortname'
+            refName = self.resourceReaders()[
+                resNo].referenceInfoTable[rId]['FullName']
+        else:
+            refName = self.resourceReaders()[
+                resNo].referenceInfoTable[rId]['Name']
+        return refName
+
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.AlignmentFile.AlignmentBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
+                'cmp.h5':'PacBio.AlignmentFile.AlignmentCmpH5File',
                }
 
 
@@ -2795,15 +2814,7 @@ class ContigSet(DataSet):
 
         Yields:
             An open fasta file
-        Doctest:
-            >>> # Either way:
-            >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
-            >>> for seqFile in ds.resourceReaders():
-            ...     for row in seqFile:
-            ...         print 'hn: %i' % row.holeNumber # doctest:+ELLIPSIS
-            hn: ...
+
         """
         if refName:
             log.error("Specifying a contig name not yet implemented")
@@ -2819,15 +2830,6 @@ class ContigSet(DataSet):
         Yields:
             A fasta file entry
 
-        Doctest:
-            >>> # Either way:
-            >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
-            >>> ds = DataSet(data.getBam())
-            >>> for seqFile in ds.resourceReaders():
-            ...     for row in seqFile:
-            ...         print 'hn: %i' % row.holeNumber # doctest:+ELLIPSIS
-            hn: ...
         """
         for resource in self.resourceReaders():
             for contig in resource:
@@ -2872,6 +2874,8 @@ class ContigSet(DataSet):
     @staticmethod
     def _metaTypeMapping():
         return {'fasta':'PacBio.ContigFile.ContigFastaFile',
+                'fa':'PacBio.ContigFile.ContigFastaFile',
+                'fas':'PacBio.ContigFile.ContigFastaFile',
                 'fai':'PacBio.Index.SamIndex',
                 'sa':'PacBio.Index.SaWriterIndex',
                }
@@ -2910,7 +2914,9 @@ class ReferenceSet(ContigSet):
 
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta':'PacBio.ReferenceFile.ReferenceFastaFile',
+        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
+                'fa':'PacBio.ContigFile.ContigFastaFile',
+                'fas':'PacBio.ContigFile.ContigFastaFile',
                 'fai':'PacBio.Index.SamIndex',
                 'sa':'PacBio.Index.SaWriterIndex',
                }

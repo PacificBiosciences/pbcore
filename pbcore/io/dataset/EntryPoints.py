@@ -53,7 +53,7 @@ def filterXml(args):
     log.error("Adding filters via CLI is temporarily out of order")
     exit(1)
     if args.infile.endswith('xml'):
-        dataSet = DataSet(args.infile, strict=args.strict)
+        dataSet = openDataSet(args.infile, strict=args.strict)
         filters = []
         separators = ['<=', '>=', '!=', '==', '>', '<', '=']
         for filt in args.filters:
@@ -82,7 +82,7 @@ def filter_options(parser):
 
 def splitXml(args):
     log.debug("Starting split")
-    dataSet = DataSet(args.infile, strict=args.strict)
+    dataSet = openDataSet(args.infile, strict=args.strict)
     chunks = len(args.outfiles)
     if args.chunks:
         chunks = args.chunks
@@ -146,7 +146,7 @@ def split_options(parser):
 def mergeXml(args):
     dss = []
     for infn in args.infiles:
-        dss.append(DataSet(infn, strict=args.strict))
+        dss.append(openDataSet(infn, strict=args.strict))
     reduce(lambda ds1, ds2: ds1 + ds2, dss).write(args.outfile)
 
 def merge_options(parser):
@@ -159,7 +159,7 @@ def merge_options(parser):
     parser.set_defaults(func=mergeXml)
 
 def loadStatsXml(args):
-    dset = DataSet(args.infile, strict=args.strict)
+    dset = openDataSet(args.infile, strict=args.strict)
     dset.loadStats(args.statsfile)
     if args.outfile:
         dset.write(args.outfile, validate=False)
