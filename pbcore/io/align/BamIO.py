@@ -388,8 +388,9 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             return self[ix]
 
     def __iter__(self):
-        for rn in xrange(len(self.pbi)):
-            yield self.atRowNumber(rn)
+        self.peer.reset()
+        for (rowNumber, peerRecord) in enumerate(self.peer):
+            yield BamAlignment(self, peerRecord, rowNumber)
 
     def __len__(self):
         return len(self.pbi)
