@@ -526,12 +526,12 @@ class Filters(RecordWrapper):
         return tests
 
     def filterIndexRecords(self, indexRecords, nameMap):
-        filterResultList = []
         typeMap = self._bamTypeMap
         accMap = self._pbiVecAccMap({})
         accMap['rname'] = lambda x: x.tId
+        filterLastResult = None
         for filt in self:
-            thisFilterResultList = []
+            lastResult = None
             for req in filt:
                 param = req.name
                 value = typeMap[param](req.value)
@@ -540,11 +540,18 @@ class Filters(RecordWrapper):
                 operator = self.opMap(req.operator)
                 reqResultsForRecords = operator(accMap[param](indexRecords),
                                                 value)
-                thisFilterResultList.append(reqResultsForRecords)
-            thisFilterResultList = np.logical_and.reduce(thisFilterResultList)
-            filterResultList.append(thisFilterResultList)
-        filterResultList = np.logical_or.reduce(filterResultList)
-        return filterResultList
+                if lastResult is None:
+                    lastResult = reqResultsForRecords
+                else:
+                    lastResult = np.logical_and(lastResult,
+                                                reqResultsForRecords)
+                    del reqResultsForRecords
+            if filterLastResult is None:
+                filterLastResult = lastResult
+            else:
+                filterLastResult = np.logical_or(filterLastResult, lastResult)
+                del lastResult
+        return filterLastResult
 
     def addRequirement(self, **kwargs):
         """Use this to add requirements. Members of the list will be considered

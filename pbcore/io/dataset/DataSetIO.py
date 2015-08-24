@@ -1,8 +1,5 @@
 """
-Classes representing the elements of the DataSet type
-
-These classes are often instantiated by the parser and passed to the DataSet,
-where they are stored, manipulated, filtered, merged, etc.
+Classes representing DataSets of various types.
 """
 
 from collections import defaultdict
@@ -17,6 +14,7 @@ import xml.dom.minidom
 import tempfile
 from functools import wraps
 import numpy as np
+import numpy.ma as ma
 from urlparse import urlparse
 from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
@@ -78,28 +76,12 @@ def _dsIdToSuffix(x):
         return suffix
 
 def openDataSet(*files, **kwargs):
-    # decrease the strictness:
-    prev = kwargs.get('strict', False)
-    kwargs['strict'] = False
-
-    # infer from the first:
-    first = DataSet(files[0], **kwargs)
-    dsId = first.objMetadata.get('MetaType')
-    # hdfsubreadset metatypes are subreadset. Fix:
-    if files[0].endswith('xml'):
-        xml_rt = xmlRootType(files[0])
-        if _dsIdToName(dsId) != xml_rt:
-            log.warn("XML metatype does not match root tag")
-            if xml_rt == 'HdfSubreadSet':
-                dsId = _toDsId(xml_rt)
+    if not files[0].endswith('xml'):
+        raise TypeError("openDataSet requires that the first file is an XML")
+    xml_rt = xmlRootType(files[0])
+    dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
-
-    # revert the strictness
-    kwargs['strict'] = prev
-    if tbrType:
-        return tbrType(*files, **kwargs)
-    else:
-        return DataSet(*files, **kwargs)
+    return tbrType(*files, **kwargs)
 
 
 class DataSetMetaTypes(object):
@@ -154,14 +136,12 @@ class DataSet(object):
         Doctest:
             >>> import os, tempfile
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet, SubreadSet
+            >>> from pbcore.io import AlignmentSet, SubreadSet
             >>> # Prog like pbalign provides a .bam file:
-            >>> # e.g. d = DataSet("aligned.bam")
+            >>> # e.g. d = AlignmentSet("aligned.bam")
             >>> # Something like the test files we have:
             >>> inBam = data.getBam()
-            >>> inBam.endswith('.bam')
-            True
-            >>> d = DataSet(inBam)
+            >>> d = AlignmentSet(inBam)
             >>> # A UniqueId is generated, despite being a BAM input
             >>> bool(d.uuid)
             True
@@ -172,36 +152,26 @@ class DataSet(object):
             >>> outXml = os.path.join(outdir, 'tempfile.xml')
             >>> d.write(outXml)
             >>> # And then recover the same XML:
-            >>> d = DataSet(outXml)
+            >>> d = AlignmentSet(outXml)
             >>> # The UniqueId will be the same
             >>> d.uuid == dOldUuid
             True
             >>> # Inputs can be many and varied
-            >>> ds1 = DataSet(data.getXml(8), data.getBam(1))
+            >>> ds1 = AlignmentSet(data.getXml(8), data.getBam(1))
             >>> ds1.numExternalResources
             2
-            >>> ds1 = DataSet(data.getFofn())
+            >>> ds1 = AlignmentSet(data.getFofn())
             >>> ds1.numExternalResources
             2
             >>> # Constructors should be used directly
             >>> SubreadSet(data.getSubreadSet()) # doctest:+ELLIPSIS
             <SubreadSet...
             >>> # Even with untyped inputs
-            >>> DataSet(data.getBam()) # doctest:+ELLIPSIS
-            <DataSet...
-            >>> SubreadSet(data.getBam()) # doctest:+ELLIPSIS
-            <SubreadSet...
-            >>> # You can also cast up and down, but casting between siblings
-            >>> # is limited (abuse at your own risk)
-            >>> DataSet(data.getBam()).copy(asType='SubreadSet')
-            ... # doctest:+ELLIPSIS
-            <SubreadSet...
-            >>> SubreadSet(data.getBam()).copy(asType='DataSet')
-            ... # doctest:+ELLIPSIS
-            <DataSet...
-            >>> # DataSets can also be manipulated after opening:
+            >>> AlignmentSet(data.getBam()) # doctest:+ELLIPSIS
+            <AlignmentSet...
+            >>> # AlignmentSets can also be manipulated after opening:
             >>> # Add external Resources:
-            >>> ds = DataSet()
+            >>> ds = AlignmentSet()
             >>> _ = ds.externalResources.addResources(["IdontExist.bam"])
             >>> ds.externalResources[-1].resourceId == "IdontExist.bam"
             True
@@ -300,6 +270,8 @@ class DataSet(object):
         self._referenceInfoTable = None
         self._referenceDict = {}
         self._indexMap = []
+        self._stackedReferenceInfoTable = False
+        self._index = None
 
         # update counts
         if files:
@@ -436,6 +408,7 @@ class DataSet(object):
         tbr.filters = copy.deepcopy(self._filters, memo)
         tbr.subdatasets = copy.deepcopy(self.subdatasets, memo)
         tbr.fileNames = copy.deepcopy(self.fileNames, memo)
+        tbr._skipCounts = False
         return tbr
 
     def __eq__(self, other):
@@ -603,7 +576,8 @@ class DataSet(object):
         return result
 
     def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
-              maxChunks=0, breakContigs=False, targetSize=5000, zmws=False):
+              maxChunks=0, breakContigs=False, targetSize=5000, zmws=False,
+              barcodes=False, byRecords=False, updateCounts=False):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -687,9 +661,13 @@ class DataSet(object):
         """
         if contigs:
             return self._split_contigs(chunks, maxChunks, breakContigs,
-                                       targetSize=targetSize)
+                                       targetSize=targetSize,
+                                       byRecords=byRecords,
+                                       updateCounts=updateCounts)
         elif zmws:
             return self._split_zmws(chunks)
+        elif barcodes:
+            return self._split_barcodes(chunks)
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
@@ -734,8 +712,14 @@ class DataSet(object):
         return results
 
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000):
+                       targetSize=5000, byRecords=False, updateCounts=False):
         raise TypeError("Only AlignmentSets may be split by contigs")
+
+    def _split_barcodes(self, chunks):
+        raise TypeError("Only ReadSets may be split by contigs")
+
+    def _split_zmws(self, chunks):
+        raise TypeError("Only ReadSets may be split by contigs")
 
     def _split_atoms(self, atoms, num_chunks):
         """Divide up atomic units (e.g. contigs) into chunks (refId, size,
@@ -745,62 +729,6 @@ class DataSet(object):
             largest = max(atoms, key=lambda x: x[1]/x[2])
             largest[2] += 1
         return atoms
-
-    def _split_zmws(self, chunks):
-        files_to_movies = defaultdict(list)
-        n_bam = 0
-        for bam in self.resourceReaders():
-            n_bam += 1
-            if len(bam.readGroupTable) > 1:
-                raise RuntimeError("Multiple read groups in single .bam")
-        if chunks < n_bam:
-            return self.split(chunks=chunks)
-        n_chunks_per_bam = max(1, int(math.floor(float(chunks) / n_bam)))
-        if n_chunks_per_bam < 2:
-            log.warn("%d ZMW chunks requested but there are %d files" %
-                (chunks, n_bam))
-        n_chunks = n_bam * n_chunks_per_bam
-        if n_chunks != chunks:
-            log.info("Adjusted number of chunks to %d" % n_chunks)
-        log.debug("Making copies")
-        results = [self.copy() for _ in range(n_chunks)]
-        j_chunk = 0
-        for bam in self.resourceReaders():
-            rg = bam.readGroupTable[0]
-            n_zmws = len(bam.holeNumber)
-            i_zmw = 0
-            for i_chunk in range(n_chunks_per_bam):
-                result = results[j_chunk]
-                j_chunk += 1
-                zmw_start = bam.holeNumber[i_zmw]
-                if i_chunk == n_chunks_per_bam - 1:
-                    zmw_end = bam.holeNumber.max()
-                else:
-                    i_zmw += int(math.ceil(float(n_zmws / n_chunks_per_bam)))
-                    zmw_end = bam.holeNumber[i_zmw]
-                    while i_zmw < n_zmws-1:
-                        if zmw_end == bam.holeNumber[i_zmw+1]:
-                            i_zmw += 1
-                            zmw_end = bam.holeNumber[i_zmw]
-                        else:
-                            break
-                result.filters.addRequirement(
-                    movie=[('=', rg.MovieName)],
-                    zm=[('<', zmw_end+1)])
-                result.filters.addRequirement(
-                    zm=[('>', zmw_start-1)])
-                i_zmw += 1
-
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        for result in results:
-            result.newUuid()
-
-        # Update the basic metadata for the new DataSets from external
-        # resources, or at least mark as dirty
-        # TODO
-        return results
 
     def _split_subdatasets(self, chunks):
         """Split on subdatasets
@@ -833,7 +761,8 @@ class DataSet(object):
             results.append(newCopy)
         return results
 
-    def write(self, outFile, validate=True, relPaths=False, pretty=True):
+    def write(self, outFile, validate=True, modPaths=False,
+              relPaths=False, pretty=True):
         """Write to disk as an XML file
 
         Args:
@@ -855,7 +784,7 @@ class DataSet(object):
             True
         """
         # fix paths if validate:
-        if validate:
+        if validate and modPaths:
             if relPaths:
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
@@ -936,6 +865,14 @@ class DataSet(object):
         self._cachedFilters = filters
         return filters
 
+    def checkAndResolve(self, fname, possibleRelStart='.'):
+        """Try and skip resolveLocation if possible"""
+        if fname.startswith(os.path.sep):
+            return fname
+        else:
+            log.debug('Unable to assume path is already absolute')
+            return resolveLocation(fname, possibleRelStart)
+
     def makePathsAbsolute(self, curStart="."):
         """As part of the validation process, make all ResourceIds absolute
         URIs rather than relative paths. Generally not called by API users.
@@ -945,7 +882,7 @@ class DataSet(object):
         """
         log.debug("Making paths absolute")
         self._changePaths(
-            lambda x, s=curStart: resolveLocation(x, s))
+            lambda x, s=curStart: self.checkAndResolve(x, s))
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
@@ -1415,6 +1352,8 @@ class DataSet(object):
         needed
         """
         self._cachedFilters = []
+        self._index = None
+        self._indexMap = []
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
         if self.metadata.summaryStats:
@@ -1465,12 +1404,13 @@ class DataSet(object):
         mapping to refName)."""
         return [func(resource) for resource in self.resourceReaders()]
 
-    def _unifyResponses(self, responses, keyFunc=lambda x: x):
+    def _unifyResponses(self, responses, keyFunc=lambda x: x,
+                        eqFunc=lambda x, y: x == y):
         """Make sure all of the responses from resources are the same."""
         if len(responses) > 1:
             # Check the rest against the first:
             for res in responses[1:]:
-                if keyFunc(responses[0]) != keyFunc(res):
+                if not eqFunc(keyFunc(responses[0]), keyFunc(res)):
                     raise ResourceMismatchError(responses)
         return responses[0]
 
@@ -1567,7 +1507,8 @@ class ReadSet(DataSet):
         log.debug("Opening ReadSet resources")
         for extRes in self.externalResources:
             refFile = extRes.reference
-            log.debug("Using reference: {r}".format(r=refFile))
+            if refFile:
+                log.debug("Using reference: {r}".format(r=refFile))
             location = urlparse(extRes.resourceId).path
             resource = None
             try:
@@ -1582,7 +1523,7 @@ class ReadSet(DataSet):
                 else:
                     raise
             if not resource:
-                assert(not self._strict)
+                assert not self._strict
                 resource = openAlignmentFile(
                     location, referenceFastaFname=refFile)
             self._openReaders.append(resource)
@@ -1592,18 +1533,114 @@ class ReadSet(DataSet):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads"""
         if not self._indexMap:
-            self._generateIndexMap()
+            self.index
         rr, ind = self._indexMap[index]
         return self.resourceReaders()[rr][ind]
 
-    def _generateIndexMap(self):
-        for _ in self._indexRecords(cache=True):
-            pass
+    def _split_barcodes(self, chunks=0):
+        """Split a readset into chunks by barcodes.
 
-    @property
-    def indexRecords(self):
-        for rec in self._indexRecords():
-            yield rec
+        Args:
+            chunks: The number of chunks to emit. If chunks < # barcodes,
+                    barcodes are grouped by size. If chunks == # barcodes, one
+                    barcode is assigned to each dataset regardless of size. If
+                    chunks >= # barcodes, only # barcodes chunks are emitted
+
+        """
+        # Find all possible barcodes and counts for each
+        # TODO: switch this over to the pbi when bc information is exposed
+        barcodes = defaultdict(int)
+        for read in self.records:
+            barcodes[tuple(read.peer.opt("bc"))] += 1
+
+        log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
+
+        atoms = barcodes.items()
+
+        # The number of reads per barcode is used for balancing
+        balanceKey = lambda x: x[1]
+
+        # Find the appropriate number of chunks
+        if chunks <= 0 or chunks > len(atoms):
+            chunks = len(atoms)
+
+        log.debug("Making copies")
+        results = [self.copy() for _ in range(chunks)]
+
+        log.debug("Distributing chunks")
+        chunks = self._chunkList(atoms, chunks, balanceKey)
+        log.debug("Done chunking")
+        log.debug("Modifying filters or resources")
+        for result, chunk in zip(results, chunks):
+            result.filters.addRequirement(
+                bc=[('=', list(c[0])) for c in chunk])
+
+        # UniqueId was regenerated when the ExternalResource list was
+        # whole, therefore we need to regenerate it again here
+        log.debug("Generating new UUID")
+        for result in results:
+            result.newUuid()
+
+        # Update the basic metadata for the new DataSets from external
+        # resources, or at least mark as dirty
+        # TODO
+        return results
+
+    def _split_zmws(self, chunks):
+        files_to_movies = defaultdict(list)
+        n_bam = 0
+        for bam in self.resourceReaders():
+            n_bam += 1
+            if len(bam.readGroupTable) > 1:
+                raise RuntimeError("Multiple read groups in single .bam")
+        if chunks < n_bam:
+            return self.split(chunks=chunks)
+        n_chunks_per_bam = max(1, int(math.floor(float(chunks) / n_bam)))
+        if n_chunks_per_bam < 2:
+            log.warn("%d ZMW chunks requested but there are %d files" %
+                     (chunks, n_bam))
+        n_chunks = n_bam * n_chunks_per_bam
+        if n_chunks != chunks:
+            log.info("Adjusted number of chunks to %d" % n_chunks)
+        log.debug("Making copies")
+        results = [self.copy() for _ in range(n_chunks)]
+        j_chunk = 0
+        for bam in self.resourceReaders():
+            rg = bam.readGroupTable[0]
+            n_zmws = len(bam.holeNumber)
+            i_zmw = 0
+            for i_chunk in range(n_chunks_per_bam):
+                result = results[j_chunk]
+                j_chunk += 1
+                zmw_start = bam.holeNumber[i_zmw]
+                if i_chunk == n_chunks_per_bam - 1:
+                    zmw_end = bam.holeNumber.max()
+                else:
+                    i_zmw += int(math.ceil(float(n_zmws / n_chunks_per_bam)))
+                    zmw_end = bam.holeNumber[i_zmw]
+                    while i_zmw < n_zmws-1:
+                        if zmw_end == bam.holeNumber[i_zmw+1]:
+                            i_zmw += 1
+                            zmw_end = bam.holeNumber[i_zmw]
+                        else:
+                            break
+                result.filters.addRequirement(
+                    movie=[('=', rg.MovieName)],
+                    zm=[('<', zmw_end+1)])
+                result.filters.addRequirement(
+                    zm=[('>', zmw_start-1)])
+                i_zmw += 1
+
+        # UniqueId was regenerated when the ExternalResource list was
+        # whole, therefore we need to regenerate it again here
+        log.debug("Generating new UUID")
+        for result in results:
+            result.newUuid()
+
+        # Update the basic metadata for the new DataSets from external
+        # resources, or at least mark as dirty
+        # TODO
+        return results
 
     @property
     def readGroupTable(self):
@@ -1619,6 +1656,7 @@ class ReadSet(DataSet):
         if not self._openReaders:
             try:
                 tmp = self._strict
+                self._strict = True
                 self._openFiles()
             except Exception:
                 # Catch everything to recover the strictness status, then raise
@@ -1632,9 +1670,7 @@ class ReadSet(DataSet):
                                      self.resourceReaders()):
                 if (not isinstance(reader, IndexedBamReader) and
                         not isinstance(reader, CmpH5Reader)):
-                    raise IOError(errno.EIO,
-                                  "File not indexed: {f}".format(f=fname),
-                                  fname)
+                    raise IOError(errno.EIO, "File not indexed", fname)
 
     @property
     def isCmpH5(self):
@@ -1642,40 +1678,46 @@ class ReadSet(DataSet):
         res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
         return self._unifyResponses(res)
 
-    def _indexRecords(self, cache=False):
+    @property
+    def index(self):
+        if self._index is None:
+            log.debug("Populating index")
+            self.assertIndexed()
+            self._index = self._indexRecords()
+            log.debug("Done populating index")
+        return self._index
+
+    def _stackRecArrays(self, recArrays):
+        tbr = np.concatenate(recArrays)
+        tbr = tbr.view(np.recarray)
+        return tbr
+
+    def _indexRecords(self):
         """Yields index records summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
         cached in the pbi.
         """
-        self.assertIndexed()
 
-        # accounting early rather than late due to branching:
+        recArrays = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
 
-            if self.isCmpH5:
-                log.info("cmp.h5 AlignmentSet files don't support filtration")
-                yield indices
-                continue
-
             if not self._filters or self.noFiltering:
-                for i, ind in enumerate(indices):
-                    if cache:
-                        self._indexMap.append((rrNum, i))
-                    yield ind
-                continue
+                recArrays.append(indices._tbl)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       range(len(indices._tbl))])
+            else:
+                # Filtration will be necessary:
+                nameMap = {name: n
+                           for n, name in enumerate(rr.referenceInfoTable['Name'])}
 
-            # Filtration will be necessary:
-            nameMap = {name: n
-                       for n, name in enumerate(rr.referenceInfoTable['Name'])}
-
-            passes = self._filters.filterIndexRecords(indices, nameMap)
-            # This is faster than np.extract or iterating over zip
-            for i in xrange(len(indices)):
-                if passes[i]:
-                    if cache:
-                        self._indexMap.append((rrNum, i))
-                    yield indices[i]
+                passes = self._filters.filterIndexRecords(indices._tbl,
+                                                          nameMap)
+                newInds = indices._tbl[passes]
+                recArrays.append(newInds)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       np.nonzero(passes)[0]])
+        return self._stackRecArrays(recArrays)
 
     def resourceReaders(self):
         """Open the files in this ReadSet"""
@@ -1696,23 +1738,8 @@ class ReadSet(DataSet):
                  expect a pbi for both subreadsets and alignmentsets
 
         """
-        length = 0
-        count = 0
-        endkey = 'qEnd'
-        startkey = 'qStart'
-        if self.isCmpH5:
-            endkey = 'qEnd'
-            startkey = 'qStart'
-        for rec in self.indexRecords:
-            if isinstance(rec, np.ndarray):
-                count += len(rec)
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                count += len(rec)
-                length += sum(rec.qEnd - rec.qStart)
-            else:
-                count += 1
-                length += rec.qEnd - rec.qStart
+        count = len(self.index)
+        length = sum(self.index.qEnd - self.index.qStart)
         return count, length
 
     def addMetadata(self, newMetadata, **kwargs):
@@ -1923,6 +1950,42 @@ class AlignmentSet(ReadSet):
                 res.reference = reference[0]
             self._openFiles()
 
+    def _indexRecords(self, correctIds=True):
+        """Returns index records summarizing all of the records in all of
+        the resources that conform to those filters addressing parameters
+        cached in the pbi.
+
+        """
+        recArrays = []
+        log.debug("Processing resource pbis")
+        for rrNum, rr in enumerate(self.resourceReaders()):
+            indices = rr.index
+
+            if correctIds and self._stackedReferenceInfoTable:
+                log.debug("Must correct index tId's")
+                tIdMap = {n: name
+                          for n, name in enumerate(
+                              rr.referenceInfoTable['Name'])}
+                nameMap = self.refIds
+
+            if not self._filters or self.noFiltering:
+                recArrays.append(indices._tbl)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       range(len(indices._tbl))])
+            else:
+                # Filtration will be necessary:
+                nameMap = {name: n
+                           for n, name in enumerate(
+                               rr.referenceInfoTable['Name'])}
+
+                passes = self._filters.filterIndexRecords(indices._tbl,
+                                                          nameMap)
+                newInds = indices._tbl[passes]
+                recArrays.append(newInds)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       np.nonzero(passes)[0]])
+        return self._stackRecArrays(recArrays)
+
     def resourceReaders(self, refName=False):
         """A generator of Indexed*Reader objects for the ExternalResources
         in this DataSet.
@@ -1968,28 +2031,30 @@ class AlignmentSet(ReadSet):
         return sorted([name for _, name in self.refInfo('Name')])
 
     def _indexReadsInReference(self, refName):
+        # This can probably be deprecated for all but the official reads in
+        # range (and maybe reads in reference)
         if isinstance(refName, np.int64):
             refName = str(refName)
         if refName.isdigit():
             if (not refName in self.refNames
                     and not refName in self.fullRefNames):
-                try:
-                    refName = self._idToRname(int(refName))
-                except AttributeError:
-                    raise StopIteration
+                refName = self._idToRname(int(refName))
 
-        # I would love to use readsInRange(refName, None, None), but
-        # IndexedBamReader breaks this (works for regular BamReader).
-        # So I have to do a little hacking...
-        refLen = 0
-        for resource in self.resourceReaders():
-            if (refName in resource.referenceInfoTable['Name'] or
-                    refName in resource.referenceInfoTable['FullName']):
-                refLen = resource.referenceInfo(refName).Length
-                break
-        if refLen:
-            for read in self._indexReadsInRange(refName, 0, refLen):
-                yield read
+        desiredTid = self.refIds[refName]
+        tIds = self.index.tId
+        passes = tIds == desiredTid
+        return self.index[passes]
+
+    def _countMappedReads(self):
+        """It is too slow for large datasets to use _indexReadsInReference"""
+        counts = {rId: 0 for _, rId in self.refIds.items()}
+        for ind in self.index:
+            counts[ind["tId"]] += 1
+        tbr = {}
+        idMap = {rId: name for name, rId in self.refIds.items()}
+        for key, value in counts.iteritems():
+            tbr[idMap[key]] = value
+        return tbr
 
     @property
     def refWindows(self):
@@ -2030,20 +2095,15 @@ class AlignmentSet(ReadSet):
                 windowTuples.append((refId, 0, refLen))
         return windowTuples
 
-    def countRecords(self, rname=None, window=None):
+    def countRecords(self, rname=None, winStart=None, winEnd=None):
         """Count the number of records mapped to 'rname' that overlap with
-        'window'
-
-        """
-        def count(iterable):
-            return sum(1 for _ in iterable)
-
-        if window:
-            return count(self.readsInRange(rname, *window))
-        if rname:
-            return count(self.readsInReference(rname))
+        'window'"""
+        if rname and winStart != None and winEnd != None:
+            return len(self._indexReadsInRange(rname, winStart, winEnd))
+        elif rname:
+            return len(self._indexReadsInReference(rname))
         else:
-            count(self.records)
+            return len(self.index)
 
     @filtered
     def readsInReference(self, refName):
@@ -2089,8 +2149,80 @@ class AlignmentSet(ReadSet):
             for read in self.readsInRange(refName, 0, refLen):
                 yield read
 
+    def _intervalContour(self, index, rname):
+        """Take a set of index records and build a pileup of intervals, or
+        "contour" describing coverage over the contig
+
+        ..note:: Naively incrementing values in an array is too slow and takes
+        too much memory. Sorting tuples by starts and ends and iterating
+        through them and the reference (O(nlogn + nlogn + n + n + m)) takes too
+        much memory and time. Iterating over the reference, using numpy
+        conditional indexing at each base on tStart and tEnd columns uses no
+        memory, but is too slow (O(nm), but in numpy (C, hopefully)). Building
+        a delta list via sorted tStarts and tEnds one at a time saves memory
+        and is ~5x faster than the second method above (O(nlogn + nlogn + m)).
+
+        """
+        log.debug("Generating coverage summary")
+        # indexing issue. Doesn't really matter (just for split). Shifted:
+        coverage = [0] * (self.refLengths[rname] + 1)
+        starts = sorted(index.tStart)
+        for i in starts:
+            coverage[i] += 1
+        del starts
+        ends = sorted(index.tEnd)
+        for i in ends:
+            try:
+                coverage[i] -= 1
+            except IndexError:
+                # not sure why this happens, investigate
+                pass
+        del ends
+        curCov = 0
+        for i, delta in enumerate(coverage):
+            curCov += delta
+            coverage[i] = curCov
+        return coverage
+
+    def _splitContour(self, contour, splits):
+        """Take a contour and a number of splits, return the location of each
+        coverage mediated split with the first at 0"""
+        log.debug("Splitting coverage summary")
+        totalCoverage = sum(contour)
+        splitSize = totalCoverage/splits
+        tbr = [0]
+        for _ in range(splits - 1):
+            size = 0
+            # Start where the last one ended, so we append the current endpoint
+            tbr.append(tbr[-1])
+            while (size < splitSize and
+                   tbr[-1] < (len(contour) - 1)):
+                # iterate the endpoint
+                tbr[-1] += 1
+                # track the size
+                size += contour[tbr[-1]]
+        assert len(tbr) == splits
+        return tbr
+
+    def _shiftAtoms(self, atoms):
+        shiftedAtoms = []
+        rnames = defaultdict(list)
+        for atom in atoms:
+            rnames[atom[0]].append(atom)
+        for rname, rAtoms in rnames.iteritems():
+            if len(rAtoms) > 1:
+                contour = self._intervalContour(self.index, rname)
+                splits = self._splitContour(contour, len(rAtoms))
+                ends = splits[1:] + [self.refLengths[rname]]
+                for start, end in zip(splits, ends):
+                    newAtom = (rname, start, end)
+                    shiftedAtoms.append(newAtom)
+            else:
+                shiftedAtoms.append(rAtoms[0])
+        return shiftedAtoms
+
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000):
+                       targetSize=5000, byRecords=True, updateCounts=True):
         """Split a dataset into reference windows based on contigs.
 
         Args:
@@ -2112,22 +2244,45 @@ class AlignmentSet(ReadSet):
         refNames = refLens.keys()
         log.debug("{i} references found".format(i=len(refNames)))
         log.debug("Finding contigs")
-        if len(refNames) < 100:
-            atoms = [(rn, 0, 0) for rn in refNames if
-                     next(self._indexReadsInReference(rn), None)]
+        # FIXME: this mess:
+        if len(refNames) < 100 and len(refNames) > 1:
+            if byRecords:
+                log.debug("Counting records...")
+                atoms = [(rn, 0, 0, self.countRecords(rn)) for rn in refNames
+                         if len(self._indexReadsInReference(rn)) != 0]
+            else:
+                atoms = [(rn, 0, 0) for rn in refNames if
+                         len(self._indexReadsInReference(rn)) != 0]
         else:
             log.debug("Skipping records for each reference check")
             atoms = [(rn, 0, 0) for rn in refNames]
+            if byRecords:
+                log.debug("Counting records...")
+                # This is getting out of hand, but the number of references
+                # determines the best read counting algorithm:
+                if len(refNames) < 100:
+                    atoms = [(rn, 0, 0, self.countRecords(rn))
+                             for rn in refNames]
+                else:
+                    counts = self._countMappedReads()
+                    atoms = [(rn, 0, 0, counts[rn]) for rn in refNames]
+        log.debug("{i} contigs found".format(i=len(atoms)))
 
-        # The window length is used for balancing
-        # TODO switch it to countRecords?
-        balanceKey = lambda x: x[2] - x[1]
+        # switch it to countRecords:
+        if byRecords:
+            balanceKey = lambda x: self.countRecords(*x)
+        else:
+            # The window length is used for balancing
+            balanceKey = lambda x: x[2] - x[1]
 
         # By providing maxChunks and not chunks, this combination will set
         # chunks down to < len(atoms) < maxChunks
         if not chunks:
+            log.debug("Chunks not set, splitting to len(atoms): {i}"
+                      .format(i=len(atoms)))
             chunks = len(atoms)
         if maxChunks and chunks > maxChunks:
+            log.debug("maxChunks trumps chunks")
             chunks = maxChunks
 
         # Decide whether to intelligently limit chunk size:
@@ -2149,12 +2304,22 @@ class AlignmentSet(ReadSet):
         if chunks > len(atoms):
             # splitting atom format is slightly different (but more compatible
             # going forward with countRecords): (rId, size, segments)
-            atoms = [[rn, refLens[rn], 1] for rn, _, _ in atoms]
+
+            # Lets do a rough split, counting reads once and assuming uniform
+            # coverage (reads span, therefore can't split by specific reads)
+            if byRecords:
+                atoms = [[rn, size, 1] for rn, _, _, size in atoms]
+            else:
+                atoms = [[rn, refLens[rn], 1] for rn, _, _ in atoms]
             log.debug("Splitting atoms")
             atoms = self._split_atoms(atoms, chunks)
+
+            # convert back to window format:
             segments = []
             for atom in atoms:
                 segment_size = atom[1]/atom[2]
+                if byRecords:
+                    segment_size = refLens[atom[0]]/atom[2]
                 sub_segments = [(atom[0], segment_size * i, segment_size *
                                  (i + 1)) for i in range(atom[2])]
                 # if you can't divide it evenly you may have some messiness
@@ -2166,12 +2331,20 @@ class AlignmentSet(ReadSet):
             atoms = segments
         log.debug("Done defining {n} chunks".format(n=chunks))
 
+        if byRecords:
+            log.debug("Respacing chunks by records")
+            atoms = self._shiftAtoms(atoms)
+
         # duplicate
         log.debug("Making copies")
         results = [self.copy() for _ in range(chunks)]
 
-        # replace default (complete) ExternalResource lists
         log.debug("Distributing chunks")
+        # if we didn't have to split atoms and are doing it byRecords, the
+        # original counts are still valid:
+        if len(atoms[0]) == 4:
+            balanceKey = lambda x: x[3]
+        # Now well have to count records again to recombine atoms
         chunks = self._chunkList(atoms, chunks, balanceKey)
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
@@ -2188,8 +2361,20 @@ class AlignmentSet(ReadSet):
         # UniqueId was regenerated when the ExternalResource list was
         # whole, therefore we need to regenerate it again here
         log.debug("Generating new UUID")
+        # At this point the ID's should be corrected, so the namemap should be
+        # here:
         for result in results:
             result.newUuid()
+            if updateCounts:
+                log.debug("Filtering")
+                result._openReaders = self._openReaders
+                passes = result._filters.filterIndexRecords(self.index,
+                                                            self.refIds)
+                result._index = self.index[passes]
+                result.updateCounts()
+                del result._index
+                del passes
+                result._index = None
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
@@ -2210,20 +2395,12 @@ class AlignmentSet(ReadSet):
                 # we need the real refName, which may be hidden behind a
                 # mapping to resolve duplicate refIds between resources...
                 refName = self._idToRname(int(refName))
-        for reader in self.resourceReaders():
-            tIdMap = {n: name
-                      for n, name in enumerate(
-                          reader.referenceInfoTable['Name'])}
-            filts = self._filters.tests(readType='pbi', tIdMap=tIdMap)
-            index = reader.index
-            winId = reader.referenceInfo(refName).ID
-            for rec_i in index.rangeQuery(winId, start, end):
-                read = index[rec_i]
-                if filts:
-                    if any([filt(read) for filt in filts]):
-                        yield read
-                else:
-                    yield read
+
+        desiredTid = self.refIds[refName]
+        passes = ((self.index.tId == desiredTid) &
+                  (self.index.tStart < end) &
+                  (self.index.tEnd > start))
+        return self.index[passes]
 
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50):
@@ -2369,23 +2546,11 @@ class AlignmentSet(ReadSet):
                  expect a pbi for both subreadsets and alignmentsets
 
         """
-        length = 0
-        count = 0
-        endkey = 'aEnd'
-        startkey = 'aStart'
         if self.isCmpH5:
-            endkey = 'rEnd'
-            startkey = 'rStart'
-        for rec in self.indexRecords:
-            if isinstance(rec, np.ndarray):
-                count += len(rec)
-                length += sum(rec[endkey] - rec[startkey])
-            elif isinstance(rec, PacBioBamIndex):
-                count += len(rec)
-                length += sum(rec.aEnd - rec.aStart)
-            else:
-                count += 1
-                length += rec.aEnd - rec.aStart
+            log.info("Correct counts not supported for cmp.h5 alignmentsets")
+            return -1, -1
+        count = len(self.index)
+        length = sum(self.index.aEnd - self.index.aStart)
         return count, length
 
     @property
@@ -2407,7 +2572,7 @@ class AlignmentSet(ReadSet):
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
         name as a unique key"""
-        # TODO: upgrade to use _referenceDict
+        # TODO: upgrade to use _referenceDict if needed
         if not self.isCmpH5:
             for row in self.referenceInfoTable:
                 if row.Name == refName:
@@ -2430,20 +2595,26 @@ class AlignmentSet(ReadSet):
             responses = self._pollResources(lambda x: x.referenceInfoTable)
             if len(responses) > 1:
                 assert not self.isCmpH5 # see above
-                tbr = np.concatenate(responses)
-                tbr = np.unique(tbr)
-                for i, rec in enumerate(tbr):
-                    rec.ID = i
-                self._referenceInfoTable = tbr
+                try:
+                    self._referenceInfoTable = self._unifyResponses(
+                        responses,
+                        eqFunc=np.array_equal)
+                except ResourceMismatchError:
+                    tbr = np.concatenate(responses)
+                    tbr = np.unique(tbr)
+                    for i, rec in enumerate(tbr):
+                        rec.ID = i
+                    self._stackedReferenceInfoTable = True
+                    self._referenceInfoTable = tbr
             else:
                 table = responses[0]
                 if self.isCmpH5:
                     for rec in table:
                         rec.Name = self._cleanCmpName(rec.FullName)
                 self._referenceInfoTable = table
-            #TODO: Turn on when needed
+            #TODO: Turn on when needed (expensive)
             #self._referenceDict.update(zip(self.refIds.values(),
-                                           #self._referenceInfoTable))
+            #                               self._referenceInfoTable))
         return self._referenceInfoTable
 
     @property
@@ -2477,7 +2648,7 @@ class AlignmentSet(ReadSet):
 
     @property
     def refIds(self):
-        """A dict of refName: refId"""
+        """A dict of refName: refId for the joined referenceInfoTable"""
         return {name: rId for name, rId in self.refInfo('ID')}
 
     def refLength(self, rname):
@@ -2501,15 +2672,15 @@ class AlignmentSet(ReadSet):
             A list of tuples of refrence name, key_result pairs
 
         """
-        log.debug("Sampling references")
+        #log.debug("Sampling references")
         names = self.referenceInfoTable['Name']
         infos = self.referenceInfoTable[key]
 
-        log.debug("Removing duplicate reference entries")
+        #log.debug("Removing duplicate reference entries")
         sampled = zip(names, infos)
         sampled = set(sampled)
 
-        log.debug("Filtering reference entries")
+        #log.debug("Filtering reference entries")
         if not self.noFiltering or not self._filters:
             sampled = [(name, info) for name, info in sampled
                        if self._filters.testParam('rname', name)]

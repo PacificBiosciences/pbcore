@@ -91,8 +91,12 @@ def splitXml(args):
                         contigs=args.contigs,
                         maxChunks=args.maxChunks,
                         breakContigs=args.breakContigs,
-                        targetSize=args.targetSize)
-    log.debug("Split into {i} chunks".format(i=len(dss)))
+                        targetSize=args.targetSize,
+                        zmws=args.zmws,
+                        barcodes=args.barcodes,
+                        byRecords=args.byRecords,
+                        updateCounts=args.updateCounts)
+    log.debug("Splitting into {i} chunks".format(i=len(dss)))
     infix = 'chunk{i}'
     if args.contigs:
         infix += 'contigs'
@@ -127,9 +131,17 @@ def split_options(parser):
                         help="The xml file to split")
     parser.add_argument("--contigs", default=False, action='store_true',
                         help="Split on contigs")
-    parser.add_argument("--chunks", default=False, type=int,
+    parser.add_argument("--barcodes", default=False, action='store_true',
+                        help="Split on barcodes")
+    parser.add_argument("--zmws", default=False, action='store_true',
+                        help="Split on zmws")
+    parser.add_argument("--byRecords", default=True, action='store_false',
+                        help="Split contigs by mapped records")
+    parser.add_argument("--updateCounts", default=True, action='store_false',
+                        help="Update dataset counts after split")
+    parser.add_argument("--chunks", default=0, type=int,
                         help="Split contigs into <chunks> total windows")
-    parser.add_argument("--maxChunks", default=False, type=int,
+    parser.add_argument("--maxChunks", default=0, type=int,
                         help="Split contig list into at most <chunks> groups")
     parser.add_argument("--targetSize", default=5000, type=int,
                         help="Target number of records per chunk")

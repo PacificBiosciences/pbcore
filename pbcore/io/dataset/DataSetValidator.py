@@ -65,6 +65,8 @@ def validateXml(xmlroot, skipResources=False):
         log.debug('Validating with PyXb')
         fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
                              ET.tostring(xmlroot))
+        fixedString = re.sub('Pointer>[0-9]', 'Pointer>f',
+                             fixedString)
         DataSetXsd.CreateFromDocument(fixedString)
     except ImportError:
         log.debug('PyXb not found, validation disabled')

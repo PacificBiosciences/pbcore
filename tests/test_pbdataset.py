@@ -148,12 +148,11 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(res.isReferenceLoaded)
 
     def test_factory_function(self):
-        bam = data.getBam()
         aln = data.getXml(8)
         ref = data.getXml(9)
         sub = data.getXml(10)
-        inTypes = [bam, aln, ref, sub]
-        expTypes = [DataSet, AlignmentSet, ReferenceSet, SubreadSet]
+        inTypes = [aln, ref, sub]
+        expTypes = [AlignmentSet, ReferenceSet, SubreadSet]
         for infn, exp in zip(inTypes, expTypes):
             # TODO enable this for all when simulated subread files can be
             # pbi'd
@@ -167,6 +166,7 @@ class TestDataSet(unittest.TestCase):
         bam = data.getBam()
         fasta = ReferenceSet(data.getXml(9)).toExternalFiles()[0]
         bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
+
         DataSet(bam, strict=False)
         DataSet(fasta, strict=False)
         DataSet(bax, strict=False)
@@ -359,17 +359,20 @@ class TestDataSet(unittest.TestCase):
     @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
                          "Missing testadata directory")
     def test_split_zmws(self):
-        # XXX this can be replaced by a local dataset in pbcore.data.dataset,
-        # but it will add at least 3.5MB and I'm not sure if it's okay to
-        # distribute
-        test_file = "/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/0007_micro/Analysis_Results/m150404_101626_42267_c100807920800000001823174110291514_s1_p0.all.subreadset.xml"
+        test_file = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/"
+                     "0007_micro/Analysis_Results/m150404_101626_42267_c"
+                     "100807920800000001823174110291514_s1_p0.all."
+                     "subreadset.xml")
         ds1 = openDataSet(test_file)
-        self.assertEqual(len([ r for r in ds1 ]), 1220)
+        self.assertEqual(len([r for r in ds1]), 1220)
         dss = ds1.split(chunks=1, zmws=True)
-        self.assertEqual(sum([ len([ r for r in ds_ ]) for ds_ in dss ]), 1220)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), 1220)
         dss = ds1.split(chunks=9, zmws=True)
-        self.assertEqual(sum([ len([ r for r in ds_ ]) for ds_ in dss ]), 1220)
-        self.assertEqual(dss[0].zmwRanges, [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0', 55, 1815)])
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), 1220)
+        self.assertEqual(
+            dss[0].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              55, 1815)])
 
     def test_copy(self):
         ds1 = DataSet(data.getXml(12))
@@ -509,29 +512,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(files), 1)
         self.assertTrue(os.path.exists(files[0]))
         self.assertTrue(os.path.isabs(files[0]))
-
-    @SkipTest
-    def test_checkFilterMatch(self):
-        # different resourceIds, compatible filters:
-        ds1 = DataSet(data.getXml(no=8))
-        ds2 = DataSet(data.getXml(no=11))
-        #self.assertTrue(ds1._checkFilterMatch(ds2.filters))
-        self.assertTrue(ds1.filters.testCompatibility(ds2.filters))
-        # different resourceIds, incompatible filters:
-        ds3 = DataSet(data.getXml(no=11))
-        ds3.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
-        #self.assertFalse(ds1._checkFilterMatch(ds3.filters))
-        self.assertFalse(ds1.filters.testCompatibility(ds3.filters))
-
-    #def test_filterOk(self):
-        ## compatible filters
-        #filt1 = {'rq':'>0.85'}
-        #filt2 = {'rq':'>0.85'}
-        #self.assertTrue(_filterOk(filt1, filt2))
-        ## incompatible filters
-        #filt1 = {'rq':'>0.85'}
-        #filt2 = {'rq':'>0.75'}
-        #self.assertFalse(_filterOk(filt1, filt2))
 
     def test_chunk_list(self):
         test = [1, 2, 3, 4, 5]
@@ -675,6 +655,65 @@ class TestDataSet(unittest.TestCase):
         dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True,
                         targetSize=10)
         self.assertEqual(len(dss), 9)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        # test with byRecords and fewer chunks than atoms
+        dss = ds3.split(contigs=True, chunks=3, byRecords=True)
+        self.assertEqual(len(dss), 3)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        # test with byRecords and more chunks than atoms
+        orf = random_few
+        random_few = [('C.beijerinckii.13', 0, 717),
+                      ('B.vulgatus.4', 0, 1449),
+                      ('E.faecalis.1', 0, 728)]
+        dss = ds3.split(contigs=True, chunks=16, byRecords=True)
+        self.assertEqual(len(dss), 16)
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        # test with byRecords and updateCounts
+        random_few = orf
+        dss = ds3.split(contigs=True, chunks=3, byRecords=True,
+                        updateCounts=True)
+        self.assertEqual(len(dss), 3)
+        sizes = sorted([dset.numRecords for dset in dss])
+        self.assertListEqual(sizes, [30, 31, 31])
+        refWindows = sorted(reduce(lambda x, y: x + y,
+                                   [ds.refWindows for ds in dss]))
+        for ref in random_few:
+            found = False
+            for window in refWindows:
+                if ref == window:
+                    found = True
+            self.assertTrue(found)
+
+        # test with byRefLength and updateCounts
+        random_few = orf
+        dss = ds3.split(contigs=True, chunks=3, updateCounts=True)
+        self.assertEqual(len(dss), 3)
+        sizes = sorted([dset.numRecords for dset in dss])
+        self.assertListEqual(sizes, [22, 31, 39])
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:
