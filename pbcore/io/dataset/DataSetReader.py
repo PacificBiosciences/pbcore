@@ -59,17 +59,22 @@ def _addXmlFile(dset, path):
     tmp.makePathsAbsolute(curStart=os.path.dirname(path))
     dset.merge(tmp, copyOnMerge=False)
 
-def _addFofnFile(dset, path):
-    """Open a fofn file by calling parseFiles on the new filename list"""
+def openFofnFile(path):
     with open(path, 'r') as fofnFile:
         files = []
         for infn in fofnFile:
+            infn = infn.strip()
             tmp = os.path.abspath(infn)
             if os.path.exists(tmp):
                 files.append(tmp)
             else:
                 files.append(os.path.join(os.path.dirname(path), infn))
-        populateDataSet(dset, files)
+        return files
+
+def _addFofnFile(dset, path):
+    """Open a fofn file by calling parseFiles on the new filename list"""
+    files = openFofnFile(path)
+    populateDataSet(dset, files)
 
 def _addUnknownFile(dset, path):
     """Open non-uri files

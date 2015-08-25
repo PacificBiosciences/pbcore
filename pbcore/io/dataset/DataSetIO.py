@@ -24,7 +24,7 @@ from pbcore.io import PacBioBamIndex, BaxH5Reader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
-                                             wrapNewResource)
+                                             wrapNewResource, openFofnFile)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -74,44 +74,55 @@ def _dsIdToSuffix(x):
         suffix += '.xml'
         return suffix
 
+def _typeDataSet(dset):
+    xml_rt = xmlRootType(dset)
+    dsId = _toDsId(xml_rt)
+    tbrType = _dsIdToType(dsId)
+    return tbrType
+
 def openDataSet(*files, **kwargs):
     if not files[0].endswith('xml'):
         raise TypeError("openDataSet requires that the first file is an XML")
-    xml_rt = xmlRootType(files[0])
-    dsId = _toDsId(xml_rt)
-    tbrType = _dsIdToType(dsId)
+    tbrType = _typeDataSet(files[0])
     return tbrType(*files, **kwargs)
 
 def openDataFile(*files, **kwargs):
     possibleTypes = [AlignmentSet, SubreadSet, ConsensusReadSet,
                      ConsensusAlignmentSet, ReferenceSet, HdfSubreadSet]
+    origFiles = files
     fileMap = defaultdict(list)
     for dstype in possibleTypes:
         for ftype in dstype._metaTypeMapping():
             fileMap[ftype].append(dstype)
     ext = _fileType(files[0])
+    if ext == 'fofn':
+        files = openFofnFile(files[0])
+        ext = _fileType(files[0])
+    if ext == 'xml':
+        dsType = _typeDataSet(files[0])
+        return dsType(*origFiles, **kwargs)
     options = fileMap[ext]
     if len(options) == 1:
-        return options[0](*files, **kwargs)
+        return options[0](*origFiles, **kwargs)
     else:
         # peek in the files to figure out the best match
         if ReferenceSet in options:
             log.warn("Fasta files aren't unambiguously reference vs contig, "
                      "opening as ReferenceSet")
-            return ReferenceSet(*files, **kwargs)
+            return ReferenceSet(*origFiles, **kwargs)
         elif AlignmentSet in options:
             # it is a bam file
             bam = openAlignmentFile(files[0])
             if bam.isMapped:
                 if bam.readType == "CCS":
-                    return ConsensusAlignmentSet(*files, **kwargs)
+                    return ConsensusAlignmentSet(*origFiles, **kwargs)
                 else:
-                    return AlignmentSet(*files, **kwargs)
+                    return AlignmentSet(*origFiles, **kwargs)
             else:
                 if bam.readType == "CCS":
-                    return ConsensusReadSet(*files, **kwargs)
+                    return ConsensusReadSet(*origFiles, **kwargs)
                 else:
-                    return SubreadSet(*files, **kwargs)
+                    return SubreadSet(*origFiles, **kwargs)
 
 
 class DataSetMetaTypes(object):

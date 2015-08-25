@@ -133,6 +133,10 @@ class TestDataSet(unittest.TestCase):
             mystery = openDataFile(ds.toExternalFiles()[0])
             self.assertEqual(type(mystery), type(ds))
 
+    def test_file_factory_fofn(self):
+        mystery = openDataFile(data.getFofn())
+        self.assertEqual(type(mystery), AlignmentSet)
+
     @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
                          "Missing testadata directory")
     def test_file_factory_css(self):
