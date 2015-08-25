@@ -44,6 +44,9 @@ __all__ = [ "Gff3Record",
 from .base import ReaderBase, WriterBase
 from collections import OrderedDict
 from copy import copy as shallow_copy
+import tempfile
+import os.path
+
 
 class Gff3Record(object):
     """
@@ -161,6 +164,9 @@ class Gff3Record(object):
     def put(self, name, value):
         setattr(self, name, value)
 
+    def __cmp__(self, other):
+        return cmp((self.seqid, self.start), (other.seqid, other.start))
+
 class GffReader(ReaderBase):
     """
     A GFF file reader class
@@ -231,3 +237,61 @@ def grok(s):
 def tupleFromGffAttribute(s):
     k, v = s.split("=")
     return k, grok(v)
+
+
+def sort_gff(file_name, output_file_name=None):
+    """
+    Sort a single GFF file by genomic location (seqid, start).
+    """
+    if output_file_name is None:
+        output_file_name = os.path.splitext(file_name)[0] + "_sorted.gff"
+    with GffReader(file_name) as f:
+        records = [ rec for rec in f ]
+        records.sort()
+        with open(output_file_name, "w") as out:
+            gff_out = GffWriter(out)
+            map(gff_out.writeHeader, f.headers)
+            for rec in records:
+                gff_out.writeRecord(rec)
+    return output_file_name
+
+
+def _merge_gffs(gff1, gff2, out):
+    out = GffWriter(out)
+    n_rec = 0
+    with GffReader(gff1) as f1:
+        map(out.writeHeader, f1.headers)
+        with GffReader(gff2) as f2:
+            rec1 = [ rec for rec in f1 ]
+            rec2 = [ rec for rec in f2 ]
+            i = j = 0
+            while i < len(rec1) and j < len(rec2):
+                if (rec1[i] > rec2[j]):
+                    out.writeRecord(rec2[j])
+                    j += 1
+                else:
+                    out.writeRecord(rec1[i])
+                    i += 1
+            for rec in rec1[i:]:
+                out.writeRecord(rec)
+                i += 1
+            for rec in rec2[j:]:
+                out.writeRecord(rec)
+                j += 2
+    return i + j
+
+
+def merge_gffs(gff_files, output_file_name):
+    """
+    Utility function to combine a set of N (>= 2) GFF files, with records
+    ordered by genomic location.  (Assuming each input file is already sorted.)
+    """
+    if len(gff_files) == 1: return gff_files[0]
+    while len(gff_files) > 2:
+        tmpout = tempfile.NamedTemporaryFile()
+        _merge_gffs(gff_files[0], gff_files[1], tmpout)
+        tmpout.seek(0)
+        gff_files = [tmpout] + gff_files[2:]
+    with open(output_file_name, "w") as f:
+        _merge_gffs(gff_files[0], gff_files[1], f)
+    return output_file_name

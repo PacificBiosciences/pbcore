@@ -1,6 +1,12 @@
-from nose.tools import assert_equal, assert_raises
+
 from StringIO import StringIO
+import unittest
+import os.path
+
+from nose.tools import assert_equal, assert_raises
+
 from pbcore.io import GffWriter, Gff3Record, GffReader
+from pbcore.io.GffIO import merge_gffs, sort_gff
 from pbcore import data
 
 class TestGff3Record:
@@ -98,3 +104,62 @@ class TestGffWriter:
                     "chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2\n" +
                     "chr1\t.\tsubstitution\t200\t201\t.\t.\t.\tmouse=1;moose=2\n")
         assert_equal(expected, self.outfile.getvalue())
+
+
+class TestGffSorting(unittest.TestCase):
+    gff_data = ["""\
+##gff-version 3
+##some random comment here
+chr1\tkinModCall\tmodified_base\t32580\t32580\t32\t-\t.\tcoverage=94;context=AATGGCATCGTTCCGGTGGTGGGCGTTGATGGCTGGTCCCG;IPDRatio=1.75
+chr1\tkinModCall\tmodified_base\t32766\t32766\t42\t-\t.\tcoverage=170;context=GCTGGGAAGCTGGCTGAACGTGTCGGCATGGATTCTGTCGA;IPDRatio=1.70
+chr1\tkinModCall\tmodified_base\t32773\t32773\t54\t-\t.\tcoverage=154;context=AACGCTGGCTGGGAAGCTGGCTGAACGTGTCGGCATGGATT;IPDRatio=2.65""", """\
+##gff-version 3
+chr2\tkinModCall\tmodified_base\t1200\t1200\t47\t-\t.\tcoverage=109;context=ACTTTTCACGGTAGTTTTTTGCCGCTTTACCGCCCAGGCAC;IPDRatio=1.89
+chr2\tkinModCall\tmodified_base\t1786\t1786\t36\t-\t.\tcoverage=153;context=TCCCACGTCTCACCGAGCGTGGTGTTTACGAAGGTTTTACG;IPDRatio=1.67
+chr2\tkinModCall\tmodified_base\t1953\t1953\t39\t+\t.\tcoverage=148;context=AATGCGCGTATGGGGATGGGGGCCGGGTGAGGAAAGCTGGC;IPDRatio=1.86""", """\
+chr1\tkinModCall\tmodified_base\t16204\t16204\t31\t-\t.\tcoverage=119;context=CCCGCGCAGATGATAATTACGGCTCACCTGCTGGCTGCCGA;IPDRatio=1.80
+chr1\tkinModCall\tmodified_base\t16302\t16302\t33\t+\t.\tcoverage=108;context=TGGGACGGAACGTTTAAACCGGCATACAGCAACAACATGGC;IPDRatio=1.81
+chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CCCCATGCCGTAGCGCGGATGGGTCAGCATATCCCACAGAC;IPDRatio=1.82""",]
+    sorted_start = [
+        ('chr1', 16204), ('chr1', 16302), ('chr1', 16348),
+        ('chr1', 32580), ('chr1', 32766), ('chr1', 32773),
+        ('chr2', 1200), ('chr2', 1786), ('chr2', 1953),
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.files = []
+        cls.combined = "tmp_pbcore_all.gff"
+        with open(cls.combined, "w") as f_all:
+            for i in range(3):
+                file_name = "tmp_pbcore_%d.gff" % i
+                with open(file_name, "w") as f:
+                    f.write(cls.gff_data[i])
+                cls.files.append(file_name)
+                for line in cls.gff_data[i].splitlines():
+                    if line.startswith("#"):
+                        if i == 0:
+                            f_all.write(line+"\n")
+                    else:
+                        f_all.write(line+"\n")
+
+    @classmethod
+    def tearDownClass(cls):
+        for file_name in cls.files:
+            if os.path.exists(file_name):
+                os.remove(file_name)
+        if os.path.exists(cls.combined):
+            os.remove(cls.combined)
+
+    def test_merge_gffs(self):
+        gff_out = "tmp_pbcore_merged.gff"
+        merge_gffs(self.files, gff_out)
+        with GffReader(gff_out) as f:
+            start = [ (rec.seqid, rec.start) for rec in f ]
+            self.assertEqual(start, self.sorted_start)
+
+    def test_sort_gff(self):
+        gff_out = sort_gff(self.combined)
+        with GffReader(gff_out) as f:
+            start = [ (rec.seqid, rec.start) for rec in f ]
+            self.assertEqual(start, self.sorted_start)
