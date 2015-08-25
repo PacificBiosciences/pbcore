@@ -14,7 +14,6 @@ import xml.dom.minidom
 import tempfile
 from functools import wraps
 import numpy as np
-import numpy.ma as ma
 from urlparse import urlparse
 from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
@@ -82,6 +81,37 @@ def openDataSet(*files, **kwargs):
     dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     return tbrType(*files, **kwargs)
+
+def openDataFile(*files, **kwargs):
+    possibleTypes = [AlignmentSet, SubreadSet, ConsensusReadSet,
+                     ConsensusAlignmentSet, ReferenceSet, HdfSubreadSet]
+    fileMap = defaultdict(list)
+    for dstype in possibleTypes:
+        for ftype in dstype._metaTypeMapping():
+            fileMap[ftype].append(dstype)
+    ext = _fileType(files[0])
+    options = fileMap[ext]
+    if len(options) == 1:
+        return options[0](*files, **kwargs)
+    else:
+        # peek in the files to figure out the best match
+        if ReferenceSet in options:
+            log.warn("Fasta files aren't unambiguously reference vs contig, "
+                     "opening as ReferenceSet")
+            return ReferenceSet(*files, **kwargs)
+        elif AlignmentSet in options:
+            # it is a bam file
+            bam = openAlignmentFile(files[0])
+            if bam.isMapped:
+                if bam.readType == "CCS":
+                    return ConsensusAlignmentSet(*files, **kwargs)
+                else:
+                    return AlignmentSet(*files, **kwargs)
+            else:
+                if bam.readType == "CCS":
+                    return ConsensusReadSet(*files, **kwargs)
+                else:
+                    return SubreadSet(*files, **kwargs)
 
 
 class DataSetMetaTypes(object):
@@ -2268,7 +2298,6 @@ class AlignmentSet(ReadSet):
                     atoms = [(rn, 0, 0, counts[rn]) for rn in refNames]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
-        # switch it to countRecords:
         if byRecords:
             balanceKey = lambda x: self.countRecords(*x)
         else:
@@ -2285,15 +2314,15 @@ class AlignmentSet(ReadSet):
             log.debug("maxChunks trumps chunks")
             chunks = maxChunks
 
-        # Decide whether to intelligently limit chunk size:
+        # Decide whether to intelligently limit chunk count:
         if maxChunks and breakContigs:
             # The bounds:
             minNum = 2
             maxNum = maxChunks
             # Adjust
-            log.debug("Target numRecors per chunk: {i}".format(i=targetSize))
+            log.debug("Target numRecords per chunk: {i}".format(i=targetSize))
             dataSize = self.numRecords
-            log.debug("numRecors in dataset: {i}".format(i=dataSize))
+            log.debug("numRecords in dataset: {i}".format(i=dataSize))
             chunks = int(dataSize/targetSize)
             # Respect bounds:
             chunks = minNum if chunks < minNum else chunks

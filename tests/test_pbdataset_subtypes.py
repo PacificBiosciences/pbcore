@@ -9,7 +9,8 @@ from pbcore.util.Process import backticks
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
-                       HdfSubreadSet, ConsensusAlignmentSet)
+                       HdfSubreadSet, ConsensusAlignmentSet,
+                       openDataFile)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -120,6 +121,25 @@ class TestDataSet(unittest.TestCase):
         #ds2 = ConsensusAlignmentSet(data.getXml(20), strict=True)
         #self.assertEquals(type(ds2).__name__, 'ConsensusAlignmentSet')
         #self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
+
+    def test_file_factory(self):
+        # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
+        types = [AlignmentSet(data.getXml(8)),
+                 ReferenceSet(data.getXml(9)),
+                 SubreadSet(data.getXml(10)),
+                 #ConsensusAlignmentSet(data.getXml(20)),
+                 HdfSubreadSet(data.getXml(19))]
+        for ds in types:
+            mystery = openDataFile(ds.toExternalFiles()[0])
+            self.assertEqual(type(mystery), type(ds))
+
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
+                         "Missing testadata directory")
+    def test_file_factory_css(self):
+        fname = "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam"
+        myster = openDataFile(fname)
+        self.assertEqual(type(myster), ConsensusReadSet)
+
 
     def test_contigset_build(self):
         ds1 = ContigSet(data.getXml(3))
