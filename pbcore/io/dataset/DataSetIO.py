@@ -2134,7 +2134,7 @@ class AlignmentSet(ReadSet):
                     refLens = self.refLengths
                 refLen = refLens[name]
                 windowTuples.append((refId, 0, refLen))
-        return windowTuples
+        return sorted(windowTuples)
 
     def countRecords(self, rname=None, winStart=None, winEnd=None):
         """Count the number of records mapped to 'rname' that overlap with

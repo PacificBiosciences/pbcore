@@ -591,16 +591,17 @@ class TestDataSet(unittest.TestCase):
         # not all references have something mapped to them, refWindows doesn't
         # care...
         self.assertNotEqual(refWindows, sorted(ds3.refWindows))
+        self.assertEqual(refWindows,
+            [('B.vulgatus.4', 0, 1449), ('B.vulgatus.5', 0, 1449),
+             ('C.beijerinckii.13', 0, 1433), ('C.beijerinckii.14', 0, 1433),
+             ('C.beijerinckii.9', 0, 1433), ('E.coli.6', 0, 1463),
+             ('E.faecalis.1', 0, 1482), ('E.faecalis.2', 0, 1482),
+             ('R.sphaeroides.1', 0, 1386), ('S.epidermidis.2', 0, 1472),
+             ('S.epidermidis.3', 0, 1472), ('S.epidermidis.4', 0, 1472)])
+        old_refWindows = refWindows
         random_few = [('C.beijerinckii.13', 0, 1433),
                       ('B.vulgatus.4', 0, 1449),
                       ('E.faecalis.1', 0, 1482)]
-        for reference in random_few:
-            found = False
-            for ref in refWindows:
-                if ref == reference:
-                    found = True
-            self.assertTrue(found)
-        old_refWindows = refWindows
 
         dss = ds3.split(contigs=True, maxChunks=1)
         self.assertEqual(len(dss), 1)
