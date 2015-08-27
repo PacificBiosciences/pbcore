@@ -412,9 +412,15 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     def testReadScore(self):
         EQ(0.904, self.fwdAln.readScore)
 
+
 class TestIndexedBam(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = IndexedBamReader
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+
+    def test_empty_bam(self):
+        fn = data.getEmptyBam()
+        bam = IndexedBamReader(fn)
+        EQ(len(bam), 0)
 
 
 class TestCCSBam(object):

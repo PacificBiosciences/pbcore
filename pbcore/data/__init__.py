@@ -168,3 +168,6 @@ def getUnalignedBam():
     Get the unaligned BAM file, corresponding to the same bax above
     """
     return _getAbsPath("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.subreads.bam")
+
+def getEmptyBam():
+    return _getAbsPath("empty.ccs.bam")

@@ -1563,7 +1563,7 @@ class ReadSet(DataSet):
                                  f=location))
                 else:
                     raise
-            if not resource:
+            if resource is None:
                 assert not self._strict
                 resource = openAlignmentFile(
                     location, referenceFastaFname=refFile)
