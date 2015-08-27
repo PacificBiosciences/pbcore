@@ -534,18 +534,19 @@ class Filters(RecordWrapper):
             lastResult = None
             for req in filt:
                 param = req.name
-                value = typeMap[param](req.value)
-                if param == 'rname':
-                    value = nameMap[value]
-                operator = self.opMap(req.operator)
-                reqResultsForRecords = operator(accMap[param](indexRecords),
-                                                value)
-                if lastResult is None:
-                    lastResult = reqResultsForRecords
-                else:
-                    lastResult = np.logical_and(lastResult,
-                                                reqResultsForRecords)
-                    del reqResultsForRecords
+                if param in accMap.keys():
+                    value = typeMap[param](req.value)
+                    if param == 'rname':
+                        value = nameMap[value]
+                    operator = self.opMap(req.operator)
+                    reqResultsForRecords = operator(accMap[param](indexRecords),
+                                                    value)
+                    if lastResult is None:
+                        lastResult = reqResultsForRecords
+                    else:
+                        lastResult = np.logical_and(lastResult,
+                                                    reqResultsForRecords)
+                        del reqResultsForRecords
             if filterLastResult is None:
                 filterLastResult = lastResult
             else:

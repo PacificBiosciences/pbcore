@@ -679,9 +679,9 @@ class TestDataSet(unittest.TestCase):
 
         # test with byRecords and more chunks than atoms
         orf = random_few
-        random_few = [('C.beijerinckii.13', 0, 717),
+        random_few = [('C.beijerinckii.13', 0, 747),
                       ('B.vulgatus.4', 0, 1449),
-                      ('E.faecalis.1', 0, 728)]
+                      ('E.faecalis.1', 0, 742)]
         dss = ds3.split(contigs=True, chunks=16, byRecords=True)
         self.assertEqual(len(dss), 16)
         refWindows = sorted(reduce(lambda x, y: x + y,

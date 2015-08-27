@@ -12,6 +12,7 @@ import errno
 import logging
 import xml.dom.minidom
 import tempfile
+import itertools
 from functools import wraps
 import numpy as np
 from urlparse import urlparse
@@ -310,7 +311,7 @@ class DataSet(object):
         self._openReaders = []
         self._referenceInfoTable = None
         self._referenceDict = {}
-        self._indexMap = []
+        self._indexMap = None
         self._stackedReferenceInfoTable = False
         self._index = None
 
@@ -1394,7 +1395,7 @@ class DataSet(object):
         """
         self._cachedFilters = []
         self._index = None
-        self._indexMap = []
+        self._indexMap = None
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
         if self.metadata.summaryStats:
@@ -1573,7 +1574,7 @@ class ReadSet(DataSet):
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads"""
-        if not self._indexMap:
+        if self._indexMap is None:
             self.index
         rr, ind = self._indexMap[index]
         return self.resourceReaders()[rr][ind]
@@ -1712,6 +1713,7 @@ class ReadSet(DataSet):
                 if (not isinstance(reader, IndexedBamReader) and
                         not isinstance(reader, CmpH5Reader)):
                     raise IOError(errno.EIO, "File not indexed", fname)
+        return True
 
     @property
     def isCmpH5(self):
@@ -1740,6 +1742,7 @@ class ReadSet(DataSet):
         """
 
         recArrays = []
+        self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
 
@@ -1749,8 +1752,11 @@ class ReadSet(DataSet):
                                        range(len(indices._tbl))])
             else:
                 # Filtration will be necessary:
-                nameMap = {name: n
-                           for n, name in enumerate(rr.referenceInfoTable['Name'])}
+                nameMap = {}
+                if not rr.referenceInfoTable is None:
+                    nameMap = {name: n
+                               for n, name in enumerate(
+                                   rr.referenceInfoTable['Name'])}
 
                 passes = self._filters.filterIndexRecords(indices._tbl,
                                                           nameMap)
@@ -1758,6 +1764,7 @@ class ReadSet(DataSet):
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
+        self._indexMap = np.array(self._indexMap)
         return self._stackRecArrays(recArrays)
 
     def resourceReaders(self):
@@ -1999,6 +2006,7 @@ class AlignmentSet(ReadSet):
         """
         recArrays = []
         log.debug("Processing resource pbis")
+        self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
 
@@ -2010,6 +2018,10 @@ class AlignmentSet(ReadSet):
                 nameMap = self.refIds
 
             if not self._filters or self.noFiltering:
+                if correctIds and self._stackedReferenceInfoTable:
+                    for i in range(len(indices._tbl)):
+                        indices._tbl.tId[i] = nameMap[
+                            tIdMap[indices._tbl.tId[i]]]
                 recArrays.append(indices._tbl)
                 self._indexMap.extend([(rrNum, i) for i in
                                        range(len(indices._tbl))])
@@ -2021,10 +2033,15 @@ class AlignmentSet(ReadSet):
 
                 passes = self._filters.filterIndexRecords(indices._tbl,
                                                           nameMap)
+                if correctIds and self._stackedReferenceInfoTable:
+                    for i in range(len(indices._tbl)):
+                        indices._tbl.tId[i] = nameMap[
+                            tIdMap[indices._tbl.tId[i]]]
                 newInds = indices._tbl[passes]
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
+        self._indexMap = np.array(self._indexMap)
         return self._stackRecArrays(recArrays)
 
     def resourceReaders(self, refName=False):
@@ -2091,6 +2108,17 @@ class AlignmentSet(ReadSet):
         counts = {rId: 0 for _, rId in self.refIds.items()}
         for ind in self.index:
             counts[ind["tId"]] += 1
+        tbr = {}
+        idMap = {rId: name for name, rId in self.refIds.items()}
+        for key, value in counts.iteritems():
+            tbr[idMap[key]] = value
+        return tbr
+
+    def _getMappedReads(self):
+        """It is too slow for large datasets to use _indexReadsInReference"""
+        counts = {rId: 0 for _, rId in self.refIds.items()}
+        for ind in self.index:
+            counts[ind["tId"]].append(ind)
         tbr = {}
         idMap = {rId: name for name, rId in self.refIds.items()}
         for key, value in counts.iteritems():
@@ -2190,7 +2218,7 @@ class AlignmentSet(ReadSet):
             for read in self.readsInRange(refName, 0, refLen):
                 yield read
 
-    def _intervalContour(self, index, rname):
+    def _intervalContour(self, rname):
         """Take a set of index records and build a pileup of intervals, or
         "contour" describing coverage over the contig
 
@@ -2205,6 +2233,7 @@ class AlignmentSet(ReadSet):
 
         """
         log.debug("Generating coverage summary")
+        index = self._indexReadsInReference(rname)
         # indexing issue. Doesn't really matter (just for split). Shifted:
         coverage = [0] * (self.refLengths[rname] + 1)
         starts = sorted(index.tStart)
@@ -2213,11 +2242,7 @@ class AlignmentSet(ReadSet):
         del starts
         ends = sorted(index.tEnd)
         for i in ends:
-            try:
-                coverage[i] -= 1
-            except IndexError:
-                # not sure why this happens, investigate
-                pass
+            coverage[i] -= 1
         del ends
         curCov = 0
         for i, delta in enumerate(coverage):
@@ -2252,7 +2277,7 @@ class AlignmentSet(ReadSet):
             rnames[atom[0]].append(atom)
         for rname, rAtoms in rnames.iteritems():
             if len(rAtoms) > 1:
-                contour = self._intervalContour(self.index, rname)
+                contour = self._intervalContour(rname)
                 splits = self._splitContour(contour, len(rAtoms))
                 ends = splits[1:] + [self.refLengths[rname]]
                 for start, end in zip(splits, ends):
@@ -2263,7 +2288,7 @@ class AlignmentSet(ReadSet):
         return shiftedAtoms
 
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000, byRecords=True, updateCounts=True):
+                       targetSize=5000, byRecords=True, updateCounts=False):
         """Split a dataset into reference windows based on contigs.
 
         Args:
@@ -2284,12 +2309,14 @@ class AlignmentSet(ReadSet):
         refLens = self.refLengths
         refNames = refLens.keys()
         log.debug("{i} references found".format(i=len(refNames)))
+
         log.debug("Finding contigs")
         # FIXME: this mess:
         if len(refNames) < 100 and len(refNames) > 1:
             if byRecords:
                 log.debug("Counting records...")
-                atoms = [(rn, 0, 0, self.countRecords(rn)) for rn in refNames
+                atoms = [(rn, 0, 0, self.countRecords(rn))
+                         for rn in refNames
                          if len(self._indexReadsInReference(rn)) != 0]
             else:
                 atoms = [(rn, 0, 0) for rn in refNames if
@@ -2369,23 +2396,25 @@ class AlignmentSet(ReadSet):
                 sub_segments.append(tmp)
                 segments.extend(sub_segments)
             atoms = segments
+
         log.debug("Done defining {n} chunks".format(n=chunks))
-
-        if byRecords:
-            log.debug("Respacing chunks by records")
-            atoms = self._shiftAtoms(atoms)
-
         # duplicate
         log.debug("Making copies")
         results = [self.copy() for _ in range(chunks)]
 
+        if byRecords:
+            log.debug("Respacing chunks by records")
+            atoms = self._shiftAtoms(atoms)
+        # indicates byRecords with no sub atom splits: (the fourth spot is
+        # countrecords in that window)
+        if len(atoms[0]) == 4:
+            balanceKey = lambda x: x[3]
         log.debug("Distributing chunks")
         # if we didn't have to split atoms and are doing it byRecords, the
         # original counts are still valid:
-        if len(atoms[0]) == 4:
-            balanceKey = lambda x: x[3]
         # Now well have to count records again to recombine atoms
         chunks = self._chunkList(atoms, chunks, balanceKey)
+
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
         for result, chunk in zip(results, chunks):
@@ -2421,26 +2450,35 @@ class AlignmentSet(ReadSet):
         # TODO
         return results
 
-    def _indexReadsInRange(self, refName, start, end):
+    def _indexReadsInRange(self, refName, start, end, justIndices=False):
         """Return the index (pbi) records within a range.
 
         ..note:: Not sorted by genomic location!
 
         """
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames and
-                    not refName in self.fullRefNames):
-                # we need the real refName, which may be hidden behind a
-                # mapping to resolve duplicate refIds between resources...
-                refName = self._idToRname(int(refName))
-
         desiredTid = self.refIds[refName]
         passes = ((self.index.tId == desiredTid) &
                   (self.index.tStart < end) &
                   (self.index.tEnd > start))
+        if justIndices:
+            return passes
         return self.index[passes]
+
+    def _pbiReadsInRange(self, refName, start, end):
+        # TODO: buffer on a per-file basis?
+        if not refName in self.refNames:
+            raise StopIteration
+        # get pass indices
+        passes = self._indexReadsInRange(refName, start, end, justIndices=True)
+        mapPasses = self._indexMap[passes]
+        # sort the passes and indices
+        sort_order = self.index[passes].argsort(order=['tStart'])
+        # pull out indexMap using those passes
+        mapPasses = mapPasses[sort_order]
+        # yield in order of sorted indexMap
+        for indexTuple in mapPasses:
+            yield self.resourceReaders()[indexTuple[0]].atRowNumber(
+                indexTuple[1])
 
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50):
@@ -2484,6 +2522,11 @@ class AlignmentSet(ReadSet):
             for res in self.resourceReaders():
                 for row in res.referenceInfoTable:
                     row.FullName = self._cleanCmpName(row.FullName)
+
+        if self.hasPbi:
+            for rec in self._pbiReadsInRange(refName, start, end):
+                yield rec
+            raise StopIteration
 
         # merge sort before yield
         if self.numExternalResources > 1:
@@ -2600,7 +2643,7 @@ class AlignmentSet(ReadSet):
 
     @property
     def recordsByReference(self):
-        """ The records in this AlignmentSet, sorted by tStart. """
+        """The records in this AlignmentSet, sorted by tStart."""
         # we only care about aligned sequences here, so we can make this a
         # chain of readsInReferences to add pre-filtering by rname, instead of
         # going through every record and performing downstream filtering.
@@ -2628,30 +2671,38 @@ class AlignmentSet(ReadSet):
         Record.ID is remapped to a unique integer key (though using record.Name
         is preferred). Record.Names are remapped for cmp.h5 files to be
         consistent with bam files.
+
         """
         if self._referenceInfoTable is None:
             # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
             # instance). Use the resource readers directly instead.
             responses = self._pollResources(lambda x: x.referenceInfoTable)
+            table = []
             if len(responses) > 1:
                 assert not self.isCmpH5 # see above
                 try:
-                    self._referenceInfoTable = self._unifyResponses(
+                    table = self._unifyResponses(
                         responses,
                         eqFunc=np.array_equal)
                 except ResourceMismatchError:
-                    tbr = np.concatenate(responses)
-                    tbr = np.unique(tbr)
-                    for i, rec in enumerate(tbr):
+                    table = np.concatenate(responses)
+                    table = np.unique(table)
+                    for i, rec in enumerate(table):
                         rec.ID = i
                     self._stackedReferenceInfoTable = True
-                    self._referenceInfoTable = tbr
             else:
                 table = responses[0]
                 if self.isCmpH5:
                     for rec in table:
                         rec.Name = self._cleanCmpName(rec.FullName)
-                self._referenceInfoTable = table
+            log.debug("Filtering reference entries")
+            if not self.noFiltering and self._filters:
+                passes = []
+                for i, reference in enumerate(table):
+                    if self._filters.testParam('rname', reference.Name):
+                        passes.append(i)
+                table = table[passes]
+            self._referenceInfoTable = table
             #TODO: Turn on when needed (expensive)
             #self._referenceDict.update(zip(self.refIds.values(),
             #                               self._referenceInfoTable))
@@ -2661,6 +2712,7 @@ class AlignmentSet(ReadSet):
     def _referenceIdMap(self):
         """Map the dataset shifted refIds to the [resource, refId] they came
         from.
+
         """
         # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
         # instance). Use the resource readers directly instead.
@@ -2720,10 +2772,6 @@ class AlignmentSet(ReadSet):
         sampled = zip(names, infos)
         sampled = set(sampled)
 
-        #log.debug("Filtering reference entries")
-        if not self.noFiltering or not self._filters:
-            sampled = [(name, info) for name, info in sampled
-                       if self._filters.testParam('rname', name)]
         return sampled
 
     def _idToRname(self, rId):
@@ -2735,6 +2783,7 @@ class AlignmentSet(ReadSet):
 
         Returns:
             The referenceInfoTable.Name corresponding to rId
+
         """
         resNo, rId = self._referenceIdMap[rId]
         if self.isCmpH5:
