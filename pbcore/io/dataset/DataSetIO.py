@@ -761,7 +761,7 @@ class DataSet(object):
         raise TypeError("Only ReadSets may be split by contigs")
 
     def _split_zmws(self, chunks):
-        raise TypeError("Only ReadSets may be split by contigs")
+        raise TypeError("Only ReadSets may be split by ZMWs")
 
     def _split_atoms(self, atoms, num_chunks):
         """Divide up atomic units (e.g. contigs) into chunks (refId, size,
@@ -1649,21 +1649,24 @@ class ReadSet(DataSet):
         j_chunk = 0
         for bam in self.resourceReaders():
             rg = bam.readGroupTable[0]
-            n_zmws = len(bam.holeNumber)
-            i_zmw = 0
+            n_reads = len(bam.holeNumber)
+            chunk_size = int(math.ceil(float(n_reads / n_chunks_per_bam)))
+            i_read = 0
             for i_chunk in range(n_chunks_per_bam):
+                if i_read >= n_reads:
+                    break
                 result = results[j_chunk]
                 j_chunk += 1
-                zmw_start = bam.holeNumber[i_zmw]
+                zmw_start = bam.holeNumber[i_read]
                 if i_chunk == n_chunks_per_bam - 1:
                     zmw_end = bam.holeNumber.max()
                 else:
-                    i_zmw += int(math.ceil(float(n_zmws / n_chunks_per_bam)))
-                    zmw_end = bam.holeNumber[i_zmw]
-                    while i_zmw < n_zmws-1:
-                        if zmw_end == bam.holeNumber[i_zmw+1]:
-                            i_zmw += 1
-                            zmw_end = bam.holeNumber[i_zmw]
+                    i_read += chunk_size
+                    zmw_end = bam.holeNumber[min(i_read, n_reads-1)]
+                    while i_read < n_reads-1:
+                        if zmw_end == bam.holeNumber[i_read+1]:
+                            i_read += 1
+                            zmw_end = bam.holeNumber[i_read]
                         else:
                             break
                 result.filters.addRequirement(
@@ -1671,7 +1674,7 @@ class ReadSet(DataSet):
                     zm=[('<', zmw_end+1)])
                 result.filters.addRequirement(
                     zm=[('>', zmw_start-1)])
-                i_zmw += 1
+                i_read += 1
 
         # UniqueId was regenerated when the ExternalResource list was
         # whole, therefore we need to regenerate it again here
