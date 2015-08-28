@@ -304,7 +304,6 @@ class DataSet(object):
                                   "{t}, only {a}".format(c=dsType, t=fname,
                                                          a=allowed))
 
-
         # State tracking:
         self._cachedFilters = []
         self.noFiltering = False
@@ -1568,12 +1567,14 @@ class ReadSet(DataSet):
                 assert not self._strict
                 resource = openAlignmentFile(
                     location, referenceFastaFname=refFile)
-            self._openReaders.append(resource)
+            if not resource.isEmpty:
+                self._openReaders.append(resource)
         log.debug("Done opening resources")
 
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads"""
+        # TODO: add _getRecords for list of indices support
         if self._indexMap is None:
             self.index
         rr, ind = self._indexMap[index]
@@ -2467,7 +2468,8 @@ class AlignmentSet(ReadSet):
             return passes
         return self.index[passes]
 
-    def _pbiReadsInRange(self, refName, start, end):
+    def _pbiLongestReadsInRange(self, refName, start, end, buffsize=1000,
+                                number=0):
         # TODO: buffer on a per-file basis?
         if not refName in self.refNames:
             raise StopIteration
@@ -2475,16 +2477,90 @@ class AlignmentSet(ReadSet):
         passes = self._indexReadsInRange(refName, start, end, justIndices=True)
         mapPasses = self._indexMap[passes]
         # sort the passes and indices
-        sort_order = self.index[passes].argsort(order=['tStart'])
+        def lengthInWindow(hits):
+            ends = np.minimum(hits.tEnd, [end] * len(hits))
+            starts = np.maximum(hits.tStart, [start] * len(hits))
+            return ends - starts
+            #return min(hits.tEnd, end) - max(hits.tStart, start)
+        lens = lengthInWindow(self.index[passes])
+        sort_order = lens.argsort()[::-1]
+        if number != 0 and number != "all":
+            sort_order = sort_order[:number]
         # pull out indexMap using those passes
         mapPasses = mapPasses[sort_order]
+        return self._getRecords(mapPasses, buffsize)
+
+    def _pbiReadsInRange(self, refName, start, end, buffsize=1000):
+        # TODO: buffer on a per-file basis?
+        if not refName in self.refNames:
+            raise StopIteration
+        # get pass indices
+        passes = self._indexReadsInRange(refName, start, end, justIndices=True)
+        mapPasses = self._indexMap[passes]
+        if len(self.toExternalFiles()) > 1:
+            # sort the passes and indices
+            sort_order = self.index[passes].argsort(order=['tStart'])
+            # pull out indexMap using those passes
+            mapPasses = mapPasses[sort_order]
+        return self._getRecords(mapPasses, buffsize)
+
+    def _getRecords(self, indexList, buffsize=1000):
+        mapPasses = indexList
         # yield in order of sorted indexMap
-        for indexTuple in mapPasses:
-            yield self.resourceReaders()[indexTuple[0]].atRowNumber(
-                indexTuple[1])
+        if buffsize == 1:
+            for indexTuple in mapPasses:
+                yield self.resourceReaders()[indexTuple[0]].atRowNumber(
+                    indexTuple[1])
+        else:
+            # This will buffer the records being pulled from each reader
+            recCache = [[] for rrNum in enumerate(self.resourceReaders())]
+            # This will buffer the indicies being pulled from each reader
+            reqCache = [[] for rrNum in enumerate(self.resourceReaders())]
+            # This will store the progress through the buffer for each reader
+            reqCacheI = [0 for rrNum in enumerate(self.resourceReaders())]
+            cacheFill = 0
+            # This will store the order in which reads are consumed, which here
+            # can be specified by the reader number (read index is cached in
+            # the reqCache buffer)
+            fromCache = [None] * buffsize
+            for indexTuple in mapPasses:
+                # fill the req cache
+                reqCache[indexTuple[0]].append(indexTuple[1])
+                fromCache[cacheFill] = indexTuple[0]
+                cacheFill += 1
+                if cacheFill >= buffsize:
+                    # fill the record cache
+                    for rrNum, rr in enumerate(self.resourceReaders()):
+                        for req in reqCache[rrNum]:
+                            recCache[rrNum].append(rr.atRowNumber(req))
+                    # empty cache
+                    for i in range(cacheFill):
+                        rrNum = fromCache[i]
+                        curI = reqCacheI[rrNum]
+                        reqCacheI[rrNum] += 1
+                        yield recCache[rrNum][curI]
+                    cacheFill = 0
+                    fromCache = [None] * buffsize
+                    recCache = [[] for rrNum in enumerate(
+                        self.resourceReaders())]
+                    reqCache = [[] for rrNum in enumerate(
+                        self.resourceReaders())]
+                    reqCacheI = [0 for rrNum in enumerate(
+                        self.resourceReaders())]
+            if cacheFill > 0:
+                # fill the record cache
+                for rrNum, rr in enumerate(self.resourceReaders()):
+                    for req in reqCache[rrNum]:
+                        recCache[rrNum].append(rr.atRowNumber(req))
+                # empty cache
+                for i in range(cacheFill):
+                    rrNum = fromCache[i]
+                    curI = reqCacheI[rrNum]
+                    reqCacheI[rrNum] += 1
+                    yield recCache[rrNum][curI]
 
     @filtered
-    def readsInRange(self, refName, start, end, buffsize=50):
+    def readsInRange(self, refName, start, end, buffsize=50, longest=0):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -2527,8 +2603,13 @@ class AlignmentSet(ReadSet):
                     row.FullName = self._cleanCmpName(row.FullName)
 
         if self.hasPbi:
-            for rec in self._pbiReadsInRange(refName, start, end):
-                yield rec
+            if longest:
+                for rec in self._pbiLongestReadsInRange(refName, start, end,
+                                                        number=longest):
+                    yield rec
+            else:
+                for rec in self._pbiReadsInRange(refName, start, end):
+                    yield rec
             raise StopIteration
 
         # merge sort before yield

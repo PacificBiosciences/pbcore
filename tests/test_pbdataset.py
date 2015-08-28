@@ -529,8 +529,21 @@ class TestDataSet(unittest.TestCase):
         refNames = ds.refNames
 
         rn = refNames[15]
-        reads = ds.readsInRange(rn, 10, 100)
-        self.assertEqual(len(list(reads)), 10)
+        reads = list(ds.readsInRange(rn, 10, 100))
+        self.assertEqual(len(reads), 10)
+
+        def lengthInWindow(hit, winStart, winEnd):
+            return min(hit.tEnd, winEnd) - max(hit.tStart, winStart)
+
+        reads = list(ds.readsInRange(rn, 10, 100, longest='all'))
+        last = None
+        for read in reads:
+            if last is None:
+                last = lengthInWindow(read, 10, 100)
+            else:
+                self.assertTrue(last >= lengthInWindow(read, 10, 100))
+                last = lengthInWindow(read, 10, 100)
+
 
         ds2 = AlignmentSet(data.getBam(0))
         reads = ds2.readsInRange("E.faecalis.1", 0, 1400)
