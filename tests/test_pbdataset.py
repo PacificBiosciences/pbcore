@@ -543,11 +543,13 @@ class TestDataSet(unittest.TestCase):
             else:
                 self.assertTrue(last >= lengthInWindow(read, 10, 100))
                 last = lengthInWindow(read, 10, 100)
+        reads = list(ds._pbiReadsInRange(rn, 10, 100, buffsize=2))
+        self.assertEqual(len(reads), 10)
 
 
         ds2 = AlignmentSet(data.getBam(0))
-        reads = ds2.readsInRange("E.faecalis.1", 0, 1400)
-        self.assertEqual(len(list(reads)), 20)
+        reads = list(ds2.readsInRange("E.faecalis.1", 0, 1400))
+        self.assertEqual(len(reads), 20)
 
         lengths = ds.refLengths
         for rname, rId in ds.refInfo('ID'):
@@ -1012,6 +1014,8 @@ class TestDataSet(unittest.TestCase):
         reads2 = list(ds2.readsInRange(rn, 0, 10000))
         dsBoth = AlignmentSet(data.getXml(8), data.getXml(11))
         readsBoth = list(dsBoth.readsInRange(rn, 0, 10000))
+        readsBothNoPbi = list(dsBoth.readsInRange(rn, 0, 10000, usePbi=False))
+        self.assertListEqual(readsBoth, readsBothNoPbi)
         self.assertEqual(len(reads), 2)
         self.assertEqual(len(reads2), 5)
         self.assertEqual(len(readsBoth), 7)

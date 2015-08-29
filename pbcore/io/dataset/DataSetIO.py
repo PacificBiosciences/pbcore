@@ -1569,6 +1569,8 @@ class ReadSet(DataSet):
                     location, referenceFastaFname=refFile)
             if not resource.isEmpty:
                 self._openReaders.append(resource)
+        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
+            raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
 
     def __getitem__(self, index):
@@ -1870,6 +1872,8 @@ class HdfSubreadSet(ReadSet):
             location = urlparse(extRes.resourceId).path
             resource = BaxH5Reader(location)
             self._openReaders.append(resource)
+        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
+            raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
 
     @property
@@ -2469,7 +2473,7 @@ class AlignmentSet(ReadSet):
         return self.index[passes]
 
     def _pbiLongestReadsInRange(self, refName, start, end, buffsize=1000,
-                                number=0):
+                                number='all'):
         # TODO: buffer on a per-file basis?
         if not refName in self.refNames:
             raise StopIteration
@@ -2481,7 +2485,6 @@ class AlignmentSet(ReadSet):
             ends = np.minimum(hits.tEnd, [end] * len(hits))
             starts = np.maximum(hits.tStart, [start] * len(hits))
             return ends - starts
-            #return min(hits.tEnd, end) - max(hits.tStart, start)
         lens = lengthInWindow(self.index[passes])
         sort_order = lens.argsort()[::-1]
         if number != 0 and number != "all":
@@ -2502,9 +2505,9 @@ class AlignmentSet(ReadSet):
             sort_order = self.index[passes].argsort(order=['tStart'])
             # pull out indexMap using those passes
             mapPasses = mapPasses[sort_order]
-        return self._getRecords(mapPasses, buffsize)
+        return self._getRecords(mapPasses, buffsize, fileOrder=True)
 
-    def _getRecords(self, indexList, buffsize=1000):
+    def _getRecords(self, indexList, buffsize=1000, fileOrder=False):
         mapPasses = indexList
         # yield in order of sorted indexMap
         if buffsize == 1:
@@ -2531,6 +2534,8 @@ class AlignmentSet(ReadSet):
                 if cacheFill >= buffsize:
                     # fill the record cache
                     for rrNum, rr in enumerate(self.resourceReaders()):
+                        if fileOrder:
+                            reqCache[rrNum] = sorted(reqCache[rrNum])
                         for req in reqCache[rrNum]:
                             recCache[rrNum].append(rr.atRowNumber(req))
                     # empty cache
@@ -2550,6 +2555,8 @@ class AlignmentSet(ReadSet):
             if cacheFill > 0:
                 # fill the record cache
                 for rrNum, rr in enumerate(self.resourceReaders()):
+                    if fileOrder:
+                        reqCache[rrNum] = sorted(reqCache[rrNum])
                     for req in reqCache[rrNum]:
                         recCache[rrNum].append(rr.atRowNumber(req))
                 # empty cache
@@ -2560,7 +2567,8 @@ class AlignmentSet(ReadSet):
                     yield recCache[rrNum][curI]
 
     @filtered
-    def readsInRange(self, refName, start, end, buffsize=50, longest=0):
+    def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
+                     longest=0):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -2602,7 +2610,7 @@ class AlignmentSet(ReadSet):
                 for row in res.referenceInfoTable:
                     row.FullName = self._cleanCmpName(row.FullName)
 
-        if self.hasPbi:
+        if self.hasPbi and usePbi:
             if longest:
                 for rec in self._pbiLongestReadsInRange(refName, start, end,
                                                         number=longest):
@@ -3150,6 +3158,8 @@ class ContigSet(DataSet):
                 else:
                     raise
             self._openReaders.append(resource)
+        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
+            raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
 
     def resourceReaders(self, refName=None):
@@ -3231,7 +3241,7 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening ReferenceSet")
+        log.debug("Opening ReferenceSet with {f}".format(f=files))
         super(ReferenceSet, self).__init__(*files, **kwargs)
 
     def processFilters(self):
