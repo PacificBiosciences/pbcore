@@ -2443,7 +2443,6 @@ class AlignmentSet(ReadSet):
         for result in results:
             result.newUuid()
             if updateCounts:
-                log.debug("Filtering")
                 result._openReaders = self._openReaders
                 passes = result._filters.filterIndexRecords(self.index,
                                                             self.refIds)
@@ -2472,91 +2471,71 @@ class AlignmentSet(ReadSet):
             return passes
         return self.index[passes]
 
-    def _pbiLongestReadsInRange(self, refName, start, end, buffsize=1000,
-                                number='all'):
-        # TODO: buffer on a per-file basis?
-        if not refName in self.refNames:
-            raise StopIteration
-        # get pass indices
-        passes = self._indexReadsInRange(refName, start, end, justIndices=True)
-        mapPasses = self._indexMap[passes]
-        # sort the passes and indices
-        def lengthInWindow(hits):
-            ends = np.minimum(hits.tEnd, [end] * len(hits))
-            starts = np.maximum(hits.tStart, [start] * len(hits))
-            return ends - starts
-        lens = lengthInWindow(self.index[passes])
-        sort_order = lens.argsort()[::-1]
-        if number != 0 and number != "all":
-            sort_order = sort_order[:number]
-        # pull out indexMap using those passes
-        mapPasses = mapPasses[sort_order]
-        return self._getRecords(mapPasses, buffsize)
+    def _pbiReadsInRange(self, refName, start, end, longest=False):
+        """Return the reads in range for a file, but use the index in this
+        object to get the order of the (reader, read) index tuples, instead of
+        using the pbi rangeQuery for each file and merging the actual reads.
+        This also opens up the ability to sort the reads by length in the
+        window, and yield in that order (much much faster for quiver)
 
-    def _pbiReadsInRange(self, refName, start, end, buffsize=1000):
-        # TODO: buffer on a per-file basis?
+        Args:
+            refName: The reference name to sample
+            start: The start of the target window
+            end: The end of the target window
+            buffsize: (1000) The number of reads to buffer
+            longest: (False) yield the longest reads first
+
+        Yields:
+            reads in the range, potentially longest first
+
+        """
         if not refName in self.refNames:
             raise StopIteration
         # get pass indices
         passes = self._indexReadsInRange(refName, start, end, justIndices=True)
         mapPasses = self._indexMap[passes]
-        if len(self.toExternalFiles()) > 1:
-            # sort the passes and indices
-            sort_order = self.index[passes].argsort(order=['tStart'])
+        if longest:
+            def lengthInWindow(hits):
+                ends = hits.tEnd
+                post = ends > end
+                ends[post] = end
+                starts = hits.tStart
+                pre = starts < start
+                starts[pre] = start
+                return ends - starts
+            lens = lengthInWindow(self.index[passes])
+            sort_order = lens.argsort()[::-1]
+            mapPasses = mapPasses[sort_order]
+        elif len(self.toExternalFiles()) > 1:
+            # sort the pooled passes and indices using a stable algorithm
+            sort_order = self.index[passes].tStart.argsort(kind='mergesort')
             # pull out indexMap using those passes
             mapPasses = mapPasses[sort_order]
-        return self._getRecords(mapPasses, buffsize, fileOrder=True)
+        return self._getRecords(mapPasses)
 
-    def _getRecords(self, indexList, buffsize=1000, fileOrder=False):
-        mapPasses = indexList
+    def _getRecords(self, indexList, buffsize=1):
+        """Get the records corresponding to indexList
+
+        Args:
+            indexList: A list of (reader, read) index tuples
+            buffsize: The number of reads to buffer (coalesced file reads)
+
+        Yields:
+            reads from all files
+
+       """
         # yield in order of sorted indexMap
         if buffsize == 1:
-            for indexTuple in mapPasses:
+            for indexTuple in indexList:
                 yield self.resourceReaders()[indexTuple[0]].atRowNumber(
                     indexTuple[1])
         else:
-            # This will buffer the records being pulled from each reader
-            recCache = [[] for rrNum in enumerate(self.resourceReaders())]
-            # This will buffer the indicies being pulled from each reader
-            reqCache = [[] for rrNum in enumerate(self.resourceReaders())]
-            # This will store the progress through the buffer for each reader
-            reqCacheI = [0 for rrNum in enumerate(self.resourceReaders())]
-            cacheFill = 0
-            # This will store the order in which reads are consumed, which here
-            # can be specified by the reader number (read index is cached in
-            # the reqCache buffer)
-            fromCache = [None] * buffsize
-            for indexTuple in mapPasses:
-                # fill the req cache
-                reqCache[indexTuple[0]].append(indexTuple[1])
-                fromCache[cacheFill] = indexTuple[0]
-                cacheFill += 1
-                if cacheFill >= buffsize:
-                    # fill the record cache
-                    for rrNum, rr in enumerate(self.resourceReaders()):
-                        if fileOrder:
-                            reqCache[rrNum] = sorted(reqCache[rrNum])
-                        for req in reqCache[rrNum]:
-                            recCache[rrNum].append(rr.atRowNumber(req))
-                    # empty cache
-                    for i in range(cacheFill):
-                        rrNum = fromCache[i]
-                        curI = reqCacheI[rrNum]
-                        reqCacheI[rrNum] += 1
-                        yield recCache[rrNum][curI]
-                    cacheFill = 0
-                    fromCache = [None] * buffsize
-                    recCache = [[] for rrNum in enumerate(
-                        self.resourceReaders())]
-                    reqCache = [[] for rrNum in enumerate(
-                        self.resourceReaders())]
-                    reqCacheI = [0 for rrNum in enumerate(
-                        self.resourceReaders())]
-            if cacheFill > 0:
+            def debuf():
+                # This will store the progress through the buffer for each
+                # reader
+                reqCacheI = [0] * len(self.resourceReaders())
                 # fill the record cache
                 for rrNum, rr in enumerate(self.resourceReaders()):
-                    if fileOrder:
-                        reqCache[rrNum] = sorted(reqCache[rrNum])
                     for req in reqCache[rrNum]:
                         recCache[rrNum].append(rr.atRowNumber(req))
                 # empty cache
@@ -2566,9 +2545,38 @@ class AlignmentSet(ReadSet):
                     reqCacheI[rrNum] += 1
                     yield recCache[rrNum][curI]
 
+            def cleanBuffs():
+                # This will buffer the records being pulled from each reader
+                recCache = [[] for _ in self.resourceReaders()]
+                # This will buffer the indicies being pulled from each reader
+                reqCache = [[] for _ in self.resourceReaders()]
+                # This will store the order in which reads are consumed, which
+                # here can be specified by the reader number (read index order
+                # is cached in the reqCache buffer)
+                fromCache = [None] * buffsize
+                return recCache, reqCache, fromCache, 0
+
+            # The algorithm:
+            recCache, reqCache, fromCache, cacheFill = cleanBuffs()
+            for indexTuple in indexList:
+                # segregate the requests by reader into ordered lists of read
+                # indices
+                reqCache[indexTuple[0]].append(indexTuple[1])
+                # keep track of the order in which readers should be sampled,
+                # which will maintain the overall read order
+                fromCache[cacheFill] = indexTuple[0]
+                cacheFill += 1
+                if cacheFill >= buffsize:
+                    for rec in debuf():
+                        yield rec
+                    recCache, reqCache, fromCache, cacheFill = cleanBuffs()
+            if cacheFill > 0:
+                for rec in debuf():
+                    yield rec
+
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
-                     longest=0):
+                     longest=False):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -2611,13 +2619,9 @@ class AlignmentSet(ReadSet):
                     row.FullName = self._cleanCmpName(row.FullName)
 
         if self.hasPbi and usePbi:
-            if longest:
-                for rec in self._pbiLongestReadsInRange(refName, start, end,
-                                                        number=longest):
-                    yield rec
-            else:
-                for rec in self._pbiReadsInRange(refName, start, end):
-                    yield rec
+            for rec in self._pbiReadsInRange(refName, start, end,
+                                             longest=longest):
+                yield rec
             raise StopIteration
 
         # merge sort before yield

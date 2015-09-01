@@ -2,6 +2,7 @@
 import os
 import re
 import logging
+import itertools
 import tempfile
 
 import numpy as np
@@ -535,7 +536,7 @@ class TestDataSet(unittest.TestCase):
         def lengthInWindow(hit, winStart, winEnd):
             return min(hit.tEnd, winEnd) - max(hit.tStart, winStart)
 
-        reads = list(ds.readsInRange(rn, 10, 100, longest='all'))
+        reads = list(ds.readsInRange(rn, 10, 100, longest=True))
         last = None
         for read in reads:
             if last is None:
@@ -543,7 +544,7 @@ class TestDataSet(unittest.TestCase):
             else:
                 self.assertTrue(last >= lengthInWindow(read, 10, 100))
                 last = lengthInWindow(read, 10, 100)
-        reads = list(ds._pbiReadsInRange(rn, 10, 100, buffsize=2))
+        reads = list(ds._pbiReadsInRange(rn, 10, 100))
         self.assertEqual(len(reads), 10)
 
 
@@ -560,6 +561,41 @@ class TestDataSet(unittest.TestCase):
                              len(list(ds.readsInReference(rId))))
             self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
                              len(list(ds.readsInRange(rId, 0, rlen))))
+
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+                         "Missing testadata directory")
+    def test_reads_in_range_order(self):
+        log.debug("Testing with one file")
+        testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"
+                    "2372215/0007/Alignment_Results/m150404_101"
+                    "626_42267_c1008079208000000018231741102915"
+                    "14_s1_p0.1.alignmentset.xml")
+        aln = AlignmentSet(testFile)
+        reads1 = aln.readsInRange(aln.refNames[0], 0, 400,
+                                  usePbi=False)
+        reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
+                                  usePbi=True)
+        num = 0
+        for r1, r2 in itertools.izip(reads1, reads2):
+            self.assertEqual(r1, r2)
+            num += 1
+        self.assertTrue(num > 2000)
+
+        log.debug("Testing with three files")
+        testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"
+                    "2372215/0007/Alignment_Results/m150404_101"
+                    "626_42267_c1008079208000000018231741102915"
+                    "14_s1_p0.all.alignmentset.xml")
+        aln = AlignmentSet(testFile)
+        reads1 = aln.readsInRange(aln.refNames[0], 0, 400,
+                                  usePbi=False)
+        reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
+                                  usePbi=True)
+        num = 0
+        for r1, r2 in itertools.izip(reads1, reads2):
+            self.assertEqual(r1, r2)
+            num += 1
+        self.assertTrue(num > 2000)
 
     def test_filter(self):
         ds2 = AlignmentSet(data.getXml(8))
