@@ -630,35 +630,38 @@ class BgzfReader(object):
         #       self.tell(), self._block_start_offset, self._within_block_offset)
         return virtual_offset
 
+
+    def _readHelper(self, size):
+        # yields uncompressed hunks of data, which we will be joined
+        # together by read
+        while size > 0:
+            if self._within_block_offset + size <= len(self._buffer):
+                # This may leave us right at the end of a block
+                # (lazy loading, don't load the next block unless we have too)
+                data = self._buffer[self._within_block_offset:self._within_block_offset + size]
+                self._within_block_offset += size
+                assert data  # Must be at least 1 byte
+                size -= len(data)
+                yield data
+            else:
+                data = self._buffer[self._within_block_offset:]
+                size -= len(data)
+                self._load_block()  # will reset offsets
+                # TODO - Test with corner case of an empty block followed by
+                # a non-empty block
+                if not self._buffer:
+                    # EOF
+                    yield data
+                    return
+                else:
+                    yield data
+        assert size == 0, "BGZF: Internal logic error!"
+
+
     def read(self, size=-1):
         if size < 0:
             raise NotImplementedError("Don't be greedy, that could be massive!")
-        elif size == 0:
-            if self._text:
-                return ""
-            else:
-                return b""
-        elif self._within_block_offset + size <= len(self._buffer):
-            # This may leave us right at the end of a block
-            # (lazy loading, don't load the next block unless we have too)
-            data = self._buffer[self._within_block_offset:self._within_block_offset + size]
-            self._within_block_offset += size
-            assert data  # Must be at least 1 byte
-            return data
-        else:
-            data = self._buffer[self._within_block_offset:]
-            size -= len(data)
-            self._load_block()  # will reset offsets
-            # TODO - Test with corner case of an empty block followed by
-            # a non-empty block
-            if not self._buffer:
-                return data  # EOF
-            elif size:
-                # TODO - Avoid recursion
-                return data + self.read(size)
-            else:
-                # Only needed the end of the last block
-                return data
+        return "".join(self._readHelper(size))
 
     def readline(self):
         i = self._buffer.find(self._newline, self._within_block_offset)
