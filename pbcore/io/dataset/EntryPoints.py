@@ -26,7 +26,8 @@ def createXml(args):
     dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
                                 skipCounts=args.skipCounts)
     log.debug("Dataset created")
-    dset.write(args.outfile, validate=args.novalidate, relPaths=args.relative)
+    dset.write(args.outfile, validate=args.novalidate, modPaths=True,
+               relPaths=args.relative)
     log.debug("Dataset written")
 
 
@@ -136,7 +137,7 @@ def split_options(parser):
     parser.add_argument("--zmws", default=False, action='store_true',
                         help="Split on zmws")
     parser.add_argument("--byRefLength", default=False, action='store_true',
-                        help="Split contigs by mapped records")
+                        help="Split contigs by contig length")
     parser.add_argument("--noCounts", default=False, action='store_true',
                         help="Update dataset counts after split")
     parser.add_argument("--chunks", default=0, type=int,

@@ -2296,7 +2296,7 @@ class AlignmentSet(ReadSet):
         return shiftedAtoms
 
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000, byRecords=True, updateCounts=False):
+                       targetSize=5000, byRecords=True, updateCounts=True):
         """Split a dataset into reference windows based on contigs.
 
         Args:
