@@ -1464,20 +1464,6 @@ class DataSet(object):
                     raise ResourceMismatchError(responses)
         return responses[0]
 
-    @property
-    def hasPbi(self):
-        """Test whether all resources are opened as IndexedBamReader objects"""
-        try:
-            res = self._pollResources(lambda x: isinstance(x,
-                                                           IndexedBamReader))
-            return self._unifyResponses(res)
-        except ResourceMismatchError:
-            if not self._strict:
-                log.error("Resources inconsistently indexed")
-                return False
-            else:
-                raise
-
     def hasPulseFeature(self, featureName):
         responses = self._pollResources(
             lambda x: x.hasPulseFeature(featureName))
@@ -1538,6 +1524,27 @@ class DataSet(object):
     def assertIndexed(self):
         raise NotImplementedError()
 
+    def _assertIndexed(self, acceptableTypes):
+        if not self._openReaders:
+            try:
+                tmp = self._strict
+                self._strict = True
+                self._openFiles()
+            except Exception:
+                # Catch everything to recover the strictness status, then raise
+                # whatever error was found.
+                self._strict = tmp
+                raise
+            finally:
+                self._strict = tmp
+        else:
+            for fname, reader in zip(self.toExternalFiles(),
+                                     self.resourceReaders()):
+                if not isinstance(reader, acceptableTypes):
+                    raise IOError(errno.EIO, "File not indexed", fname)
+        return True
+
+
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads. Only pbi filters considered, however."""
@@ -1592,15 +1599,17 @@ class ReadSet(DataSet):
                     referenceFastaFname=refFile)
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
-                    log.info("pbi file missing for {f}, operating with "
+                    log.warn("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
+                    resource = openAlignmentFile(
+                        location, referenceFastaFname=refFile)
                 else:
                     raise
-            if resource is None:
-                assert not self._strict
-                resource = openAlignmentFile(
-                    location, referenceFastaFname=refFile)
+            #if resource is None:
+                #assert not self._strict
+                #resource = openAlignmentFile(
+                    #location, referenceFastaFname=refFile)
             if not resource.isEmpty:
                 self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
@@ -1609,6 +1618,20 @@ class ReadSet(DataSet):
 
     def _filterType(self):
         return 'bam'
+
+    @property
+    def hasPbi(self):
+        """Test whether all resources are opened as IndexedBamReader objects"""
+        try:
+            res = self._pollResources(lambda x: isinstance(x,
+                                                           IndexedBamReader))
+            return self._unifyResponses(res)
+        except ResourceMismatchError:
+            if not self._strict:
+                log.error("Resources inconsistently indexed")
+                return False
+            else:
+                raise
 
     def _split_barcodes(self, chunks=0):
         """Split a readset into chunks by barcodes.
@@ -1729,25 +1752,7 @@ class ReadSet(DataSet):
             return responses[0]
 
     def assertIndexed(self):
-        if not self._openReaders:
-            try:
-                tmp = self._strict
-                self._strict = True
-                self._openFiles()
-            except Exception:
-                # Catch everything to recover the strictness status, then raise
-                # whatever error was found.
-                self._strict = tmp
-                raise
-            finally:
-                self._strict = tmp
-        else:
-            for fname, reader in zip(self.toExternalFiles(),
-                                     self.resourceReaders()):
-                if (not isinstance(reader, IndexedBamReader) and
-                        not isinstance(reader, CmpH5Reader)):
-                    raise IOError(errno.EIO, "File not indexed", fname)
-        return True
+        self._assertIndexed((IndexedBamReader, CmpH5Reader))
 
     @property
     def isCmpH5(self):
@@ -3217,7 +3222,12 @@ class ContigSet(DataSet):
                 return contig
 
     def assertIndexed(self):
-        assert self.isIndexed
+        # I would prefer to use _assertIndexed, but want to pass up the
+        # original error
+        if not self.isIndexed:
+            self._strict = True
+            self._openFiles()
+        return True
 
     @property
     def isIndexed(self):
