@@ -125,6 +125,11 @@ def openDataFile(*files, **kwargs):
                 else:
                     return SubreadSet(*origFiles, **kwargs)
 
+def _stackRecArrays(recArrays):
+    tbr = np.concatenate(recArrays)
+    tbr = tbr.view(np.recarray)
+    return tbr
+
 
 class DataSetMetaTypes(object):
     """
@@ -1514,10 +1519,35 @@ class DataSet(object):
             chunkSizes[0][0] += mass
         return chunks
 
+    @property
+    def index(self):
+        if self._index is None:
+            log.debug("Populating index")
+            self.assertIndexed()
+            self._index = self._indexRecords()
+            log.debug("Done populating index")
+        return self._index
+
+    def _indexRecords(self):
+        raise NotImplementedError()
+
+    def assertIndex(self):
+        raise NotImplementedError()
+
+    def __getitem__(self, index):
+        """Should respect filters for free, as _indexMap should only be
+        populated by filtered reads"""
+        # TODO: add _getRecords for list of indices support
+        if self._indexMap is None:
+            self.index
+        rr, ind = self._indexMap[index]
+        return self.resourceReaders()[rr][ind]
+
 
 class InvalidDataSetIOError(Exception):
     """The base class for all DataSetIO related custom exceptions (hopefully)
     """
+
 
 class ResourceMismatchError(InvalidDataSetIOError):
 
@@ -1572,15 +1602,6 @@ class ReadSet(DataSet):
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
-
-    def __getitem__(self, index):
-        """Should respect filters for free, as _indexMap should only be
-        populated by filtered reads"""
-        # TODO: add _getRecords for list of indices support
-        if self._indexMap is None:
-            self.index
-        rr, ind = self._indexMap[index]
-        return self.resourceReaders()[rr][ind]
 
     def _split_barcodes(self, chunks=0):
         """Split a readset into chunks by barcodes.
@@ -1727,20 +1748,6 @@ class ReadSet(DataSet):
         res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
         return self._unifyResponses(res)
 
-    @property
-    def index(self):
-        if self._index is None:
-            log.debug("Populating index")
-            self.assertIndexed()
-            self._index = self._indexRecords()
-            log.debug("Done populating index")
-        return self._index
-
-    def _stackRecArrays(self, recArrays):
-        tbr = np.concatenate(recArrays)
-        tbr = tbr.view(np.recarray)
-        return tbr
-
     def _indexRecords(self):
         """Yields index records summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
@@ -1771,7 +1778,7 @@ class ReadSet(DataSet):
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
-        return self._stackRecArrays(recArrays)
+        return _stackRecArrays(recArrays)
 
     def resourceReaders(self):
         """Open the files in this ReadSet"""
@@ -2050,7 +2057,7 @@ class AlignmentSet(ReadSet):
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
-        return self._stackRecArrays(recArrays)
+        return _stackRecArrays(recArrays)
 
     def resourceReaders(self, refName=False):
         """A generator of Indexed*Reader objects for the ExternalResources
@@ -3237,6 +3244,29 @@ class ContigSet(DataSet):
                 'fai':'PacBio.Index.SamIndex',
                 'sa':'PacBio.Index.SaWriterIndex',
                }
+
+    def _indexRecords(self):
+        """Yields index records summarizing all of the records in all of
+        the resources that conform to those filters addressing parameters
+        cached in the pbi.
+        """
+
+        recArrays = []
+        self._indexMap = []
+        for rrNum, rr in enumerate(self.resourceReaders()):
+            indices = rr.fai
+
+            #if not self._filters or self.noFiltering:
+            #recArrays.append(indices._tbl)
+            self._indexMap.extend([(rrNum, i) for i in
+                                    range(len(indices))])
+            #else:
+        self._indexMap = np.array(self._indexMap)
+        #return self._stackRecArrays(recArrays)
+
+    def assertIndexed(self):
+        for rr in self.resourceReaders():
+            assert type(rr) is IndexedFastaReader
 
 
 class ReferenceSet(ContigSet):

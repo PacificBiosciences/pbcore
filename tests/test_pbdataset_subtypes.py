@@ -390,5 +390,7 @@ class TestDataSet(unittest.TestCase):
         #        'PacBio.ReferenceFile.ReferenceFastaFile')
 
 
-
-
+    def test_contigset_index(self):
+        fasta = upstreamData.getLambdaFasta()
+        ds = ContigSet(fasta)
+        self.assertEqual(ds[0].name, "lambda_NEB3011")
