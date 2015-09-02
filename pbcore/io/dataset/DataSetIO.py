@@ -12,7 +12,6 @@ import errno
 import logging
 import xml.dom.minidom
 import tempfile
-import itertools
 from functools import wraps
 import numpy as np
 from urlparse import urlparse
@@ -21,7 +20,7 @@ from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
-from pbcore.io import PacBioBamIndex, BaxH5Reader
+from pbcore.io import BaxH5Reader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
@@ -2114,12 +2113,7 @@ class AlignmentSet(ReadSet):
     def _indexReadsInReference(self, refName):
         # This can probably be deprecated for all but the official reads in
         # range (and maybe reads in reference)
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames
-                    and not refName in self.fullRefNames):
-                refName = self._idToRname(int(refName))
+        refName = self.guaranteeName(refName)
 
         desiredTid = self.refIds[refName]
         tIds = self.index.tId
@@ -2218,6 +2212,7 @@ class AlignmentSet(ReadSet):
             hn: ...
 
         """
+
         if isinstance(refName, np.int64):
             refName = str(refName)
         if refName.isdigit():
@@ -2589,6 +2584,18 @@ class AlignmentSet(ReadSet):
                 for rec in debuf():
                     yield rec
 
+    def guaranteeName(self, nameOrId):
+        refName = nameOrId
+        if isinstance(refName, np.int64):
+            refName = str(refName)
+        if refName.isdigit():
+            if (not refName in self.refNames and
+                    not refName in self.fullRefNames):
+                # we need the real refName, which may be hidden behind a
+                # mapping to resolve duplicate refIds between resources...
+                refName = self._idToRname(int(refName))
+        return refName
+
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
                      longest=False):
@@ -2618,14 +2625,7 @@ class AlignmentSet(ReadSet):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
         """
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames and
-                    not refName in self.fullRefNames):
-                # we need the real refName, which may be hidden behind a
-                # mapping to resolve duplicate refIds between resources...
-                refName = self._idToRname(int(refName))
+        refName = self.guaranteeName(refName)
 
         # correct the cmp.h5 reference names before reads go out the door
         if self.isCmpH5:
@@ -2766,6 +2766,7 @@ class AlignmentSet(ReadSet):
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
         name as a unique key"""
+        refName = self.guaranteeName(refName)
         # TODO: upgrade to use _referenceDict if needed
         if not self.isCmpH5:
             for row in self.referenceInfoTable:

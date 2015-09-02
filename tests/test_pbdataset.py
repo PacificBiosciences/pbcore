@@ -1077,6 +1077,8 @@ class TestDataSet(unittest.TestCase):
             str(readers[0].referenceInfo('E.faecalis.1')),
             "(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482, "
             "'a1a59c267ac1341e5a12bce7a7d37bcb', 0L, 0L)")
+        for rname, i in aln.refIds.items():
+            self.assertEqual(aln.referenceInfo(rname), aln.referenceInfo(i))
         # TODO: add a bam with a different referenceInfoTable to check merging
         # and id remapping:
         #self.assertEqual(
