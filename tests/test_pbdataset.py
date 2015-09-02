@@ -835,6 +835,7 @@ class TestDataSet(unittest.TestCase):
     def test_filter_reference_contigs(self):
         ds2 = ReferenceSet(data.getRef())
         self.assertEqual(len(list(ds2.refNames)), 59)
+        self.assertEqual(len(list(ds2.records)), len(ds2.index))
         filt = Filters()
         filt.addRequirement(id=[('==', 'E.faecalis.1')])
         ds2.addFilters(filt)
@@ -842,12 +843,15 @@ class TestDataSet(unittest.TestCase):
                          "( id == E.faecalis.1 )")
         self.assertEqual(len(ds2.refNames), 1)
         self.assertEqual(len(list(ds2.records)), 1)
+        self.assertEqual(len(list(ds2.records)), len(ds2.index))
         ds2.disableFilters()
         self.assertEqual(len(list(ds2.refNames)), 59)
         self.assertEqual(len(list(ds2.records)), 59)
+        self.assertEqual(len(list(ds2.records)), len(ds2.index))
         ds2.enableFilters()
         self.assertEqual(len(list(ds2.refNames)), 1)
         self.assertEqual(len(list(ds2.records)), 1)
+        self.assertEqual(len(list(ds2.records)), len(ds2.index))
 
     # TODO: get this working again when adding manual subdatasets is good to go
     @SkipTest

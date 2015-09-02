@@ -392,7 +392,7 @@ class DataSet(object):
                             "of two datasets")
                 return None
             else:
-                self.addFilters(other.filters)
+                self.addFilters(other.filters, underConstruction=True)
 
             # reset the filters, just in case
             self._cachedFilters = []
@@ -902,7 +902,7 @@ class DataSet(object):
         # the cache dirty. See disableFilters/enableFilters
         if self._cachedFilters:
             return self._cachedFilters
-        filters = self.filters.tests()
+        filters = self.filters.tests(readType=self._filterType())
         # Having no filters means no opportunity to pass. Fix by filling with
         # always-true (similar to disableFilters())
         if not filters:
@@ -910,6 +910,9 @@ class DataSet(object):
             return self._cachedFilters
         self._cachedFilters = filters
         return filters
+
+    def _filterType(self):
+        raise NotImplementedError()
 
     def checkAndResolve(self, fname, possibleRelStart='.'):
         """Try and skip resolveLocation if possible"""
@@ -1030,15 +1033,16 @@ class DataSet(object):
 
     def disableFilters(self):
         """Disable read filtering for this object"""
+        self.reFilter()
         self.noFiltering = True
         self._cachedFilters = [lambda x: True]
 
     def enableFilters(self):
         """Re-enable read filtering for this object"""
+        self.reFilter()
         self.noFiltering = False
-        self._cachedFilters = []
 
-    def addFilters(self, newFilters):
+    def addFilters(self, newFilters, underConstruction=False):
         """Add new or extend the current list of filters. Public because there
         is already a reasonably compelling reason (the console script entry
         point). Most often used by the __add__ method.
@@ -1063,7 +1067,7 @@ class DataSet(object):
             ( rname = E.faecalis...
         """
         self.filters.merge(copy.deepcopy(newFilters))
-        self._cachedFilters = []
+        self.reFilter(light=underConstruction)
 
     def _checkObjMetadata(self, newMetadata):
         """Check new object metadata (as opposed to dataset metadata) against
@@ -1392,7 +1396,7 @@ class DataSet(object):
         """Limit setting to ensure cache hygiene and filter compatibility"""
         self._filters = value
 
-    def reFilter(self):
+    def reFilter(self, light=True):
         """
         The filters on this dataset have changed, update DataSet state as
         needed
@@ -1400,10 +1404,11 @@ class DataSet(object):
         self._cachedFilters = []
         self._index = None
         self._indexMap = None
-        self.metadata.totalLength = -1
-        self.metadata.numRecords = -1
-        if self.metadata.summaryStats:
-            self.metadata.removeChildren('SummaryStats')
+        if not light:
+            self.metadata.totalLength = -1
+            self.metadata.numRecords = -1
+            if self.metadata.summaryStats:
+                self.metadata.removeChildren('SummaryStats')
 
     @property
     def numRecords(self):
@@ -1531,17 +1536,17 @@ class DataSet(object):
     def _indexRecords(self):
         raise NotImplementedError()
 
-    def assertIndex(self):
+    def assertIndexed(self):
         raise NotImplementedError()
 
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
-        populated by filtered reads"""
+        populated by filtered reads. Only pbi filters considered, however."""
         # TODO: add _getRecords for list of indices support
         if self._indexMap is None:
-            self.index
-        rr, ind = self._indexMap[index]
-        return self.resourceReaders()[rr][ind]
+            _ = self.index
+        rrNo, recNo = self._indexMap[index]
+        return self.resourceReaders()[rrNo][recNo]
 
 
 class InvalidDataSetIOError(Exception):
@@ -1602,6 +1607,9 @@ class ReadSet(DataSet):
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
+
+    def _filterType(self):
+        return 'bam'
 
     def _split_barcodes(self, chunks=0):
         """Split a readset into chunks by barcodes.
@@ -1749,7 +1757,7 @@ class ReadSet(DataSet):
         return self._unifyResponses(res)
 
     def _indexRecords(self):
-        """Yields index records summarizing all of the records in all of
+        """Returns index recarray summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
         cached in the pbi.
         """
@@ -3208,9 +3216,7 @@ class ContigSet(DataSet):
                 return contig
 
     def assertIndexed(self):
-        self._strict = True
-        self._openFiles()
-        return True
+        assert self.isIndexed
 
     @property
     def isIndexed(self):
@@ -3246,27 +3252,40 @@ class ContigSet(DataSet):
                }
 
     def _indexRecords(self):
-        """Yields index records summarizing all of the records in all of
+        """Returns index records summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
         cached in the pbi.
-        """
 
+        """
         recArrays = []
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.fai
+            indices = np.rec.fromrecords(
+                indices,
+                dtype=[('id', 'O'), ('comment', 'O'), ('header', 'O'),
+                       ('length', '<i8'), ('offset', '<i8'),
+                       ('lineWidth', '<i8'), ('stride', '<i8')])
 
-            #if not self._filters or self.noFiltering:
-            #recArrays.append(indices._tbl)
-            self._indexMap.extend([(rrNum, i) for i in
-                                    range(len(indices))])
-            #else:
+            if not self._filters or self.noFiltering:
+                recArrays.append(indices)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       range(len(indices))])
+            else:
+                # Filtration will be necessary:
+                # dummy map, the id is the name in fasta space
+                nameMap = {name: name for name in indices.id}
+
+                passes = self._filters.filterIndexRecords(indices, nameMap)
+                newInds = indices[passes]
+                recArrays.append(newInds)
+                self._indexMap.extend([(rrNum, i) for i in
+                                       np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
-        #return self._stackRecArrays(recArrays)
+        return _stackRecArrays(recArrays)
 
-    def assertIndexed(self):
-        for rr in self.resourceReaders():
-            assert type(rr) is IndexedFastaReader
+    def _filterType(self):
+        return 'fasta'
 
 
 class ReferenceSet(ContigSet):
@@ -3277,22 +3296,6 @@ class ReferenceSet(ContigSet):
     def __init__(self, *files, **kwargs):
         log.debug("Opening ReferenceSet with {f}".format(f=files))
         super(ReferenceSet, self).__init__(*files, **kwargs)
-
-    def processFilters(self):
-        # Allows us to not process all of the filters each time. This is marked
-        # as dirty (= []) by addFilters etc. Filtration can be turned off by
-        # setting this to [lambda x: True], which can be reversed by marking
-        # the cache dirty. See disableFilters/enableFilters
-        if self._cachedFilters:
-            return self._cachedFilters
-        filters = self.filters.tests(readType="fasta")
-        # Having no filters means no opportunity to pass. Fix by filling with
-        # always-true (e.g. disableFilters())
-        if not filters:
-            self._cachedFilters = [lambda x: True]
-            return self._cachedFilters
-        self._cachedFilters = filters
-        return filters
 
     @property
     def refNames(self):
