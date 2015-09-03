@@ -597,6 +597,52 @@ class TestDataSet(unittest.TestCase):
             num += 1
         self.assertTrue(num > 2000)
 
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary/Share/Quiver"),
+                         "Missing testadata directory")
+    def test_reads_in_range_order_large(self):
+        window = ('Staphylococcus_aureus_subsp_aureus_USA300_TCH1516',
+                  558500,
+                  559005)
+        log.debug("Testing with one file")
+        testFile = ("/mnt/secondary/Share/Quiver/TestData/"
+                    "staph/m140911_084715_42139_c100702390"
+                    "480000001823141103261514_s1_p0.aligned_subreads.bam")
+        aln = AlignmentSet(testFile)
+        reads1 = aln.readsInRange(*window, usePbi=False)
+        reads2 = aln.readsInRange(*window, usePbi=True)
+        num = 0
+        for r1, r2 in itertools.izip(reads1, reads2):
+            self.assertEqual(r1, r2)
+            num += 1
+        self.assertTrue(num > 100)
+
+
+        winId, winStart, winEnd = window
+        def lengthInWindow(hit):
+            return min(hit.tEnd, winEnd) - max(hit.tStart, winStart)
+
+        log.debug("Testing longest sort vs no pbi")
+        aln = AlignmentSet(testFile)
+        reads1 = aln.readsInRange(*window, usePbi=False)
+        reads2 = aln.readsInRange(*window, usePbi=True, longest=True)
+        reads1 = list(reads1)
+        reads2 = list(reads2)
+        self.assertEqual(len(reads1), len(reads2))
+        reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
+        for r1, r2 in itertools.izip(reads1, reads2):
+            self.assertEqual(r1, r2)
+
+        log.debug("Testing longest sort vs pbi")
+        aln = AlignmentSet(testFile)
+        reads1 = aln.readsInRange(*window, usePbi=True)
+        reads2 = aln.readsInRange(*window, usePbi=True, longest=True)
+        reads1 = list(reads1)
+        reads2 = list(reads2)
+        self.assertEqual(len(reads1), len(reads2))
+        reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
+        for r1, r2 in itertools.izip(reads1, reads2):
+            self.assertEqual(r1, r2)
+
     def test_filter(self):
         ds2 = AlignmentSet(data.getXml(8))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
@@ -1077,8 +1123,6 @@ class TestDataSet(unittest.TestCase):
             str(readers[0].referenceInfo('E.faecalis.1')),
             "(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482, "
             "'a1a59c267ac1341e5a12bce7a7d37bcb', 0L, 0L)")
-        for rname, i in aln.refIds.items():
-            self.assertEqual(aln.referenceInfo(rname), aln.referenceInfo(i))
         # TODO: add a bam with a different referenceInfoTable to check merging
         # and id remapping:
         #self.assertEqual(

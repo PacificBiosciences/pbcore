@@ -2519,7 +2519,12 @@ class AlignmentSet(ReadSet):
                 starts[pre] = start
                 return ends - starts
             lens = lengthInWindow(self.index[passes])
-            sort_order = lens.argsort()[::-1]
+            # I would rather use argsort, as it is faster, but quiver uses
+            # python's sort and this needs to be consistent:
+            #sort_order = lens.argsort()[::-1]
+            sort_order = [x[0] for x in sorted(enumerate(lens),
+                                               key=lambda x: x[1],
+                                               reverse=True)]
             mapPasses = mapPasses[sort_order]
         elif len(self.toExternalFiles()) > 1:
             # sort the pooled passes and indices using a stable algorithm
@@ -2771,7 +2776,6 @@ class AlignmentSet(ReadSet):
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
         name as a unique key"""
-        refName = self.guaranteeName(refName)
         # TODO: upgrade to use _referenceDict if needed
         if not self.isCmpH5:
             for row in self.referenceInfoTable:
