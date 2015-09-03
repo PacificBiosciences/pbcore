@@ -218,6 +218,14 @@ class Zmw(CommonEqualityMixin):
             raise ValueError, "No CCS reads in this file"
         return self.baxH5._ccsNumPasses[self.index]
 
+    @property
+    def numEvents(self):
+        """
+        Total number of basecall events in the ZMW
+        """
+        offsets = self.baxH5._offsetsByHole[self.holeNumber]
+        return offsets[1] - offsets[0]
+
     #
     # The following calls return one or more ZmwRead objects.
     #
@@ -249,10 +257,8 @@ class Zmw(CommonEqualityMixin):
         """
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
-        offsets = self.baxH5._offsetsByHole[self.holeNumber]
-        numEvent = offsets[1] - offsets[0]
         polymeraseBegin = 0
-        polymeraseEnd = numEvent
+        polymeraseEnd = self.numEvents
         readStart = polymeraseBegin if readStart is None else readStart
         readEnd   = polymeraseEnd   if readEnd   is None else readEnd
         return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
