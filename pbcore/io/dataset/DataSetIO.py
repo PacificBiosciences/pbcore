@@ -2519,12 +2519,9 @@ class AlignmentSet(ReadSet):
                 starts[pre] = start
                 return ends - starts
             lens = lengthInWindow(self.index[passes])
-            # I would rather use argsort, as it is faster, but quiver uses
-            # python's sort and this needs to be consistent:
-            #sort_order = lens.argsort()[::-1]
-            sort_order = [x[0] for x in sorted(enumerate(lens),
-                                               key=lambda x: x[1],
-                                               reverse=True)]
+            # reverse the keys here, so the descending sort is stable
+            lens = (end - start) - lens
+            sort_order = lens.argsort(kind='mergesort')
             mapPasses = mapPasses[sort_order]
         elif len(self.toExternalFiles()) > 1:
             # sort the pooled passes and indices using a stable algorithm
