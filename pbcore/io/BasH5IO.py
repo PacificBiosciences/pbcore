@@ -409,6 +409,8 @@ class ZmwRead(CommonEqualityMixin):
     SubstitutionQV = _makeQvAccessor("SubstitutionQV")
     SubstitutionTag = _makeQvAccessor("SubstitutionTag")
 
+    PulseIndex     = _makeQvAccessor("PulseIndex")
+
 
 class CCSZmwRead(ZmwRead):
     """
