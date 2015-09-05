@@ -440,7 +440,7 @@ class Filters(RecordWrapper):
                 'qs': (lambda x: int(x.qStart)),
                 'rq': (lambda x: int(x.MapQV)),
                 'pos': (lambda x: int(x.tStart)),
-                'accuracy': (lambda x: int(x.identity)),
+                'accuracy': (lambda x: float(x.identity)),
                 'readstart': (lambda x: int(x.aStart)),
                 'tstart': (lambda x: int(x.tEnd)), # see above
                 'tend': (lambda x: int(x.tStart)), # see above
@@ -489,7 +489,7 @@ class Filters(RecordWrapper):
                 'pos': int,
                 'tstart': int,
                 'tend': int,
-                'accuracy': int,
+                'accuracy': float,
                 'readstart': int,
                }
 

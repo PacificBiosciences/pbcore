@@ -206,13 +206,15 @@ def validate_options(parser):
 def consolidateXml(args):
     """Combine BAMs and apply the filters described in the XML file, producing
     one consolidated XML"""
-    dset = ContigSet(args.infile)
-    dset.consolidate(args.datafile)
+    dset = openDataSet(args.infile)
+    dset.consolidate(args.datafile, numFiles=args.numFiles)
     dset.write(args.xmlfile)
 
 def consolidate_options(parser):
     parser.description = 'Consolidate the XML files'
     #parser.add_argument("infile", type=validate_file,
+    parser.add_argument("--numFiles", type=int, default=1,
+                        help="The number of data files to produce (1)")
     parser.add_argument("infile", type=str,
                         help="The XML file to consolidate")
     parser.add_argument("datafile", type=str,

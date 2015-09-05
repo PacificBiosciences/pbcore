@@ -33,6 +33,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               BarcodeSetMetadata,
                                               ExternalResources,
                                               ExternalResource, Filters)
+from pbcore.io.dataset.utils import consolidateBams, _infixFname
 
 log = logging.getLogger(__name__)
 
@@ -1815,6 +1816,12 @@ class ReadSet(DataSet):
         length = sum(self.index.qEnd - self.index.qStart)
         return count, length
 
+    def _resourceSizes(self):
+        sizes = []
+        for rr in self.resourceReaders():
+            sizes.append((len(rr.index), sum(rr.index.qEnd - rr.index.qStart)))
+        return sizes
+
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
         superclass method for generic metadata. Also enforce metadata type
@@ -1832,6 +1839,39 @@ class ReadSet(DataSet):
 
         # Pull generic values, kwargs, general treatment in super
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
+
+    def consolidate(self, dataFile, numFiles=1):
+        """Consolidate a larger number of bam files to a smaller number of bam
+        files (min 1)
+
+        Args:
+            dataFile: The name of the output file. If numFiles >1 numbers will
+                      be added.
+            numFiles: The number of data files to be produced.
+
+        """
+        if numFiles > 1:
+            assert len(self.resourceReaders()) == len(self.toExternalFiles())
+            resSizes = [[i, size[0], size[1]]
+                        for i, size in enumerate(self._resourceSizes())]
+            chunks = self._chunkList(resSizes, numFiles, lambda x: x[1])
+            resLists = []
+            for chunk in chunks:
+                thisResList = []
+                for i in chunk:
+                    thisResList.append(self.toExternalFiles()[i[0]])
+                resLists.append(thisResList)
+            fnames = [_infixFname(dataFile, str(i)) for i in range(numFiles)]
+            for resList, fname in zip(resLists, fnames):
+                consolidateBams(resList, fname, filterDset=self)
+            log.debug("Replacing resources")
+            self.externalResources = ExternalResources()
+            self.addExternalResources(fnames)
+        else:
+            consolidateBams(self.toExternalFiles(), dataFile, filterDset=self)
+            log.debug("Replacing resources")
+            self.externalResources = ExternalResources()
+            self.addExternalResources([dataFile])
 
     def __len__(self):
         if self.numRecords == -1:
@@ -1926,6 +1966,9 @@ class HdfSubreadSet(ReadSet):
             else:
                 raise
 
+    def consolidate(self, dataFile, numFiles=1):
+        raise NotImplementedError()
+
     @staticmethod
     def _metaTypeMapping():
         return {'bax.h5':'PacBio.SubreadFile.BaxFile',
@@ -1972,8 +2015,6 @@ class SubreadSet(ReadSet):
 
     def __init__(self, *files, **kwargs):
         log.debug("Opening SubreadSet")
-        # until pbi's can be generated for subreadsets, this is necessary:
-        kwargs['skipCounts'] = True
         super(SubreadSet, self).__init__(*files, **kwargs)
 
     @staticmethod
@@ -2007,6 +2048,12 @@ class AlignmentSet(ReadSet):
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
+
+    def consolidate(self, *args, **kwargs):
+        if self.isCmpH5:
+            raise NotImplementedError()
+        else:
+            return super(AlignmentSet, self).consolidate(*args, **kwargs)
 
     def addReference(self, fname):
         if isinstance(fname, ReferenceSet):
@@ -2125,6 +2172,12 @@ class AlignmentSet(ReadSet):
         passes = tIds == desiredTid
         return self.index[passes]
 
+    def _resourceSizes(self):
+        sizes = []
+        for rr in self.resourceReaders():
+            sizes.append((len(rr.index), sum(rr.index.aEnd - rr.index.aStart)))
+        return sizes
+
     def _countMappedReads(self):
         """It is too slow for large datasets to use _indexReadsInReference"""
         counts = {rId: 0 for _, rId in self.refIds.items()}
@@ -2137,7 +2190,8 @@ class AlignmentSet(ReadSet):
         return tbr
 
     def _getMappedReads(self):
-        """It is too slow for large datasets to use _indexReadsInReference"""
+        """It is too slow for large datasets to use _indexReadsInReference for
+        each reference"""
         counts = {rId: 0 for _, rId in self.refIds.items()}
         for ind in self.index:
             counts[ind["tId"]].append(ind)
@@ -2497,7 +2551,6 @@ class AlignmentSet(ReadSet):
             refName: The reference name to sample
             start: The start of the target window
             end: The end of the target window
-            buffsize: (1000) The number of reads to buffer
             longest: (False) yield the longest reads first
 
         Yields:
@@ -2978,9 +3031,13 @@ class ContigSet(DataSet):
         self._metadata = ContigSetMetadata(self._metadata)
         self._updateMetadata()
 
-    def consolidate(self, outfn=None):
+    def consolidate(self, outfn=None, numFiles=1):
         """Consolidation should be implemented for window text in names and
         for filters in ContigSets"""
+
+        if numFiles != 1:
+            raise NotImplementedError(
+                "Only one output file implemented so far.")
 
         # In general "name" here refers to the contig.id only, which is why we
         # also have to keep track of comments.
@@ -3045,7 +3102,7 @@ class ContigSet(DataSet):
                 log.debug("Writing to a temp directory as no path given")
                 outdir = tempfile.mkdtemp(suffix="consolidated-contigset")
                 outfn = os.path.join(outdir,
-                                     'consolidated.contigset.xml')
+                                     'consolidated_contigs.fasta')
             with FastaWriter(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
                 for name, seq in writeMatches.items():
