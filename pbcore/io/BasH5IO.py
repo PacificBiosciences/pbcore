@@ -277,7 +277,7 @@ class Zmw(CommonEqualityMixin):
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.unclippedInsertRegions ]
+                 for (readStart, readEnd) in self.insertRegionsNoQC ]
 
     @property
     def subreads(self):
@@ -319,7 +319,7 @@ class Zmw(CommonEqualityMixin):
         if not self.baxH5.hasRawBasecalls:
             raise ValueError, "No raw reads in this file"
         return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.unclippedAdapterRegions ]
+                 for (readStart, readEnd) in self.adapterRegionsNoQC ]
 
     @property
     def ccsRead(self):
