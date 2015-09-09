@@ -1,3 +1,9 @@
+* Version 1.2.3
+- Updated for newer dataset schema
+- BAM access speed improvements
+- BGZF fixed for large bam.pbi files
+- readsInRange iteration order parity between different dataset sources
+
 * Version 1.2.2
 - Bug fixes and speed improvements to the
 - Dataset constructor APIs enhanced
