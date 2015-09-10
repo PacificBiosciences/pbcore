@@ -53,41 +53,48 @@ def filtered(generator):
     return wrapper
 
 
-def _toDsId(x):
-    return "PacBio.DataSet.{x}".format(x=x)
+def _toDsId(name):
+    """Translate a class name into a MetaType/ID"""
+    return "PacBio.DataSet.{x}".format(x=name)
 
-def _dsIdToName(x):
-    if DataSetMetaTypes.isValid(x):
-        return x.split('.')[-1]
+def _dsIdToName(dsId):
+    """Translate a MetaType/ID into a class name"""
+    if DataSetMetaTypes.isValid(dsId):
+        return dsId.split('.')[-1]
 
-def _dsIdToType(x):
-    if DataSetMetaTypes.isValid(x):
+def _dsIdToType(dsId):
+    """Translate a MetaType/ID into a type"""
+    if DataSetMetaTypes.isValid(dsId):
         types = DataSet.castableTypes()
-        return types[_dsIdToName(x)]
+        return types[_dsIdToName(dsId)]
 
-def _dsIdToSuffix(x):
+def _dsIdToSuffix(dsId):
+    """Translate a MetaType/ID into a file suffix"""
     dsIds = DataSetMetaTypes.ALL
     suffixMap = {dsId: _dsIdToName(dsId) for dsId in dsIds}
     suffixMap[_toDsId("DataSet")] = 'DataSet'
-    if DataSetMetaTypes.isValid(x):
-        suffix = suffixMap[x]
+    if DataSetMetaTypes.isValid(dsId):
+        suffix = suffixMap[dsId]
         suffix = suffix.lower()
         suffix += '.xml'
         return suffix
 
 def _typeDataSet(dset):
+    """Determine the type of a dataset from the xml file without opening it"""
     xml_rt = xmlRootType(dset)
     dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     return tbrType
 
 def openDataSet(*files, **kwargs):
+    """Factory function for DataSet types as suggested by the first XML file"""
     if not files[0].endswith('xml'):
         raise TypeError("openDataSet requires that the first file is an XML")
     tbrType = _typeDataSet(files[0])
     return tbrType(*files, **kwargs)
 
 def openDataFile(*files, **kwargs):
+    """Factory function for DataSet types determined by the first data file"""
     possibleTypes = [AlignmentSet, SubreadSet, ConsensusReadSet,
                      ConsensusAlignmentSet, ReferenceSet, HdfSubreadSet]
     origFiles = files
@@ -126,6 +133,7 @@ def openDataFile(*files, **kwargs):
                     return SubreadSet(*origFiles, **kwargs)
 
 def _stackRecArrays(recArrays):
+    """Stack recarrays into a single larger recarray"""
     tbr = np.concatenate(recArrays)
     tbr = tbr.view(np.recarray)
     return tbr
@@ -1017,7 +1025,9 @@ class DataSet(object):
             resource.timeStampedName = tsName
 
     def _getTimeStampedName(self, mType):
-        time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S")
+        mType = mType.lower()
+        mType = '_'.join(mType.split('.'))
+        time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
         return "{m}-{t}".format(m=mType, t=time)
 
     @staticmethod
@@ -1296,6 +1306,21 @@ class DataSet(object):
                     values.append(ival)
             ranges.append((movie, min(values), max(values)))
         return ranges
+
+    # FIXME this is a workaround for the lack of support for barcode chunking
+    # in pbbam, and should probably go away once that is available.
+    @property
+    def barcodes(self):
+        """Return the list of barcodes explicitly set by filters via
+        DataSet.split(barcodes=True).
+
+        """
+        barcodes = []
+        for filt in self._filters:
+            for param in filt:
+                if param.name == "bc":
+                    barcodes.append(param.value)
+        return barcodes
 
     def toFofn(self, outfn=None, uri=False, relative=False):
         """Return a list of resource filenames (and write to optional outfile)
@@ -2221,9 +2246,9 @@ class AlignmentSet(ReadSet):
                     winend = -1
                     for param in filt:
                         if param.name == 'tstart':
-                            winstart = param.value
-                        if param.name == 'tend':
                             winend = param.value
+                        if param.name == 'tend':
+                            winstart = param.value
                     # If the filter is just for rname, fill the window
                     # boundaries (pricey but worth the guaranteed behavior)
                     if winend == -1:
@@ -2498,8 +2523,8 @@ class AlignmentSet(ReadSet):
             if atoms[0][2]:
                 result.filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk],
-                    tStart=[('>', c[1]) for c in chunk],
-                    tEnd=[('<', c[2]) for c in chunk])
+                    tStart=[('<', c[2]) for c in chunk],
+                    tEnd=[('>', c[1]) for c in chunk])
             else:
                 result.filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk])

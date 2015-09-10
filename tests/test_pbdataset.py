@@ -939,19 +939,18 @@ class TestDataSet(unittest.TestCase):
             '( rname = E.faecalis.2 ) '
             in str(dss[1].filters))
         ds = AlignmentSet(data.getBam())
-        ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011'),
-                                         ('=', 'lambda_NEB3011')],
-                                  tStart=[('<', '0'),
-                                          ('<', '100')],
-                                  tEnd=[('>', '99'),
-                                        ('>', '299')])
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.2'),
+                                         ('=', 'E.faecalis.2')],
+                                  tStart=[('<', '99'),
+                                          ('<', '299')],
+                                  tEnd=[('>', '0'),
+                                        ('>', '100')])
         self.assertEqual(str(ds.filters),
-                         '( rname = lambda_NEB3011 AND tstart '
-                         '< 0 AND tend > 99 ) OR ( rname = lambd'
-                         'a_NEB3011 AND tstart < 100 AND tend > 299 )')
-        # TODO: look into swapping around refWindows to make this work:
-        #self.assertEqual(ds.refWindows, [('lambda_NEB3011', 0, 99),
-                                         #('lambda_NEB3011', 100, 299)])
+                         '( rname = E.faecalis.2 AND tstart '
+                         '< 99 AND tend > 0 ) OR ( rname = '
+                         'E.faecalis.2 AND tstart < 299 AND tend > 100 )')
+        self.assertEqual(ds.refWindows, [('E.faecalis.2', 0, 99),
+                                         ('E.faecalis.2', 100, 299)])
 
 
     def test_refLengths(self):

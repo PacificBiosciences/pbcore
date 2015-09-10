@@ -236,6 +236,11 @@ def _eleFromDictList(eleAsDict, core=False):
     """A last ditch capture method for uknown Elements"""
     if not eleAsDict['namespace']:
         eleAsDict['namespace'] = _guessNs(eleAsDict['tag'])
+    elif (eleAsDict['namespace'] ==
+            "http://pacificbiosciences.com/PacBioDataModel.xsd"):
+        newNamespace = _guessNs(eleAsDict['tag'])
+        if newNamespace != '':
+            eleAsDict['namespace'] = newNamespace
     if core:
         ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
                                              t=eleAsDict['tag']),

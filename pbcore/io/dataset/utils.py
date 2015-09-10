@@ -5,6 +5,7 @@ import os
 import tempfile
 import logging
 import json
+import shutil
 from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
@@ -36,23 +37,7 @@ def _sortBam(fname):
     o, r, m = backticks(cmd)
     if r != 0:
         raise RuntimeError(m)
-    _mvFile(tmpname, fname)
-
-def _mvFile(inFname, outFname):
-    cmd = "mv {i} {o}".format(i=inFname,
-                              o=outFname)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError(m)
-
-def _cpFile(inFname, outFname):
-    cmd = "cp {i} {o}".format(i=inFname,
-                              o=outFname)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError(m)
+    shutil.move(tmpname, fname)
 
 def _indexBam(fname):
     cmd = "samtools index {i}".format(i=fname)
@@ -70,10 +55,7 @@ def _mergeBams(inFiles, outFile):
         if r != 0:
             raise RuntimeError(m)
     else:
-        _cpFile(inFiles[0], outFile)
-
-def _maxDigits(numItems):
-    return len(str(numItems))
+        shutil.copy(inFiles[0], outFile)
 
 def _filterBam(inFile, outFile, filterDset):
     tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
@@ -91,8 +73,9 @@ def _infixFname(fname, infix):
     return prefix + infix + extension
 
 def _emitFilterScript(filterDset, filtScriptName):
-    bamtoolsFilters = ['reference', 'insertSize', 'mapQuality', 'name',
-                       'position', 'queryBases']
+    """Use the filter script feature of bamtools. Use with specific filters if
+    all that are needed are available, otherwise filter by readname (easy but
+    uselessly expensive)"""
     filterMap = {'rname': 'reference',
                  'pos': 'position',
                  'length': 'queryBases',

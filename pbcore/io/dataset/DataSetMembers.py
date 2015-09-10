@@ -427,10 +427,6 @@ class Filters(RecordWrapper):
 
     @property
     def _bamAccMap(self):
-        # tStart/tEnd is a hack for overlapping ranges. you're not testing
-        # whether the tStart/tEnd is within a range, you're testing if it
-        # overlaps with the tStart/tEnd in the filter (overlaps with a
-        # reference window)
         return {'rname': (lambda x: x.referenceName),
                 'length': (lambda x: int(x.readLength)),
                 'qname': (lambda x: x.qNameA),
@@ -442,38 +438,30 @@ class Filters(RecordWrapper):
                 'pos': (lambda x: int(x.tStart)),
                 'accuracy': (lambda x: float(x.identity)),
                 'readstart': (lambda x: int(x.aStart)),
-                'tstart': (lambda x: int(x.tEnd)), # see above
-                'tend': (lambda x: int(x.tStart)), # see above
+                'tstart': (lambda x: int(x.tStart)),
+                'tend': (lambda x: int(x.tEnd)),
                }
 
     def _pbiAccMap(self, tIdMap):
-        # tStart/tEnd is a hack for overlapping ranges. you're not testing
-        # whether the tStart/tEnd is within a range, you're testing if it
-        # overlaps with the tStart/tEnd in the filter (overlaps with a
-        # reference window)
         return {'rname': (lambda x, m=tIdMap: m[x.tId]),
                 'length': (lambda x: int(x.aEnd)-int(x.aStart)),
                 'qname': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
                 'readstart': (lambda x: int(x.aStart)),
-                'tstart': (lambda x: int(x.tEnd)), # see above
-                'tend': (lambda x: int(x.tStart)), # see above
+                'tstart': (lambda x: int(x.tStart)),
+                'tend': (lambda x: int(x.tEnd)),
                }
 
     def _pbiVecAccMap(self, tIdMap):
-        # tStart/tEnd is a hack for overlapping ranges. you're not testing
-        # whether the tStart/tEnd is within a range, you're testing if it
-        # overlaps with the tStart/tEnd in the filter (overlaps with a
-        # reference window)
         return {'rname': (lambda x, m=tIdMap: m[x.tId]),
                 'length': (lambda x: x.aEnd - x.aStart),
                 'qname': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
                 'pos': (lambda x: x.tStart),
                 'readstart': (lambda x: x.aStart),
-                'tstart': (lambda x: x.tEnd), # see above
-                'tend': (lambda x: x.tStart), # see above
+                'tstart': (lambda x: x.tStart),
+                'tend': (lambda x: x.tEnd),
                }
 
     @property
@@ -553,6 +541,10 @@ class Filters(RecordWrapper):
                 filterLastResult = np.logical_or(filterLastResult, lastResult)
                 del lastResult
         return filterLastResult
+
+    def fromString(self, filterString):
+        filtDict = {}
+        self._runCallbacks()
 
     def addRequirement(self, **kwargs):
         """Use this to add requirements. Members of the list will be considered
