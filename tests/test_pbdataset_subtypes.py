@@ -12,7 +12,7 @@ from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile)
+                       openDataFile, FastaWriter)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -145,6 +145,23 @@ class TestDataSet(unittest.TestCase):
         #ds2 = ConsensusAlignmentSet(data.getXml(20), strict=True)
         #self.assertEquals(type(ds2).__name__, 'ConsensusAlignmentSet')
         #self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
+
+    def test_contigset_write(self):
+        fasta = upstreamData.getLambdaFasta()
+        ds = ContigSet(fasta)
+        self.assertTrue(isinstance(ds.resourceReaders()[0],
+                                   IndexedFastaReader))
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, 'test.fasta')
+        print outfn
+        w = FastaWriter(outfn)
+        for rec in ds:
+            w.writeRecord(rec)
+        w.close()
+        fas = FastaReader(outfn)
+        for rec in fas:
+            # make sure a __repr__ didn't slip through:
+            self.assertFalse(rec.sequence.startswith('<'))
 
     def test_file_factory(self):
         # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
