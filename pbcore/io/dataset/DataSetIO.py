@@ -63,12 +63,16 @@ def _dsIdToName(dsId):
     """Translate a MetaType/ID into a class name"""
     if DataSetMetaTypes.isValid(dsId):
         return dsId.split('.')[-1]
+    else:
+        raise InvalidDataSetIOError("Invalid DataSet MetaType")
 
 def _dsIdToType(dsId):
     """Translate a MetaType/ID into a type"""
     if DataSetMetaTypes.isValid(dsId):
         types = DataSet.castableTypes()
         return types[_dsIdToName(dsId)]
+    else:
+        raise InvalidDataSetIOError("Invalid DataSet MetaType")
 
 def _dsIdToSuffix(dsId):
     """Translate a MetaType/ID into a file suffix"""
@@ -80,6 +84,8 @@ def _dsIdToSuffix(dsId):
         suffix = suffix.lower()
         suffix += '.xml'
         return suffix
+    else:
+        raise InvalidDataSetIOError("Invalid DataSet MetaType")
 
 def _typeDataSet(dset):
     """Determine the type of a dataset from the xml file without opening it"""
@@ -87,6 +93,14 @@ def _typeDataSet(dset):
     dsId = _toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     return tbrType
+
+def isDataSet(xmlfile):
+    """Determine if a file is a DataSet before opening it"""
+    try:
+        _typeDataSet(xmlfile)
+        return True
+    except:
+        return False
 
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first XML file"""
