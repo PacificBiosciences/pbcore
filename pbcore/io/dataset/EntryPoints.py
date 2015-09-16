@@ -2,6 +2,7 @@
 
 import os
 import argparse
+from collections import defaultdict
 from pbcore.io import DataSet, ContigSet, openDataSet
 from pbcore.io.dataset.DataSetValidator import validateFile
 import logging
@@ -51,20 +52,19 @@ def create_options(parser):
     parser.set_defaults(func=createXml)
 
 def filterXml(args):
-    log.error("Adding filters via CLI is temporarily out of order")
-    exit(1)
     if args.infile.endswith('xml'):
         dataSet = openDataSet(args.infile, strict=args.strict)
-        filters = []
+        filters = defaultdict(list)
         separators = ['<=', '>=', '!=', '==', '>', '<', '=']
         for filt in args.filters:
             for sep in separators:
                 if sep in filt:
                     param, condition = filt.split(sep)
-                    condition = sep + condition
-                    filters[param] = condition
+                    condition = (sep, condition)
+                    filters[param].append(condition)
                     break
-        dataSet.addFilters([filters])
+        dataSet.filters.addRequirement(**filters)
+        dataSet.updateCounts()
         log.info("{i} filters added".format(i=len(filters)))
         dataSet.write(args.outfile)
     else:

@@ -46,6 +46,13 @@ def _indexBam(fname):
     if r != 0:
         raise RuntimeError(m)
 
+def _indexFasta(fname):
+    cmd = "samtools faidx {i}".format(i=fname)
+    log.info(cmd)
+    o, r, m = backticks(cmd)
+    if r != 0:
+        raise RuntimeError(m)
+
 def _mergeBams(inFiles, outFile):
     if len(inFiles) > 1:
         cmd = "bamtools merge -in {i} -out {o}".format(i=' -in '.join(inFiles),

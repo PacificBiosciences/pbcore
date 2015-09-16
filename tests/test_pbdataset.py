@@ -7,6 +7,7 @@ import tempfile
 
 import numpy as np
 import unittest
+import shutil
 from unittest.case import SkipTest
 
 from pbcore.io import PacBioBamIndex, IndexedBamReader
@@ -21,6 +22,29 @@ from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 
 log = logging.getLogger(__name__)
+
+def _check_constools():
+    cmd = "bamtools"
+    o, r, m = backticks(cmd)
+    if r != 0:
+        return False
+
+    cmd = "pbindex"
+    o, r, m = backticks(cmd)
+    if r != 1:
+        return False
+
+    cmd = "samtools"
+    o, r, m = backticks(cmd)
+    if r != 1:
+        return False
+    return True
+
+def _internal_data():
+    if os.path.exists("/mnt/secondary-siv/testdata"):
+        return True
+    return False
+
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -92,6 +116,27 @@ class TestDataSet(unittest.TestCase):
             os.path.join(outdir, os.path.basename(data.getXml(15)))))
         self.assertTrue(os.path.exists(
             os.path.join(outdir, os.path.basename(data.getXml(16)))))
+
+    def test_filter_cli(self):
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, "filtered8.xml")
+        cmd = "dataset.py filter {i} {o} {f}".format(
+            i=data.getXml(8),
+            o=outfn,
+            f="rname=E.faecalis.1")
+        log.debug(cmd)
+        o, r, m = backticks(cmd)
+        if r != 0:
+            log.debug(m)
+        self.assertEqual(r, 0)
+        self.assertTrue(os.path.exists(outfn))
+        aln = AlignmentSet(data.getXml(8))
+        aln.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        aln.updateCounts()
+        dset = AlignmentSet(outfn)
+        self.assertEqual(str(aln.filters), str(dset.filters))
+        self.assertEqual(aln.totalLength, dset.totalLength)
+        self.assertEqual(aln.numRecords, dset.numRecords)
 
     def test_create_cli(self):
         log.debug("Absolute")
@@ -1081,6 +1126,28 @@ class TestDataSet(unittest.TestCase):
             aln = openDataSet(data.getXml(fileNo))
             for i, item in enumerate(aln):
                 self.assertEqual(item, aln[i])
+
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
+    def test_induce_indices(self):
+        # all of our test files are indexed. Copy just the main files to a temp
+        # location, open as dataset, assert unindexed, open with
+        # generateIndices=True, assert indexed
+        toTest = [8, 9, 10, 11, 12, 15, 16]
+        for fileNo in toTest:
+            outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+            orig_dset = openDataSet(data.getXml(fileNo))
+            resfnames = orig_dset.toExternalFiles()
+            new_resfnames = []
+            for fname in resfnames:
+                newfname = os.path.join(outdir, os.path.basename(fname))
+                shutil.copy(fname, newfname)
+                new_resfnames.append(newfname)
+            dset = type(orig_dset)(*new_resfnames)
+            self.assertFalse(dset.isIndexed)
+            dset = type(orig_dset)(*new_resfnames, generateIndices=True)
+            self.assertTrue(dset.isIndexed)
+
 
     def test_reads_in_reference(self):
         ds = AlignmentSet(data.getBam())

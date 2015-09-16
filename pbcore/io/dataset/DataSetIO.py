@@ -34,7 +34,8 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               BarcodeSetMetadata,
                                               ExternalResources,
                                               ExternalResource, Filters)
-from pbcore.io.dataset.utils import consolidateBams, _infixFname
+from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
+                                     _indexBam, _indexFasta)
 
 log = logging.getLogger(__name__)
 
@@ -240,6 +241,7 @@ class DataSet(object):
         """
         self._strict = kwargs.get('strict', False)
         self._skipCounts = kwargs.get('skipCounts', False)
+        _induceIndices = kwargs.get('generateIndices', False)
 
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
@@ -334,6 +336,13 @@ class DataSet(object):
                 self.updateCounts()
             elif self.totalLength <= 0 or self.numRecords <= 0:
                 self.updateCounts()
+
+        # generate indices if requested and needed
+        if _induceIndices:
+            self._induceIndices()
+
+    def _induceIndices(self):
+        raise NotImplementedError()
 
     def __repr__(self):
         """Represent the dataset with an informative string:
@@ -1605,6 +1614,22 @@ class ReadSet(DataSet):
         super(ReadSet, self).__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
+    def _induceIndices(self):
+        for res in self.externalResources:
+            fname = res.resourceId
+            if not res.pbi:
+                _pbindexBam(fname)
+                self.close()
+            if not res.bai:
+                _indexBam(fname)
+                self.close()
+
+    @property
+    def isIndexed(self):
+        if self.hasPbi:
+            return True
+        return False
+
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
@@ -1945,6 +1970,13 @@ class HdfSubreadSet(ReadSet):
         self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
             self.objMetadata["MetaType"])
 
+    def _induceIndices(self):
+        log.debug("Bax files already indexed")
+
+    @property
+    def isIndexed(self):
+        return True
+
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
@@ -2080,6 +2112,19 @@ class AlignmentSet(ReadSet):
             raise NotImplementedError()
         else:
             return super(AlignmentSet, self).consolidate(*args, **kwargs)
+
+    def _induceIndices(self):
+        if self.isCmpH5:
+            log.debug("Cmp.h5 files already indexed")
+        else:
+            return super(AlignmentSet, self)._induceIndices()
+
+    @property
+    def isIndexed(self):
+        if self.isCmpH5:
+            return True
+        else:
+            return super(AlignmentSet, self).isIndexed
 
     def addReference(self, fname):
         if isinstance(fname, ReferenceSet):
@@ -3185,6 +3230,12 @@ class ContigSet(DataSet):
             name, suff = self._popSuffix(name)
             return '_'.join(name.split('_')[:-2]) + suff
         return name
+
+    def _induceIndices(self):
+        if not self.isIndexed:
+            for fname in self.toExternalFiles():
+                _indexFasta(fname)
+            self.close()
 
     def _parseWindow(self, name):
         """Chunking and quivering appends a window to the contig ID, which
