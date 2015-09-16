@@ -92,16 +92,25 @@ class PacBioBamIndex(object):
             ("nMM"               , "u4"),
             ("mapQV"             , "u1") ]
 
+        BARCODE_INDEX_DTYPE = [
+            ("bcLeft"            , "u2"),
+            ("bcRight"           , "u2"),
+            ("bcQual"            , "u1"),
+            ("contextFlag"       , "u1")]
+
         COMPUTED_COLUMNS_DTYPE = [
             ("nIns"              , "u4"),
             ("nDel"              , "u4") ]
 
-        JOINT_DTYPE = SUBREADS_INDEX_DTYPE + MAPPING_INDEX_DTYPE + COMPUTED_COLUMNS_DTYPE
+        joint_dtype = SUBREADS_INDEX_DTYPE[:]
 
         if self.hasMappingInfo:
-            tbl = np.zeros(shape=(self.nReads,), dtype=JOINT_DTYPE).view(np.recarray)
-        else:
-            tbl = np.zeros(shape=(self.nReads,), dtype=SUBREADS_INDEX_DTYPE).view(np.recarray)
+            joint_dtype += MAPPING_INDEX_DTYPE
+            joint_dtype += COMPUTED_COLUMNS_DTYPE
+        if self.hasAdapterInfo:
+            joint_dtype += BARCODE_INDEX_DTYPE
+        tbl = np.zeros(shape=(self.nReads,),
+                       dtype=joint_dtype).view(np.recarray)
 
         def peek(type_, length):
             flavor, width = type_
@@ -119,6 +128,10 @@ class PacBioBamIndex(object):
             # Computed columns
             tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
             tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
+
+        if self.hasAdapterInfo:
+            for columnName, columnType in BARCODE_INDEX_DTYPE:
+                tbl[columnName] = peek(columnType, self.nReads)
 
         self._tbl = tbl
         self._checkForBrokenColumns()

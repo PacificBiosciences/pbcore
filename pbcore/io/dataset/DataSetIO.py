@@ -10,6 +10,7 @@ import copy
 import os
 import errno
 import logging
+import itertools
 import xml.dom.minidom
 import tempfile
 from functools import wraps
@@ -1570,7 +1571,6 @@ class DataSet(object):
                     raise IOError(errno.EIO, "File not indexed", fname)
         return True
 
-
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads. Only pbi filters considered, however."""
@@ -1632,12 +1632,12 @@ class ReadSet(DataSet):
                         location, referenceFastaFname=refFile)
                 else:
                     raise
-            #if resource is None:
-                #assert not self._strict
-                #resource = openAlignmentFile(
-                    #location, referenceFastaFname=refFile)
-            if not resource.isEmpty:
-                self._openReaders.append(resource)
+            try:
+                if not resource.isEmpty:
+                    self._openReaders.append(resource)
+            except UnavailableFeature: # isEmpty requires bai
+                if list(itertools.islice(resource, 1)):
+                    self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable or reads found")
         log.debug("Done opening resources")
@@ -1670,10 +1670,10 @@ class ReadSet(DataSet):
 
         """
         # Find all possible barcodes and counts for each
-        # TODO: switch this over to the pbi when bc information is exposed
+        self.assertIndexed()
         barcodes = defaultdict(int)
-        for read in self.records:
-            barcodes[tuple(read.peer.opt("bc"))] += 1
+        for bcTuple in itertools.izip(self.index.bcLeft, self.index.bcRight):
+            barcodes[bcTuple] += 1
 
         log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
 
@@ -1702,6 +1702,7 @@ class ReadSet(DataSet):
         log.debug("Generating new UUID")
         for result in results:
             result.newUuid()
+        # TODO: updateCounts
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
@@ -2390,7 +2391,7 @@ class AlignmentSet(ReadSet):
         return shiftedAtoms
 
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
-                       targetSize=5000, byRecords=True, updateCounts=True):
+                       targetSize=5000, byRecords=False, updateCounts=True):
         """Split a dataset into reference windows based on contigs.
 
         Args:
@@ -2421,21 +2422,21 @@ class AlignmentSet(ReadSet):
                          for rn in refNames
                          if len(self._indexReadsInReference(rn)) != 0]
             else:
-                atoms = [(rn, 0, 0) for rn in refNames if
+                atoms = [(rn, 0, refLens[rn]) for rn in refNames if
                          len(self._indexReadsInReference(rn)) != 0]
         else:
             log.debug("Skipping records for each reference check")
-            atoms = [(rn, 0, 0) for rn in refNames]
+            atoms = [(rn, 0, refLens[rn]) for rn in refNames]
             if byRecords:
                 log.debug("Counting records...")
                 # This is getting out of hand, but the number of references
                 # determines the best read counting algorithm:
                 if len(refNames) < 100:
-                    atoms = [(rn, 0, 0, self.countRecords(rn))
+                    atoms = [(rn, 0, refLens[rn], self.countRecords(rn))
                              for rn in refNames]
                 else:
                     counts = self._countMappedReads()
-                    atoms = [(rn, 0, 0, counts[rn]) for rn in refNames]
+                    atoms = [(rn, 0, refLens[rn], counts[rn]) for rn in refNames]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
         if byRecords:
@@ -2498,6 +2499,27 @@ class AlignmentSet(ReadSet):
                 sub_segments.append(tmp)
                 segments.extend(sub_segments)
             atoms = segments
+        elif breakContigs and not byRecords:
+            log.debug("Checking for oversized chunks")
+            # we may have chunks <= len(atoms). We wouldn't usually split up
+            # contigs, but some might be huge, resulting in some tasks running
+            # very long
+            # We are only doing this for refLength splits for now, as those are
+            # cheap (and quiver is linear in length not coverage)
+            dataSize = sum(refLens.values())
+            # target size per chunk:
+            target = dataSize/chunks
+            log.debug("Target chunk length: {t}".format(t=target))
+            newAtoms = []
+            for i, atom in enumerate(atoms):
+                testAtom = atom
+                while testAtom[2] - testAtom[1] > target:
+                    newAtom1 = (testAtom[0], testAtom[1], testAtom[1] + target)
+                    newAtom2 = (testAtom[0], testAtom[1] + target, testAtom[2])
+                    newAtoms.append(newAtom1)
+                    testAtom = newAtom2
+                newAtoms.append(testAtom)
+                atoms = newAtoms
 
         log.debug("Done defining {n} chunks".format(n=chunks))
         # duplicate
@@ -2514,7 +2536,8 @@ class AlignmentSet(ReadSet):
         log.debug("Distributing chunks")
         # if we didn't have to split atoms and are doing it byRecords, the
         # original counts are still valid:
-        # Now well have to count records again to recombine atoms
+        #
+        # Otherwise we'll now have to count records again to recombine atoms
         chunks = self._chunkList(atoms, chunks, balanceKey)
 
         log.debug("Done chunking")

@@ -27,7 +27,8 @@ XML_FILES = ["alignment.dataset.xml", #0
             ]
 BAM_FILES = ["pbalchemysim0.pbalign.bam",
              "pbalchemysim1.pbalign.bam",
-             os.path.join('..', 'bam_mapping.bam')]
+             os.path.join('..', 'bam_mapping.bam'),
+             "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.subreads.fake_bc.bam"]
 STATS_FILES = [
     "m150430_142051_Mon_p1_b25.sts.xml",
     "m150616_053259_ethan_c100710482550000001823136404221563_s1_p0.sts.xml"]
@@ -60,3 +61,6 @@ def getSubreadSet():
 
 def getHdfSubreadSet():
     return _getAbsPath(XML_FILES[7])
+
+def getBarcodedBam():
+    return _getAbsPath(BAM_FILES[3])

@@ -9,6 +9,7 @@ import numpy as np
 import unittest
 from unittest.case import SkipTest
 
+from pbcore.io import PacBioBamIndex, IndexedBamReader
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet)
@@ -213,6 +214,24 @@ class TestDataSet(unittest.TestCase):
         aln = AlignmentSet(tempout, strict=False)
         self.assertEqual(aln.totalLength, -1)
         self.assertEqual(aln.numRecords, -1)
+
+    # TODO: replace this with a reproducable bam file and move test upstream
+    def test_barcode_accession(self):
+        testFile = data.getBarcodedBam()
+        # Test the pbi file:
+        bam = IndexedBamReader(testFile)
+        pbi = PacBioBamIndex(testFile + '.pbi')
+        for brec, prec in zip(bam, pbi):
+            brec_bc = brec.peer.opt("bc")
+            prec_bc = [prec.bcLeft, prec.bcRight]
+            self.assertEqual(brec_bc, prec_bc)
+
+        # Test split by barcode:
+        ss = SubreadSet(testFile)
+        sss = ss.split(chunks=2, barcodes=True)
+        self.assertEqual(len(sss), 2)
+        for sset in sss:
+            self.assertTrue(len(sset.barcodes) > 1)
 
     def test_attributes(self):
         aln = AlignmentSet(data.getBam(0))
@@ -811,7 +830,7 @@ class TestDataSet(unittest.TestCase):
         dss = ds3.split(contigs=True, chunks=3, updateCounts=True)
         self.assertEqual(len(dss), 3)
         sizes = sorted([dset.numRecords for dset in dss])
-        self.assertListEqual(sizes, [22, 31, 39])
+        self.assertListEqual(sizes, [20, 24, 48])
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:
@@ -933,10 +952,10 @@ class TestDataSet(unittest.TestCase):
         log.debug(dss[0].filters)
         log.debug(dss[1].filters)
         self.assertTrue(
-            '( rname = E.faecalis.2 ) '
+            '( rname = E.faecalis.2 '
             in str(dss[0].filters)
             or
-            '( rname = E.faecalis.2 ) '
+            '( rname = E.faecalis.2 '
             in str(dss[1].filters))
         ds = AlignmentSet(data.getBam())
         ds.filters.addRequirement(rname=[('=', 'E.faecalis.2'),
