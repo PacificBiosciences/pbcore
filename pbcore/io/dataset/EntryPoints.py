@@ -25,7 +25,13 @@ def summarize_options(parser):
 def createXml(args):
     dsTypes = DataSet.castableTypes()
     dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
-                                skipCounts=args.skipCounts)
+                                skipCounts=args.skipCounts,
+                                generateIndices=args.generateIndices)
+    if args.generateIndices:
+        # we generated the indices with the last open, lets capture them with
+        # this one:
+        dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
+                                    skipCounts=args.skipCounts)
     log.debug("Dataset created")
     dset.write(args.outfile, validate=args.novalidate, modPaths=True,
                relPaths=args.relative)
@@ -43,6 +49,8 @@ def create_options(parser):
                         help="The fofn or BAM file(s) to make into an XML")
     parser.add_argument("--type", type=str, default='DataSet',
                         dest='dsType', help="The type of XML to create")
+    parser.add_argument("--generateIndices", action='store_true',
+                        default=False, help="The type of XML to create")
     parser.add_argument("--novalidate", action='store_false', default=True,
                         help=("Don't validate the resulting XML, don't touch "
                               "paths"))

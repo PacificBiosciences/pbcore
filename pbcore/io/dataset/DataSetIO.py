@@ -3212,6 +3212,7 @@ class ContigSet(DataSet):
                     if writeComments[name]:
                         name = ' '.join([name, writeComments[name]])
                     outfile.writeRecord(name, seq)
+            _indexFasta(outfn)
             # replace resources
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()

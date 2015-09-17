@@ -398,8 +398,9 @@ class TestDataSet(unittest.TestCase):
 
         # open acc and compare to exp
         for name, seq in zip(singletons, exp_single_seqs):
-            self.assertEqual(acc_file.get_contig(name).sequence, seq)
-        self.assertEqual(acc_file.get_contig(double).sequence, exp_double_seq)
+            self.assertEqual(acc_file.get_contig(name).sequence[:], seq)
+        self.assertEqual(acc_file.get_contig(double).sequence[:],
+                         exp_double_seq)
 
 
     def test_split_hdfsubreadset(self):

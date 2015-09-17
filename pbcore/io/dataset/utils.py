@@ -6,6 +6,7 @@ import tempfile
 import logging
 import json
 import shutil
+import pysam
 from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
@@ -55,18 +56,10 @@ def _sortBam(fname):
     shutil.move(tmpname, fname)
 
 def _indexBam(fname):
-    cmd = "samtools index {i}".format(i=fname)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError(m)
+    pysam.index(fname)
 
 def _indexFasta(fname):
-    cmd = "samtools faidx {i}".format(i=fname)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError(m)
+    pysam.faidx(fname)
 
 def _mergeBams(inFiles, outFile):
     if len(inFiles) > 1:
