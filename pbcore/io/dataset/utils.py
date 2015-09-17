@@ -10,9 +10,20 @@ from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
 
-def consolidateBams(inFiles, outFile, filterDset=None):
+def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
     """Take a list of infiles, an outFile to produce, and optionally a dataset
     (filters) to provide the definition and content of filtrations."""
+    if useTmp:
+        tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
+        tmpInFiles = []
+        for i, fname in enumerate(inFiles):
+            newfn = os.path.join(tmpout, _infixFname("file.bam", str(i)))
+            shutil.copy(fname, newfn)
+            tmpInFiles.append(newfn)
+        origOutFile = outFile
+        inFiles = tmpInFiles
+        outFile = os.path.join(tmpout, "outfile.bam")
+
     if filterDset and filterDset.filters:
         finalOutfile = outFile
         outFile = _infixFname(outFile, "_unfiltered")
@@ -22,6 +33,10 @@ def consolidateBams(inFiles, outFile, filterDset=None):
         outFile = finalOutfile
     _indexBam(outFile)
     _pbindexBam(outFile)
+    if useTmp:
+        shutil.copy(outFile, origOutFile)
+        shutil.copy(outFile + ".bai", origOutFile + ".bai")
+        shutil.copy(outFile + ".pbi", origOutFile + ".pbi")
 
 def _pbindexBam(fname):
     cmd = "pbindex {i}".format(i=fname)

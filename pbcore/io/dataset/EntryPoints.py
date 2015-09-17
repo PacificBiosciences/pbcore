@@ -207,7 +207,8 @@ def consolidateXml(args):
     """Combine BAMs and apply the filters described in the XML file, producing
     one consolidated XML"""
     dset = openDataSet(args.infile)
-    dset.consolidate(args.datafile, numFiles=args.numFiles)
+    dset.consolidate(args.datafile, numFiles=args.numFiles, useTmp=(not
+                     args.noTmp))
     dset.write(args.xmlfile)
 
 def consolidate_options(parser):
@@ -215,6 +216,9 @@ def consolidate_options(parser):
     #parser.add_argument("infile", type=validate_file,
     parser.add_argument("--numFiles", type=int, default=1,
                         help="The number of data files to produce (1)")
+    parser.add_argument("--noTmp", default=False, action='store_true',
+                        help="Don't copy to a tmp location to ensure local"
+                             " disk use")
     parser.add_argument("infile", type=str,
                         help="The XML file to consolidate")
     parser.add_argument("datafile", type=str,

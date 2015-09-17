@@ -1900,7 +1900,7 @@ class ReadSet(DataSet):
         # Pull generic values, kwargs, general treatment in super
         super(ReadSet, self).addMetadata(newMetadata, **kwargs)
 
-    def consolidate(self, dataFile, numFiles=1):
+    def consolidate(self, dataFile, numFiles=1, useTmp=True):
         """Consolidate a larger number of bam files to a smaller number of bam
         files (min 1)
 
@@ -1923,12 +1923,13 @@ class ReadSet(DataSet):
                 resLists.append(thisResList)
             fnames = [_infixFname(dataFile, str(i)) for i in range(numFiles)]
             for resList, fname in zip(resLists, fnames):
-                consolidateBams(resList, fname, filterDset=self)
+                consolidateBams(resList, fname, filterDset=self, useTmp=useTmp)
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources(fnames)
         else:
-            consolidateBams(self.toExternalFiles(), dataFile, filterDset=self)
+            consolidateBams(self.toExternalFiles(), dataFile, filterDset=self,
+                            useTmp=useTmp)
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([dataFile])
