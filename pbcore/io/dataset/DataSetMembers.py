@@ -992,7 +992,6 @@ class DataSetMetadata(RecordWrapper):
             else:
                 self.append(other.summaryStats)
         if not self.namespace:
-            print "HERE"
             self.namespace = other.namespace
             self.attrib.update(other.attrib)
 

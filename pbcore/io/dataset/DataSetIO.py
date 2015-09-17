@@ -413,9 +413,7 @@ class DataSet(object):
                 self.__class__.__name__ == 'DataSet'):
             # determine whether or not this is the merge that is populating a
             # dataset for the first time
-            firstIn = False
-            if len(self.externalResources) == 0:
-                firstIn = True
+            firstIn = True if len(self.externalResources) == 0 else False
 
             # Block on filters?
             if (not firstIn and
@@ -439,6 +437,17 @@ class DataSet(object):
             else:
                 result = self
 
+            # If this dataset has no subsets representing it, add self as a
+            # subdataset to the result
+            # TODO: this is a stopgap to prevent spurious subdatasets when
+            # creating datasets from dataset xml files...
+            if not self.subdatasets and not firstIn:
+                result.addDatasets(self.copy())
+
+            # add subdatasets
+            if other.subdatasets or not firstIn:
+                result.addDatasets(other.copy())
+
             # add in the metadata (not to be confused with obj metadata)
             if firstIn:
                 result.metadata = other.metadata
@@ -452,20 +461,6 @@ class DataSet(object):
 
             # DataSets may only be merged if they have identical filters,
             # So there is nothing new to add.
-
-            # If this dataset has no subsets representing it, add self as a
-            # subdataset to the result
-            # TODO: this is a stopgap to prevent spurious subdatasets when
-            # creating datasets from dataset xml files...
-            if not self.subdatasets and not firstIn:
-                result.addDatasets(self.copy())
-
-            # add subdatasets
-            if other.subdatasets or not firstIn:
-                #if copyOnMerge:
-                result.addDatasets(other.copy())
-                #else:
-                    #result.addDatasets(other)
 
             return result
         else:

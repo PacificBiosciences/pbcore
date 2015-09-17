@@ -234,6 +234,8 @@ def _guessNs(tag):
 
 def _eleFromDictList(eleAsDict, core=False):
     """A last ditch capture method for uknown Elements"""
+    if eleAsDict['tag'] == 'DataSets':
+        print eleAsDict['namespace']
     if not eleAsDict['namespace']:
         eleAsDict['namespace'] = _guessNs(eleAsDict['tag'])
     elif (eleAsDict['namespace'] ==
@@ -274,9 +276,13 @@ def _addDataSetsElement(dataset, root):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataset.subdatasets:
-        dse = ET.SubElement(root, 'DataSets')
+        rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+                                   t='DataSets')
+        dse = ET.SubElement(root, rootType)
         for subSet in dataset.subdatasets:
-            subSetRoot = ET.SubElement(dse, subSet.__class__.__name__,
+            rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+                                           t=subSet.__class__.__name__)
+            subSetRoot = ET.SubElement(dse, rootType,
                                        subSet.objMetadata)
             _toElementTree(subSet, subSetRoot)
 

@@ -138,6 +138,45 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, dset.totalLength)
         self.assertEqual(aln.numRecords, dset.numRecords)
 
+    def test_merge_subdatasets(self):
+        # from data file
+        ds1 = AlignmentSet(data.getBam(0))
+        self.assertEqual(len(ds1.subdatasets), 0)
+        ds2 = AlignmentSet(data.getBam(1))
+        self.assertEqual(len(ds1.subdatasets), 0)
+        merged = ds1 + ds2
+        self.assertEqual(len(merged.subdatasets), 2)
+        self.assertEqual(merged.subdatasets[0].toExternalFiles(),
+                         AlignmentSet(data.getBam(0)).toExternalFiles())
+        self.assertEqual(len(merged.subdatasets[0].toExternalFiles()), 1)
+        self.assertEqual(merged.subdatasets[1].toExternalFiles(),
+                         AlignmentSet(data.getBam(1)).toExternalFiles())
+        self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
+
+        # from data set
+        ds1 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(ds1.subdatasets), 0)
+        ds2 = AlignmentSet(data.getXml(11))
+        self.assertEqual(len(ds2.subdatasets), 0)
+        merged = ds1 + ds2
+        self.assertEqual(len(merged.subdatasets), 2)
+        self.assertEqual(merged.subdatasets[0].toExternalFiles(),
+                         AlignmentSet(data.getXml(8)).toExternalFiles())
+        self.assertEqual(len(merged.subdatasets[0].toExternalFiles()), 1)
+        self.assertEqual(merged.subdatasets[1].toExternalFiles(),
+                         AlignmentSet(data.getXml(11)).toExternalFiles())
+        self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
+
+        # combined data set
+        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        self.assertEqual(len(merged.subdatasets), 2)
+        self.assertEqual(len(merged.subdatasets[0].toExternalFiles()), 1)
+        self.assertEqual(merged.subdatasets[0].toExternalFiles(),
+                         AlignmentSet(data.getXml(8)).toExternalFiles())
+        self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
+        self.assertEqual(merged.subdatasets[1].toExternalFiles(),
+                         AlignmentSet(data.getXml(11)).toExternalFiles())
+
     def test_create_cli(self):
         log.debug("Absolute")
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
