@@ -14,16 +14,18 @@ log = logging.getLogger(__name__)
 def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
     """Take a list of infiles, an outFile to produce, and optionally a dataset
     (filters) to provide the definition and content of filtrations."""
+    # check space available
     if useTmp:
         tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
-        tmpInFiles = []
-        for i, fname in enumerate(inFiles):
-            newfn = os.path.join(tmpout, _infixFname("file.bam", str(i)))
-            shutil.copy(fname, newfn)
-            tmpInFiles.append(newfn)
-        origOutFile = outFile
-        inFiles = tmpInFiles
-        outFile = os.path.join(tmpout, "outfile.bam")
+        if (disk_free(os.path.split(outFile)[0]) >
+                sum(file_size(infn) for infn in inFiles)):
+            tmpInFiles = _tmpFiles(inFiles, tmpout)
+            origOutFile = outFile
+            origInFiles = inFiles[:]
+            inFiles = tmpInFiles
+            outFile = os.path.join(tmpout, "outfile.bam")
+        else:
+            useTmp = False
 
     if filterDset and filterDset.filters:
         finalOutfile = outFile
@@ -38,6 +40,25 @@ def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
         shutil.copy(outFile, origOutFile)
         shutil.copy(outFile + ".bai", origOutFile + ".bai")
         shutil.copy(outFile + ".pbi", origOutFile + ".pbi")
+
+def _tmpFiles(inFiles, tmpout=None):
+    tmpInFiles = []
+    if tmpout is None:
+        tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
+    for i, fname in enumerate(inFiles):
+        newfn = os.path.join(tmpout, os.path.basename(fname))
+        shutil.copy(fname, newfn)
+        tmpInFiles.append(newfn)
+    return tmpInFiles
+
+def disk_free(path):
+    if path == '':
+        path = os.getcwd()
+    space = os.statvfs(path)
+    return space.f_bavail * space.f_frsize
+
+def file_size(path):
+    return os.stat(path).st_size
 
 def _pbindexBam(fname):
     cmd = "pbindex {i}".format(i=fname)
