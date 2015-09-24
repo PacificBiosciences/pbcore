@@ -24,6 +24,11 @@ import pbcore.data.datasets as data
 log = logging.getLogger(__name__)
 
 def _check_constools():
+    cmd = "dataset.py"
+    o, r, m = backticks(cmd)
+    if r != 2:
+        return False
+
     cmd = "bamtools"
     o, r, m = backticks(cmd)
     if r != 0:
@@ -104,6 +109,8 @@ class TestDataSet(unittest.TestCase):
             ds.externalResources[-1].indices[0].resourceId ==
             "IdontExist.bam.pbi")
 
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
     def test_split_cli(self):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         cmd = "dataset.py split --outdir {o} --contigs --chunks 2 {d}".format(
@@ -117,6 +124,8 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(os.path.exists(
             os.path.join(outdir, os.path.basename(data.getXml(16)))))
 
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
     def test_filter_cli(self):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, "filtered8.xml")
@@ -177,6 +186,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(merged.subdatasets[1].toExternalFiles(),
                          AlignmentSet(data.getXml(11)).toExternalFiles())
 
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
     def test_create_cli(self):
         log.debug("Absolute")
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")

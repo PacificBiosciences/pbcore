@@ -650,7 +650,7 @@ class DataSet(object):
 
     def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
               maxChunks=0, breakContigs=False, targetSize=5000, zmws=False,
-              barcodes=False, byRecords=False, updateCounts=False):
+              barcodes=False, byRecords=False, updateCounts=True):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -682,6 +682,13 @@ class DataSet(object):
             breakContigs: Whether or not to break contigs when using maxChunks.
                           If True, something resembling an efficient number of
                           chunks for the dataset size will be produced.
+            targetSize: The target number of reads per chunk, when using
+                        byRecords
+            zmws: Split by zmws
+            barcodes: Split by barcodes
+            byRecords: Split contigs by mapped records, rather than reference
+                       length
+            updateCounts: Update the count metadata in each chunk
         Returns:
             A list of new DataSet objects (all other information deep copied).
 
@@ -1930,6 +1937,7 @@ class ReadSet(DataSet):
         else:
             consolidateBams(self.toExternalFiles(), dataFile, filterDset=self,
                             useTmp=useTmp)
+            # TODO: add as subdatasets
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([dataFile])
@@ -2491,7 +2499,8 @@ class AlignmentSet(ReadSet):
                              for rn in refNames]
                 else:
                     counts = self._countMappedReads()
-                    atoms = [(rn, 0, refLens[rn], counts[rn]) for rn in refNames]
+                    atoms = [(rn, 0, refLens[rn], counts[rn])
+                             for rn in refNames]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
         if byRecords:

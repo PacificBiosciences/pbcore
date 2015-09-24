@@ -46,7 +46,7 @@ def _tmpFiles(inFiles, tmpout=None):
     if tmpout is None:
         tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
     for i, fname in enumerate(inFiles):
-        newfn = os.path.join(tmpout, os.path.basename(fname))
+        newfn = _infixFname(os.path.join(tmpout, os.path.basename(fname)), i)
         shutil.copy(fname, newfn)
         tmpInFiles.append(newfn)
     return tmpInFiles
@@ -106,7 +106,7 @@ def _filterBam(inFile, outFile, filterDset):
 
 def _infixFname(fname, infix):
     prefix, extension = os.path.splitext(fname)
-    return prefix + infix + extension
+    return prefix + str(infix) + extension
 
 def _emitFilterScript(filterDset, filtScriptName):
     """Use the filter script feature of bamtools. Use with specific filters if

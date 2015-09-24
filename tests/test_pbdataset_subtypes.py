@@ -21,6 +21,11 @@ import xml.etree.ElementTree as ET
 log = logging.getLogger(__name__)
 
 def _check_constools():
+    cmd = "dataset.py"
+    o, r, m = backticks(cmd)
+    if r != 2:
+        return False
+
     cmd = "bamtools"
     o, r, m = backticks(cmd)
     if r != 0:
@@ -153,7 +158,6 @@ class TestDataSet(unittest.TestCase):
                                    IndexedFastaReader))
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'test.fasta')
-        print outfn
         w = FastaWriter(outfn)
         for rec in ds:
             w.writeRecord(rec)
