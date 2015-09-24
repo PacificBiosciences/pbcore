@@ -1,3 +1,6 @@
+* Version 1.2.4
+- add GFF gather functionality
+
 * Version 1.2.3
 - Updated for newer dataset schema
 - BAM access speed improvements
