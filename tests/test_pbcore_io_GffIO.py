@@ -6,7 +6,7 @@ import os.path
 from nose.tools import assert_equal, assert_raises
 
 from pbcore.io import GffWriter, Gff3Record, GffReader
-from pbcore.io.GffIO import merge_gffs, sort_gff
+from pbcore.io.GffIO import merge_gffs, merge_gffs_sorted, sort_gff
 from pbcore import data
 
 class TestGff3Record:
@@ -109,11 +109,16 @@ class TestGffWriter:
 class TestGffSorting(unittest.TestCase):
     gff_data = ["""\
 ##gff-version 3
-##some random comment here
+##source ipdSummary
+##source-commandline ipdSummary etc.
+##sequence-region lambda_NEB3011 1 48502
 chr1\tkinModCall\tmodified_base\t32580\t32580\t32\t-\t.\tcoverage=94;context=AATGGCATCGTTCCGGTGGTGGGCGTTGATGGCTGGTCCCG;IPDRatio=1.75
 chr1\tkinModCall\tmodified_base\t32766\t32766\t42\t-\t.\tcoverage=170;context=GCTGGGAAGCTGGCTGAACGTGTCGGCATGGATTCTGTCGA;IPDRatio=1.70
 chr1\tkinModCall\tmodified_base\t32773\t32773\t54\t-\t.\tcoverage=154;context=AACGCTGGCTGGGAAGCTGGCTGAACGTGTCGGCATGGATT;IPDRatio=2.65""", """\
 ##gff-version 3
+##source ipdSummary
+##source-commandline ipdSummary etc.
+##sequence-region lambda_NEB3011 1 48502
 chr2\tkinModCall\tmodified_base\t1200\t1200\t47\t-\t.\tcoverage=109;context=ACTTTTCACGGTAGTTTTTTGCCGCTTTACCGCCCAGGCAC;IPDRatio=1.89
 chr2\tkinModCall\tmodified_base\t1786\t1786\t36\t-\t.\tcoverage=153;context=TCCCACGTCTCACCGAGCGTGGTGTTTACGAAGGTTTTACG;IPDRatio=1.67
 chr2\tkinModCall\tmodified_base\t1953\t1953\t39\t+\t.\tcoverage=148;context=AATGCGCGTATGGGGATGGGGGCCGGGTGAGGAAAGCTGGC;IPDRatio=1.86""", """\
@@ -152,8 +157,24 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
             os.remove(cls.combined)
 
     def test_merge_gffs(self):
-        gff_out = "tmp_pbcore_merged.gff"
+        gff_out = "tmp_pbcore_merge.gff"
         merge_gffs(self.files, gff_out)
+        n_rec = 0
+        for fn in self.files:
+            with GffReader(fn) as f:
+                n_rec += len([ rec for rec in f ])
+        with GffReader(gff_out) as f:
+            self.assertEqual(f.headers, [
+                "##gff-version 3",
+                "##source ipdSummary",
+                "##sequence-region lambda_NEB3011 1 48502",
+            ])
+            n_rec_merged = len([ rec for rec in f ])
+            self.assertEqual(n_rec, n_rec_merged)
+
+    def test_merge_gffs_sorted(self):
+        gff_out = "tmp_pbcore_merged_sorted.gff"
+        merge_gffs_sorted(self.files, gff_out)
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
             self.assertEqual(start, self.sorted_start)
