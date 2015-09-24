@@ -722,6 +722,12 @@ class ExternalResources(RecordWrapper):
         # make sure we don't add dupes
         curIds = [res.resourceId for res in self]
 
+        # check to make sure ResourceIds in other are unique
+        otherIds = [res.resourceId for res in other]
+        if len(otherIds) != len(set(otherIds)):
+            raise RuntimeError("Duplicate ResourceIds found in "
+                               "ExternalResource block")
+
         for newRes in other:
             # merge instead
             if newRes.resourceId in curIds:
