@@ -103,9 +103,9 @@ def isDataSet(xmlfile):
         return False
 
 def openDataSet(*files, **kwargs):
-    """Factory function for DataSet types as suggested by the first XML file"""
-    if not files[0].endswith('xml'):
-        raise TypeError("openDataSet requires that the first file is an XML")
+    """Factory function for DataSet types as suggested by the first file"""
+    if not isDataSet(files[0]):
+        raise TypeError("openDataSet requires that the first file is a DS")
     tbrType = _typeDataSet(files[0])
     return tbrType(*files, **kwargs)
 
