@@ -54,6 +54,7 @@ import operator as OP
 import numpy as np
 import logging
 from functools import partial as P
+from collections import Counter
 from pbcore.io.dataset.DataSetWriter import namespaces
 
 log = logging.getLogger(__name__)
@@ -723,10 +724,11 @@ class ExternalResources(RecordWrapper):
         curIds = [res.resourceId for res in self]
 
         # check to make sure ResourceIds in other are unique
-        otherIds = [res.resourceId for res in other]
-        if len(otherIds) != len(set(otherIds)):
-            raise RuntimeError("Duplicate ResourceIds found in "
-                               "ExternalResource block")
+        otherIds = Counter([res.resourceId for res in other])
+        dupes = [c for c in otherIds if otherIds[c] > 1]
+        if dupes:
+            raise RuntimeError("Duplicate ResourceIds found: "
+                               "{f}".format(f=', '.join(dupes)))
 
         for newRes in other:
             # merge instead
