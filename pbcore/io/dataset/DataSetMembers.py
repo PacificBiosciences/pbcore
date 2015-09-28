@@ -698,6 +698,9 @@ class ExternalResources(RecordWrapper):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
 
+        # state tracking. Not good, but needs it:
+        self._resourceIds = []
+
     def __eq__(self, other):
         for extRef in self:
             found = False
@@ -721,7 +724,7 @@ class ExternalResources(RecordWrapper):
 
     def merge(self, other):
         # make sure we don't add dupes
-        curIds = [res.resourceId for res in self]
+        curIds = self.resourceIds
 
         # check to make sure ResourceIds in other are unique
         otherIds = Counter([res.resourceId for res in other])
@@ -752,6 +755,7 @@ class ExternalResources(RecordWrapper):
             resourceIds: a list of uris as strings
         """
         templist = []
+        self._resourceIds = []
         for res in resourceIds:
             toAdd = res
             if not isinstance(res, ExternalResource):
@@ -774,13 +778,16 @@ class ExternalResources(RecordWrapper):
         aren't in record form, but append will fix that for us automatically. A
         bit messy, but fairly concise.
         """
+        self._resourceIds = []
         self.record['children'] = []
         for res in resources:
             self.append(res)
 
     @property
     def resourceIds(self):
-        return [res.resourceId for res in self]
+        if not self._resourceIds:
+            self._resourceIds = [res.resourceId for res in self]
+        return self._resourceIds
 
 
 class ExternalResource(RecordWrapper):
