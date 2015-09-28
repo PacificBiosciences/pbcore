@@ -724,7 +724,7 @@ class ExternalResources(RecordWrapper):
 
     def merge(self, other):
         # make sure we don't add dupes
-        curIds = self._resourceIds
+        curIds = self.resourceIds
 
         # check to make sure ResourceIds in other are unique
         otherIds = Counter([res.resourceId for res in other])
