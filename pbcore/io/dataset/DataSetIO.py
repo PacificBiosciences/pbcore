@@ -871,7 +871,8 @@ class DataSet(object):
                 self.makePathsAbsolute()
         xml_string = toXml(self)
         if pretty:
-            xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml()
+            xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
+                encoding="UTF-8")
         if validate:
             validateString(xml_string, relTo=outFile)
         fileName = urlparse(outFile).path.strip()
