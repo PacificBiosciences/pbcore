@@ -62,6 +62,14 @@ class PacBioBamIndex(object):
         header = unpack("< 4s BBBx H I 18x", buf)
         (self.magic, self.vPatch, self.vMinor,
          self.vMajor, self.pbiFlags, self.nReads) = header
+        try:
+            assert self.vMajor >= 3
+            assert self.vMinor >= 0
+            assert self.vPatch >= 1
+        except:
+            raise IncompatibleFile(
+                "This PBI file is incompatible with this API "
+                "(only PacBio PBI files version >= 3.0.1 are supported)")
 
     @property
     def hasMappingInfo(self):
@@ -72,13 +80,14 @@ class PacBioBamIndex(object):
         return (self.pbiFlags & PBI_FLAGS_BARCODE_ADAPTER)
 
     def _loadMainIndex(self, f):
-        # Main index holds subread and mapping info
-        SUBREADS_INDEX_DTYPE = [
+        # Main index holds basic, mapping, and barcode info
+        BASIC_INDEX_DTYPE = [
             ("qId"               , "i4"),
             ("qStart"            , "i4"),
             ("qEnd"              , "i4"),
             ("holeNumber"        , "i4"),
-            ("readQual"          , "u2"),
+            ("readQual"          , "f4"),
+            ("contextFlag"       , "u1"),
             ("virtualFileOffset" , "i8") ]
 
         MAPPING_INDEX_DTYPE = [
@@ -93,16 +102,15 @@ class PacBioBamIndex(object):
             ("mapQV"             , "u1") ]
 
         BARCODE_INDEX_DTYPE = [
-            ("bcLeft"            , "u2"),
-            ("bcRight"           , "u2"),
-            ("bcQual"            , "u1"),
-            ("contextFlag"       , "u1")]
+            ("bcForward"         , "u2"),
+            ("bcReverse"         , "u2"),
+            ("bcQual"            , "u1")]
 
         COMPUTED_COLUMNS_DTYPE = [
             ("nIns"              , "u4"),
             ("nDel"              , "u4") ]
 
-        joint_dtype = SUBREADS_INDEX_DTYPE[:]
+        joint_dtype = BASIC_INDEX_DTYPE[:]
 
         if self.hasMappingInfo:
             joint_dtype += MAPPING_INDEX_DTYPE
@@ -118,7 +126,7 @@ class PacBioBamIndex(object):
 
         if True:
             # BASIC data always present
-            for columnName, columnType in SUBREADS_INDEX_DTYPE:
+            for columnName, columnType in BASIC_INDEX_DTYPE:
                 tbl[columnName] = peek(columnType, self.nReads)
 
         if self.hasMappingInfo:

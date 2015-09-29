@@ -253,7 +253,7 @@ class BamAlignment(AlignmentRecordMixin):
             use of this property can result in code that won't work on
             legacy data.
         """
-        return 0.001 * self.peer.opt("rq")
+        return self.peer.opt("rq")
 
     @property
     def readType(self):

@@ -182,8 +182,10 @@ class TestDataSet(unittest.TestCase):
         mystery = openDataFile(data.getFofn())
         self.assertEqual(type(mystery), AlignmentSet)
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
-                         "Missing testadata directory")
+    @unittest.skip("Turn on when "
+        "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam updated")
+    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
+    #                     "Missing testadata directory")
     def test_file_factory_css(self):
         fname = "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam"
         myster = openDataFile(fname)
@@ -298,8 +300,9 @@ class TestDataSet(unittest.TestCase):
         o, r, m = backticks(cmd)
         self.assertEqual(r, 0)
 
-    @unittest.skipIf(not _check_constools() or not _internal_data(),
-                     "bamtools, pbindex or data not found, skipping")
+    @unittest.skip("Skup until SA3-DS updated")
+    #@unittest.skipIf(not _check_constools() or not _internal_data(),
+    #                 "bamtools, pbindex or data not found, skipping")
     def test_alignmentset_partial_consolidate(self):
         testFile = ("/mnt/secondary-siv/testdata/SA3-DS/"
                     "lambda/2372215/0007_tiny/Alignment_"
@@ -307,7 +310,7 @@ class TestDataSet(unittest.TestCase):
                     "7920800000001823174110291514_s1_p0."
                     "all.alignmentset.xml")
         aln = AlignmentSet(testFile)
-        nonCons= AlignmentSet(testFile)
+        nonCons = AlignmentSet(testFile)
         self.assertEqual(len(aln.toExternalFiles()), 3)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')

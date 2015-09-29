@@ -1714,7 +1714,8 @@ class ReadSet(DataSet):
         # Find all possible barcodes and counts for each
         self.assertIndexed()
         barcodes = defaultdict(int)
-        for bcTuple in itertools.izip(self.index.bcLeft, self.index.bcRight):
+        for bcTuple in itertools.izip(self.index.bcForward,
+                                      self.index.bcReverse):
             barcodes[bcTuple] += 1
 
         log.debug("{i} barcodes found".format(i=len(barcodes.keys())))

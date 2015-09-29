@@ -311,6 +311,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.numRecords, -1)
 
     # TODO: replace this with a reproducable bam file and move test upstream
+    @unittest.skip("Skip until suitable barcoded files found and updated")
     def test_barcode_accession(self):
         testFile = data.getBarcodedBam()
         # Test the pbi file:
@@ -471,8 +472,9 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds1.totalLength == ds1tl)
         self.assertTrue(ds2.totalLength == ds2tl)
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
-                         "Missing testadata directory")
+    @unittest.skip("Skip until SA3-DS updated")
+    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+    #                     "Missing testadata directory")
     def test_split_zmws(self):
         test_file = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/"
                      "0007_micro/Analysis_Results/m150404_101626_42267_c"
@@ -676,8 +678,9 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
                              len(list(ds.readsInRange(rId, 0, rlen))))
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
-                         "Missing testadata directory")
+    @unittest.skip("Skip until SA3-DS updated")
+    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+    #                     "Missing testadata directory")
     def test_reads_in_range_order(self):
         log.debug("Testing with one file")
         testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"
@@ -711,8 +714,9 @@ class TestDataSet(unittest.TestCase):
             num += 1
         self.assertTrue(num > 2000)
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary/Share/Quiver"),
-                         "Missing testadata directory")
+    @unittest.skip("Skip until /mnt/secondary/Share/Quiver/ updated")
+    #@unittest.skipUnless(os.path.isdir("/mnt/secondary/Share/Quiver"),
+    #                     "Missing testadata directory")
     def test_reads_in_range_order_large(self):
         window = ('Staphylococcus_aureus_subsp_aureus_USA300_TCH1516',
                   558500,

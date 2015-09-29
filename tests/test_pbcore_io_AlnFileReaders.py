@@ -2,7 +2,8 @@ from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
 from nose.tools import (nottest,
                         assert_raises,
-                        assert_equal as EQ)
+                        assert_equal as EQ,
+                        assert_almost_equal as EQISH)
 from nose import SkipTest
 
 import numpy as np
@@ -407,10 +408,10 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
 
     def testSpecVersion(self):
-        EQ("3.0b7",     self.f.version)
+        EQ("3.0.1",     self.f.version)
 
     def testReadScore(self):
-        EQ(0.904, self.fwdAln.readScore)
+        EQISH(0.904, self.fwdAln.readScore, 3)
 
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
