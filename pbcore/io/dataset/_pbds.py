@@ -1632,7 +1632,7 @@ CTD_ANON_._Automaton = _BuildAutomaton_()
 
 
 
-DataSetMetadataType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TotalLength'), pyxb.binding.datatypes.int, scope=DataSetMetadataType, location=pyxb.utils.utility.Location('/tmp/tmpoNuZaMxsds/PacBioDatasets.xsd', 52, 3)))
+DataSetMetadataType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TotalLength'), pyxb.binding.datatypes.long, scope=DataSetMetadataType, location=pyxb.utils.utility.Location('/tmp/tmpoNuZaMxsds/PacBioDatasets.xsd', 52, 3)))
 
 DataSetMetadataType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'NumRecords'), pyxb.binding.datatypes.int, scope=DataSetMetadataType, location=pyxb.utils.utility.Location('/tmp/tmpoNuZaMxsds/PacBioDatasets.xsd', 53, 3)))
 

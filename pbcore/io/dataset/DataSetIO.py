@@ -21,6 +21,7 @@ from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
+from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
 from pbcore.io import BaxH5Reader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
@@ -3144,8 +3145,9 @@ class ContigSet(DataSet):
         super(ContigSet, self).__init__(*files, **kwargs)
         self._metadata = ContigSetMetadata(self._metadata)
         self._updateMetadata()
+        self._fastq = False
 
-    def consolidate(self, outfn=None, numFiles=1):
+    def consolidate(self, outfn=None, numFiles=1, useTmp=False):
         """Consolidation should be implemented for window text in names and
         for filters in ContigSets"""
 
@@ -3180,6 +3182,7 @@ class ContigSet(DataSet):
             writeTemp = True
         writeMatches = {}
         writeComments = {}
+        writeQualities = {}
         for name, match_list in matches.items():
             if len(match_list) > 1:
                 log.debug("Multiple matches found for {i}".format(i=name))
@@ -3201,6 +3204,10 @@ class ContigSet(DataSet):
                 # collapse matches
                 new_name = self._removeWindow(name)
                 new_seq = ''.join([match.sequence for match in match_list])
+                if self._fastq:
+                    new_qual = ''.join([match.qualityString for match in
+                                        match_list])
+                    writeQualities[new_name] = new_qual
 
                 # set to write
                 writeTemp = True
@@ -3210,6 +3217,8 @@ class ContigSet(DataSet):
                 log.debug("One match found for {i}".format(i=name))
                 writeMatches[name] = match_list[0].sequence
                 writeComments[name] = match_list[0].comment
+                if self._fastq:
+                    writeQualities[new_name] = match_list[0].qualityString
         if writeTemp:
             log.debug("Writing a new file is necessary")
             if not outfn:
@@ -3217,13 +3226,18 @@ class ContigSet(DataSet):
                 outdir = tempfile.mkdtemp(suffix="consolidated-contigset")
                 outfn = os.path.join(outdir,
                                      'consolidated_contigs.fasta')
-            with FastaWriter(outfn) as outfile:
+            with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
                 for name, seq in writeMatches.items():
                     if writeComments[name]:
                         name = ' '.join([name, writeComments[name]])
+                    if writeQualities[name]:
+                        outfile.writeRecord(name, seq,
+                                            qvsFromAscii(writeQualities[name]))
+                        continue
                     outfile.writeRecord(name, seq)
-            _indexFasta(outfn)
+            if not self._fastq:
+                _indexFasta(outfn)
             # replace resources
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
@@ -3232,6 +3246,12 @@ class ContigSet(DataSet):
             log.debug("Replacing metadata")
             self._metadata.contigs = []
             self._populateContigMetadata()
+
+    @property
+    def _writer(self):
+        if self._fastq:
+            return FastqWriter
+        return FastaWriter
 
     def _popSuffix(self, name):
         """Chunking and quivering adds suffixes to contig names, after the
@@ -3351,6 +3371,10 @@ class ContigSet(DataSet):
         log.debug("Opening resources")
         for extRes in self.externalResources:
             location = urlparse(extRes.resourceId).path
+            if location.endswith("fastq"):
+                self._fastq = True
+                self._openReaders.append(FastqReader(location))
+                continue
             try:
                 resource = IndexedFastaReader(location)
             except IOError:
@@ -3435,6 +3459,7 @@ class ContigSet(DataSet):
     @staticmethod
     def _metaTypeMapping():
         return {'fasta':'PacBio.ContigFile.ContigFastaFile',
+                'fastq':'PacBio.ContigFile.ContigFastqFile',
                 'fa':'PacBio.ContigFile.ContigFastaFile',
                 'fas':'PacBio.ContigFile.ContigFastaFile',
                 'fai':'PacBio.Index.SamIndex',
