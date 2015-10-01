@@ -3203,7 +3203,7 @@ class ContigSet(DataSet):
 
                 # collapse matches
                 new_name = self._removeWindow(name)
-                new_seq = ''.join([match.sequence for match in match_list])
+                new_seq = ''.join([match.sequence[:] for match in match_list])
                 if self._fastq:
                     new_qual = ''.join([match.qualityString for match in
                                         match_list])
@@ -3215,7 +3215,7 @@ class ContigSet(DataSet):
                 writeComments[new_name] = match_list[0].comment
             else:
                 log.debug("One match found for {i}".format(i=name))
-                writeMatches[name] = match_list[0].sequence
+                writeMatches[name] = match_list[0].sequence[:]
                 writeComments[name] = match_list[0].comment
                 if self._fastq:
                     writeQualities[new_name] = match_list[0].qualityString
