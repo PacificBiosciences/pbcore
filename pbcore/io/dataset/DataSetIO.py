@@ -3218,7 +3218,7 @@ class ContigSet(DataSet):
                 writeMatches[name] = match_list[0].sequence[:]
                 writeComments[name] = match_list[0].comment
                 if self._fastq:
-                    writeQualities[new_name] = match_list[0].qualityString
+                    writeQualities[name] = match_list[0].qualityString
         if writeTemp:
             log.debug("Writing a new file is necessary")
             if not outfn:
