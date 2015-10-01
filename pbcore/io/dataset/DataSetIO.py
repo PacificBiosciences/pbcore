@@ -3231,7 +3231,7 @@ class ContigSet(DataSet):
                 for name, seq in writeMatches.items():
                     if writeComments[name]:
                         name = ' '.join([name, writeComments[name]])
-                    if writeQualities[name]:
+                    if self._fastq:
                         outfile.writeRecord(name, seq,
                                             qvsFromAscii(writeQualities[name]))
                         continue
