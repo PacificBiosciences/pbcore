@@ -69,7 +69,9 @@ class TestDataSet(unittest.TestCase):
         # e.g. d.write("alignmentset.xml")
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
-        d.write(outXml)
+        log.debug(outXml)
+        # don't validate, type DataSet doesn't validate well
+        d.write(outXml, validate=False)
         # And then recover the same XML (or a different one):
         # e.g. d = DataSet("alignmentset.xml")
         d = DataSet(outXml)
@@ -129,6 +131,7 @@ class TestDataSet(unittest.TestCase):
     def test_filter_cli(self):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, "filtered8.xml")
+        log.debug(outfn)
         cmd = "dataset.py filter {i} {o} {f}".format(
             i=data.getXml(8),
             o=outfn,
@@ -472,9 +475,8 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds1.totalLength == ds1tl)
         self.assertTrue(ds2.totalLength == ds2tl)
 
-    @unittest.skip("Skip until SA3-DS updated")
-    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
-    #                     "Missing testadata directory")
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+                         "Missing testadata directory")
     def test_split_zmws(self):
         test_file = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/"
                      "0007_micro/Analysis_Results/m150404_101626_42267_c"
@@ -678,9 +680,8 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
                              len(list(ds.readsInRange(rId, 0, rlen))))
 
-    @unittest.skip("Skip until SA3-DS updated")
-    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
-    #                     "Missing testadata directory")
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+                         "Missing testadata directory")
     def test_reads_in_range_order(self):
         log.debug("Testing with one file")
         testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"

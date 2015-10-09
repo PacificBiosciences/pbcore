@@ -16,7 +16,7 @@ def validateResources(xmlroot, relTo='.'):
     Args:
         xmlroot: The ET root of an xml tree
         relTo: ('.') The path relative to which resources may reside. This will
-               work poorly if relTo is not set to the location of the incoming
+               work poorly if relTo is not set to the dirname of the incoming
                XML file.
     """
     stack = [xmlroot]
@@ -28,8 +28,10 @@ def validateResources(xmlroot, relTo='.'):
             parsedId = urlparse(resId)
             rfn = urlparse(resId).path.strip()
             if not os.path.isfile(rfn):
-                if not os.path.isfile(os.path.join(os.path.dirname(relTo),
-                                                   rfn)):
+                if (not os.path.isfile(os.path.join(relTo,
+                                                    rfn)) and
+                        not os.path.isfile(os.path.join('.',
+                                                        rfn))):
                     raise IOError, "{f} not found".format(f=rfn)
 
 def validateLxml(xml_fn, xsd_fn):
@@ -49,13 +51,10 @@ def validateMiniXsv(xml_fn, xsd_fn):
     except ImportError:
         log.debug('minixsv not found, validation disabled')
 
-def validateXml(xmlroot, skipResources=False):
-    # pyxb precompiles and therefore does not need the original xsd file.
-    #if not os.path.isfile(XSD):
-        #raise SystemExit, "Validation xsd {s} not found".format(s=XSD)
+def validateXml(xmlroot, skipResources=False, relTo='.'):
 
-    if not skipResources: # XXX generally a bad idea, but useful for pbvalidate
-        validateResources(xmlroot)
+    if not skipResources:
+        validateResources(xmlroot, relTo)
 
     # Conceal the first characters of UniqueIds if they are legal numbers that
     # would for some odd reason be considered invalid. Let all illegal
@@ -75,14 +74,9 @@ def validateFile(xmlfn, skipResources=False):
     if ':' in xmlfn:
         xmlfn = urlparse(xmlfn).path.strip()
     with open(xmlfn, 'r') as xmlfile:
-        #root = etree.parse(xmlfile)
         root = ET.parse(xmlfile).getroot()
-        return validateXml(root, skipResources=skipResources)
+        return validateXml(root, skipResources=skipResources,
+                           relTo=os.path.dirname(xmlfn))
 
-def validateString(xmlstring, relTo='.'):
-    #root = etree.parse(xmlfile)
-    root = ET.fromstring(xmlstring)
-    validateResources(root, relTo=relTo)
-    #return validateXml(root)
-
-
+def validateString(xmlString, skipResources=False, relTo='.'):
+    validateXml(ET.fromstring(xmlString), skipResources, relTo)

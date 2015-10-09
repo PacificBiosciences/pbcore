@@ -47,7 +47,7 @@ PBI_HEADER_LEN              = 32
 PBI_FLAGS_BASIC             = 0
 PBI_FLAGS_MAPPED            = 1
 PBI_FLAGS_COORDINATE_SORTED = 2
-PBI_FLAGS_BARCODE_ADAPTER   = 4
+PBI_FLAGS_BARCODE           = 4
 
 
 class PacBioBamIndex(object):
@@ -76,8 +76,8 @@ class PacBioBamIndex(object):
         return (self.pbiFlags & PBI_FLAGS_MAPPED)
 
     @property
-    def hasAdapterInfo(self):
-        return (self.pbiFlags & PBI_FLAGS_BARCODE_ADAPTER)
+    def hasBarcodeInfo(self):
+        return (self.pbiFlags & PBI_FLAGS_BARCODE)
 
     def _loadMainIndex(self, f):
         # Main index holds basic, mapping, and barcode info
@@ -115,7 +115,7 @@ class PacBioBamIndex(object):
         if self.hasMappingInfo:
             joint_dtype += MAPPING_INDEX_DTYPE
             joint_dtype += COMPUTED_COLUMNS_DTYPE
-        if self.hasAdapterInfo:
+        if self.hasBarcodeInfo:
             joint_dtype += BARCODE_INDEX_DTYPE
         tbl = np.zeros(shape=(self.nReads,),
                        dtype=joint_dtype).view(np.recarray)
@@ -137,7 +137,7 @@ class PacBioBamIndex(object):
             tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
             tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
 
-        if self.hasAdapterInfo:
+        if self.hasBarcodeInfo:
             for columnName, columnType in BARCODE_INDEX_DTYPE:
                 tbl[columnName] = peek(columnType, self.nReads)
 

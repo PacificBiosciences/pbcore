@@ -182,10 +182,8 @@ class TestDataSet(unittest.TestCase):
         mystery = openDataFile(data.getFofn())
         self.assertEqual(type(mystery), AlignmentSet)
 
-    @unittest.skip("Turn on when "
-        "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam updated")
-    #@unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
-    #                     "Missing testadata directory")
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
+                         "Missing testadata directory")
     def test_file_factory_css(self):
         fname = "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam"
         myster = openDataFile(fname)
@@ -231,6 +229,13 @@ class TestDataSet(unittest.TestCase):
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
             self.assertEqual(read1, read2)
         self.assertEqual(len(aln), len(nonCons))
+
+        # Test that it is a valid xml:
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        datafile = os.path.join(outdir, "apimerged.bam")
+        xmlfile = os.path.join(outdir, "apimerged.xml")
+        log.debug(xmlfile)
+        aln.write(xmlfile)
 
         log.debug("Test with cheap filter")
         aln = AlignmentSet(data.getXml(12))
@@ -300,9 +305,8 @@ class TestDataSet(unittest.TestCase):
         o, r, m = backticks(cmd)
         self.assertEqual(r, 0)
 
-    @unittest.skip("Skup until SA3-DS updated")
-    #@unittest.skipIf(not _check_constools() or not _internal_data(),
-    #                 "bamtools, pbindex or data not found, skipping")
+    @unittest.skipIf(not _check_constools() or not _internal_data(),
+                     "bamtools, pbindex or data not found, skipping")
     def test_alignmentset_partial_consolidate(self):
         testFile = ("/mnt/secondary-siv/testdata/SA3-DS/"
                     "lambda/2372215/0007_tiny/Alignment_"

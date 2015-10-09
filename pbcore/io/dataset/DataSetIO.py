@@ -20,6 +20,7 @@ from pbcore.util.Process import backticks
 from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
                               FastaReader, IndexedFastaReader, CmpH5Reader,
                               IndexedBamReader)
+from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
 from pbcore.io import BaxH5Reader
@@ -875,7 +876,7 @@ class DataSet(object):
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
         if validate:
-            validateString(xml_string, relTo=outFile)
+            validateString(xml_string, relTo=os.path.dirname(outFile))
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):
             if not fileName.endswith(_dsIdToSuffix(self.datasetType)):
@@ -1648,6 +1649,14 @@ class ReadSet(DataSet):
             return True
         return False
 
+    def assertBarcoded(self):
+        """Test whether all resources are barcoded files"""
+        res = self._pollResources(
+            lambda x: x.index.pbiFlags & PBI_FLAGS_BARCODE)
+        if not self._unifyResponses(res):
+            raise RuntimeError("File not barcoded")
+
+
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
@@ -1714,6 +1723,7 @@ class ReadSet(DataSet):
         """
         # Find all possible barcodes and counts for each
         self.assertIndexed()
+        self.assertBarcoded()
         barcodes = defaultdict(int)
         for bcTuple in itertools.izip(self.index.bcForward,
                                       self.index.bcReverse):
@@ -1944,6 +1954,7 @@ class ReadSet(DataSet):
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([dataFile])
+        self._populateMetaTypes()
 
     def __len__(self):
         if self.numRecords == -1:

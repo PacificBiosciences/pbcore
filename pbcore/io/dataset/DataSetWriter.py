@@ -158,9 +158,9 @@ def _toElementTree(dataSet, root=None, core=False):
         root = ET.Element(rootType, attribs)
 
     _addExternalResourcesElement(dataSet, root, core)
-    _addDataSetMetadataElement(dataSet, root)
     _addFiltersElement(dataSet, root)
     _addDataSetsElement(dataSet, root)
+    _addDataSetMetadataElement(dataSet, root)
     xsi = "{http://www.w3.org/2001/XMLSchema-instance}"
     # The ElementTree element dictionary doesn't quite work the same as a
     # regular dictionary, it seems, thus the convoluted get/set business
@@ -265,9 +265,7 @@ def _addFiltersElement(dataset, root, core=False):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataset.filters:
-        filters = ET.SubElement(root, 'Filters')
-        for child in dataset.filters.record['children']:
-            filters.append(_eleFromDictList(child, core))
+        root.append(_eleFromDictList(dataset.filters.record, core=core))
 
 def _addDataSetsElement(dataset, root):
     """Add DataSet Elements to root, which essentially nests ElementTrees.
