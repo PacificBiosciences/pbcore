@@ -6,6 +6,8 @@ from nose.tools import (nottest,
                         assert_almost_equal as EQISH)
 from nose import SkipTest
 
+import tempfile
+import pysam
 import numpy as np
 import bisect
 import h5py
@@ -440,3 +442,33 @@ class TestCCSBam(object):
                 aln.qStart
             with assert_raises(UnavailableFeature):
                 aln.qEnd
+
+
+class TestMultipleReadGroups(object):
+    """
+    Verify that BAM files with multiple read groups are handled sensibly - see
+    bug 26548.
+    """
+    SAM_IN = """\
+@HD\tVN:1.5\tSO:coordinate\tpb:3.0.1
+@SQ\tSN:ecoliK12_pbi_March2013_2955000_to_2980000\tLN:25000\tM5:734d5f3b2859595f4bd87a2fe6b7389b
+@RG\tID:3f58e5b8\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000;BINDINGKIT=100356300;SEQUENCINGKIT=100356200\tPU:movie1
+@RG\tID:b5482b33\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BINDINGKIT=100356300;SEQUENCINGKIT=100356200;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000\tPU:m140906_231018_42161_c100676332550000001823129611271486_s1_p0
+movie1/54130/0_10\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t2\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:3f58e5b8\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:10\tqs:i:0\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2
+m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:b5482b33\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:20\tqs:i:10\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2"""
+
+    def test_retrieve_read_group_properties(self):
+        f1 = tempfile.NamedTemporaryFile(suffix=".sam").name
+        f2 = tempfile.NamedTemporaryFile(suffix=".bam").name
+        with open(f1, "w") as f:
+            f.write(self.SAM_IN)
+        with pysam.AlignmentFile(f1) as sam_in:
+            with pysam.AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
+                for aln in sam_in:
+                    bam_out.write(aln)
+        movie_names = []
+        with BamReader(f2) as bam_in:
+            for aln in bam_in:
+                EQ(aln.sequencingChemistry, "P6-C4")
+                movie_names.append(aln.movieName)
+        EQ(movie_names, ['movie1', 'm140906_231018_42161_c100676332550000001823129611271486_s1_p0'])
