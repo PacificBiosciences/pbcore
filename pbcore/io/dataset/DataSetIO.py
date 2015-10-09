@@ -156,6 +156,11 @@ def _stackRecArrays(recArrays):
     tbr = tbr.view(np.recarray)
     return tbr
 
+def _flatten(lol, times=1):
+    """ This wont do well with mixed nesting"""
+    for _ in range(times):
+        lol = np.concatenate(lol)
+    return lol
 
 class DataSetMetaTypes(object):
     """
@@ -1530,7 +1535,9 @@ class DataSet(object):
 
     @property
     def sequencingChemistry(self):
-        return self._checkIdentical('sequencingChemistry')
+        key = 'sequencingChemistry'
+        responses = self._pollResources(lambda x: getattr(x, key))
+        return _flatten(responses)
 
     @property
     def isEmpty(self):
