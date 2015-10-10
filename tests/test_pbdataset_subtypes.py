@@ -142,6 +142,19 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds2).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
+    def test_ccsset_from_bam(self):
+        # FIXME bug 28698
+        ds1 = ConsensusReadSet(upstreamData.getCCSBAM(), strict=False)
+        fn = tempfile.NamedTemporaryFile(suffix=".consensusreadset.xml").name
+        ds1.write(fn)
+
+    def test_subreadset_from_bam(self):
+        # XXX control experiment for bug 28698
+        bam = upstreamData.getUnalignedBam()
+        ds1 = SubreadSet(bam, strict=False)
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn)
+
     def test_ccsalignment_build(self):
         ds1 = ConsensusAlignmentSet(data.getXml(20), strict=False)
         self.assertEquals(type(ds1).__name__, 'ConsensusAlignmentSet')
