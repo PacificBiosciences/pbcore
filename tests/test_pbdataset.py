@@ -493,6 +493,15 @@ class TestDataSet(unittest.TestCase):
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
               55, 1815)])
 
+    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/mdsmith"),
+                         "Missing testadata directory")
+    def test_large_pbi(self):
+        pbiFn = ('/mnt/secondary-siv/mdsmith/simulationStudies'
+                 '/lambdaToMerge/01_10Gb/outaln1/pbalchemy_100Gb'
+                 '_Seq_sim1_p0.aligned.bam.pbi')
+        pbi = PacBioBamIndex(pbiFn)
+        self.assertFalse(pbi.aStart is None)
+
     def test_copy(self):
         ds1 = DataSet(data.getXml(12))
         ds2 = ds1.copy()
