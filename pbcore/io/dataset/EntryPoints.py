@@ -4,6 +4,7 @@ import os
 import argparse
 from collections import defaultdict
 from pbcore.io import DataSet, ContigSet, openDataSet
+from pbcore.io.dataset.DataSetMembers import Filters
 from pbcore.io.dataset.DataSetValidator import validateFile
 import logging
 
@@ -79,14 +80,19 @@ def filterXml(args):
         raise IOError("No files found/found to be compatible")
 
 def filter_options(parser):
-    parser.description = 'Add filters to an XML file'
+    pbiFilterOptions = set(Filters()._pbiAccMap({}).keys())
+    bamFilterOptions = set(Filters()._bamAccMap.keys())
+    parser.description = ('Add filters to an XML file. Suggested fields: '
+                          '{f}. More expensive fields: {b}'.format(
+        f=sorted(list(pbiFilterOptions)),
+        b=sorted(list(bamFilterOptions - pbiFilterOptions))))
     #parser.add_argument("infile", type=validate_file,
     parser.add_argument("infile", type=str,
                         help="The xml file to filter")
     parser.add_argument("outfile", type=str, help="The resulting xml file")
     parser.add_argument("filters", type=str, nargs='+',
                         help="The values and thresholds to filter (e.g. "
-                        "rq>0.85)")
+                        "'rq>0.85')")
     parser.set_defaults(func=filterXml)
 
 def splitXml(args):

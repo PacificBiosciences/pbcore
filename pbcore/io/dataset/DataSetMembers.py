@@ -454,7 +454,7 @@ class Filters(RecordWrapper):
                 'tend': (lambda x: int(x.tEnd)),
                }
 
-    def _pbiVecAccMap(self, tIdMap):
+    def _pbiMappedVecAccMap(self, tIdMap):
         return {'rname': (lambda x, m=tIdMap: m[x.tId]),
                 'length': (lambda x: x.aEnd - x.aStart),
                 'qname': (lambda x: x.qId),
@@ -463,6 +463,17 @@ class Filters(RecordWrapper):
                 'readstart': (lambda x: x.aStart),
                 'tstart': (lambda x: x.tStart),
                 'tend': (lambda x: x.tEnd),
+                'rq': (lambda x: x.readQual),
+               }
+
+    def _pbiVecAccMap(self, tIdMap):
+        return {'rname': (lambda x, m=tIdMap: m[x.tId]),
+                'length': (lambda x: x.qEnd - x.qStart),
+                'qstart': (lambda x: x.qStart),
+                'qend': (lambda x: x.qEnd),
+                'qname': (lambda x: x.qId),
+                'zm': (lambda x: x.holeNumber),
+                'rq': (lambda x: x.readQual),
                }
 
     @property
@@ -517,6 +528,8 @@ class Filters(RecordWrapper):
     def filterIndexRecords(self, indexRecords, nameMap):
         typeMap = self._bamTypeMap
         accMap = self._pbiVecAccMap({})
+        if 'aEnd' in indexRecords.dtype.names:
+            accMap = self._pbiMappedVecAccMap({})
         accMap['rname'] = lambda x: x.tId
         filterLastResult = None
         for filt in self:
