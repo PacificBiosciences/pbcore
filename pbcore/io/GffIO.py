@@ -261,18 +261,7 @@ def merge_gffs (gff_files, output_file):
     Merge a sequence of GFF files, preserving unique headers (except for the
     source commandline, which will usually vary).
     """
-    def _get_headers(f):
-        with GffReader(f) as reader:
-            for h in reader.headers:
-                fields = h[2:].strip().split(" ")
-                if not fields[0] in ["source-commandline", "gff-version"]:
-                    yield fields[0], " ".join(fields[1:])
-    header_keys = [ k for (k, v) in _get_headers(gff_files[0]) ]
-    headers = defaultdict(list)
-    for gff_file in gff_files:
-        for key, value in _get_headers(gff_file):
-            if not value in headers[key]:
-                headers[key].append(value)
+    headers, header_keys = _merge_gff_headers(gff_files)
     n_rec = 0
     with GffWriter(output_file) as writer:
         for key in header_keys:
@@ -286,29 +275,54 @@ def merge_gffs (gff_files, output_file):
     return n_rec
 
 
-def _merge_gffs_sorted(gff1, gff2, out):
-    out = GffWriter(out)
-    n_rec = 0
-    with GffReader(gff1) as f1:
-        map(out.writeHeader, f1.headers)
-        with GffReader(gff2) as f2:
-            rec1 = [ rec for rec in f1 ]
-            rec2 = [ rec for rec in f2 ]
-            i = j = 0
-            while i < len(rec1) and j < len(rec2):
-                if (rec1[i] > rec2[j]):
-                    out.writeRecord(rec2[j])
-                    j += 1
-                else:
-                    out.writeRecord(rec1[i])
+def _merge_gff_headers(gff_files):
+    ignore_fields = set(["source-commandline", "gff-version", "date"])
+    def _get_headers(f):
+        with GffReader(f) as reader:
+            for h in reader.headers:
+                fields = h[2:].strip().split(" ")
+                if not fields[0] in ignore_fields:
+                    yield fields[0], " ".join(fields[1:])
+    header_keys = []
+    for k, v in _get_headers(gff_files[0]):
+        if not k in header_keys:
+            header_keys.append(k)
+    headers = defaultdict(list)
+    for gff_file in gff_files:
+        for key, value in _get_headers(gff_file):
+            if not value in headers[key]:
+                headers[key].append(value)
+    return headers, header_keys
+
+
+def _merge_gffs_sorted(gff1, gff2, out_file):
+    import logging
+    logging.warn("Merging %s and %s" % (gff1, gff2))
+    with GffWriter(out_file) as out:
+        n_rec = 0
+        headers, header_keys = _merge_gff_headers([gff1, gff2])
+        with GffReader(gff1) as f1:
+            for key in header_keys:
+                for value in headers[key]:
+                    out.writeHeader("##%s %s" % (key, value))
+            with GffReader(gff2) as f2:
+                rec1 = [ rec for rec in f1 ]
+                rec2 = [ rec for rec in f2 ]
+                i = j = 0
+                while i < len(rec1) and j < len(rec2):
+                    if (rec1[i] > rec2[j]):
+                        out.writeRecord(rec2[j])
+                        j += 1
+                    else:
+                        out.writeRecord(rec1[i])
+                        i += 1
+                for rec in rec1[i:]:
+                    out.writeRecord(rec)
                     i += 1
-            for rec in rec1[i:]:
-                out.writeRecord(rec)
-                i += 1
-            for rec in rec2[j:]:
-                out.writeRecord(rec)
-                j += 2
-    return i + j
+                for rec in rec2[j:]:
+                    out.writeRecord(rec)
+                    j += 2
+        return i + j
 
 
 def merge_gffs_sorted(gff_files, output_file_name):
@@ -318,9 +332,8 @@ def merge_gffs_sorted(gff_files, output_file_name):
     """
     if len(gff_files) == 1: return gff_files[0]
     while len(gff_files) > 2:
-        tmpout = tempfile.NamedTemporaryFile()
+        tmpout = tempfile.NamedTemporaryFile(suffix=".gff").name
         _merge_gffs_sorted(gff_files[0], gff_files[1], tmpout)
-        tmpout.seek(0)
         gff_files = [tmpout] + gff_files[2:]
     with open(output_file_name, "w") as f:
         _merge_gffs_sorted(gff_files[0], gff_files[1], f)
