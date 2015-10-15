@@ -1459,7 +1459,10 @@ class DataSet(object):
     @filters.setter
     def filters(self, value):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self._filters = value
+        if value is None:
+            self._filters = Filters()
+        else:
+            self._filters = value
 
     def reFilter(self, light=True):
         """

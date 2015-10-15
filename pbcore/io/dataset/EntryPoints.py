@@ -80,7 +80,7 @@ def filterXml(args):
         raise IOError("No files found/found to be compatible")
 
 def filter_options(parser):
-    pbiFilterOptions = set(Filters()._pbiAccMap({}).keys())
+    pbiFilterOptions = set(Filters()._pbiMappedVecAccMap({}).keys())
     bamFilterOptions = set(Filters()._bamAccMap.keys())
     parser.description = ('Add filters to an XML file. Suggested fields: '
                           '{f}. More expensive fields: {b}'.format(

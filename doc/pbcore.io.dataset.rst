@@ -55,12 +55,15 @@ Filter::
 
     usage: dataset.py filter [-h] infile outfile filters [filters ...]
 
-    Add filters to an XML file
+    Add filters to an XML file. Suggested fields: ['bcf', 'bcq', 'bcr',
+    'length', 'pos', 'qend', 'qname', 'qstart', 'readstart', 'rname', 'rq',
+    'tend', 'tstart', 'zm']. More expensive fields: ['accuracy', 'bc', 'movie',
+    'qs']
 
     positional arguments:
       infile      The xml file to filter
       outfile     The resulting xml file
-      filters     The values and thresholds to filter (e.g. rq>0.85)
+      filters     The values and thresholds to filter (e.g. 'rq>0.85')
 
     optional arguments:
       -h, --help  show this help message and exit
@@ -123,12 +126,95 @@ Split::
       --subdatasets    Split on subdatasets
       --outdir OUTDIR  Specify an output directory
 
-Consolidation requires in-depth filtering and BAM file manipulation.
-Implementation plans TBD.
+Consolidate::
 
+    usage: dataset.py consolidate [-h] [--numFiles NUMFILES] [--noTmp]
+                                  infile datafile xmlfile
+
+    Consolidate the XML files
+
+    positional arguments:
+      infile               The XML file to consolidate
+      datafile             The resulting data file
+      xmlfile              The resulting XML file
+
+    optional arguments:
+      -h, --help           show this help message and exit
+      --numFiles NUMFILES  The number of data files to produce (1)
+      --noTmp              Don't copy to a tmp location to ensure local disk
+                           use
 
 Usage Examples
 =============================
+
+Filter Reads (CLI version)
+--------------------------
+
+In this scenario we have one or more bam files worth of subreads, aligned or
+otherwise, that we want to filter and put in a single bam file. This is
+possible using the CLI with the following steps, starting with a DataSet XML
+file::
+
+    # usage: dataset.py filter <in_fn.xml> <out_fn.xml> <filters>
+    dataset.py filter in_fn.subreadset.xml filtered_fn.subreadset.xml 'rq>0.85'
+
+    # usage: dataset.py consolidate <in_fn.xml> <out_data_fn.bam> <out_fn.xml>
+    dataset.py consolidate filtered_fn.subreadset.xml consolidate.subreads.bam out_fn.subreadset.xml
+
+The filtered DataSet and the consolidated DataSet should be read for read
+equivalent when used with SMRT Analysis software.
+
+Filter Reads (API version)
+--------------------------
+
+The API version of filtering allows for more advanced filtering criteria::
+
+    ss = SubreadSet('in_fn.subreadset.xml')
+    ss.filters.addRequirement(rname=[('=', 'E.faecalis.2'),
+                                     ('=', 'E.faecalis.2')],
+                              tStart=[('<', '99'),
+                                      ('<', '299')],
+                              tEnd=[('>', '0'),
+                                    ('>', '200')])
+
+Produces the following conditions for a read to be considered passing:
+
+(rname = E.faecalis.2 AND tstart < 99 AND tend > 0)
+OR
+(rname = E.faecalis.2 AND tstart < 299 AND tend > 200)
+
+You can add sets of filters by providing equal length lists of requirements for
+each filter.
+
+Additional requirements added singly will be added to all filters::
+
+    ss.filters.addRequirement(rq=[('>', '0.85')]) 
+
+(rname = E.faecalis.2 AND tstart < 99 AND tend > 0 AND rq > 0.85)
+OR
+(rname = E.faecalis.2 AND tstart < 299 AND tend > 100 AND rq > 0.85)
+
+Additional requirements added with a plurality of options will duplicate the
+previous requiremnts for each option::
+
+    ss.filters.addRequirement(length=[('>', 500), ('>', 1000)])
+
+(rname = E.faecalis.2 AND tstart < 99 AND tend > 0 AND rq > 0.85 AND length > 500)
+OR
+(rname = E.faecalis.2 AND tstart < 299 AND tend > 100 AND rq > 0.85 AND length > 500)
+OR
+(rname = E.faecalis.2 AND tstart < 99 AND tend > 0 AND rq > 0.85 AND length > 1000)
+OR
+(rname = E.faecalis.2 AND tstart < 299 AND tend > 100 AND rq > 0.85 AND length > 1000)
+
+Of course you can always wipe the filters and start over::
+
+    ss.filters = None
+
+Consolidation is more similar to the CLI version::
+
+    ss.consolidate('cons.bam')
+    ss.write('cons.xml')
 
 Resequencing Pipeline (CLI version)
 -----------------------------------
@@ -294,5 +380,4 @@ DataSetMembers module.
     :special-members: __getitem__, __iter__, __repr__
     :show-inheritance:
     :undoc-members:
-
 
