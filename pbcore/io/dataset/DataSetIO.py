@@ -3273,6 +3273,7 @@ class ContigSet(DataSet):
             log.debug("Replacing metadata")
             self._metadata.contigs = []
             self._populateContigMetadata()
+        self._populateMetaTypes()
 
     @property
     def _writer(self):
