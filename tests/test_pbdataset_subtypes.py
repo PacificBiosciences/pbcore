@@ -429,6 +429,35 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(acc_file.get_contig(double).sequence[:],
                          exp_double_seq)
 
+    def test_contigset_consolidate_genomic_consensus(self):
+        """
+        Verify that the contigs output by GenomicConsensus (e.g. quiver) can
+        be consolidated.
+        """
+        FASTA1 = ("lambda_NEB3011_0_60",
+            "GGGCGGCGACCTCGCGGGTTTTCGCTATTTATGAAAATTTTCCGGTTTAAGGCGTTTCCG")
+        FASTA2 = ("lambda_NEB3011_120_180",
+            "CACTGAATCATGGCTTTATGACGTAACATCCGTTTGGGATGCGACTGCCACGGCCCCGTG")
+        FASTA3 = ("lambda_NEB3011_60_120",
+            "GTGGACTCGGAGCAGTTCGGCAGCCAGCAGGTGAGCCGTAATTATCATCTGCGCGGGCGT")
+        files = []
+        for i, (header, seq) in enumerate([FASTA1, FASTA2, FASTA3]):
+            _files = []
+            for suffix in ["", "|quiver", "|plurality"]:
+                tmpfile = tempfile.NamedTemporaryFile(suffix=".fasta").name
+                with open(tmpfile, "w") as f:
+                    f.write(">{h}{s}\n{q}".format(h=header, s=suffix, q=seq))
+                _files.append(tmpfile)
+            files.append(_files)
+        for i in range(3):
+            ds = ContigSet(*[ f[i] for f in files ])
+            out1 = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
+            fa1 = tempfile.NamedTemporaryFile(suffix=".fasta").name
+            ds.consolidate(fa1)
+            ds.write(out1)
+            with ContigSet(out1) as ds_new:
+                self.assertEqual(len([ rec for rec in ds_new ]), 1,
+                                 "failed on %d" % i)
 
     def test_split_hdfsubreadset(self):
         hdfds = HdfSubreadSet(*upstreamData.getBaxH5_v23())
