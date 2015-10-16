@@ -443,7 +443,7 @@ class TestDataSet(unittest.TestCase):
         files = []
         for i, (header, seq) in enumerate([FASTA1, FASTA2, FASTA3]):
             _files = []
-            for suffix in ["", "|quiver", "|plurality"]:
+            for suffix in ["", "|quiver", "|plurality", "|arrow"]:
                 tmpfile = tempfile.NamedTemporaryFile(suffix=".fasta").name
                 with open(tmpfile, "w") as f:
                     f.write(">{h}{s}\n{q}".format(h=header, s=suffix, q=seq))

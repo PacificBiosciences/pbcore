@@ -3285,7 +3285,7 @@ class ContigSet(DataSet):
         """Chunking and quivering adds suffixes to contig names, after the
         normal ID and window. This complicates our dewindowing and
         consolidation, so we'll remove them for now"""
-        observedSuffixes = ['|quiver', '|plurality']
+        observedSuffixes = ['|quiver', '|plurality', '|arrow']
         for suff in observedSuffixes:
             if name.endswith(suff):
                 log.debug("Suffix found: {s}".format(s=suff))
