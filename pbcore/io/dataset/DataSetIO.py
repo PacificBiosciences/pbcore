@@ -315,14 +315,10 @@ class DataSet(object):
         if not baseDataSet:
             # use _castableDataSetTypes to contain good casts
             if dsType not in self._castableDataSetTypes:
-                # But make an exception for HdfSubreadSet, which has a
-                # mismatched MetaType
-                if not (isinstance(self, HdfSubreadSet) and
-                        dsType == 'PacBio.DataSet.SubreadSet'):
-                    raise IOError(errno.EIO,
-                                  "Cannot create {c} from {f}".format(
-                                      c=self.datasetType, f=dsType),
-                                  files[0])
+                raise IOError(errno.EIO,
+                              "Cannot create {c} from {f}".format(
+                                  c=self.datasetType, f=dsType),
+                              files[0])
 
         # Don't allow for creating datasets from inappropriate file types
         # (external resources of improper types)
@@ -2015,7 +2011,7 @@ class HdfSubreadSet(ReadSet):
 
         # The metatype for this dataset type is inconsistent, plaster over it
         # here:
-        self.objMetadata["MetaType"] = "PacBio.DataSet.SubreadSet"
+        self.objMetadata["MetaType"] = "PacBio.DataSet.HdfSubreadSet"
         self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
             self.objMetadata["MetaType"])
 
