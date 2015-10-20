@@ -882,12 +882,10 @@ class DataSet(object):
                 encoding="UTF-8")
         # Disable for contigsets: no support for multiple contigs in XSD
         # Disable for ccssets: no support for datasetmetadata in XSD
-        # XXX turn this off temporarily to aid in pbsmrtpipe fixing
         if (validate and
                 not self.datasetType in [ContigSet.datasetType,
                                          ConsensusReadSet.datasetType]):
-            #validateString(xml_string, relTo=os.path.dirname(outFile))
-            pass
+            validateString(xml_string, relTo=os.path.dirname(outFile))
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):
             if not fileName.endswith(_dsIdToSuffix(self.datasetType)):
@@ -1771,8 +1769,9 @@ class ReadSet(DataSet):
         # whole, therefore we need to regenerate it again here
         log.debug("Generating new UUID")
         for result in results:
+            result.reFilter()
             result.newUuid()
-        # TODO: updateCounts
+            result.updateCounts()
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
@@ -1831,7 +1830,9 @@ class ReadSet(DataSet):
         # whole, therefore we need to regenerate it again here
         log.debug("Generating new UUID")
         for result in results:
+            result.reFilter()
             result.newUuid()
+            result.updateCounts()
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
@@ -1861,8 +1862,8 @@ class ReadSet(DataSet):
         """Returns index recarray summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
         cached in the pbi.
-        """
 
+        """
         recArrays = []
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):

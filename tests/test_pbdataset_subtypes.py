@@ -43,7 +43,7 @@ def _check_constools():
     return True
 
 def _internal_data():
-    if os.path.exists("/mnt/secondary-siv/testdata"):
+    if os.path.exists("/pbi/dept/secondary/siv/testdata"):
         return True
     return False
 
@@ -198,10 +198,12 @@ class TestDataSet(unittest.TestCase):
         mystery = openDataFile(data.getFofn())
         self.assertEqual(type(mystery), AlignmentSet)
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata/ccs/tiny"),
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata/"
+                                       "ccs-unittest/tiny"),
                          "Missing testadata directory")
     def test_file_factory_css(self):
-        fname = "/mnt/secondary-siv/testdata/ccs/tiny/little.ccs.bam"
+        fname = ("/pbi/dept/secondary/siv/testdata/ccs-unittest/"
+                 "tiny/little.ccs.bam")
         myster = openDataFile(fname)
         self.assertEqual(type(myster), ConsensusReadSet)
 
@@ -324,7 +326,7 @@ class TestDataSet(unittest.TestCase):
     @unittest.skipIf(not _check_constools() or not _internal_data(),
                      "bamtools, pbindex or data not found, skipping")
     def test_alignmentset_partial_consolidate(self):
-        testFile = ("/mnt/secondary-siv/testdata/SA3-DS/"
+        testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/"
                     "lambda/2372215/0007_tiny/Alignment_"
                     "Results/m150404_101626_42267_c10080"
                     "7920800000001823174110291514_s1_p0."

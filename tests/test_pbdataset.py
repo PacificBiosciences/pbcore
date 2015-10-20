@@ -46,7 +46,7 @@ def _check_constools():
     return True
 
 def _internal_data():
-    if os.path.exists("/mnt/secondary-siv/testdata"):
+    if os.path.exists("/pbi/dept/secondary/siv/testdata"):
         return True
     return False
 
@@ -313,16 +313,18 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, -1)
         self.assertEqual(aln.numRecords, -1)
 
-    # TODO: replace this with a reproducable bam file and move test upstream
-    @unittest.skip("Skip until suitable barcoded files found and updated")
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
     def test_barcode_accession(self):
-        testFile = data.getBarcodedBam()
+        testFile = ("/pbi/dept/secondary/siv/testdata/pblaa-unittest/"
+                    "P6-C4/HLA_ClassI/m150724_012016_sherri_c1008203"
+                    "52550000001823172911031521_s1_p0.class_I.haploid.bam")
         # Test the pbi file:
         bam = IndexedBamReader(testFile)
         pbi = PacBioBamIndex(testFile + '.pbi')
         for brec, prec in zip(bam, pbi):
             brec_bc = brec.peer.opt("bc")
-            prec_bc = [prec.bcLeft, prec.bcRight]
+            prec_bc = [prec.bcForward, prec.bcReverse]
             self.assertEqual(brec_bc, prec_bc)
 
         # Test split by barcode:
@@ -330,7 +332,7 @@ class TestDataSet(unittest.TestCase):
         sss = ss.split(chunks=2, barcodes=True)
         self.assertEqual(len(sss), 2)
         for sset in sss:
-            self.assertTrue(len(sset.barcodes) > 1)
+            self.assertTrue(len(sset.barcodes) >= 1)
 
     def test_attributes(self):
         aln = AlignmentSet(data.getBam(0))
@@ -475,10 +477,10 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds1.totalLength == ds1tl)
         self.assertTrue(ds2.totalLength == ds2tl)
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_split_zmws(self):
-        test_file = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/2372215/"
+        test_file = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/2372215/"
                      "0007_micro/Analysis_Results/m150404_101626_42267_c"
                      "100807920800000001823174110291514_s1_p0.all."
                      "subreadset.xml")
@@ -493,10 +495,10 @@ class TestDataSet(unittest.TestCase):
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
               55, 1815)])
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_large_pbi(self):
-        pbiFn = ('/mnt/secondary-siv/testdata/SA3-DS/lambda/simulated'
+        pbiFn = ('/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/simulated'
                  '/100Gb/alnsubreads/pbalchemy_100Gb_Seq_sim1_p0.'
                  'aligned.bam.pbi')
         pbi = PacBioBamIndex(pbiFn)
@@ -689,11 +691,11 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
                              len(list(ds.readsInRange(rId, 0, rlen))))
 
-    @unittest.skipUnless(os.path.isdir("/mnt/secondary-siv/testdata"),
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_reads_in_range_order(self):
         log.debug("Testing with one file")
-        testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"
+        testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
                     "2372215/0007/Alignment_Results/m150404_101"
                     "626_42267_c1008079208000000018231741102915"
                     "14_s1_p0.1.alignmentset.xml")
@@ -709,7 +711,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(num > 2000)
 
         log.debug("Testing with three files")
-        testFile = ("/mnt/secondary-siv/testdata/SA3-DS/lambda/"
+        testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
                     "2372215/0007/Alignment_Results/m150404_101"
                     "626_42267_c1008079208000000018231741102915"
                     "14_s1_p0.all.alignmentset.xml")
@@ -724,17 +726,17 @@ class TestDataSet(unittest.TestCase):
             num += 1
         self.assertTrue(num > 2000)
 
-    @unittest.skip("Skip until /mnt/secondary/Share/Quiver/ updated")
-    #@unittest.skipUnless(os.path.isdir("/mnt/secondary/Share/Quiver"),
-    #                     "Missing testadata directory")
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
     def test_reads_in_range_order_large(self):
         window = ('Staphylococcus_aureus_subsp_aureus_USA300_TCH1516',
                   558500,
                   559005)
         log.debug("Testing with one file")
-        testFile = ("/mnt/secondary/Share/Quiver/TestData/"
-                    "staph/m140911_084715_42139_c100702390"
-                    "480000001823141103261514_s1_p0.aligned_subreads.bam")
+        testFile = ("/pbi/dept/secondary/siv/testdata/"
+                    "genomic_consensus-unittest/"
+                    "Quiver/staph/m140911_084715_42139_c10070239048"
+                    "0000001823141103261514_s1_p0.aligned_subreads.bam")
         aln = AlignmentSet(testFile)
         reads1 = aln.readsInRange(*window, usePbi=False)
         reads2 = aln.readsInRange(*window, usePbi=True)

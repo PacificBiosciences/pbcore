@@ -433,7 +433,11 @@ class Filters(RecordWrapper):
                 'qname': (lambda x: x.qNameA),
                 'movie': (lambda x: x.movieName),
                 'zm': (lambda x: int(x.HoleNumber)),
-                'bc': (lambda x: x.barcode),
+                # not implemented yet:
+                #'bc': (lambda x: x.barcode),
+                # pbi mediated alt:
+                'bc': (lambda x: str([x.bam.pbi[x.rowNumber]['bcForward'],
+                                      x.bam.pbi[x.rowNumber]['bcReverse']])),
                 'qs': (lambda x: int(x.qStart)),
                 'rq': (lambda x: int(x.MapQV)),
                 'pos': (lambda x: int(x.tStart)),
@@ -476,6 +480,8 @@ class Filters(RecordWrapper):
                 'bcf': (lambda x: x.bcForward),
                 'bcr': (lambda x: x.bcForward),
                 'bcq': (lambda x: x.bcQual),
+                'bc': (lambda x: np.array(map(str, map(list, zip(x.bcForward,
+                                                                 x.bcReverse))))),
                }
 
     @property
@@ -542,6 +548,8 @@ class Filters(RecordWrapper):
                     value = typeMap[param](req.value)
                     if param == 'rname':
                         value = nameMap[value]
+                    if param == 'bc':
+                        value = str(value)
                     operator = self.opMap(req.operator)
                     reqResultsForRecords = operator(accMap[param](indexRecords),
                                                     value)
