@@ -425,6 +425,13 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         bam = IndexedBamReader(fn)
         EQ(len(bam), 0)
 
+    def test_alignment_identity(self):
+        fn = data.getBamAndCmpH5()[0]
+        with IndexedBamReader(fn) as bam_in:
+            i1 = bam_in.identity
+            i2 = np.array([ rec.identity for rec in bam_in ])
+            EQ((i2 == i1).all(), True)
+
 
 class TestCCSBam(object):
     def __init__(self):

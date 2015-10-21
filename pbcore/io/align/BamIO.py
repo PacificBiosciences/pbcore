@@ -425,3 +425,13 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
 
     def __dir__(self):
         return self.pbi.columnNames
+
+    @property
+    def identity(self):
+        """
+        Fractional alignment sequence identities as numpy array.
+        """
+        if not "nMM" in self.pbi.columnNames:
+            raise AttributeError("Identities require mapped BAM.")
+        return 1 - ((self.pbi.nMM + self.pbi.nIns + self.pbi.nDel) /
+            (self.pbi.aEnd.astype(float) - self.pbi.aStart.astype(float)))
