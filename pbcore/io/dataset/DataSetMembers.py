@@ -1662,8 +1662,8 @@ class RunDetailsMetadata(RecordWrapper):
 
 
     @property
-    def runId(self):
-        return self.getMemberV('runId')
+    def timeStampedName(self):
+        return self.getMemberV('TimeStampedName')
 
     @property
     def name(self):
@@ -1676,10 +1676,6 @@ class WellSampleMetadata(RecordWrapper):
     @property
     def uniqueId(self):
         return self.getV('attrib', 'UniqueId')
-
-    @property
-    def plateId(self):
-        return self.getMemberV('PlateId')
 
     @property
     def wellName(self):

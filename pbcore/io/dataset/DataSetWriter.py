@@ -4,10 +4,9 @@ import copy, time
 import xml.etree.ElementTree as ET
 
 # TODO add in other namespaces
-XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
+XMLNS = 'http://pacificbiosciences.com/PacBioDatasets.xsd'
 
-# Not actually sure what this should be:
-XMLVERSION = '3.0.0'
+XML_VERSION = "3.0.1"
 
 __all__ = ['toXml']
 
@@ -33,7 +32,8 @@ def namespaces():
         'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
         'pbstats': 'http://pacificbiosciences.com/PipelineStats/PipeStats.xsd',
         'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
-        'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd'}
+        '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
+        }
 
 TAGS = [
     "pbbase:AutomationParameter",
@@ -60,31 +60,31 @@ TAGS = [
     "pbbase:SampleMed",
     "pbbase:SampleSize",
     "pbbase:SampleStd",
-    "pbds:AdapterDimerFraction",
-    "pbds:BarcodeConstruction",
-    "pbds:ControlReadLenDist",
-    "pbds:ControlReadQualDist",
-    "pbds:DataSetMetadata",
-    "pbds:DataSet",
-    "pbds:DataSets",
-    "pbds:Filter",
-    "pbds:Filters",
-    "pbds:Provenance",
-    "pbds:ParentTool",
-    "pbds:InsertReadLenDist",
-    "pbds:InsertReadQualDist",
-    "pbds:MedianInsertDist",
-    "pbds:NumRecords",
-    "pbds:NumSequencingZmws",
-    "pbds:ProdDist",
-    "pbds:ReadLenDist",
-    "pbds:ReadQualDist",
-    "pbds:ReadTypeDist",
-    "pbds:ShortInsertFraction",
-    "pbds:HdfSubreadSet",
-    "pbds:SubreadSet",
-    "pbds:SummaryStats",
-    "pbds:TotalLength",
+    ":AdapterDimerFraction",
+    ":BarcodeConstruction",
+    ":ControlReadLenDist",
+    ":ControlReadQualDist",
+    ":DataSetMetadata",
+    ":DataSet",
+    ":DataSets",
+    ":Filter",
+    ":Filters",
+    ":Provenance",
+    ":ParentTool",
+    ":InsertReadLenDist",
+    ":InsertReadQualDist",
+    ":MedianInsertDist",
+    ":NumRecords",
+    ":NumSequencingZmws",
+    ":ProdDist",
+    ":ReadLenDist",
+    ":ReadQualDist",
+    ":ReadTypeDist",
+    ":ShortInsertFraction",
+    ":HdfSubreadSet",
+    ":SubreadSet",
+    ":SummaryStats",
+    ":TotalLength",
     "pbmeta:Automation",
     "pbmeta:AutomationName",
     "pbmeta:CellIndex",
@@ -119,15 +119,15 @@ TAGS = [
     "pbsample:BioSamplePointer",
     "pbsample:BioSamplePointers",
     "pbsample:BioSamples",
-    "pbds:AlignmentSet",
-    "pbds:BarcodeSet",
-    "pbds:ConsensusReadSet",
-    "pbds:ContigSet",
-    "pbds:ReferenceSet",
-    "pbds:Ploidy",
-    "pbds:Organism",
-    "pbds:Contig",
-    "pbds:Contigs"
+    ":AlignmentSet",
+    ":BarcodeSet",
+    ":ConsensusReadSet",
+    ":ContigSet",
+    ":ReferenceSet",
+    ":Ploidy",
+    ":Organism",
+    ":Contig",
+    ":Contigs"
 ]
 
 def register_namespaces():
@@ -150,7 +150,7 @@ def _toElementTree(dataSet, root=None, core=False):
     # 'if not root:' would conflict with testing root for children
     if root is None:
         register_namespaces()
-        rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+        rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
                                        t=type(dataSet).__name__)
         attribs = dataSet.objMetadata
         if core:
@@ -168,11 +168,10 @@ def _toElementTree(dataSet, root=None, core=False):
     if not root.get('CreatedAt') and not core:
         root.set('CreatedAt', time.strftime("%Y-%m-%dT%H:%M:%S"))
     if not root.get('Version'):
-        root.set('Version', XMLVERSION)
+        root.set('Version', XML_VERSION)
     if not root.get(xsi + 'schemaLocation'):
         root.set(xsi + 'schemaLocation', ("http://pacificbiosciences.com"
                                           "/PacBioDataModel.xsd"))
-    root.set('xmlns', XMLNS)
     return root
 
 def _coreClean(attribs):
@@ -274,11 +273,11 @@ def _addDataSetsElement(dataset, root):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataset.subdatasets:
-        rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+        rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
                                    t='DataSets')
         dse = ET.SubElement(root, rootType)
         for subSet in dataset.subdatasets:
-            rootType = '{{{n}}}{t}'.format(n=namespaces()['pbds'],
+            rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
                                            t=subSet.__class__.__name__)
             subSetRoot = ET.SubElement(dse, rootType,
                                        subSet.objMetadata)
