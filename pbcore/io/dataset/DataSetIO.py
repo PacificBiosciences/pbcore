@@ -1788,6 +1788,10 @@ class ReadSet(DataSet):
             log.warn("%d ZMW chunks requested but there are %d files" %
                      (chunks, n_bam))
         n_chunks = n_bam * n_chunks_per_bam
+        active_holenumbers = 0
+        for reader in self.resourceReaders():
+            active_holenumbers += len(set(reader.holeNumber))
+        n_chunks = min(active_holenumbers, n_chunks)
         if n_chunks != chunks:
             log.info("Adjusted number of chunks to %d" % n_chunks)
         log.debug("Making copies")
