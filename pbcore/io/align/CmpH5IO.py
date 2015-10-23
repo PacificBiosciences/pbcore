@@ -440,6 +440,10 @@ class CmpH5Alignment(AlignmentRecordMixin):
     def sequencingChemistry(self):
         return self.cmpH5.sequencingChemistry[self.MovieID-1]
 
+    @property
+    def hqRegionSnr(self):
+        raise Exception, "CmpH5 does not support hqRegionSnr"
+
     def alignmentArray(self, orientation="native"):
         """
         Direct access to the raw, encoded aligment array, which is a

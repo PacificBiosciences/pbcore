@@ -264,6 +264,10 @@ class BamAlignment(AlignmentRecordMixin):
         return self.readGroupInfo.SequencingChemistry
 
     @property
+    def hqRegionSnr(self):
+        return self.peer.opt("sn")
+
+    @property
     def referenceId(self):
         return self.tId
 

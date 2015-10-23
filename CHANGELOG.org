@@ -1,3 +1,6 @@
+* Version 1.2.5
+- Accessors for SNR from BAM reads; needed for Arrow access
+
 * Version 1.2.4
 - add GFF gather functionality
 - support for 3.0.1 BAM format spec
