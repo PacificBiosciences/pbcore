@@ -884,6 +884,7 @@ class DataSet(object):
         # Disable for ccssets: no support for datasetmetadata in XSD
         if (validate and
                 not self.datasetType in [ContigSet.datasetType,
+                                         ReferenceSet.datasetType,
                                          ConsensusReadSet.datasetType]):
             validateString(xml_string, relTo=os.path.dirname(outFile))
         fileName = urlparse(outFile).path.strip()
