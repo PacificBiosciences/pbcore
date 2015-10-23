@@ -472,7 +472,8 @@ class TestDataSet(unittest.TestCase):
         ds2tl = ds2.totalLength
         dss = ds1 + ds2
         self.assertTrue(dss.totalLength == (ds1tl + ds2tl))
-        ds1, ds2 = sorted(dss.split(2), key=lambda x: x.totalLength,
+        ds1, ds2 = sorted(dss.split(2, ignoreSubDatasets=False),
+                          key=lambda x: x.totalLength,
                           reverse=True)
         self.assertTrue(ds1.totalLength == ds1tl)
         self.assertTrue(ds2.totalLength == ds2tl)

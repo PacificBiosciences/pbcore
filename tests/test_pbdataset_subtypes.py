@@ -134,6 +134,9 @@ class TestDataSet(unittest.TestCase):
         for name in names:
             self.assertTrue(ds.get_contig(name))
 
+        for name in names:
+            self.assertTrue(ds[name].id == name)
+
     def test_ccsread_build(self):
         ds1 = ConsensusReadSet(data.getXml(2), strict=False)
         self.assertEquals(type(ds1).__name__, 'ConsensusReadSet')

@@ -412,17 +412,24 @@ class Filters(RecordWrapper):
         return any(options)
 
     def opMap(self, op):
-        ops = {'>=': OP.le,
-               '&gt;=': OP.ge,
-               '<=': OP.ge,
-               '&lt;=': OP.le,
+        ops = {
                '==': OP.eq,
-               '!=': OP.ne,
                '=': OP.eq,
+               'eq': OP.eq,
+               '!=': OP.ne,
+               'ne': OP.ne,
+               '>=': OP.ge,
+               '&gt;=': OP.ge,
+               'gte': OP.ge,
+               '<=': OP.le,
+               '&lt;=': OP.le,
+               'lte': OP.le,
                '>': OP.gt,
                '&gt;': OP.gt,
+               'gt': OP.gt,
                '<': OP.lt,
                '&lt;': OP.lt,
+               'lt': OP.lt,
               }
         return ops[op]
 

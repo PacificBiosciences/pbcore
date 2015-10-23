@@ -101,7 +101,8 @@ def _addGenericFile(dset, path):
 
 # TODO needs namespace
 def wrapNewResource(path):
-    possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml']
+    possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml',
+                        '.index', '.contig.index', '.sa']
     for ext in possible_indices:
         if path.endswith(ext):
             log.debug('Index file {f} given as regular file, will be treated '

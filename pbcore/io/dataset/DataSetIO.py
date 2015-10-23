@@ -2,7 +2,7 @@
 Classes representing DataSets of various types.
 """
 
-from collections import defaultdict
+from collections import defaultdict, Counter
 import hashlib
 import datetime
 import math
@@ -190,6 +190,10 @@ def _fileType(fname):
     if ftype == '.h5':
         _, prefix = os.path.splitext(remainder)
         ftype = prefix + ftype
+    elif ftype == '.index':
+        _, prefix = os.path.splitext(remainder)
+        if prefix == '.contig':
+            ftype = prefix + ftype
     ftype = ftype.strip('.')
     return ftype
 
@@ -651,7 +655,7 @@ class DataSet(object):
         result.newUuid()
         return result
 
-    def split(self, chunks=0, ignoreSubDatasets=False, contigs=False,
+    def split(self, chunks=0, ignoreSubDatasets=True, contigs=False,
               maxChunks=0, breakContigs=False, targetSize=5000, zmws=False,
               barcodes=False, byRecords=False, updateCounts=True):
         """Deep copy the DataSet into a number of new DataSets containing
@@ -736,7 +740,7 @@ class DataSet(object):
             True
             >>> # unmerge:
             >>> ds1, ds2 = sorted(
-            ... dss.split(2), key=lambda x: x.totalLength, reverse=True)
+            ... dss.split(2, ignoreSubDatasets=False), key=lambda x: x.totalLength, reverse=True)
             >>> ds1.totalLength == ds1tl
             True
             >>> ds2.totalLength == ds2tl
@@ -1612,11 +1616,26 @@ class DataSet(object):
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads. Only pbi filters considered, however."""
-        # TODO: add _getRecords for list of indices support
-        if self._indexMap is None:
-            _ = self.index
-        rrNo, recNo = self._indexMap[index]
-        return self.resourceReaders()[rrNo][recNo]
+        if isinstance(index, int):
+            if self._indexMap is None:
+                _ = self.index
+            # support negatives
+            if index < 0:
+                index = len(self.index) + index
+            rrNo, recNo = self._indexMap[index]
+            return self.resourceReaders()[rrNo][recNo]
+        elif isinstance(index, slice):
+            raise NotImplementedError()
+        elif isinstance(index, list):
+            indexTuples = [self._indexMap[ind] for ind in index]
+            return [self.resourceReaders()[ind[0]][ind[1]] for ind in
+                    indexTuples]
+        elif isinstance(index, str):
+            if 'id' in self.index.dtype.names:
+                row = np.nonzero(self.index.id == index)[0][0]
+                return self[row]
+            else:
+                raise NotImplementedError()
 
 
 class InvalidDataSetIOError(Exception):
@@ -2683,7 +2702,8 @@ class AlignmentSet(ReadSet):
             return passes
         return self.index[passes]
 
-    def _pbiReadsInRange(self, refName, start, end, longest=False):
+    def _pbiReadsInRange(self, refName, start, end, longest=False,
+                         sampleSize=0):
         """Return the reads in range for a file, but use the index in this
         object to get the order of the (reader, read) index tuples, instead of
         using the pbi rangeQuery for each file and merging the actual reads.
@@ -2717,7 +2737,18 @@ class AlignmentSet(ReadSet):
             lens = lengthInWindow(self.index[passes])
             # reverse the keys here, so the descending sort is stable
             lens = (end - start) - lens
-            sort_order = lens.argsort(kind='mergesort')
+            if sampleSize != 0:
+                if len(lens) != 0:
+                    min_len = min(lens)
+                    count_min = Counter(lens)[min_len]
+                else:
+                    count_min = 0
+                if count_min > sampleSize:
+                    sort_order = lens.argsort()
+                else:
+                    sort_order = lens.argsort(kind='mergesort')
+            else:
+                sort_order = lens.argsort(kind='mergesort')
             mapPasses = mapPasses[sort_order]
         elif len(self.toExternalFiles()) > 1:
             # sort the pooled passes and indices using a stable algorithm
@@ -2801,7 +2832,7 @@ class AlignmentSet(ReadSet):
 
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
-                     longest=False):
+                     longest=False, sampleSize=0):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -2838,7 +2869,8 @@ class AlignmentSet(ReadSet):
 
         if self.hasPbi and usePbi:
             for rec in self._pbiReadsInRange(refName, start, end,
-                                             longest=longest):
+                                             longest=longest,
+                                             sampleSize=sampleSize):
                 yield rec
             raise StopIteration
 
@@ -3492,6 +3524,8 @@ class ContigSet(DataSet):
                 'fa':'PacBio.ContigFile.ContigFastaFile',
                 'fas':'PacBio.ContigFile.ContigFastaFile',
                 'fai':'PacBio.Index.SamIndex',
+                'contig.index':'PacBio.Index.FastaContigIndex',
+                'index':'PacBio.Index.Indexer',
                 'sa':'PacBio.Index.SaWriterIndex',
                }
 
@@ -3553,6 +3587,8 @@ class ReferenceSet(ContigSet):
                 'fa':'PacBio.ContigFile.ContigFastaFile',
                 'fas':'PacBio.ContigFile.ContigFastaFile',
                 'fai':'PacBio.Index.SamIndex',
+                'contig.index':'PacBio.Index.FastaContigIndex',
+                'index':'PacBio.Index.Indexer',
                 'sa':'PacBio.Index.SaWriterIndex',
                }
 
