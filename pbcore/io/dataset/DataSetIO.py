@@ -2704,7 +2704,8 @@ class AlignmentSet(ReadSet):
                   (self.index.tStart < end) &
                   (self.index.tEnd > start))
         if justIndices:
-            return passes
+            return np.nonzero(passes)[0]
+            #return passes
         return self.index[passes]
 
     def _pbiReadsInRange(self, refName, start, end, longest=False,
@@ -2837,7 +2838,7 @@ class AlignmentSet(ReadSet):
 
     @filtered
     def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
-                     longest=False, sampleSize=0):
+                     longest=False, sampleSize=0, justIndices=False):
         """A generator of (usually) BamAlignment objects for the reads in one
         or more Bam files pointed to by the ExternalResources in this DataSet
         that have at least one coordinate within the specified range in the
@@ -2871,6 +2872,18 @@ class AlignmentSet(ReadSet):
             for res in self.resourceReaders():
                 for row in res.referenceInfoTable:
                     row.FullName = self._cleanCmpName(row.FullName)
+
+        if justIndices:
+            return self._indexReadsInRange(refName, start, end,
+                                           justIndices=True)
+        else:
+            return (read for read in self._readsInRange(refName, start, end,
+                                                        buffsize, usePbi,
+                                                        longest, sampleSize))
+
+    @filtered
+    def _readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
+                      longest=False, sampleSize=0):
 
         if self.hasPbi and usePbi:
             for rec in self._pbiReadsInRange(refName, start, end,

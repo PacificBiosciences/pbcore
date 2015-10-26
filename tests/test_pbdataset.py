@@ -692,6 +692,25 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(list(ds.readsInRange(rn, 0, rlen))),
                              len(list(ds.readsInRange(rId, 0, rlen))))
 
+    def test_reads_in_range_indices(self):
+        ds = AlignmentSet(data.getBam())
+        refNames = ds.refNames
+
+        rn = refNames[15]
+        read_indexes = list(ds.readsInRange(rn, 10, 100, justIndices=True))
+        self.assertEqual(len(read_indexes), 10)
+        for read in read_indexes:
+            self.assertTrue(isinstance(read, int))
+
+        read_index_records = ds.index[read_indexes]
+
+        reads = list(ds.readsInRange(rn, 10, 100, justIndices=False))
+        self.assertEqual(len(reads), 10)
+
+        for ri, rr in zip(ds[read_indexes], reads):
+            self.assertEqual(ri, rr)
+
+
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_reads_in_range_order(self):
