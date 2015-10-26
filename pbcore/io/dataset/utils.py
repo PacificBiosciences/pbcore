@@ -66,6 +66,7 @@ def _pbindexBam(fname):
     o, r, m = backticks(cmd)
     if r != 0:
         raise RuntimeError(m)
+    return fname + ".pbi"
 
 def _sortBam(fname):
     tmpname = _infixFname(fname, "_sorted")
@@ -78,9 +79,11 @@ def _sortBam(fname):
 
 def _indexBam(fname):
     pysam.index(fname)
+    return fname + ".bai"
 
 def _indexFasta(fname):
     pysam.faidx(fname)
+    return fname + ".fai"
 
 def _mergeBams(inFiles, outFile):
     if len(inFiles) > 1:

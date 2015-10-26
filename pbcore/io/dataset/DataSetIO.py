@@ -360,9 +360,9 @@ class DataSet(object):
 
         # generate indices if requested and needed
         if _induceIndices:
-            self._induceIndices()
+            self.induceIndices()
 
-    def _induceIndices(self):
+    def induceIndices(self):
         raise NotImplementedError()
 
     def __repr__(self):
@@ -1663,15 +1663,19 @@ class ReadSet(DataSet):
         super(ReadSet, self).__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
-    def _induceIndices(self):
+    def induceIndices(self):
         for res in self.externalResources:
             fname = res.resourceId
+            newInds = []
             if not res.pbi:
-                _pbindexBam(fname)
+                newInds.append(_pbindexBam(fname))
                 self.close()
             if not res.bai:
-                _indexBam(fname)
+                newInds.append(_indexBam(fname))
                 self.close()
+            res.addIndices(newInds)
+        self._populateMetaTypes()
+        self.updateCounts()
 
     @property
     def isIndexed(self):
@@ -2039,7 +2043,7 @@ class HdfSubreadSet(ReadSet):
         self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
             self.objMetadata["MetaType"])
 
-    def _induceIndices(self):
+    def induceIndices(self):
         log.debug("Bax files already indexed")
 
     @property
@@ -2182,11 +2186,11 @@ class AlignmentSet(ReadSet):
         else:
             return super(AlignmentSet, self).consolidate(*args, **kwargs)
 
-    def _induceIndices(self):
+    def induceIndices(self):
         if self.isCmpH5:
             log.debug("Cmp.h5 files already indexed")
         else:
-            return super(AlignmentSet, self)._induceIndices()
+            return super(AlignmentSet, self).induceIndices()
 
     @property
     def isIndexed(self):
@@ -3335,11 +3339,13 @@ class ContigSet(DataSet):
             return '_'.join(name.split('_')[:-2]) + suff
         return name
 
-    def _induceIndices(self):
+    def induceIndices(self):
         if not self.isIndexed:
-            for fname in self.toExternalFiles():
-                _indexFasta(fname)
+            for extRes in self.externalResources:
+                extRes.addIndices([_indexFasta(extRes.resourceId)])
             self.close()
+        self._populateMetaTypes()
+        self.updateCounts()
 
     def _parseWindow(self, name):
         """Chunking and quivering appends a window to the contig ID, which
