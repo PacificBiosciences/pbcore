@@ -961,7 +961,7 @@ class DataSet(object):
     def _filterType(self):
         raise NotImplementedError()
 
-    def checkAndResolve(self, fname, possibleRelStart='.'):
+    def checkAndResolve(self, fname, possibleRelStart=None):
         """Try and skip resolveLocation if possible"""
         if fname.startswith(os.path.sep):
             return fname

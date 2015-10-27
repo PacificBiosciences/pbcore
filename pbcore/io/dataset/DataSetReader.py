@@ -14,14 +14,15 @@ from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 
 log = logging.getLogger(__name__)
 
-def resolveLocation(fname, possibleRelStart='.'):
-    """Find the absolute path of a file that exists relative to '.' or
+def resolveLocation(fname, possibleRelStart=None):
+    """Find the absolute path of a file that exists relative to
     possibleRelStart."""
+    if possibleRelStart != None:
+        if os.path.exists(possibleRelStart):
+            if os.path.exists(os.path.join(possibleRelStart, fname)):
+                return os.path.abspath(os.path.join(possibleRelStart, fname))
     if os.path.exists(fname):
         return os.path.abspath(fname)
-    if os.path.exists(possibleRelStart):
-        if os.path.exists(os.path.join(possibleRelStart, fname)):
-            return os.path.abspath(os.path.join(possibleRelStart, fname))
     log.error("Including unresolved file: {f}".format(f=fname))
     return fname
 
