@@ -64,6 +64,8 @@ def validateXml(xmlroot, skipResources=False, relTo='.'):
         log.debug('Validating with PyXb')
         fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
                              ET.tostring(xmlroot))
+        fixedString = re.sub('Barcode="[0-9]', 'Barcode="f',
+                             fixedString)
         fixedString = re.sub('Pointer>[0-9]', 'Pointer>f',
                              fixedString)
         DataSetXsd.CreateFromDocument(fixedString)
