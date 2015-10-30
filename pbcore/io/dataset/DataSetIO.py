@@ -3525,6 +3525,12 @@ class ContigSet(DataSet):
                 return False
             else:
                 raise
+        except IndexError:
+            if not self._strict:
+                log.error("No resource readers!")
+                return False
+            else:
+                raise InvalidDataSetIOError("No openable resources!")
 
     @property
     def contigNames(self):
