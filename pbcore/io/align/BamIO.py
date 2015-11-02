@@ -431,6 +431,8 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
         """
         Fractional alignment sequence identities as numpy array.
         """
+        if len(self.pbi) == 0:
+            return np.array([])
         if not "nMM" in self.pbi.columnNames:
             raise AttributeError("Identities require mapped BAM.")
         return 1 - ((self.pbi.nMM + self.pbi.nIns + self.pbi.nDel) /
