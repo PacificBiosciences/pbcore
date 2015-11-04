@@ -152,6 +152,30 @@
     <SoftwareVersion>2.3</SoftwareVersion>
   </Mapping>
   <Mapping>
+    <SequencingChemistry>P6-C4</SequencingChemistry>
+    <BindingKit>100356300</BindingKit>
+    <SequencingKit>100612400</SequencingKit>
+    <SoftwareVersion>2.1</SoftwareVersion>
+  </Mapping>
+  <Mapping>
+    <SequencingChemistry>P6-C4</SequencingChemistry>
+    <BindingKit>100356300</BindingKit>
+    <SequencingKit>100612400</SequencingKit>
+    <SoftwareVersion>2.3</SoftwareVersion>
+  </Mapping>
+  <Mapping>
+    <SequencingChemistry>P6-C4</SequencingChemistry>
+    <BindingKit>100372700</BindingKit>
+    <SequencingKit>100612400</SequencingKit>
+    <SoftwareVersion>2.1</SoftwareVersion>
+  </Mapping>
+  <Mapping>
+    <SequencingChemistry>P6-C4</SequencingChemistry>
+    <BindingKit>100372700</BindingKit>
+    <SequencingKit>100612400</SequencingKit>
+    <SoftwareVersion>2.3</SoftwareVersion>
+  </Mapping>
+  <Mapping>
     <SequencingChemistry>S/P1-C1</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
     <SequencingKit>100-620-000</SequencingKit>
