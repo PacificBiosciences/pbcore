@@ -1,3 +1,7 @@
+* Version 1.2.6
+  - Recognize sequencing kit C4v2
+  - Support for multipart bas files with the new Sequel holenumber format
+  - Add readsByHoleNumber to aln file classes
 * Version 1.2.5
 - Accessors for SNR from BAM reads; needed for Arrow access
 
