@@ -47,6 +47,7 @@ serve two pruposes:
 """
 
 #import hashlib
+import ast
 import uuid
 import datetime
 import copy
@@ -412,8 +413,7 @@ class Filters(RecordWrapper):
         return any(options)
 
     def opMap(self, op):
-        ops = {
-               '==': OP.eq,
+        ops = {'==': OP.eq,
                '=': OP.eq,
                'eq': OP.eq,
                '!=': OP.ne,
@@ -443,8 +443,8 @@ class Filters(RecordWrapper):
                 # not implemented yet:
                 #'bc': (lambda x: x.barcode),
                 # pbi mediated alt:
-                'bc': (lambda x: str([x.bam.pbi[x.rowNumber]['bcForward'],
-                                      x.bam.pbi[x.rowNumber]['bcReverse']])),
+                'bc': (lambda x: (x.bam.pbi[x.rowNumber]['bcForward'],
+                                  x.bam.pbi[x.rowNumber]['bcReverse'])),
                 'qs': (lambda x: int(x.qStart)),
                 'rq': (lambda x: int(x.MapQV)),
                 'pos': (lambda x: int(x.tStart)),
@@ -487,8 +487,7 @@ class Filters(RecordWrapper):
                 'bcf': (lambda x: x.bcForward),
                 'bcr': (lambda x: x.bcForward),
                 'bcq': (lambda x: x.bcQual),
-                'bc': (lambda x: np.array(map(str, map(list, zip(x.bcForward,
-                                                                 x.bcReverse))))),
+                'bc': (lambda x: np.array(zip(x.bcForward, x.bcReverse))),
                }
 
     @property
@@ -556,10 +555,22 @@ class Filters(RecordWrapper):
                     if param == 'rname':
                         value = nameMap[value]
                     if param == 'bc':
-                        value = str(value)
-                    operator = self.opMap(req.operator)
-                    reqResultsForRecords = operator(accMap[param](indexRecords),
-                                                    value)
+                        # convert string to list:
+                        values = ast.literal_eval(value)
+                        param = 'bcf'
+                        value = values[0]
+                        operator = self.opMap(req.operator)
+                        reqResultsForRecords = operator(
+                            accMap[param](indexRecords), value)
+                        param = 'bcr'
+                        value = values[1]
+                        operator = self.opMap(req.operator)
+                        reqResultsForRecords &= operator(
+                            accMap[param](indexRecords), value)
+                    else:
+                        operator = self.opMap(req.operator)
+                        reqResultsForRecords = operator(
+                            accMap[param](indexRecords), value)
                     if lastResult is None:
                         lastResult = reqResultsForRecords
                     else:
@@ -960,7 +971,7 @@ class ExternalResource(RecordWrapper):
     def addIndices(self, indices):
         fileIndices = list(self.findChildren('FileIndices'))
         if fileIndices:
-            fileIndices = FileIndices(fileIndices)
+            fileIndices = FileIndices(fileIndices[0])
         else:
             fileIndices = FileIndices()
         for index in indices:

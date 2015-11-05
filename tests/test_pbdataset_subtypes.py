@@ -502,35 +502,34 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, 52023)
         self.assertEqual(aln.numRecords, 40)
 
-        # NO LONGER SUPPORTED AlignmentSet with cmp.h5
-        #aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
-        #self.assertEqual(len(aln), 84)
-        #self.assertEqual(aln._length, (84, 26103))
-        #self.assertEqual(aln.totalLength, 26103)
-        #self.assertEqual(aln.numRecords, 84)
-        #aln.totalLength = -1
-        #aln.numRecords = -1
-        #self.assertEqual(aln.totalLength, -1)
-        #self.assertEqual(aln.numRecords, -1)
-        #aln.updateCounts()
-        #self.assertEqual(aln.totalLength, 26103)
-        #self.assertEqual(aln.numRecords, 84)
+        # AlignmentSet with cmp.h5
+        aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
+        self.assertEqual(len(aln), 84)
+        self.assertEqual(aln._length, (84, 26103))
+        self.assertEqual(aln.totalLength, 26103)
+        self.assertEqual(aln.numRecords, 84)
+        aln.totalLength = -1
+        aln.numRecords = -1
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
+        aln.updateCounts()
+        self.assertEqual(aln.totalLength, 26103)
+        self.assertEqual(aln.numRecords, 84)
 
 
         # SubreadSet
-        # TODO Turn this back on when pbi's are fixed for subreadsets
-        #sset = SubreadSet(data.getXml(10), strict=True)
-        #self.assertEqual(len(sset), 92)
-        #self.assertEqual(sset._length, (92, 123588))
-        #self.assertEqual(sset.totalLength, 123588)
-        #self.assertEqual(sset.numRecords, 92)
-        #sset.totalLength = -1
-        #sset.numRecords = -1
-        #self.assertEqual(sset.totalLength, -1)
-        #self.assertEqual(sset.numRecords, -1)
-        #sset.updateCounts()
-        #self.assertEqual(sset.totalLength, 123588)
-        #self.assertEqual(sset.numRecords, 92)
+        sset = SubreadSet(data.getXml(10), strict=True)
+        self.assertEqual(len(sset), 92)
+        self.assertEqual(sset._length, (92, 124093))
+        self.assertEqual(sset.totalLength, 124093)
+        self.assertEqual(sset.numRecords, 92)
+        sset.totalLength = -1
+        sset.numRecords = -1
+        self.assertEqual(sset.totalLength, -1)
+        self.assertEqual(sset.numRecords, -1)
+        sset.updateCounts()
+        self.assertEqual(sset.totalLength, 124093)
+        self.assertEqual(sset.numRecords, 92)
 
         # HdfSubreadSet
         # len means something else in bax/bas land. These numbers may actually
@@ -658,3 +657,10 @@ class TestDataSet(unittest.TestCase):
         fasta = upstreamData.getLambdaFasta()
         ds = ContigSet(fasta)
         self.assertEqual(ds[0].name, "lambda_NEB3011")
+
+    def test_alignmentset_index(self):
+        aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
+        reads = aln.readsInRange(aln.refNames[0], 0, 1000)
+        self.assertEqual(len(list(reads)), 2)
+        self.assertEqual(len(list(aln)), 84)
+        self.assertEqual(len(aln.index), 84)

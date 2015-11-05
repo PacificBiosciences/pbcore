@@ -102,9 +102,9 @@ class PacBioBamIndex(object):
             ("mapQV"             , "u1") ]
 
         BARCODE_INDEX_DTYPE = [
-            ("bcForward"         , "u2"),
-            ("bcReverse"         , "u2"),
-            ("bcQual"            , "u1")]
+            ("bcForward"         , "i2"),
+            ("bcReverse"         , "i2"),
+            ("bcQual"            , "i1")]
 
         COMPUTED_COLUMNS_DTYPE = [
             ("nIns"              , "u4"),

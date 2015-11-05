@@ -1545,7 +1545,7 @@ class DataSet(object):
     def sequencingChemistry(self):
         key = 'sequencingChemistry'
         responses = self._pollResources(lambda x: getattr(x, key))
-        return _flatten(responses)
+        return list(_flatten(responses))
 
     @property
     def isEmpty(self):
@@ -1761,7 +1761,8 @@ class ReadSet(DataSet):
         barcodes = defaultdict(int)
         for bcTuple in itertools.izip(self.index.bcForward,
                                       self.index.bcReverse):
-            barcodes[bcTuple] += 1
+            if bcTuple != (-1, -1):
+                barcodes[bcTuple] += 1
 
         log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
 
@@ -2227,6 +2228,10 @@ class AlignmentSet(ReadSet):
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
+            tId = lambda x: x.tId
+            if not self.isCmpH5:
+                indices = indices._tbl
+                tId = lambda x: x.RefGroupID
 
             if correctIds and self._stackedReferenceInfoTable:
                 log.debug("Must correct index tId's")
@@ -2237,25 +2242,25 @@ class AlignmentSet(ReadSet):
 
             if not self._filters or self.noFiltering:
                 if correctIds and self._stackedReferenceInfoTable:
-                    for i in range(len(indices._tbl)):
-                        indices._tbl.tId[i] = nameMap[
-                            tIdMap[indices._tbl.tId[i]]]
-                recArrays.append(indices._tbl)
+                    for i in range(len(indices)):
+                        tId(indices)[i] = nameMap[
+                            tIdMap[tId(indices)[i]]]
+                recArrays.append(indices)
                 self._indexMap.extend([(rrNum, i) for i in
-                                       range(len(indices._tbl))])
+                                       range(len(indices))])
             else:
                 # Filtration will be necessary:
                 nameMap = {name: n
                            for n, name in enumerate(
                                rr.referenceInfoTable['Name'])}
 
-                passes = self._filters.filterIndexRecords(indices._tbl,
+                passes = self._filters.filterIndexRecords(indices,
                                                           nameMap)
                 if correctIds and self._stackedReferenceInfoTable:
-                    for i in range(len(indices._tbl)):
-                        indices._tbl.tId[i] = nameMap[
-                            tIdMap[indices._tbl.tId[i]]]
-                newInds = indices._tbl[passes]
+                    for i in range(len(indices)):
+                        tId(indices)[i] = nameMap[
+                            tIdMap[tId(indices)[i]]]
+                newInds = indices[passes]
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
@@ -2700,9 +2705,14 @@ class AlignmentSet(ReadSet):
 
         """
         desiredTid = self.refIds[refName]
-        passes = ((self.index.tId == desiredTid) &
-                  (self.index.tStart < end) &
-                  (self.index.tEnd > start))
+        if self.isCmpH5:
+            passes = ((self.index.RefGroupID == desiredTid) &
+                      (self.index.tStart < end) &
+                      (self.index.tEnd > start))
+        else:
+            passes = ((self.index.tId == desiredTid) &
+                      (self.index.tStart < end) &
+                      (self.index.tEnd > start))
         if justIndices:
             return np.nonzero(passes)[0]
             #return passes
@@ -2993,11 +3003,11 @@ class AlignmentSet(ReadSet):
                  expect a pbi for both subreadsets and alignmentsets
 
         """
-        if self.isCmpH5:
-            log.info("Correct counts not supported for cmp.h5 alignmentsets")
-            return -1, -1
         count = len(self.index)
-        length = sum(self.index.aEnd - self.index.aStart)
+        if self.isCmpH5:
+            length = sum(self.index.rEnd - self.index.rStart)
+        else:
+            length = sum(self.index.aEnd - self.index.aStart)
         return count, length
 
     @property
