@@ -104,6 +104,19 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         return sorted(alns, key=lambda a: a.readStart)
 
 
+    def readsByHoleNumber(self, hn):
+        """
+        Identify reads by hole number, for single-movie alignment files.
+
+        Raises a ValueError for alignment files that are not single-movie
+        """
+        movieNames = list(self.movieNames)
+        if len(movieNames) != 1:
+            raise ValueError, "readsByHoleNumber expects a single-movie file"
+        else:
+            return self.readsByName(movieNames[0] + "/" + str(hn))
+
+
 class AlignmentRecordMixin(object):
     """
     Mixin class providing some higher-level functionality for
