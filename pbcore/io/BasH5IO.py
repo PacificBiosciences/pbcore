@@ -820,8 +820,9 @@ class BasH5Reader(object):
                 directory = op.dirname(self.filename)
                 self._parts = [ BaxH5Reader(op.join(directory, fn))
                                 for fn in self.file["/MultiPart/Parts"] ]
-                self._holeLookupVector = self.file["/MultiPart/HoleLookup"][:,1]
-                self._holeLookup = self._holeLookupVector.__getitem__
+                self._holeLookupDict = dict(zip(self.file["/MultiPart/HoleLookup"][:,0],
+                                                self.file["/MultiPart/HoleLookup"][:,1]))
+                self._holeLookup = self._holeLookupDict.get
             else:
                 self._parts = [ BaxH5Reader(self.filename) ]
                 self._holeLookup = (lambda holeNumber: 1)
