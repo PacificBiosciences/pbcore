@@ -1757,7 +1757,11 @@ class ReadSet(DataSet):
         """
         # Find all possible barcodes and counts for each
         self.assertIndexed()
-        self.assertBarcoded()
+        try:
+            self.assertBarcoded()
+        except RuntimeError:
+            log.warn("No barcodes found in BAM file, skipping split")
+            return [self.copy()]
         barcodes = defaultdict(int)
         for bcTuple in itertools.izip(self.index.bcForward,
                                       self.index.bcReverse):
