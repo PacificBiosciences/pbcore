@@ -1289,7 +1289,6 @@ class DataSet(object):
             for record in resource:
                 yield record
 
-    @filtered
     def __iter__(self):
         """ Iterate over the records. (sorted for AlignmentSet objects)"""
         for record in self.records:
@@ -1303,7 +1302,6 @@ class DataSet(object):
             subNames.extend(sds.name)
         return subNames
 
-    @filtered
     def readsInSubDatasets(self, subNames=[]):
         """To be used in conjunction with self.subSetNames"""
         if self.subdatasets:
@@ -2403,7 +2401,6 @@ class AlignmentSet(ReadSet):
         else:
             return len(self.index)
 
-    @filtered
     def readsInReference(self, refName):
         """A generator of (usually) BamAlignment objects for the
         reads in one or more Bam files pointed to by the ExternalResources in
@@ -2850,7 +2847,6 @@ class AlignmentSet(ReadSet):
                 refName = self._idToRname(int(refName))
         return refName
 
-    @filtered
     def readsInRange(self, refName, start, end, buffsize=50, usePbi=True,
                      longest=False, sampleSize=0, justIndices=False):
         """A generator of (usually) BamAlignment objects for the reads in one
