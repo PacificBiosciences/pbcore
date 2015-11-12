@@ -17,13 +17,11 @@ from functools import wraps
 import numpy as np
 from urlparse import urlparse
 from pbcore.util.Process import backticks
-from pbcore.io.opener import (openAlignmentFile, openIndexedAlignmentFile,
-                              FastaReader, IndexedFastaReader, CmpH5Reader,
-                              IndexedBamReader)
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
-from pbcore.io import BaxH5Reader
+from pbcore.io import (BaxH5Reader, FastaReader, IndexedFastaReader,
+                       CmpH5Reader, IndexedBamReader, BamReader)
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
@@ -38,6 +36,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      _indexBam, _indexFasta)
+
 
 log = logging.getLogger(__name__)
 
@@ -138,7 +137,10 @@ def openDataFile(*files, **kwargs):
             return ReferenceSet(*origFiles, **kwargs)
         elif AlignmentSet in options:
             # it is a bam file
-            bam = openAlignmentFile(files[0])
+            if files[0].endswith('bam'):
+                bam = BamReader(files[0])
+            else:
+                bam = CmpH5Reader(files[0])
             if bam.isMapped:
                 if bam.readType == "CCS":
                     return ConsensusAlignmentSet(*origFiles, **kwargs)
@@ -752,7 +754,7 @@ class DataSet(object):
                                        byRecords=byRecords,
                                        updateCounts=updateCounts)
         elif zmws:
-            return self._split_zmws(chunks)
+            return self._split_zmws(chunks, targetSize=targetSize)
         elif barcodes:
             return self._split_barcodes(chunks)
 
@@ -1688,7 +1690,6 @@ class ReadSet(DataSet):
         if not self._unifyResponses(res):
             raise RuntimeError("File not barcoded")
 
-
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
         type before accessing any file)
@@ -1704,15 +1705,18 @@ class ReadSet(DataSet):
             location = urlparse(extRes.resourceId).path
             resource = None
             try:
-                resource = openIndexedAlignmentFile(
-                    location,
-                    referenceFastaFname=refFile)
+                if extRes.resourceId.endswith('bam'):
+                    resource = IndexedBamReader(
+                        location,
+                        referenceFastaFname=refFile)
+                else:
+                    resource = CmpH5Reader(location)
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
                     log.warn("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
-                    resource = openAlignmentFile(
+                    resource = BamReader(
                         location, referenceFastaFname=refFile)
                 else:
                     raise
@@ -1801,7 +1805,7 @@ class ReadSet(DataSet):
         # TODO
         return results
 
-    def _split_zmws(self, chunks):
+    def _split_zmws(self, chunks, targetSize=None):
         files_to_movies = defaultdict(list)
         n_bam = 0
         for bam in self.resourceReaders():
@@ -1810,6 +1814,9 @@ class ReadSet(DataSet):
                 raise RuntimeError("Multiple read groups in single .bam")
         if chunks < n_bam:
             return self.split(chunks=chunks)
+        target_nchunks = self.numRecords/targetSize
+        # turn on to provide more reasonable nchunks on small datasets:
+        #chunks = min(chunks, target_nchunks)
         n_chunks_per_bam = max(1, int(math.floor(float(chunks) / n_bam)))
         if n_chunks_per_bam < 2:
             log.warn("%d ZMW chunks requested but there are %d files" %
@@ -2026,8 +2033,8 @@ class ReadSet(DataSet):
         except (IOError, UnavailableFeature):
             if not self._strict:
                 log.debug("File problem, metadata not populated")
-                self.metadata.totalLength = -1
-                self.metadata.numRecords = -1
+                self.metadata.totalLength = 0
+                self.metadata.numRecords = 0
             else:
                 raise
 
@@ -2095,8 +2102,8 @@ class HdfSubreadSet(ReadSet):
         except (IOError, UnavailableFeature):
             if not self._strict:
                 log.debug("File problem, metadata not populated")
-                self.metadata.totalLength = -1
-                self.metadata.numRecords = -1
+                self.metadata.totalLength = 0
+                self.metadata.numRecords = 0
             else:
                 raise
 

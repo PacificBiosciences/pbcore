@@ -20,6 +20,7 @@ from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
+import pbcore.data as upstreamdata
 
 log = logging.getLogger(__name__)
 
@@ -229,6 +230,11 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(extRes.metaType,
                              "PacBio.AlignmentFile.AlignmentBamFile")
 
+    def test_empty_file_counts(self):
+        dset = SubreadSet(upstreamdata.getEmptyBam())
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+
     def test_loading_reference(self):
         log.info('Opening Reference')
         r = ReferenceSet(data.getRef()).toExternalFiles()[0]
@@ -310,8 +316,8 @@ class TestDataSet(unittest.TestCase):
         tempout = os.path.join(outdir, os.path.basename(data_fname))
         backticks('cp {i} {o}'.format(i=data_fname, o=tempout))
         aln = AlignmentSet(tempout, strict=False)
-        self.assertEqual(aln.totalLength, -1)
-        self.assertEqual(aln.numRecords, -1)
+        self.assertEqual(aln.totalLength, 0)
+        self.assertEqual(aln.numRecords, 0)
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
@@ -495,6 +501,7 @@ class TestDataSet(unittest.TestCase):
             dss[0].zmwRanges,
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
               55, 1815)])
+        #55, 2865)])
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")

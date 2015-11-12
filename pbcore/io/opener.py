@@ -37,7 +37,7 @@ from pbcore.io import (IndexedFastaReader, FastaReader,
                        BaxH5Reader, BasH5Reader, BasH5Collection,
                        CmpH5Reader, BamReader, IndexedBamReader,
                        GffReader, FastqReader,
-                       PacBioBamIndex)
+                       PacBioBamIndex, openDataSet)
 
 def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
@@ -78,6 +78,7 @@ def _openersFor(ext):
     elif ext == "fofn":          return (BasH5Collection,)
     elif ext == "bam":           return (IndexedBamReader, BamReader)
     elif ext == "pbi":           return (PacBioBamIndex,)
+    elif ext == "xml":           return (openDataSet,)
     else:
         raise ValueError, ("No known opener class for extension %s" % ext)
 
