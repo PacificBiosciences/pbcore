@@ -595,7 +595,7 @@ class BamAlignment(AlignmentRecordMixin):
             raise AttributeError("no such column '%s' in pbi index" % key)
 
     def __dir__(self):
-        basicDir = self.__dict__.keys()
+        basicDir = dir(self.__class__)
         if self.hasPbi:
             return basicDir + self.bam.pbi.columnNames
         else:
