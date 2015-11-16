@@ -17,15 +17,24 @@ def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
     # check space available
     if useTmp:
         tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
-        if (disk_free(os.path.split(outFile)[0]) >
-                sum(file_size(infn) for infn in inFiles)):
+        local_free_space = disk_free(os.path.split(outFile)[0])
+        tmp_free_space = disk_free(tmpout)
+        projected_size = sum(file_size(infn) for infn in inFiles)
+        log.debug("Projected size: {p}".format(p=projected_size))
+        log.debug("In place free space: {f}".format(f=local_free_space))
+        log.debug("Tmp free space: {f}".format(f=tmp_free_space))
+        if tmp_free_space > projected_size:
+            log.debug("Using tmp storage: " + tmpout)
             tmpInFiles = _tmpFiles(inFiles, tmpout)
             origOutFile = outFile
             origInFiles = inFiles[:]
             inFiles = tmpInFiles
             outFile = os.path.join(tmpout, "outfile.bam")
-        else:
+        elif local_free_space > projected_size:
+            log.debug("Using in place storage")
             useTmp = False
+        else:
+            raise RuntimeError("No space available to consolidate")
 
     if filterDset and filterDset.filters:
         finalOutfile = outFile
@@ -40,6 +49,8 @@ def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
         shutil.copy(outFile, origOutFile)
         shutil.copy(outFile + ".bai", origOutFile + ".bai")
         shutil.copy(outFile + ".pbi", origOutFile + ".pbi")
+        # cleanup:
+        shutil.rmtree(os.path.split(outFile)[0])
 
 def _tmpFiles(inFiles, tmpout=None):
     tmpInFiles = []
