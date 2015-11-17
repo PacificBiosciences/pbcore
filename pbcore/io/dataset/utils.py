@@ -79,7 +79,43 @@ def _pbindexBam(fname):
         raise RuntimeError(m)
     return fname + ".pbi"
 
+# Singleton so we don't need to check and parse repeatedly
+class BamtoolsVersion:
+    class __BamtoolsVersion:
+        def __init__(self):
+            cmd = "bamtools -v"
+            o, r, m = backticks(cmd)
+
+            if r == 127:
+                self.good = False
+                return
+
+            version = ''
+            for line in o:
+                if line.startswith("bamtools"):
+                    version = line.split(' ')[-1]
+                    break
+            self.number = version
+            major, minor, _ = map(int, version.split('.'))
+            self.good = False
+            if major > 2 or (major == 2 and minor >= 4):
+                self.good = True
+
+    instance = None
+    def __init__(self):
+        if not BamtoolsVersion.instance:
+            BamtoolsVersion.instance = BamtoolsVersion.__BamtoolsVersion()
+
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+
+    def check(self):
+        if not self.good:
+            raise RuntimeError("Bamtools version >= 2.4.0 required for "
+                               "consolidation")
+
 def _sortBam(fname):
+    BamtoolsVersion().check()
     tmpname = _infixFname(fname, "_sorted")
     cmd = "bamtools sort -in {i} -out {o}".format(i=fname, o=tmpname)
     log.info(cmd)
@@ -97,6 +133,7 @@ def _indexFasta(fname):
     return fname + ".fai"
 
 def _mergeBams(inFiles, outFile):
+    BamtoolsVersion().check()
     if len(inFiles) > 1:
         cmd = "bamtools merge -in {i} -out {o}".format(i=' -in '.join(inFiles),
                                                        o=outFile)
@@ -108,6 +145,7 @@ def _mergeBams(inFiles, outFile):
         shutil.copy(inFiles[0], outFile)
 
 def _filterBam(inFile, outFile, filterDset):
+    BamtoolsVersion().check()
     tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
     filtScriptName = os.path.join(tmpout, "filtScript.json")
     _emitFilterScript(filterDset, filtScriptName)

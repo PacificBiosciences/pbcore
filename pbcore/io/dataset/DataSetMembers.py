@@ -4,46 +4,51 @@ efficiently. Here, we maintain a bulk representation of all of the dataset
 metadata (or any other XML data, like ExternalResources) found in the XML file
 in the following data structure:
 
-    An Element is a turned into a dictionary:
-        XmlElement => {'tag': 'ElementTag',
-                       'text': 'ElementText',
-                       'attrib': {'ElementAttributeName': 'AttributeValue',
+|   An Element is a turned into a dictionary:
+|       XmlElement => {'tag': 'ElementTag',
+|                      'text': 'ElementText',
+|                      'attrib': {'ElementAttributeName': 'AttributeValue',
                                   'AnotherAttrName': 'AnotherAttrValue'},
-                       'children': [XmlElementDict,
+|                      'children': [XmlElementDict,
                                     XmlElementDictWithSameOrDifferentTag]}
 
-    Child elements are represented similarly and stored (recursively) as a list
-    in 'children'. The top level we store for DataSetMetadata is just a list,
-    which can be thought of as the list of children of a different element
-    (say, a DataSet or SubreadSet element, if we stored that):
-        DataSetMetadata = [XmlTag, XmlTagWithSameOrDifferentTag]
+Child elements are represented similarly and stored (recursively) as a list
+in 'children'. The top level we store for DataSetMetadata is just a list,
+which can be thought of as the list of children of a different element
+(say, a DataSet or SubreadSet element, if we stored that):
 
-We keep this for two reasons:
-    1. We don't want to have to write a lot of logic to go from XML to an
-       internal representation and then back to XML.
-    2. We want to be able to store and at least write metadata that doesn't yet
-       exist, even if we can't merge it intelligently.
-    3. Keeping and manipulating a dictionary is ~10x faster than an
-       OrderedAttrDict, and probably faster to use than a full stack of
-       objects.
+- DataSetMetadata = [XmlTag, XmlTagWithSameOrDifferentTag]
+
+We keep this for three reasons:
+
+1. We don't want to have to write a lot of logic to go from XML to an \
+internal representation and then back to XML.
+
+2. We want to be able to store and at least write metadata that doesn't yet \
+exist, even if we can't merge it intelligently.
+
+3. Keeping and manipulating a dictionary is ~10x faster than an \
+OrderedAttrDict, and probably faster to use than a full stack of \
+objects.
 
 Instead, we keep and modify this list:dictionary structure, wrapping it in
 classes as necessary. The classes and methods that wrap this datastructure
 serve two pruposes:
-    1. Provide an interface for our code (and making merging clean) e.g.:
-        - DataSet("test.xml").metadata.numRecords += 1
-    2. Provide an interface for users of the DataSet API, e.g.:
-        - numRecords = DataSet("test.xml").metadata.numRecords
-        - bioSamplePointer = (DataSet("test.xml")
-                                .metadata.collections[0]
-                                .wellSample.bioSamplePointers[0])
-        a. Though users can still access novel metadata types the hard way
-           e.g.:
-            - bioSamplePointer = (DataSet("test.xml")
-                                    .metadata.collections[0]
-                                    ['WellSample']['BioSamplePointers']
-                                    ['BioSamplePointer'].record['text'])
-            note: Assuming __getitem__ is implemented for the 'children' list
+
+- Provide an interface for our code (and making merging clean) e.g.:
+    - DataSet("test.xml").metadata.numRecords += 1
+
+- Provide an interface for users of the DataSet API, e.g.:
+    - numRecords = DataSet("test.xml").metadata.numRecords
+    - bioSamplePointer = (DataSet("test.xml")\
+                          .metadata.collections[0]\
+                          .wellSample.bioSamplePointers[0])
+    - Though users can still access novel metadata types the hard way e.g.:
+        - bioSamplePointer = (DataSet("test.xml")\
+                              .metadata.collections[0]\
+                              ['WellSample']['BioSamplePointers']\
+                              ['BioSamplePointer'].record['text'])
+
 """
 
 #import hashlib

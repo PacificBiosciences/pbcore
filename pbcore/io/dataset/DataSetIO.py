@@ -213,9 +213,9 @@ class DataSet(object):
         Filters, and LabeledSubsets, parse inputs if possible
 
         Args:
-            *files: one or more filenames or uris to read
-            strict=False: strictly require all index files
-            skipCounts=False: skip updating counts for faster opening
+            :files: one or more filenames or uris to read
+            :strict=False: strictly require all index files
+            :skipCounts=False: skip updating counts for faster opening
 
         Doctest:
             >>> import os, tempfile
@@ -381,7 +381,7 @@ class DataSet(object):
         the original datasets. (Fails if filters are incompatible).
 
         Args:
-            otherDataset: a DataSet to merge with self
+            :otherDataset: a DataSet to merge with self
 
         Returns:
             A new DataSet with members containing the union of the input
@@ -501,7 +501,7 @@ class DataSet(object):
         specified, we opt to not set the newUuid when checking for equality.
 
         Args:
-            other: The other DataSet to compare to this DataSet.
+            :other: The other DataSet to compare to this DataSet.
 
         Returns:
             T/F the Core XML elements of this and the other DataSet hash to the
@@ -549,7 +549,7 @@ class DataSet(object):
         copies will still be unique, despite having the same contents.
 
         Args:
-            setter=True: Setting to False allows MD5 hashes to be generated
+            :setter=True: Setting to False allows MD5 hashes to be generated
                          (e.g. for comparison with other objects) without
                          modifying the object's UniqueId
         Returns:
@@ -578,7 +578,7 @@ class DataSet(object):
         """Deep copy the representation of this DataSet
 
         Args:
-            asType: The type of DataSet to return, e.g. 'AlignmentSet'
+            :asType: The type of DataSet to return, e.g. 'AlignmentSet'
 
         Returns:
             A DataSet object that is identical but for UniqueId
@@ -664,40 +664,35 @@ class DataSet(object):
         roughly equal chunks of the ExternalResources or subdatasets.
 
         Examples:
-            - split into exactly n datasets where each addresses a different
-              piece of the collection of contigs:
+
+            - split into exactly n datasets where each addresses a different \
+              piece of the collection of contigs::
+
                 dset.split(contigs=True, chunks=n)
 
-            - split into at most n datasets where each addresses a different
-              piece of the collection of contigs, but contigs are kept whole:
+            - split into at most n datasets where each addresses a different \
+              piece of the collection of contigs, but contigs are kept whole::
+
                 dset.split(contigs=True, maxChunks=n)
 
-            - split into at most n datasets where each addresses a different
-              piece of the collection of contigs and the number of chunks is in
-              part based on the number of reads:
+            - split into at most n datasets where each addresses a different \
+              piece of the collection of contigs and the number of chunks is \
+              in part based on the number of reads::
+
                 dset.split(contigs=True, maxChunks=n, breakContigs=True)
 
         Args:
-            chunks: the number of chunks to split the DataSet. When chunks=0,
-                    create one DataSet per subdataset, or failing that
-                    ExternalResource
-            ignoreSubDatasets: F/T (False) do not split on datasets, only split
-                               on ExternalResources
-            contigs: (False) split on contigs instead of external resources or
-                     subdatasets
-            maxChunks: The upper limit on the number of chunks. If chunks=0
-                       and breakcontigs=False, keeping contigs whole places an
-                       additional upper bound on the number of chunks
-            breakContigs: Whether or not to break contigs when using maxChunks.
-                          If True, something resembling an efficient number of
-                          chunks for the dataset size will be produced.
-            targetSize: The target number of reads per chunk, when using
-                        byRecords
-            zmws: Split by zmws
-            barcodes: Split by barcodes
-            byRecords: Split contigs by mapped records, rather than reference
-                       length
-            updateCounts: Update the count metadata in each chunk
+            :chunks: the number of chunks to split the DataSet.
+            :ignoreSubDatasets: (True) do not split on subdatasets
+            :contigs: split on contigs instead of external resources etc
+            :maxChunks: The upper limit on the number of chunks.
+            :breakContigs: Whether or not to break contigs when using maxChunks
+            :targetSize: The target number of reads per chunk
+            :zmws: Split by zmws
+            :barcodes: Split by barcodes
+            :byRecords: Split contigs by mapped records, rather than ref length
+            :updateCounts: Update the count metadata in each chunk
+
         Returns:
             A list of new DataSet objects (all other information deep copied).
 
@@ -747,6 +742,7 @@ class DataSet(object):
             True
             >>> ds2.totalLength == ds2tl
             True
+
         """
         if contigs:
             return self._split_contigs(chunks, maxChunks, breakContigs,
@@ -807,7 +803,7 @@ class DataSet(object):
     def _split_barcodes(self, chunks):
         raise TypeError("Only ReadSets may be split by contigs")
 
-    def _split_zmws(self, chunks):
+    def _split_zmws(self, chunks, targetSize=None):
         raise TypeError("Only ReadSets may be split by ZMWs")
 
     def _split_atoms(self, atoms, num_chunks):
@@ -855,10 +851,10 @@ class DataSet(object):
         """Write to disk as an XML file
 
         Args:
-            outFile: The filename of the xml file to be created
-            validate: T/F (True) validate the ExternalResource ResourceIds
-            relPaths: T/F (False) make the ExternalResource ResourceIds
-                      relative instead of absolute filenames
+            :outFile: The filename of the xml file to be created
+            :validate: T/F (True) validate the ExternalResource ResourceIds
+            :relPaths: T/F (False) make the ExternalResource ResourceIds
+                       relative instead of absolute filenames
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -907,7 +903,7 @@ class DataSet(object):
         to the DataSet XML format according to the DataSet XML XSD.
 
         Args:
-            filename: the filename of a <moviename>.sts.xml file
+            :filename: the filename of a <moviename>.sts.xml file
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -976,7 +972,7 @@ class DataSet(object):
         URIs rather than relative paths. Generally not called by API users.
 
         Args:
-            curStart: The location from which relative paths should emanate.
+            :curStart: The location from which relative paths should emanate.
         """
         log.debug("Making paths absolute")
         self._changePaths(
@@ -988,7 +984,7 @@ class DataSet(object):
         A less common use case for API consumers.
 
         Args:
-            outDir: The location from which relative paths should originate
+            :outDir: The location from which relative paths should originate
 
         """
         log.debug("Making paths relative")
@@ -1021,8 +1017,8 @@ class DataSet(object):
         osPathFunc provided.
 
         Args:
-            osPathFunc: A function for modifying paths (e.g. os.path.abspath)
-            checkMetaType: Update the metatype of externalResources if needed
+            :osPathFunc: A function for modifying paths (e.g. os.path.abspath)
+            :checkMetaType: Update the metatype of externalResources if needed
         """
         # check all ExternalResources
         stack = list(self.externalResources)
@@ -1099,7 +1095,7 @@ class DataSet(object):
         point). Most often used by the __add__ method.
 
         Args:
-            newFilters: a Filters object or properly formatted Filters record
+            :newFilters: a Filters object or properly formatted Filters record
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -1125,8 +1121,8 @@ class DataSet(object):
         the object metadata currently in this DataSet for compatibility.
 
         Args:
-            newMetadata: The object metadata of a DataSet being considered for
-                         merging
+            :newMetadata: The object metadata of a DataSet being considered for
+                          merging
         """
         if self.objMetadata.get('Version'):
             if newMetadata.get('Version') > self.objMetadata.get('Version'):
@@ -1150,11 +1146,11 @@ class DataSet(object):
         directly.
 
         Args:
-            newMetadata: a dictionary of object metadata from an XML file (or
-                         carefully crafted to resemble one), or a wrapper
-                         around said dictionary
-            kwargs: new metadata fields to be piled into the current metadata
-                    (as an attribute)
+            :newMetadata: a dictionary of object metadata from an XML file (or
+                          carefully crafted to resemble one), or a wrapper
+                          around said dictionary
+            :kwargs: new metadata fields to be piled into the current metadata
+                     (as an attribute)
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -1204,10 +1200,10 @@ class DataSet(object):
         directly.
 
         Args:
-            newExtResources: A list of new ExternalResource objects, either
-                             created de novo from a raw bam input, parsed from
-                             an xml input, or already contained in a separate
-                             DataSet object and being merged.
+            :newExtResources: A list of new ExternalResource objects, either
+                              created de novo from a raw bam input, parsed from
+                              an xml input, or already contained in a separate
+                              DataSet object and being merged.
         Doctest:
             >>> from pbcore.io.dataset.DataSetMembers import ExternalResource
             >>> from pbcore.io import DataSet
@@ -1365,12 +1361,12 @@ class DataSet(object):
         """Return a list of resource filenames (and write to optional outfile)
 
         Args:
-            outfn: (None) the file to which the resouce filenames are to be
-                   written. If None, the only emission is a returned list of
-                   file names.
-            uri: (t/F) write the resource filenames as URIs.
-            relative: (t/F) emit paths relative to outfofn or '.' if no
-                      outfofn
+            :outfn: (None) the file to which the resouce filenames are to be
+                    written. If None, the only emission is a returned list of
+                    file names.
+            :uri: (t/F) write the resource filenames as URIs.
+            :relative: (t/F) emit paths relative to outfofn or '.' if no
+                       outfofn
 
         Returns:
             A list of filenames or uris
@@ -1751,10 +1747,10 @@ class ReadSet(DataSet):
         """Split a readset into chunks by barcodes.
 
         Args:
-            chunks: The number of chunks to emit. If chunks < # barcodes,
-                    barcodes are grouped by size. If chunks == # barcodes, one
-                    barcode is assigned to each dataset regardless of size. If
-                    chunks >= # barcodes, only # barcodes chunks are emitted
+            :chunks: The number of chunks to emit. If chunks < # barcodes,
+                     barcodes are grouped by size. If chunks == # barcodes, one
+                     barcode is assigned to each dataset regardless of size. If
+                     chunks >= # barcodes, only # barcodes chunks are emitted
 
         """
         # Find all possible barcodes and counts for each
@@ -1976,9 +1972,9 @@ class ReadSet(DataSet):
         files (min 1)
 
         Args:
-            dataFile: The name of the output file. If numFiles >1 numbers will
-                      be added.
-            numFiles: The number of data files to be produced.
+            :dataFile: The name of the output file. If numFiles >1 numbers will
+                       be added.
+            :numFiles: The number of data files to be produced.
 
         """
         if numFiles > 1:
@@ -2178,11 +2174,11 @@ class AlignmentSet(ReadSet):
         """ An AlignmentSet
 
         Args:
-            *files: handled by super
-            referenceFastaFname=None: the reference fasta filename for this
-                                      alignment.
-            strict=False: see base class
-            skipCounts=False: see base class
+            :files: handled by super
+            :referenceFastaFname=None: the reference fasta filename for this \
+                                       alignment.
+            :strict=False: see base class
+            :skipCounts=False: see base class
         """
         log.debug("Opening AlignmentSet with {f}".format(f=files))
         super(AlignmentSet, self).__init__(*files, **kwargs)
@@ -2281,8 +2277,8 @@ class AlignmentSet(ReadSet):
         in this DataSet.
 
         Args:
-            refName: Only yield open resources if they have refName in their
-                     referenceInfoTable
+            :refName: Only yield open resources if they have refName in their
+                      referenceInfoTable
 
         Yields:
             An open indexed alignment file
@@ -2414,7 +2410,7 @@ class AlignmentSet(ReadSet):
         this DataSet that are mapped to the specified reference genome.
 
         Args:
-            refName: the name of the reference that we are sampling.
+            :refName: the name of the reference that we are sampling.
 
         Yields:
             BamAlignment objects
@@ -2526,11 +2522,11 @@ class AlignmentSet(ReadSet):
         """Split a dataset into reference windows based on contigs.
 
         Args:
-            chunks: The number of chunks to emit. If chunks < # contigs,
-                    contigs are grouped by size. If chunks == contigs, one
-                    contig is assigned to each dataset regardless of size. If
-                    chunks >= contigs, contigs are split into roughly equal
-                    chunks (<= 1.0 contig per file).
+            :chunks: The number of chunks to emit. If chunks < # contigs,
+                     contigs are grouped by size. If chunks == contigs, one
+                     contig is assigned to each dataset regardless of size. If
+                     chunks >= contigs, contigs are split into roughly equal
+                     chunks (<= 1.0 contig per file).
 
         """
         # removed the non-trivial case so that it is still filtered to just
@@ -2735,10 +2731,10 @@ class AlignmentSet(ReadSet):
         window, and yield in that order (much much faster for quiver)
 
         Args:
-            refName: The reference name to sample
-            start: The start of the target window
-            end: The end of the target window
-            longest: (False) yield the longest reads first
+            :refName: The reference name to sample
+            :start: The start of the target window
+            :end: The end of the target window
+            :longest: (False) yield the longest reads first
 
         Yields:
             reads in the range, potentially longest first
@@ -2785,8 +2781,8 @@ class AlignmentSet(ReadSet):
         """Get the records corresponding to indexList
 
         Args:
-            indexList: A list of (reader, read) index tuples
-            buffsize: The number of reads to buffer (coalesced file reads)
+            :indexList: A list of (reader, read) index tuples
+            :buffsize: The number of reads to buffer (coalesced file reads)
 
         Yields:
             reads from all files
@@ -2866,10 +2862,10 @@ class AlignmentSet(ReadSet):
         should allow users to compose the desired query.
 
         Args:
-            refName: the name of the reference that we are sampling
-            start: the start of the range (inclusive, index relative to
-                   reference)
-            end: the end of the range (inclusive, index relative to reference)
+            :refName: the name of the reference that we are sampling
+            :start: the start of the range (inclusive, index relative to \
+                    reference)
+            :end: the end of the range (inclusive, index relative to reference)
 
         Yields:
             BamAlignment objects
@@ -2881,6 +2877,7 @@ class AlignmentSet(ReadSet):
             >>> for read in ds.readsInRange(ds.refNames[15], 100, 150):
             ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
             hn: ...
+
         """
         refName = self.guaranteeName(refName)
 
@@ -3140,7 +3137,7 @@ class AlignmentSet(ReadSet):
         ExtResources.
 
         Args:
-            key: a key for the referenceInfoTable of each resource
+            :key: a key for the referenceInfoTable of each resource
         Returns:
             A list of tuples of refrence name, key_result pairs
 
@@ -3160,7 +3157,7 @@ class AlignmentSet(ReadSet):
         reference identifier: referenceInfoTable.Name
 
         Args:
-            rId: The DataSet.referenceInfoTable.ID of interest
+            :rId: The DataSet.referenceInfoTable.ID of interest
 
         Returns:
             The referenceInfoTable.Name corresponding to rId

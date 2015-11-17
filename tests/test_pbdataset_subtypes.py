@@ -7,7 +7,8 @@ import os
 import itertools
 
 from pbcore.util.Process import backticks
-from pbcore.io.dataset.utils import consolidateBams, _infixFname
+from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
+                                    BamtoolsVersion)
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
@@ -26,9 +27,8 @@ def _check_constools():
     if r != 2:
         return False
 
-    cmd = "bamtools"
-    o, r, m = backticks(cmd)
-    if r != 0:
+    if not BamtoolsVersion().good:
+        log.warn("Bamtools not found or out of date")
         return False
 
     cmd = "pbindex"
