@@ -411,16 +411,6 @@ class ZmwRead(CommonEqualityMixin):
 
     PulseIndex     = _makeQvAccessor("PulseIndex")
 
-    def StartFrame(self):
-        return self.EndFrame() - self.WidthInFrames()
-
-    def EndFrame(self):
-        fullPBF = arrayFromDataset(self._getBasecallsGroup()["PreBaseFrames"],
-                                   *self._getOffsets()[self.holeNumber])
-        fullWF  = arrayFromDataset(self._getBasecallsGroup()["WidthInFrames"],
-                                   *self._getOffsets()[self.holeNumber])
-        return np.cumsum(fullWF + fullPBF)[self.readStart:self.readEnd]
-
 class CCSZmwRead(ZmwRead):
     """
     Class providing access to the CCS (circular consensus sequencing)
