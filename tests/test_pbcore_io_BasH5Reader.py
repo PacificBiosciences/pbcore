@@ -70,16 +70,20 @@ class TestBasH5Reader_14:
         """Test that BasH5Reader can read the region table and find
         HQ, insert, and adapter regions.
         """
-
         zmw = self.bas1[7]
         numpy.testing.assert_array_equal(
-            numpy.array([[   7,    1,    0,  299,   -1],
-                         [   7,    1,  343,  991,   -1],
-                         [   7,    1, 1032, 1840,   -1],
-                         [   7,    0,  299,  343,  681],
-                         [   7,    0,  991, 1032,  804],
-                         [   7,    2,    0, 1578,    0]], dtype=numpy.int32),
-            zmw.regionTable.view(dtype=(numpy.int32, 5)))
+            numpy.array([(7, 1, 0, 299, -1),
+                         (7, 1, 343, 991, -1),
+                         (7, 1, 1032, 1840, -1),
+                         (7, 0, 299, 343, 681),
+                         (7, 0, 991, 1032, 804),
+                         (7, 2, 0, 1578, 0)],
+                  dtype=(numpy.record, [('holeNumber', '<i4'),
+                                        ('regionType', '<i4'),
+                                        ('regionStart', '<i4'),
+                                        ('regionEnd', '<i4'),
+                                        ('regionScore', '<i4')])),
+            zmw.regionTable.view(dtype=numpy.ndarray))
 
         nose.tools.assert_equal((0, 1578), zmw.hqRegion)
         nose.tools.assert_equal([(299, 343), (991, 1032)], zmw.adapterRegions)
