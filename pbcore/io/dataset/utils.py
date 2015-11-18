@@ -96,10 +96,10 @@ class BamtoolsVersion:
                     version = line.split(' ')[-1]
                     break
             self.number = version
-            major, minor, _ = map(int, version.split('.'))
-            self.good = False
-            if major > 2 or (major == 2 and minor >= 4):
+            if map(int, version.split('.')) >= [2, 4, 0]:
                 self.good = True
+            else:
+                self.good = False
 
     instance = None
     def __init__(self):

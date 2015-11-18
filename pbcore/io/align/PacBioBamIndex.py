@@ -63,9 +63,7 @@ class PacBioBamIndex(object):
         (self.magic, self.vPatch, self.vMinor,
          self.vMajor, self.pbiFlags, self.nReads) = header
         try:
-            assert self.vMajor >= 3
-            assert self.vMinor >= 0
-            assert self.vPatch >= 1
+            assert (self.vMajor, self.vMinor, self.vPatch) >= (3, 0, 1)
         except:
             raise IncompatibleFile(
                 "This PBI file is incompatible with this API "
