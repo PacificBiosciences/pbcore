@@ -14,7 +14,8 @@ from pbcore.io import PacBioBamIndex, IndexedBamReader
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io.dataset.utils import BamtoolsVersion
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
-                       openDataSet, DataSetMetaTypes, HdfSubreadSet)
+                       openDataSet, DataSetMetaTypes, HdfSubreadSet,
+                       ConsensusReadSet, ConsensusAlignmentSet)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -231,9 +232,73 @@ class TestDataSet(unittest.TestCase):
                              "PacBio.AlignmentFile.AlignmentBamFile")
 
     def test_empty_file_counts(self):
+        # empty with pbi:
         dset = SubreadSet(upstreamdata.getEmptyBam())
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        # Don't care what they are, just don't want them to fail:
+        dset.updateCounts()
+        dset.index
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = AlignmentSet(upstreamdata.getEmptyBam())
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        dset.index
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = ConsensusReadSet(upstreamdata.getEmptyBam())
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        dset.index
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = ConsensusAlignmentSet(upstreamdata.getEmptyBam())
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        dset.index
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        # empty without pbi:
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfile = os.path.split(upstreamdata.getEmptyBam())[1]
+        outpath = os.path.join(outdir, outfile)
+        shutil.copy(upstreamdata.getEmptyBam(), outpath)
+        dset = SubreadSet(outpath)
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = AlignmentSet(outpath)
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = ConsensusReadSet(outpath)
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
+        dset = ConsensusAlignmentSet(outpath)
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        self.assertEqual(len(dset.resourceReaders()), 1)
+
 
     def test_loading_reference(self):
         log.info('Opening Reference')

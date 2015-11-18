@@ -1716,14 +1716,17 @@ class ReadSet(DataSet):
                         location, referenceFastaFname=refFile)
                 else:
                     raise
+            self._openReaders.append(resource)
             try:
-                if not resource.isEmpty:
-                    self._openReaders.append(resource)
+                if resource.isEmpty:
+                    log.warn("{f} contains no reads!".format(
+                        f=extRes.resourceId))
             except UnavailableFeature: # isEmpty requires bai
-                if list(itertools.islice(resource, 1)):
-                    self._openReaders.append(resource)
+                if not list(itertools.islice(resource, 1)):
+                    log.warn("{f} contains no reads!".format(
+                        f=extRes.resourceId))
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
-            raise IOError("No files were openable or reads found")
+            raise IOError("No files were openable")
         log.debug("Done opening resources")
 
     def _filterType(self):
@@ -3482,7 +3485,7 @@ class ContigSet(DataSet):
                     raise
             self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
-            raise IOError("No files were openable or reads found")
+            raise IOError("No files were openable")
         log.debug("Done opening resources")
 
     def resourceReaders(self, refName=None):
