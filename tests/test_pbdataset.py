@@ -231,6 +231,8 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(extRes.metaType,
                              "PacBio.AlignmentFile.AlignmentBamFile")
 
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
     def test_empty_file_counts(self):
         # empty with pbi:
         dset = SubreadSet(upstreamdata.getEmptyBam())
@@ -292,6 +294,13 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
 
+        dset = ConsensusAlignmentSet(outpath)
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 0)
+        dset.updateCounts()
+        self.assertEqual(len(dset.resourceReaders()), 1)
+        dset.induceIndices()
         dset = ConsensusAlignmentSet(outpath)
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
