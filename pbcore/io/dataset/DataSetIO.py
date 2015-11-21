@@ -305,7 +305,6 @@ class DataSet(object):
         # Populate required metadata
         if not self.uuid:
             self.newUuid()
-        self.objMetadata.setdefault("Name", "")
         self.objMetadata.setdefault("Tags", "")
         if not baseDataSet:
             dsType = self.objMetadata.setdefault("MetaType", self.datasetType)
@@ -315,6 +314,8 @@ class DataSet(object):
         if not self.objMetadata.get("TimeStampedName", ""):
             self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
                 self.objMetadata["MetaType"])
+        self.objMetadata.setdefault("Name",
+                                    self.objMetadata["TimeStampedName"])
 
         # Don't allow for creating datasets from inappropriate sources
         # (XML files with mismatched types)
@@ -1674,6 +1675,11 @@ class ReadSet(DataSet):
         self.updateCounts()
 
     @property
+    def isMapped(self):
+        responses = self._pollResources(lambda x: x.isMapped)
+        return self._unifyResponses(responses)
+
+    @property
     def isIndexed(self):
         if self.hasPbi:
             return True
@@ -3014,7 +3020,17 @@ class AlignmentSet(ReadSet):
         if self.isCmpH5:
             length = sum(self.index.rEnd - self.index.rStart)
         else:
-            length = sum(self.index.aEnd - self.index.aStart)
+            try:
+                length = sum(self.index.aEnd - self.index.aStart)
+            except AttributeError:
+                # If the bam is empty or the file is not actually aligned, this
+                # field wont be populated
+                if self.isMapped:
+                    log.warn(".pbi mapping columns missing from mapped bam, "
+                             "bam may be empty")
+                else:
+                    log.warn("File not actually mapped!")
+                length = 0
         return count, length
 
     @property
