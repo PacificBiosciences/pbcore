@@ -3419,8 +3419,10 @@ class ContigSet(DataSet):
 
     def updateCounts(self):
         if self._skipCounts:
-            self.metadata.totalLength = -1
-            self.metadata.numRecords = -1
+            if not self.metadata.totalLength:
+                self.metadata.totalLength = -1
+            if not self.metadata.numRecords:
+                self.metadata.numRecords = -1
             return
         try:
             log.debug('Updating counts')
@@ -3489,6 +3491,7 @@ class ContigSet(DataSet):
                 self._fastq = True
                 self._openReaders.append(FastqReader(location))
                 continue
+            resource = None
             try:
                 resource = IndexedFastaReader(location)
             except IOError:
@@ -3499,7 +3502,16 @@ class ContigSet(DataSet):
                     resource = FastaReader(location)
                 else:
                     raise
-            self._openReaders.append(resource)
+            except ValueError:
+                log.warn("Fasta file is empty")
+                # this seems to work for an emtpy fasta, interesting:
+                resource = FastaReader(location)
+                # we know this file is empty
+                self._skipCounts = True
+                self.metadata.totalLength = 0
+                self.metadata.numRecords = 0
+            if resource:
+                self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
         log.debug("Done opening resources")

@@ -9,6 +9,10 @@ from pbcore.io import GffWriter, Gff3Record, GffReader
 from pbcore.io.GffIO import merge_gffs, merge_gffs_sorted, sort_gff
 from pbcore import data
 
+def rm_out(fname):
+    if os.path.exists(fname):
+        os.remove(fname)
+
 class TestGff3Record:
 
     def setup(self):
@@ -171,6 +175,7 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
             ])
             n_rec_merged = len([ rec for rec in f ])
             self.assertEqual(n_rec, n_rec_merged)
+        rm_out(gff_out)
 
     def test_merge_gffs_sorted(self):
         gff_out = "tmp_pbcore_merged_sorted.gff"
@@ -178,9 +183,11 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
             self.assertEqual(start, self.sorted_start)
+        rm_out(gff_out)
 
     def test_sort_gff(self):
         gff_out = sort_gff(self.combined)
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
             self.assertEqual(start, self.sorted_start)
+        rm_out(gff_out)
