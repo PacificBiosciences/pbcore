@@ -71,7 +71,7 @@ class _BamReaderBase(ReaderBase):
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
         refMD5s    = [r["M5"] for r in refRecords]
-        refIds = map(self.peer.gettid, refNames)
+        refIds = map(self.peer.get_tid, refNames)
         nRefs = len(refRecords)
 
         if nRefs > 0:
@@ -342,7 +342,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     def readsInRange(self, winId, winStart, winEnd, justIndices=False):
         # PYSAM BUG: fetch doesn't work if arg 1 is tid and not rname
         if not isinstance(winId, str):
-            winId = self.peer.getrname(winId)
+            winId = self.peer.get_reference_name(winId)
         if justIndices == True:
             raise UnavailableFeature("BAM is not random-access")
         else:
