@@ -32,7 +32,7 @@
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from pysam import Samfile
+from pysam import AlignmentFile
 from pbcore.io import FastaTable
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
@@ -51,7 +51,7 @@ from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
 def requiresBai(method):
     @wraps(method)
     def f(bamReader, *args, **kwargs):
-        if not bamReader.peer._hasIndex():
+        if not bamReader.peer.has_index():
             raise UnavailableFeature, "this feature requires an standard BAM index file (bam.bai)"
         else:
             return method(bamReader, *args, **kwargs)
@@ -71,7 +71,7 @@ class _BamReaderBase(ReaderBase):
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
         refMD5s    = [r["M5"] for r in refRecords]
-        refIds = map(self.peer.gettid, refNames)
+        refIds = map(self.peer.get_tid, refNames)
         nRefs = len(refRecords)
 
         if nRefs > 0:
@@ -185,7 +185,7 @@ class _BamReaderBase(ReaderBase):
 
     def __init__(self, fname, referenceFastaFname=None):
         self.filename = fname = abspath(expanduser(fname))
-        self.peer = Samfile(fname, "rb", check_sq=False)
+        self.peer = AlignmentFile(fname, "rb", check_sq=False)
         self._checkFileCompatibility()
 
         self._loadReferenceInfo()
@@ -342,7 +342,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     def readsInRange(self, winId, winStart, winEnd, justIndices=False):
         # PYSAM BUG: fetch doesn't work if arg 1 is tid and not rname
         if not isinstance(winId, str):
-            winId = self.peer.getrname(winId)
+            winId = self.peer.get_reference_name(winId)
         if justIndices == True:
             raise UnavailableFeature("BAM is not random-access")
         else:
