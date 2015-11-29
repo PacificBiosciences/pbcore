@@ -424,7 +424,8 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             raise AttributeError, "no such column in pbi index"
 
     def __dir__(self):
-        return self.pbi.columnNames
+        basicDir = dir(self.__class__)
+        return basicDir + self.pbi.columnNames
 
     @property
     def identity(self):

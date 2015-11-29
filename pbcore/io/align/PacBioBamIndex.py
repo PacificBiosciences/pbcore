@@ -181,7 +181,8 @@ class PacBioBamIndex(object):
 
     def __dir__(self):
         # Special magic for IPython tab completion
-        return self.columnNames
+        basicDir = dir(self.__class__)
+        return basicDir + self.columnNames
 
     def __len__(self):
         return len(self._tbl)

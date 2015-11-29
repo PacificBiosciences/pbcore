@@ -607,7 +607,8 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     def __dir__(self):
         # Special magic improving IPython completion
-        return ALIGNMENT_INDEX_COLUMNS
+        basicDir = dir(self.__class__)
+        return basicDir + ALIGNMENT_INDEX_COLUMNS
 
 class ClippedCmpH5Alignment(CmpH5Alignment):
     """
@@ -1283,4 +1284,5 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
     def __dir__(self):
         # Special magic improving IPython completion
-        return ALIGNMENT_INDEX_COLUMNS
+        basicDir = dir(self.__class__)
+        return basicDir + ALIGNMENT_INDEX_COLUMNS
