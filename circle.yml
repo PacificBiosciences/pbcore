@@ -10,6 +10,7 @@ dependencies:
     - .circleci/prefix
   pre:
     - (cd .circleci && bash installHDF5.sh)
+    - HDF5_DIR=$PWD/.circleci/prefix pip install -r requirements.txt
     - HDF5_DIR=$PWD/.circleci/prefix pip install -r requirements-dev.txt
     
 test:
