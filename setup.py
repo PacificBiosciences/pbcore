@@ -3,6 +3,7 @@
 
 from setuptools import setup, Extension, find_packages
 import sys
+import os
 
 if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
     print "pbcore requires Python 2.7"
@@ -11,6 +12,24 @@ if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
 globals = {}
 execfile("pbcore/__init__.py", globals)
 __VERSION__ = globals["__VERSION__"]
+
+
+_REQUIREMENTS_FILE = 'requirements.txt'
+_REQUIREMENTS_TEST_FILE = "requirements-dev.txt"
+
+
+def _get_local_file(file_name):
+    return os.path.join(os.path.dirname(__file__), file_name)
+
+
+def _get_requirements(file_name):
+    with open(file_name, 'r') as f:
+        reqs = [line for line in f if not line.startswith("#")]
+    return reqs
+
+
+def _get_local_requirements(file_name):
+    return _get_requirements(_get_local_file(file_name))
 
 setup(
     name = 'pbcore',
@@ -32,8 +51,6 @@ setup(
     zip_safe = False,
     entry_points = { "console_scripts" : [ ".open = pbcore.io.opener:entryPoint" ] },
     scripts=['bin/dataset.py'],
-    install_requires=[
-        'h5py >= 2.0.1',
-        'numpy >= 1.7.1',
-        'pysam >= 0.8.4'
-    ])
+    install_requires=_get_local_requirements(_REQUIREMENTS_FILE),
+    tests_require=_get_local_requirements(_REQUIREMENTS_TEST_FILE)
+)
