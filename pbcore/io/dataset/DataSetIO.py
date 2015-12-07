@@ -879,12 +879,7 @@ class DataSet(object):
         if pretty:
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
-        # Disable for contigsets: no support for multiple contigs in XSD
-        # Disable for ccssets: no support for datasetmetadata in XSD
-        if (validate and
-                not self.datasetType in [ContigSet.datasetType,
-                                         ReferenceSet.datasetType,
-                                         ConsensusReadSet.datasetType]):
+        if validate:
             validateString(xml_string, relTo=os.path.dirname(outFile))
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):

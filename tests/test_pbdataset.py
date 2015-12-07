@@ -403,7 +403,7 @@ class TestDataSet(unittest.TestCase):
         bam = IndexedBamReader(testFile)
         pbi = PacBioBamIndex(testFile + '.pbi')
         for brec, prec in zip(bam, pbi):
-            brec_bc = brec.peer.opt("bc")
+            brec_bc = list(brec.peer.opt("bc"))
             prec_bc = [prec.bcForward, prec.bcReverse]
             self.assertEqual(brec_bc, prec_bc)
 
