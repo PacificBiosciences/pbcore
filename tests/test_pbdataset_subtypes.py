@@ -69,7 +69,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
         self.assertEquals(len(ds4.metadata.collections), 1)
 
-    @unittest.skip("XSD can't handle multiple contigs?")
     def test_valid_referencesets(self):
         validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
