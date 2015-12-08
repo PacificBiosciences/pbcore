@@ -185,6 +185,13 @@ class TestDataSet(unittest.TestCase):
             # make sure a __repr__ didn't slip through:
             self.assertFalse(rec.sequence.startswith('<'))
 
+    def test_contigset_empty(self):
+        fa_file = tempfile.NamedTemporaryFile(suffix=".fasta").name
+        ds_file = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
+        open(fa_file, "w").write("")
+        ds = ContigSet(fa_file, strict=False)
+        ds.write(ds_file)
+
     def test_file_factory(self):
         # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
         types = [AlignmentSet(data.getXml(8)),
