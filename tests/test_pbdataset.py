@@ -206,7 +206,6 @@ class TestDataSet(unittest.TestCase):
             os.path.join(outdir, os.path.basename(data.getXml(12)))))
 
         log.debug("Relative")
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         cmd = ("dataset.py create --relative --type AlignmentSet "
                "{o} {i1} {i2}".format(
                    o=os.path.join(outdir, 'pbalchemysim.alignmentset.xml'),
@@ -217,6 +216,19 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(r, 0)
         self.assertTrue(os.path.exists(
             os.path.join(outdir, os.path.basename(data.getXml(12)))))
+
+        log.debug("Emtpy ContigSet")
+        emptyfastafile = tempfile.NamedTemporaryFile(suffix=".fasta")
+        emptyfasta = emptyfastafile.name
+        emptycontigset = os.path.join(outdir, 'empty.contigset.xml')
+        cmd = ("dataset.py create --relative --type ContigSet "
+               "{o} {i}".format(
+                   o=emptycontigset,
+                   i=emptyfasta))
+        log.debug(cmd)
+        o, r, m = backticks(cmd)
+        self.assertEqual(r, 0)
+        self.assertTrue(os.path.exists(emptycontigset))
 
     def test_empty_metatype(self):
         inBam = data.getBam()
