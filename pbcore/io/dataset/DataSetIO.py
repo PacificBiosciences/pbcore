@@ -3505,7 +3505,7 @@ class ContigSet(DataSet):
                 self._skipCounts = True
                 self.metadata.totalLength = 0
                 self.metadata.numRecords = 0
-            if resource:
+            if resource is not None:
                 self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")

@@ -191,6 +191,11 @@ class TestDataSet(unittest.TestCase):
         open(fa_file, "w").write("")
         ds = ContigSet(fa_file, strict=False)
         ds.write(ds_file)
+        fai_file = fa_file + ".fai"
+        open(fai_file, "w").write("")
+        ds = ContigSet(fa_file, strict=True)
+        ds.write(ds_file)
+        self.assertEqual(len(ds), 0)
 
     def test_file_factory(self):
         # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
