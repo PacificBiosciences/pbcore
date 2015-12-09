@@ -48,7 +48,7 @@ from pbcore.util.decorators import deprecated
 
 import mmap, numpy as np, re
 from collections import namedtuple, OrderedDict, Sequence
-from os.path import abspath, expanduser, isfile
+from os.path import abspath, expanduser, isfile, getsize
 
 
 def splitFastaHeader( name ):
@@ -416,10 +416,14 @@ class IndexedFastaReader(ReaderBase, Sequence):
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
         self.file = open(self.filename, "r")
-        self.view = mmap.mmap(self.file.fileno(), 0,
-                              prot=mmap.PROT_READ)
         self.faiFilename = faiFilename(self.filename)
-        self.fai = loadFastaIndex(self.faiFilename, self.view)
+        if getsize(self.filename) > 0:
+            self.view = mmap.mmap(self.file.fileno(), 0,
+                                  prot=mmap.PROT_READ)
+            self.fai = loadFastaIndex(self.faiFilename, self.view)
+        else:
+            self.view = None
+            self.fai = []
         self.contigLookup = self._loadContigLookup()
 
     def _loadContigLookup(self):
