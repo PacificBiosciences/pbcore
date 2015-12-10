@@ -33,14 +33,16 @@ def add_subparsers(parser, sps):
         title='DataSet sub-commands', dest='subparser_name',
         help="Type {command} -h for a command's options")
     for command_name, func in sps:
-        subparser = subparsers.add_parser(command_name)
+        subparser = subparsers.add_parser(command_name,
+                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
         subparser = func(subparser)
     return parser
 
 def get_parser():
     description = 'Run dataset.py by specifying a command.'
     parser = argparse.ArgumentParser(version=__VERSION__,
-            description=description)
+                                     description=description,
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--debug", default=False, action='store_true',
                         help="Turn on debug level logging")
     parser.add_argument("--strict", default=False, action='store_true',
