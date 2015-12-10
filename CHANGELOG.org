@@ -1,3 +1,11 @@
+* Current progress
+
+* Version 1.2.7...
+  - Improved IPython tab completion
+  - Can now use .open on Dataset XML files
+  - Update to pysam 0.8.4
+  - Miscellaneous bugfixes
+
 * Version 1.2.6
   - Recognize sequencing kit C4v2
   - Support for multipart bas files with the new Sequel holenumber format
