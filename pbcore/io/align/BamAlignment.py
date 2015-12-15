@@ -260,6 +260,13 @@ class BamAlignment(AlignmentRecordMixin):
         return self.readGroupInfo.ReadType
 
     @property
+    def scrapType(self):
+        if self.readType != "SCRAP":
+            raise ValueError, "scrapType not meaningful for non-scrap reads"
+        else:
+            return self.peer.opt("sc")
+
+    @property
     def sequencingChemistry(self):
         return self.readGroupInfo.SequencingChemistry
 
