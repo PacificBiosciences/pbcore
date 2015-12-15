@@ -265,6 +265,15 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def hqRegionSnr(self):
+        """
+        Return the per-channel SNR averaged over the HQ region.
+
+        .. note::
+
+            This capability was not available in `cmp.h5` files, so
+            use of this property can result in code that won't work on
+            legacy data.
+        """
         return self.peer.opt("sn")
 
     @property
