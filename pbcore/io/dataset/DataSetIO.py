@@ -366,6 +366,9 @@ class DataSet(object):
             self.induceIndices()
 
     def induceIndices(self):
+        """Generate indices for ExternalResources.
+
+        Not compatible with DataSet base type"""
         raise NotImplementedError()
 
     def __repr__(self):
@@ -532,6 +535,7 @@ class DataSet(object):
         self.close()
 
     def __len__(self):
+        """Return the number of records in this DataSet"""
         if self.numRecords == -1:
             if self._filters:
                 log.warn("Base class DataSet length cannot be calculate when "
@@ -953,6 +957,8 @@ class DataSet(object):
         return filters
 
     def _filterType(self):
+        """A key that maps to a set of filtration keywords specific to this
+        DataSet's ExternalResource type"""
         raise NotImplementedError()
 
     def checkAndResolve(self, fname, possibleRelStart=None):
@@ -990,6 +996,8 @@ class DataSet(object):
             self._changePaths(os.path.relpath)
 
     def _modResources(self, func):
+        """Execute some function 'func' on each external resource in the
+        dataset and each subdataset"""
         # check all ExternalResources
         stack = list(self.externalResources)
         while stack:
@@ -1044,6 +1052,8 @@ class DataSet(object):
             dataset._changePaths(osPathFunc)
 
     def _populateMetaTypes(self):
+        """Add metatypes to those ExternalResources that currently are
+        without"""
         self._modResources(self._updateMetaType)
 
     def _updateMetaType(self, resource):
@@ -1058,6 +1068,8 @@ class DataSet(object):
             resource.timeStampedName = tsName
 
     def _getTimeStampedName(self, mType):
+        """Generate a timestamped name using the given metatype 'mType' and the
+        current UTC time"""
         mType = mType.lower()
         mType = '_'.join(mType.split('.'))
         time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
@@ -1071,6 +1083,8 @@ class DataSet(object):
         return {}
 
     def copyFiles(self, outdir):
+        """Copy all of the top level ExternalResources to an output
+        directory 'outdir'"""
         backticks('cp {i} {o}'.format(i=' '.join(self.toExternalFiles()),
                                       o=outdir))
 
@@ -1078,6 +1092,7 @@ class DataSet(object):
         """Disable read filtering for this object"""
         self.reFilter()
         self.noFiltering = True
+        # a dummy filter:
         self._cachedFilters = [lambda x: True]
 
     def enableFilters(self):
@@ -1187,6 +1202,13 @@ class DataSet(object):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
+        """Update the TotalLength and NumRecords for this DataSet.
+
+        Not compatible with the base DataSet class, which has no ability to
+        touch ExternalResources. -1 is used as a sentinel value for failed size
+        determination. It should never be written out to XML in regular use.
+
+        """
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
 
@@ -1256,9 +1278,12 @@ class DataSet(object):
             self.subdatasets.append(otherDataSet)
 
     def _openFiles(self):
+        """Open the top level ExternalResources"""
         raise RuntimeError("Not defined for this type of DataSet")
 
     def resourceReaders(self):
+        """Return a list of open pbcore *Reader objects for the
+        top level ExternalResources in this DataSet"""
         raise RuntimeError("Not defined for this type of DataSet")
 
     @property
@@ -1284,7 +1309,10 @@ class DataSet(object):
                 yield record
 
     def __iter__(self):
-        """ Iterate over the records. (sorted for AlignmentSet objects)"""
+        """Iterate over the records.
+
+        The order of yielded reads is determined by the order of the
+        ExternalResources and record order within each file"""
         for record in self.records:
             yield record
 
@@ -1397,6 +1425,7 @@ class DataSet(object):
 
     @property
     def _castableDataSetTypes(self):
+        """Tuple of DataSet types to which this DataSet can be cast"""
         if isinstance(self.datasetType, tuple):
             return self.datasetType
         else:
@@ -1535,8 +1564,7 @@ class DataSet(object):
 
     @property
     def sequencingChemistry(self):
-        key = 'sequencingChemistry'
-        responses = self._pollResources(lambda x: getattr(x, key))
+        responses = self._pollResources(lambda x: x.sequencingChemistry)
         return list(_flatten(responses))
 
     @property
@@ -1581,6 +1609,9 @@ class DataSet(object):
         return self._index
 
     def _indexRecords(self):
+        raise NotImplementedError()
+
+    def isIndexed(self):
         raise NotImplementedError()
 
     def assertIndexed(self):
@@ -1632,7 +1663,7 @@ class DataSet(object):
 
 
 class InvalidDataSetIOError(Exception):
-    """The base class for all DataSetIO related custom exceptions (hopefully)
+    """The base class for all DataSetIO related custom exceptions
     """
 
 
@@ -2005,6 +2036,10 @@ class ReadSet(DataSet):
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([dataFile])
+        # reset the indexmap especially, as it is out of date:
+        self._index = None
+        self._indexMap = None
+        self._openReaders = []
         self._populateMetaTypes()
 
     def __len__(self):
@@ -2190,6 +2225,32 @@ class AlignmentSet(ReadSet):
         if fname:
             self.addReference(fname)
 
+    @property
+    @filtered
+    def records(self):
+        """A generator of (usually) BamAlignment objects for the
+        records in one or more Bam files pointed to by the
+        ExternalResources in this DataSet.
+
+        Yields:
+            A BamAlignment object
+
+        Doctest:
+            >>> import pbcore.data.datasets as data
+            >>> from pbcore.io import AlignmentSet
+            >>> ds = AlignmentSet(data.getBam())
+            >>> for record in ds.records:
+            ...     print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
+            hn: ...
+        """
+        if self.isIndexed:
+            for i in range(len(self.index)):
+                yield self[i]
+        else:
+            for resource in self.resourceReaders():
+                for record in resource:
+                    yield record
+
     def consolidate(self, *args, **kwargs):
         if self.isCmpH5:
             raise NotImplementedError()
@@ -2274,7 +2335,21 @@ class AlignmentSet(ReadSet):
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
-        return _stackRecArrays(recArrays)
+        tbr = _stackRecArrays(recArrays)
+        # sort if cmp.h5 so we can rectify RowStart/End, maybe someday bam
+        if self.isCmpH5:
+            sort_order = np.argsort(tbr, order=('tEnd', 'tStart',
+                                                'RefGroupID'))
+            tbr = tbr[sort_order]
+            self._indexMap = self._indexMap[sort_order]
+
+            for ref in self.referenceInfoTable:
+                hits = np.nonzero(tbr.RefGroupID == ref.ID)
+                ref.StartRow = hits[0][0]
+                ref.EndRow = hits[0][-1]
+                # and fix the naming scheme while we're at it
+                ref.Name = self._cleanCmpName(ref.FullName)
+        return tbr
 
     def resourceReaders(self, refName=False):
         """A generator of Indexed*Reader objects for the ExternalResources
@@ -2315,9 +2390,6 @@ class AlignmentSet(ReadSet):
     @property
     def refNames(self):
         """A list of reference names (id)."""
-        if self.isCmpH5:
-            return [self._cleanCmpName(name) for _, name in
-                    self.refInfo('FullName')]
         return sorted([name for _, name in self.refInfo('Name')])
 
     def _indexReadsInReference(self, refName):
@@ -3067,11 +3139,19 @@ class AlignmentSet(ReadSet):
         """
         if self._referenceInfoTable is None:
             # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
-            # instance). Use the resource readers directly instead.
-            responses = self._pollResources(lambda x: x.referenceInfoTable)
+            # instance). Use the resource readers directly instead. We need
+            # basic support however, so updating StartRow and EndRow for single
+            # reference cmp.h5 merges
+            responses = []
+
+            # allow for merge here:
+            for res in self._pollResources(lambda x: x.referenceInfoTable):
+                for rec in res:
+                    rec.StartRow = 0
+                    rec.EndRow = 0
+                responses.append(res)
             table = []
             if len(responses) > 1:
-                assert not self.isCmpH5 # see above
                 try:
                     table = self._unifyResponses(
                         responses,
@@ -3605,6 +3685,7 @@ class ContigSet(DataSet):
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.fai
+            # have to manually specify the dtype to make it work like a pbi
             indices = np.rec.fromrecords(
                 indices,
                 dtype=[('id', 'O'), ('comment', 'O'), ('header', 'O'),
@@ -3620,7 +3701,8 @@ class ContigSet(DataSet):
                 # dummy map, the id is the name in fasta space
                 nameMap = {name: name for name in indices.id}
 
-                passes = self._filters.filterIndexRecords(indices, nameMap)
+                passes = self._filters.filterIndexRecords(indices, nameMap,
+                                                          readType='fasta')
                 newInds = indices[passes]
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in

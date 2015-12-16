@@ -544,12 +544,21 @@ class Filters(RecordWrapper):
                 lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
         return tests
 
-    def filterIndexRecords(self, indexRecords, nameMap):
-        typeMap = self._bamTypeMap
-        accMap = self._pbiVecAccMap({})
-        if 'aEnd' in indexRecords.dtype.names:
-            accMap = self._pbiMappedVecAccMap({})
-            accMap['rname'] = lambda x: x.tId
+    def filterIndexRecords(self, indexRecords, nameMap, readType='bam'):
+        if readType == 'bam':
+            typeMap = self._bamTypeMap
+            accMap = self._pbiVecAccMap({})
+            if 'aEnd' in indexRecords.dtype.names:
+                accMap = self._pbiMappedVecAccMap({})
+                accMap['rname'] = lambda x: x.tId
+        elif readType == 'fasta':
+            accMap = {'id': (lambda x: x.id),
+                      'length': (lambda x: int(x.length)),
+                     }
+            typeMap = {'id': str,
+                       'length': int,
+                      }
+
         filterLastResult = None
         for filt in self:
             lastResult = None
@@ -582,6 +591,9 @@ class Filters(RecordWrapper):
                         lastResult = np.logical_and(lastResult,
                                                     reqResultsForRecords)
                         del reqResultsForRecords
+                else:
+                    log.warn("Filter not recognized: {f}".format(f=param))
+                    lastResult = [True] * len(indexRecords)
             if filterLastResult is None:
                 filterLastResult = lastResult
             else:

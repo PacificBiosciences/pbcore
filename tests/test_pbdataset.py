@@ -1528,3 +1528,11 @@ class TestDataSet(unittest.TestCase):
             2876.0, ss.subdatasets[0].metadata.summaryStats.numSequencingZmws)
         self.assertEqual(
             150292.0, ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
+
+    def test_merged_cmp(self):
+        cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
+        cmp2 = upstreamdata.getBamAndCmpH5()[1]
+        aln = AlignmentSet(cmp1, cmp2)
+        refnames = aln.refNames
+        self.assertEqual(refnames, ['lambda_NEB3011'])
+        self.assertEqual(aln.refIds[aln.refNames[0]], 1)
