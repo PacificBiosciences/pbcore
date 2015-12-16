@@ -484,9 +484,8 @@ class TestBasH5Reader_CCS(ReadIteratorTests):
 
             nose.tools.assert_equal(len(reader[zmw].insertRegions), 0)
             nose.tools.assert_equal(len(reader[zmw].adapterRegions), 0)
+            nose.tools.assert_equal(len(reader[zmw].subreads), 0)
 
-            with nose.tools.assert_raises(ValueError):
-                reader[zmw].subreads
 
             with nose.tools.assert_raises(ValueError):
                 reader[zmw].read()

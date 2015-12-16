@@ -44,29 +44,12 @@ from pbcore.io.FofnIO import readFofn
 from pbcore.chemistry import (decodeTriple,
                               tripleFromMetadataXML,
                               ChemistryLookupError)
+from pbcore.model import ExtraBaseRegionsMixin, HQ_REGION
 from ._utils import arrayFromDataset, CommonEqualityMixin
 
 
-def intersectRanges(r1, r2):
-    b1, e1 = r1
-    b2, e2 = r2
-    b, e = max(b1, b2), min(e1, e2)
-    return (b, e) if (b < e) else None
-
-def rangeLength(r):
-    b, e = r
-    return e - b
-
-def removeNones(lst):
-    return filter(lambda x: x!=None, lst)
-
 # ZMW hole Types
 SEQUENCING_ZMW = 0
-
-# Region types
-ADAPTER_REGION = 0
-INSERT_REGION  = 1
-HQ_REGION      = 2
 
 # This seems to be the magic incantation to get a RecArray that can be
 # indexed to yield a record that can then be accessed using dot
@@ -85,7 +68,7 @@ def _makeQvAccessor(featureName):
         return self.qv(featureName)
     return f
 
-class Zmw(CommonEqualityMixin):
+class Zmw(CommonEqualityMixin, ExtraBaseRegionsMixin):
     """
     A Zmw represents all data from a ZMW (zero-mode waveguide) hole
     within a bas.h5 movie file.  Accessor methods provide convenient
@@ -111,65 +94,6 @@ class Zmw(CommonEqualityMixin):
             return toRecArray(REGION_TABLE_DTYPE,
                               [ (self.holeNumber, HQ_REGION, 0, 0, 0) ])
 
-    #
-    # The following "region" calls return one or more intervals ((int, int)).
-    #  - The default implementations perform clipping to the hqRegion.
-    #  - The "unclipped" implementations entail no clipping
-    #
-    @property
-    def adapterRegionsNoQC(self):
-        """
-        Get adapter regions as intervals, without clipping to the HQ
-        region.  Don't use this unless you know what you're doing.
-        """
-        return [ (region.regionStart, region.regionEnd)
-                 for region in self.regionTable
-                 if region.regionType == ADAPTER_REGION ]
-
-    @property
-    def adapterRegions(self):
-        """
-        Get adapter regions as intervals, performing clipping to the HQ region
-        """
-        hqRegion = self.hqRegion
-        return removeNones([ intersectRanges(hqRegion, region)
-                             for region in self.adapterRegionsNoQC ])
-
-    @property
-    def insertRegionsNoQC(self):
-        """
-        Get insert regions as intervals, without clipping to the HQ
-        region.  Don't use this unless you know what you're doing.
-        """
-        return [ (region.regionStart, region.regionEnd)
-                 for region in self.regionTable
-                 if region.regionType == INSERT_REGION ]
-
-    @property
-    def insertRegions(self):
-        """
-        Get insert regions as intervals, clipped to the HQ region
-        """
-        hqRegion = self.hqRegion
-        return removeNones([ intersectRanges(hqRegion, region)
-                             for region in self.insertRegionsNoQC ])
-    @property
-    def hqRegion(self):
-        """
-        Return the HQ region interval.
-
-        The HQ region is an interval of basecalls where the basecaller has
-        inferred that a single sequencing reaction is taking place.
-        Secondary analysis should only use subreads within the HQ
-        region.  Methods in this class, with the exception of the
-        "NoQC" methods, return data appropriately clipped/filtered to
-        the HQ region.
-        """
-        rt = self.regionTable
-        hqRows = rt[rt.regionType == HQ_REGION]
-        assert len(hqRows) == 1
-        hqRow = hqRows[0]
-        return hqRow.regionStart, hqRow.regionEnd
 
     @property
     def readScore(self):
@@ -242,7 +166,6 @@ class Zmw(CommonEqualityMixin):
         readEnd   = hqEnd if readEnd is None else readEnd
         return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
-
     def readNoQC(self, readStart=None, readEnd=None):
         """
         Given no arguments, returns the entire polymerase read, *not
@@ -255,71 +178,12 @@ class Zmw(CommonEqualityMixin):
             as we make no guarantees about what happens outside of the
             HQ region.
         """
-        if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
         polymeraseBegin = 0
         polymeraseEnd = self.numEvents
         readStart = polymeraseBegin if readStart is None else readStart
         readEnd   = polymeraseEnd   if readEnd   is None else readEnd
         return ZmwRead(self.baxH5, self.holeNumber, readStart, readEnd)
 
-    @property
-    def subreadsNoQC(self):
-        """
-        Get the subreads, including data beyond the bounds of the HQ region.
-
-        .. warning::
-
-            It is not recommended that production code use this method
-            as we make no guarantees about what happens outside of the
-            HQ region.
-        """
-        if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.insertRegionsNoQC ]
-
-    @property
-    def subreads(self):
-        """
-        Get the subreads as a list of ZmwRead objects.  Restricts focus,
-        and clips to, the HQ region.  This method can be used by
-        production code.
-        """
-        if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.insertRegions ]
-
-
-    @property
-    def adapters(self):
-        """
-        Get the adapter hits as a list of ZmwRead objects.  Restricts
-        focus, and clips to, the HQ region.  This method can be used
-        by production code.
-        """
-        if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.adapterRegions ]
-
-    @property
-    def adaptersNoQC(self):
-        """
-        Get the adapters, including data beyond the bounds of the HQ
-        region.
-
-        .. warning::
-
-            It is not recommended that production code use this method
-            as we make no guarantees about what happens outside of the
-            HQ region.
-        """
-        if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.adapterRegionsNoQC ]
 
     @property
     def ccsRead(self):
