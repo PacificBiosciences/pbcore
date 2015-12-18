@@ -55,6 +55,13 @@ def filtered(generator):
                     yield read
     return wrapper
 
+def _getTimeStampedName(mType):
+    """Generate a timestamped name using the given metatype 'mType' and the
+    current UTC time"""
+    mType = mType.lower()
+    mType = '_'.join(mType.split('.'))
+    time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
+    return "{m}-{t}".format(m=mType, t=time)
 
 def _toDsId(name):
     """Translate a class name into a MetaType/ID"""
@@ -100,7 +107,7 @@ def isDataSet(xmlfile):
     try:
         _typeDataSet(xmlfile)
         return True
-    except:
+    except Exception:
         return False
 
 def openDataSet(*files, **kwargs):
@@ -199,6 +206,22 @@ def _fileType(fname):
     ftype = ftype.strip('.')
     return ftype
 
+def _fileExists(fname):
+    """Assert that a file exists with a useful failure mode"""
+    if not isinstance(fname, str):
+        fname = fname.resourceId
+    if not os.path.isfile(fname):
+        raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
+    return True
+
+def checkAndResolve(fname, possibleRelStart=None):
+    """Try and skip resolveLocation if possible"""
+    tbr = fname
+    if not fname.startswith(os.path.sep):
+        log.debug('Unable to assume path is already absolute')
+        tbr = resolveLocation(fname, possibleRelStart)
+    return tbr
+
 
 class DataSet(object):
     """The record containing the DataSet information, with possible type
@@ -292,6 +315,10 @@ class DataSet(object):
         populateDataSet(self, files)
         log.debug('Done populating')
 
+        if self._strict:
+            log.debug('Strictly checking ResourceIds')
+            self._modResources(_fileExists)
+
         # DataSet base class shouldn't really be used. It is ok-ish for just
         # basic xml mainpulation. May start warning at some point, but
         # openDataSet uses it, which would warn unnecessarily.
@@ -312,7 +339,7 @@ class DataSet(object):
             dsType = self.objMetadata.setdefault("MetaType",
                                                  _toDsId('DataSet'))
         if not self.objMetadata.get("TimeStampedName", ""):
-            self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
+            self.objMetadata["TimeStampedName"] = _getTimeStampedName(
                 self.objMetadata["MetaType"])
         self.objMetadata.setdefault("Name",
                                     self.objMetadata["TimeStampedName"])
@@ -623,8 +650,7 @@ class DataSet(object):
             ...                    ds1.subdatasets for ds2d in
             ...                    ds2.subdatasets])
             >>> # But types are maintained:
-            >>> # TODO: turn strict back on once sim sets are indexable
-            >>> ds1 = SubreadSet(data.getXml(no=10), strict=False)
+            >>> ds1 = SubreadSet(data.getXml(no=10), strict=True)
             >>> ds1.metadata # doctest:+ELLIPSIS
             <SubreadSetMetadata...
             >>> ds2 = ds1.copy()
@@ -654,8 +680,6 @@ class DataSet(object):
                                 "{t}".format(s=type(self).__name__,
                                              t=asType))
             tbr.merge(self)
-            # update the metatypes: (TODO: abstract out 'iterate over all
-            # resources and modify the element that contains them')
             tbr.makePathsAbsolute()
             return tbr
         result = copy.deepcopy(self)
@@ -742,7 +766,8 @@ class DataSet(object):
             True
             >>> # unmerge:
             >>> ds1, ds2 = sorted(
-            ... dss.split(2, ignoreSubDatasets=False), key=lambda x: x.totalLength, reverse=True)
+            ... dss.split(2, ignoreSubDatasets=False),
+            ... key=lambda x: x.totalLength, reverse=True)
             >>> ds1.totalLength == ds1tl
             True
             >>> ds2.totalLength == ds2tl
@@ -961,14 +986,6 @@ class DataSet(object):
         DataSet's ExternalResource type"""
         raise NotImplementedError()
 
-    def checkAndResolve(self, fname, possibleRelStart=None):
-        """Try and skip resolveLocation if possible"""
-        if fname.startswith(os.path.sep):
-            return fname
-        else:
-            log.debug('Unable to assume path is already absolute')
-            return resolveLocation(fname, possibleRelStart)
-
     def makePathsAbsolute(self, curStart="."):
         """As part of the validation process, make all ResourceIds absolute
         URIs rather than relative paths. Generally not called by API users.
@@ -978,7 +995,7 @@ class DataSet(object):
         """
         log.debug("Making paths absolute")
         self._changePaths(
-            lambda x, s=curStart: self.checkAndResolve(x, s))
+            lambda x, s=curStart: checkAndResolve(x, s))
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
@@ -1064,16 +1081,8 @@ class DataSet(object):
             resource.metaType = self._metaTypeMapping().get(file_type, "")
         if not resource.timeStampedName:
             mtype = resource.metaType
-            tsName = self._getTimeStampedName(mtype)
+            tsName = _getTimeStampedName(mtype)
             resource.timeStampedName = tsName
-
-    def _getTimeStampedName(self, mType):
-        """Generate a timestamped name using the given metatype 'mType' and the
-        current UTC time"""
-        mType = mType.lower()
-        mType = '_'.join(mType.split('.'))
-        time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
-        return "{m}-{t}".format(m=mType, t=time)
 
     @staticmethod
     def _metaTypeMapping():
@@ -1324,8 +1333,10 @@ class DataSet(object):
             subNames.extend(sds.name)
         return subNames
 
-    def readsInSubDatasets(self, subNames=[]):
+    def readsInSubDatasets(self, subNames=None):
         """To be used in conjunction with self.subSetNames"""
+        if subNames is None:
+            subNames = []
         if self.subdatasets:
             for sds in self.subdatasets:
                 if subNames and sds.name not in subNames:
@@ -2085,7 +2096,7 @@ class HdfSubreadSet(ReadSet):
         # The metatype for this dataset type is inconsistent, plaster over it
         # here:
         self.objMetadata["MetaType"] = "PacBio.DataSet.HdfSubreadSet"
-        self.objMetadata["TimeStampedName"] = self._getTimeStampedName(
+        self.objMetadata["TimeStampedName"] = _getTimeStampedName(
             self.objMetadata["MetaType"])
 
     def induceIndices(self):

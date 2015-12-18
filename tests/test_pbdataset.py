@@ -16,7 +16,7 @@ from pbcore.io.dataset.utils import BamtoolsVersion
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet,
                        ConsensusReadSet, ConsensusAlignmentSet)
-from pbcore.io.dataset.DataSetIO import _dsIdToSuffix
+from pbcore.io.dataset.DataSetIO import _dsIdToSuffix, InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
@@ -1527,12 +1527,27 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(
             2876.0, ss.subdatasets[0].metadata.summaryStats.numSequencingZmws)
         self.assertEqual(
-            150292.0, ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
+            150292.0,
+            ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
 
     def test_merged_cmp(self):
         cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
         cmp2 = upstreamdata.getBamAndCmpH5()[1]
+        aln0 = AlignmentSet(cmp1)
+        self.assertEqual(aln0.referenceInfoTable['EndRow'][0], 83)
+        self.assertEqual(len(aln0), 84)
+        aln1 = AlignmentSet(cmp2)
+        self.assertEqual(aln1.referenceInfoTable['EndRow'][0], 111)
+        self.assertEqual(len(aln1), 112)
         aln = AlignmentSet(cmp1, cmp2)
         refnames = aln.refNames
         self.assertEqual(refnames, ['lambda_NEB3011'])
         self.assertEqual(aln.refIds[aln.refNames[0]], 1)
+        self.assertEqual(aln.referenceInfoTable['EndRow'][0], 195)
+        self.assertEqual(len(aln), 196)
+
+    def test_exceptions(self):
+        try:
+            raise InvalidDataSetIOError("Wrong!")
+        except InvalidDataSetIOError as e:
+            self.assertEqual(e.message, "Wrong!")
