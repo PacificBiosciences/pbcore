@@ -15,7 +15,7 @@ from pbcore.io import openIndexedAlignmentFile
 from pbcore.io.dataset.utils import BamtoolsVersion
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet,
-                       ConsensusReadSet, ConsensusAlignmentSet)
+                       ConsensusReadSet, ConsensusAlignmentSet, openDataFile)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -570,24 +570,23 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds1.totalLength == ds1tl)
         self.assertTrue(ds2.totalLength == ds2tl)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
     def test_split_zmws(self):
-        test_file = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/2372215/"
-                     "0007_micro/Analysis_Results/m150404_101626_42267_c"
-                     "100807920800000001823174110291514_s1_p0.all."
-                     "subreadset.xml")
-        ds1 = openDataSet(test_file)
-        self.assertEqual(len([r for r in ds1]), 1220)
+        N_RECORDS = 117
+        test_file = upstreamdata.getUnalignedBam()
+        ds1 = openDataFile(test_file)
+        self.assertEqual(len([r for r in ds1]), N_RECORDS)
         dss = ds1.split(chunks=1, zmws=True)
-        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), 1220)
-        dss = ds1.split(chunks=9, zmws=True)
-        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), 1220)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), N_RECORDS)
+        dss = ds1.split(chunks=12, zmws=True)
+        self.assertEqual(len(dss), 10)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), N_RECORDS)
         self.assertEqual(
             dss[0].zmwRanges,
-            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-              55, 1815)])
-        #55, 2865)])
+            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0', 1650, 6251)])
+        self.assertEqual(
+            dss[-1].zmwRanges,
+            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0', 49521, 54396)])
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
