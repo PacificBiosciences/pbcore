@@ -255,6 +255,23 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         dset.index
         self.assertEqual(len(dset.resourceReaders()), 1)
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            1)
+
+        # empty and full:
+        full_bam = SubreadSet(data.getXml(10)).toExternalFiles()[0]
+        dset = SubreadSet(upstreamdata.getEmptyBam(), full_bam)
+        self.assertEqual(dset.numRecords, 92)
+        self.assertEqual(dset.totalLength, 124093)
+        self.assertEqual(len(list(dset)), 92)
+        dset.updateCounts()
+        self.assertNotEqual(list(dset.index), [])
+        self.assertEqual(len(dset.resourceReaders()), 2)
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            2)
+
 
         dset = AlignmentSet(upstreamdata.getEmptyBam())
         self.assertEqual(dset.numRecords, 0)
@@ -263,6 +280,21 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         dset.index
         self.assertEqual(len(dset.resourceReaders()), 1)
+        self.assertEqual(
+            len(dset.split(contigs=True, maxChunks=12, breakContigs=True)),
+            1)
+
+        # empty and full:
+        dset = AlignmentSet(upstreamdata.getEmptyBam(), data.getBam())
+        self.assertEqual(dset.numRecords, 92)
+        self.assertEqual(dset.totalLength, 123588)
+        self.assertEqual(len(list(dset)), 92)
+        dset.updateCounts()
+        self.assertNotEqual(list(dset.index), [])
+        self.assertEqual(len(dset.resourceReaders()), 2)
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            2)
 
         dset = ConsensusReadSet(upstreamdata.getEmptyBam())
         self.assertEqual(dset.numRecords, 0)
@@ -291,6 +323,25 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(dset)), 0)
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            1)
+
+        # empty and full:
+        full_bam = SubreadSet(data.getXml(10)).toExternalFiles()[0]
+        dset = SubreadSet(outpath, full_bam)
+        self.assertEqual(len(dset.resourceReaders()), 2)
+        dset.updateCounts()
+        # without a pbi, updating counts is broken
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 92)
+        with self.assertRaises(IOError):
+            self.assertNotEqual(list(dset.index), [])
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            1)
+
 
         dset = AlignmentSet(outpath)
         self.assertEqual(dset.numRecords, 0)
@@ -298,6 +349,23 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(dset)), 0)
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
+        self.assertEqual(
+            len(dset.split(contigs=True, maxChunks=12, breakContigs=True)),
+            1)
+
+        # empty and full:
+        dset = AlignmentSet(outpath, data.getBam())
+        # without a pbi, updating counts is broken
+        self.assertEqual(dset.numRecords, 0)
+        self.assertEqual(dset.totalLength, 0)
+        self.assertEqual(len(list(dset)), 92)
+        dset.updateCounts()
+        with self.assertRaises(IOError):
+            self.assertNotEqual(list(dset.index), [])
+        self.assertEqual(len(dset.resourceReaders()), 2)
+        self.assertEqual(
+            len(dset.split(zmws=True, maxChunks=12)),
+            1)
 
         dset = ConsensusReadSet(outpath)
         self.assertEqual(dset.numRecords, 0)

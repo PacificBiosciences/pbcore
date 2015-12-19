@@ -774,6 +774,9 @@ class DataSet(object):
             True
 
         """
+        # File must have pbi index to be splittable:
+        if len(self) == 0:
+            return [self.copy()]
         if contigs:
             return self._split_contigs(chunks, maxChunks, breakContigs,
                                        targetSize=targetSize,
@@ -1944,6 +1947,8 @@ class ReadSet(DataSet):
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
+            if len(indices) == 0:
+                continue
 
             if not self._filters or self.noFiltering:
                 recArrays.append(indices._tbl)
@@ -1964,6 +1969,8 @@ class ReadSet(DataSet):
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
+        if recArrays == []:
+            return recArrays
         return _stackRecArrays(recArrays)
 
     def resourceReaders(self):
@@ -1986,7 +1993,9 @@ class ReadSet(DataSet):
 
         """
         count = len(self.index)
-        length = sum(self.index.qEnd - self.index.qStart)
+        length = 0
+        if count:
+            length = sum(self.index.qEnd - self.index.qStart)
         return count, length
 
     def _resourceSizes(self):
@@ -2309,6 +2318,9 @@ class AlignmentSet(ReadSet):
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
+            # pbi files lack e.g. mapping cols when bam emtpy, ignore
+            if len(indices) == 0:
+                continue
             tId = lambda x: x.tId
             if not self.isCmpH5:
                 indices = indices._tbl
@@ -2346,6 +2358,8 @@ class AlignmentSet(ReadSet):
                 self._indexMap.extend([(rrNum, i) for i in
                                        np.nonzero(passes)[0]])
         self._indexMap = np.array(self._indexMap)
+        if recArrays == []:
+            return recArrays
         tbr = _stackRecArrays(recArrays)
         # sort if cmp.h5 so we can rectify RowStart/End, maybe someday bam
         if self.isCmpH5:
@@ -3095,20 +3109,22 @@ class AlignmentSet(ReadSet):
 
         """
         count = len(self.index)
-        if self.isCmpH5:
-            length = sum(self.index.rEnd - self.index.rStart)
-        else:
-            try:
-                length = sum(self.index.aEnd - self.index.aStart)
-            except AttributeError:
-                # If the bam is empty or the file is not actually aligned, this
-                # field wont be populated
-                if self.isMapped:
-                    log.warn(".pbi mapping columns missing from mapped bam, "
-                             "bam may be empty")
-                else:
-                    log.warn("File not actually mapped!")
-                length = 0
+        length = 0
+        if count:
+            if self.isCmpH5:
+                length = sum(self.index.rEnd - self.index.rStart)
+            else:
+                try:
+                    length = sum(self.index.aEnd - self.index.aStart)
+                except AttributeError:
+                    # If the bam is empty or the file is not actually aligned, this
+                    # field wont be populated
+                    if self.isMapped:
+                        log.warn(".pbi mapping columns missing from mapped bam, "
+                                 "bam may be empty")
+                    else:
+                        log.warn("File not actually mapped!")
+                    length = 0
         return count, length
 
     @property
@@ -3157,10 +3173,12 @@ class AlignmentSet(ReadSet):
 
             # allow for merge here:
             for res in self._pollResources(lambda x: x.referenceInfoTable):
-                for rec in res:
-                    rec.StartRow = 0
-                    rec.EndRow = 0
-                responses.append(res)
+                if not res is None:
+                    if self.isCmpH5:
+                        for rec in res:
+                            rec.StartRow = 0
+                            rec.EndRow = 0
+                    responses.append(res)
             table = []
             if len(responses) > 1:
                 try:
@@ -3696,6 +3714,8 @@ class ContigSet(DataSet):
         self._indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.fai
+            if len(indices) == 0:
+                continue
             # have to manually specify the dtype to make it work like a pbi
             indices = np.rec.fromrecords(
                 indices,
