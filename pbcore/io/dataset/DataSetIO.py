@@ -1874,8 +1874,9 @@ class ReadSet(DataSet):
         if n_chunks != chunks:
             log.info("Adjusted number of chunks to %d" % n_chunks)
         log.debug("Making copies")
-        results = [self.copy() for _ in range(n_chunks)]
+        tmp_results = [self.copy() for _ in range(n_chunks)]
         j_chunk = 0
+        results = []
         for bam in self.resourceReaders():
             rg = bam.readGroupTable[0]
             n_reads = len(bam.holeNumber)
@@ -1884,7 +1885,8 @@ class ReadSet(DataSet):
             for i_chunk in range(n_chunks_per_bam):
                 if i_read >= n_reads:
                     break
-                result = results[j_chunk]
+                result = tmp_results[j_chunk]
+                results.append(result)
                 j_chunk += 1
                 zmw_start = bam.holeNumber[i_read]
                 if i_chunk == n_chunks_per_bam - 1:
