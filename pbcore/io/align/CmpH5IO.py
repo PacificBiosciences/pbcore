@@ -755,8 +755,8 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         # dataset_name -> dataset }.  This way we avoid B-tree
         # scanning in basic data access.
         self._alignmentGroupById = {}
-        for (alnGroupId, alnGroupPath) in zip(self.file["/AlnGroup/ID"],
-                                              self.file["/AlnGroup/Path"]):
+        for (alnGroupId, alnGroupPath) in zip(self.file["/AlnGroup/ID"][:],
+                                              self.file["/AlnGroup/Path"][:]):
             alnGroup = self.file[alnGroupPath]
             self._alignmentGroupById[alnGroupId] = dict(alnGroup.items())
 
@@ -807,18 +807,18 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
     def _loadReferenceInfo(self):
         _referenceGroupTbl = np.rec.fromrecords(
-            zip(self.file["/RefGroup/ID"],
-                self.file["/RefGroup/RefInfoID"],
+            zip(self.file["/RefGroup/ID"][:],
+                self.file["/RefGroup/RefInfoID"][:],
                 [path[1:] for path in self.file["/RefGroup/Path"]]),
             dtype=[("ID"       , int),
                    ("RefInfoID", int),
                    ("Name"     , object)])
 
         _referenceInfoTbl = np.rec.fromrecords(
-            zip(self.file["/RefInfo/ID"],
-                self.file["/RefInfo/FullName"],
-                self.file["/RefInfo/Length"],
-                self.file["/RefInfo/MD5"]) ,
+            zip(self.file["/RefInfo/ID"][:],
+                self.file["/RefInfo/FullName"][:],
+                self.file["/RefInfo/Length"][:],
+                self.file["/RefInfo/MD5"][:]) ,
             dtype=[("RefInfoID", int),
                    ("FullName" , object),
                    ("Length"   , int),
@@ -838,26 +838,39 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                                                 jointype="inner")
         self._referenceDict = {}
         self._readLocatorByKey = {}
-        for record in self._referenceInfoTable:
-            if record.ID != -1:
-                assert record.ID != record.Name
+
+        # For cmp.h5 files with large numbers of references, accessing
+        # the recarray fields in the inner loop was terribly slow.
+        # This makes things faster, though the code is less
+        # straightforward.  (One of the tradeoffs we have to make
+        # without a compiler to help us...)
+        recordID       = self._referenceInfoTable.ID
+        recordName     = self._referenceInfoTable.Name
+        recordFullName = self._referenceInfoTable.FullName
+        recordMD5      = self._referenceInfoTable.MD5
+
+        offsetTable = self.file["/RefGroup/OffsetTable"].value
+
+        for i, record in enumerate(self._referenceInfoTable):
+            if recordID[i] != -1:
+                assert recordID[i] != record.Name
                 shortName = splitFastaHeader(record.FullName)[0]
-                if (shortName       in self._referenceDict or
-                    record.ID       in self._referenceDict or
-                    record.Name     in self._referenceDict or
-                    record.FullName in self._referenceDict or
-                    record.MD5      in self._referenceDict):
+                if (shortName         in self._referenceDict or
+                    recordID[i]       in self._referenceDict or
+                    recordName[i]     in self._referenceDict or
+                    recordFullName[i] in self._referenceDict or
+                    recordMD5[i]      in self._referenceDict):
                     raise ValueError, "Duplicate reference contig sequence or identifier"
                 else:
-                    self._referenceDict[shortName]       = record
-                    self._referenceDict[record.ID]       = record
-                    self._referenceDict[record.Name]     = record
-                    self._referenceDict[record.FullName] = record
-                    self._referenceDict[record.MD5]      = record
+                    self._referenceDict[shortName]         = record
+                    self._referenceDict[recordID[i]]       = record
+                    self._referenceDict[recordName[i]]     = record
+                    self._referenceDict[recordFullName[i]] = record
+                    self._referenceDict[recordMD5[i]]      = record
 
                 if self.isSorted:
-                    readLocator = makeReadLocator(self, record.ID)
-                    self._readLocatorByKey[record.ID] = readLocator
+                    readLocator = makeReadLocator(self, offsetTable, recordID)
+                    self._readLocatorByKey[recordID[i]] = readLocator
                     self._readLocatorByKey[shortName] = readLocator
 
     def _loadMiscInfo(self):
