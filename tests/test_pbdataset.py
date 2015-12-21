@@ -1618,3 +1618,8 @@ class TestDataSet(unittest.TestCase):
             raise InvalidDataSetIOError("Wrong!")
         except InvalidDataSetIOError as e:
             self.assertEqual(e.message, "Wrong!")
+
+    def test_createdAt(self):
+        aln = AlignmentSet(data.getXml(8))
+        self.assertEqual(aln.createdAt, '2015-08-05T10:25:18')
+
