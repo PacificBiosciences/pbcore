@@ -1513,6 +1513,11 @@ class DataSet(object):
                 self.metadata.removeChildren('SummaryStats')
 
     @property
+    def createdAt(self):
+        """Return the DataSet CreatedAt timestamp"""
+        return self.objMetadata.get('CreatedAt')
+
+    @property
     def numRecords(self):
         """The number of records in this DataSet (from the metadata)"""
         return self._metadata.numRecords
