@@ -122,13 +122,14 @@ def projectIntoRange(tStart, tEnd, winStart, winEnd):
         res[s:e] += 1
     return res
 
-def makeReadLocator(cmpH5, offsetTable, refSeq):
+def makeReadLocator(cmpH5, refSeq):
     """
     Return a function which can be called iteratively to find reads
     quickly.
     """
     if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
-    offStart, offEnd = offsetTable[offsetTable[:,0] == refSeq, 1:3].ravel()
+    refInfo = cmpH5.referenceInfo(refSeq)
+    offStart, offEnd = refInfo.StartRow, refInfo.EndRow
 
     if (offEnd - offStart > 0):
         refAlignIdx = cmpH5.alignmentIndex[offStart:offEnd, ]

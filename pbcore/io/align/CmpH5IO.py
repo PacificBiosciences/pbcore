@@ -869,7 +869,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                     self._referenceDict[recordMD5[i]]      = record
 
                 if self.isSorted:
-                    readLocator = makeReadLocator(self, offsetTable, recordID)
+                    readLocator = makeReadLocator(self, recordID[i])
                     self._readLocatorByKey[recordID[i]] = readLocator
                     self._readLocatorByKey[shortName] = readLocator
 
