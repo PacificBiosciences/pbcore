@@ -33,13 +33,14 @@ def createXml(args):
     dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
                                 skipCounts=args.skipCounts,
                                 generateIndices=args.generateIndices)
-    if args.dsName != '':
-        dset.name = args.dsName
     if args.generateIndices:
         # we generated the indices with the last open, lets capture them with
         # this one:
         dset = dsTypes[args.dsType](*args.infile, strict=args.strict,
                                     skipCounts=args.skipCounts)
+    if args.dsName != '':
+        dset.name = args.dsName
+
     log.debug("Dataset created")
     dset.write(args.outfile, validate=args.novalidate, modPaths=True,
                relPaths=args.relative)
