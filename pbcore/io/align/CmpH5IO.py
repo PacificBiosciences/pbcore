@@ -849,8 +849,6 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         recordFullName = self._referenceInfoTable.FullName
         recordMD5      = self._referenceInfoTable.MD5
 
-        offsetTable = self.file["/RefGroup/OffsetTable"].value
-
         for i, record in enumerate(self._referenceInfoTable):
             if recordID[i] != -1:
                 assert recordID[i] != record.Name
