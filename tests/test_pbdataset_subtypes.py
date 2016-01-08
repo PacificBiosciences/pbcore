@@ -5,6 +5,7 @@ import unittest
 import tempfile
 import os
 import itertools
+import numpy as np
 
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname,

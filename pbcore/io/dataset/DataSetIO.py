@@ -189,6 +189,27 @@ def _flatten(lol, times=1):
         lol = np.concatenate(lol)
     return lol
 
+def divideKeys(keys, chunks, count_dupes=False):
+    if chunks < 1:
+        return []
+    key_ranges = []
+    if not count_dupes:
+        real_keys = list(set(keys))
+    else:
+        real_keys = keys
+    real_keys.sort()
+    if chunks > len(real_keys):
+        chunks = len(real_keys)
+    chunksize = len(real_keys)/chunks
+    key_chunks = [real_keys[(i * chunksize):((i + 1) * chunksize)] for i in
+                  range(chunks-1)]
+    key_chunks.append(real_keys[((chunks - 1) * chunksize):])
+    return key_chunks
+
+def keysToRanges(keys):
+    key_ranges = [[min(k), max(k)] for k in keys]
+    return key_ranges
+
 class DataSetMetaTypes(object):
     """
     This mirrors the PacBioSecondaryDataModel.xsd definitions and be used
@@ -804,6 +825,8 @@ class DataSet(object):
                                        byRecords=byRecords,
                                        updateCounts=updateCounts)
         elif zmws:
+            if chunks == 0:
+                chunks = maxChunks
             return self._split_zmws(chunks, targetSize=targetSize)
         elif barcodes:
             return self._split_barcodes(chunks)
@@ -1905,61 +1928,60 @@ class ReadSet(DataSet):
         return results
 
     def _split_zmws(self, chunks, targetSize=None):
-        files_to_movies = defaultdict(list)
-        n_bam = 0
-        for bam in self.resourceReaders():
-            n_bam += 1
-            if len(bam.readGroupTable) > 1:
-                raise RuntimeError("Multiple read groups in single .bam")
-        if chunks < n_bam:
-            return self.split(chunks=chunks)
-        target_nchunks = self.numRecords/targetSize
-        # turn on to provide more reasonable nchunks on small datasets:
-        #chunks = min(chunks, target_nchunks)
-        n_chunks_per_bam = max(1, int(math.floor(float(chunks) / n_bam)))
-        if n_chunks_per_bam < 2:
-            log.warn("%d ZMW chunks requested but there are %d files" %
-                     (chunks, n_bam))
-        n_chunks = n_bam * n_chunks_per_bam
-        active_holenumbers = 0
-        for reader in self.resourceReaders():
-            active_holenumbers += len(set(reader.holeNumber))
-        n_chunks = min(active_holenumbers, n_chunks)
+        """Holenumbers must be unique within each movie"""
+        # find atoms:
+        active_holenumbers = set(zip(self.index.qId, self.index.holeNumber))
+        n_chunks = min(len(active_holenumbers), chunks)
+
+        # make sure there aren't too few atoms
         if n_chunks != chunks:
             log.info("Adjusted number of chunks to %d" % n_chunks)
+
+        # sort atoms and group into chunks:
+        hn_chunks = divideKeys(active_holenumbers, n_chunks)
+
+        # make sure we can pull out the movie name:
+        rgs = set()
+        for bam in self.resourceReaders():
+            for rg in bam.readGroupTable:
+                rgs.add(tuple(rg))
+        rgIdMovieNameMap = {rg[0]: rg[1] for rg in rgs}
+
+        results = []
         log.debug("Making copies")
         tmp_results = [self.copy() for _ in range(n_chunks)]
-        j_chunk = 0
-        results = []
-        for bam in self.resourceReaders():
-            rg = bam.readGroupTable[0]
-            n_reads = len(bam.holeNumber)
-            chunk_size = int(math.ceil(float(n_reads / n_chunks_per_bam)))
-            i_read = 0
-            for i_chunk in range(n_chunks_per_bam):
-                if i_read >= n_reads:
-                    break
-                result = tmp_results[j_chunk]
-                results.append(result)
-                j_chunk += 1
-                zmw_start = bam.holeNumber[i_read]
-                if i_chunk == n_chunks_per_bam - 1:
-                    zmw_end = bam.holeNumber.max()
-                else:
-                    i_read += chunk_size
-                    zmw_end = bam.holeNumber[min(i_read, n_reads-1)]
-                    while i_read < n_reads-1:
-                        if zmw_end == bam.holeNumber[i_read+1]:
-                            i_read += 1
-                            zmw_end = bam.holeNumber[i_read]
-                        else:
-                            break
-                result.filters.addRequirement(
-                    movie=[('=', rg.MovieName)],
+
+
+        # add filters
+        for chunk, res in zip(hn_chunks, tmp_results):
+            # check if multiple movies:
+            if chunk[0][0] == chunk[-1][0]:
+                movieName = rgIdMovieNameMap[chunk[0][0]]
+                zmw_start = chunk[0][1]
+                zmw_end = chunk[-1][1]
+                res.filters.addRequirement(
+                    movie=[('=', movieName)],
                     zm=[('<', zmw_end+1)])
-                result.filters.addRequirement(
+                res.filters.addRequirement(
                     zm=[('>', zmw_start-1)])
-                i_read += 1
+                results.append(res)
+            else:
+                atoms_by_movie = defaultdict(list)
+                for atom in chunk:
+                    atoms_by_movie[atom[0]].append(atom[1])
+                movieNames = []
+                zmw_starts = []
+                zmw_ends = []
+                for rgId, hns in atoms_by_movie.items():
+                    movieNames.append(rgIdMovieNameMap[rgId])
+                    zmw_starts.append(hns[0])
+                    zmw_ends.append(hns[-1])
+                res.filters.addRequirement(
+                    movie=[('=', mn) for mn in movieNames],
+                    zm=[('<', ze + 1) for ze in zmw_ends])
+                res.filters.mapRequirement(
+                    zm=[('>', zs - 1) for zs in zmw_starts])
+                results.append(res)
 
         # UniqueId was regenerated when the ExternalResource list was
         # whole, therefore we need to regenerate it again here
@@ -1967,12 +1989,17 @@ class ReadSet(DataSet):
         for result in results:
             result.reFilter()
             result.newUuid()
+            # use some cheats to save RAM while updating counts:
+            result._openReaders = self._openReaders
             result.updateCounts()
+            del result._index
+            result._index = None
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
         # TODO
         return results
+
 
     @property
     def readGroupTable(self):
@@ -2056,7 +2083,6 @@ class ReadSet(DataSet):
                     nameMap = {name: n
                                for n, name in enumerate(
                                    rr.referenceInfoTable['Name'])}
-
                 passes = self._filters.filterIndexRecords(indices._tbl,
                                                           nameMap,
                                                           self.movieIds)
