@@ -240,7 +240,22 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
-        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln)
+        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln,
+                        useTmp=False)
+        self.assertTrue(os.path.exists(outfn))
+        consAln = AlignmentSet(outfn)
+        self.assertEqual(len(consAln.toExternalFiles()), 1)
+        for read1, read2 in zip(sorted(list(aln)), sorted(list(consAln))):
+            self.assertEqual(read1, read2)
+        self.assertEqual(len(aln), len(consAln))
+
+        log.debug("Test methods directly in tmp")
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(aln.toExternalFiles()), 2)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, 'merged.bam')
+        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln,
+                        useTmp=True)
         self.assertTrue(os.path.exists(outfn))
         consAln = AlignmentSet(outfn)
         self.assertEqual(len(consAln.toExternalFiles()), 1)
