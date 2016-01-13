@@ -369,7 +369,8 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             if exists(pbiFname):
                 self.pbi = PacBioBamIndex(pbiFname)
             else:
-                raise IOError, "IndexedBamReader requires bam.pbi index file"
+                raise IOError("IndexedBamReader requires bam.pbi index file "+
+                              "to read {f}".format(f=fname))
         else:
             self.pbi = sharedIndex
 
