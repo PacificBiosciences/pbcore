@@ -15,26 +15,28 @@ def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
     """Take a list of infiles, an outFile to produce, and optionally a dataset
     (filters) to provide the definition and content of filtrations."""
     # check space available
+    final_free_space = disk_free(os.path.split(outFile)[0])
+    projected_size = sum(file_size(infn) for infn in inFiles)
+    log.debug("Projected size:            {p}".format(p=projected_size))
+    log.debug("In place free space:       {f}".format(f=final_free_space))
+    # give it a 5% buffer
+    if final_free_space < (projected_size * 1.05):
+        raise RuntimeError("No space available to consolidate")
     if useTmp:
         tmpout = tempfile.mkdtemp(suffix="consolidation-filtration")
-        local_free_space = disk_free(os.path.split(outFile)[0])
         tmp_free_space = disk_free(tmpout)
-        projected_size = sum(file_size(infn) for infn in inFiles)
-        log.debug("Projected size: {p}".format(p=projected_size))
-        log.debug("In place free space: {f}".format(f=local_free_space))
-        log.debug("Tmp free space: {f}".format(f=tmp_free_space))
-        if tmp_free_space > projected_size:
+        log.debug("Tmp free space (need ~2x): {f}".format(f=tmp_free_space))
+        # need 2x for tmp in and out, plus 10% buffer
+        if tmp_free_space > (projected_size * 2.1):
             log.debug("Using tmp storage: " + tmpout)
             tmpInFiles = _tmpFiles(inFiles, tmpout)
             origOutFile = outFile
             origInFiles = inFiles[:]
             inFiles = tmpInFiles
             outFile = os.path.join(tmpout, "outfile.bam")
-        elif local_free_space > projected_size:
+        else:
             log.debug("Using in place storage")
             useTmp = False
-        else:
-            raise RuntimeError("No space available to consolidate")
 
     if filterDset and filterDset.filters:
         finalOutfile = outFile
