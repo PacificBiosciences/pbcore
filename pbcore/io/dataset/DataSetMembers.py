@@ -492,6 +492,7 @@ class Filters(RecordWrapper):
                 'bcf': (lambda x: x.bcForward),
                 'bcr': (lambda x: x.bcForward),
                 'bcq': (lambda x: x.bcQual),
+                'bq': (lambda x: x.bcQual),
                 'bc': (lambda x: np.array(zip(x.bcForward, x.bcReverse))),
                }
 
@@ -503,6 +504,10 @@ class Filters(RecordWrapper):
                 'movie': str,
                 'zm': int,
                 'bc': str,
+                'bcr': int,
+                'bcf': int,
+                'bcq': int,
+                'bq': int,
                 'qs': int,
                 'rq': float,
                 'pos': int,
