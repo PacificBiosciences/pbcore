@@ -1588,7 +1588,8 @@ class DataSet(object):
 
     @property
     def isEmpty(self):
-        return self._checkIdentical('isEmpty')
+        responses = self._pollResources(lambda x: getattr(x, 'isEmpty'))
+        return all(responses)
 
     @property
     def readType(self):
