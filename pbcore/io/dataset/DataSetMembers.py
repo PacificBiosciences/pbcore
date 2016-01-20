@@ -1136,8 +1136,14 @@ class SubreadSetMetadata(DataSetMetadata):
 
     def merge(self, other):
         super(self.__class__, self).merge(other)
-        self.collections.merge(other.collections)
-        self.bioSamples.merge(other.bioSamples)
+        if other.collections and not self.collections:
+            self.append(other.collections)
+        else:
+            self.collections.merge(other.collections)
+        if other.bioSamples and not self.bioSamples:
+            self.append(other.bioSamples)
+        else:
+            self.bioSamples.merge(other.bioSamples)
 
     @property
     def collections(self):
