@@ -378,7 +378,7 @@ class DataSet(object):
         self._referenceInfoTable = None
         self._referenceDict = {}
         self._indexMap = None
-        self._stackedReferenceInfoTable = False
+        self._referenceInfoTableIsStacked = None
         self._index = None
 
         # update counts
@@ -386,6 +386,8 @@ class DataSet(object):
             if not self.totalLength or not self.numRecords:
                 self.updateCounts()
             elif self.totalLength <= 0 or self.numRecords <= 0:
+                self.updateCounts()
+            elif len(files) > 1:
                 self.updateCounts()
 
         # generate indices if requested and needed
@@ -1553,6 +1555,16 @@ class DataSet(object):
         self.objMetadata['Name'] = value
 
     @property
+    def description(self):
+        """The description of this DataSet"""
+        return self.objMetadata.get('Description', '')
+
+    @description.setter
+    def description(self, value):
+        """The description of this DataSet"""
+        self.objMetadata['Description'] = value
+
+    @property
     def numExternalResources(self):
         """The number of ExternalResources in this DataSet"""
         return len(self.externalResources)
@@ -2329,23 +2341,27 @@ class AlignmentSet(ReadSet):
             # pbi files lack e.g. mapping cols when bam emtpy, ignore
             if len(indices) == 0:
                 continue
-            tId = lambda x: x.tId
+            tId_acc = lambda x: x.RefGroupID
+            rName = lambda x: x['FullName']
+            tIdStart = 1
             if not self.isCmpH5:
                 indices = indices._tbl
-                tId = lambda x: x.RefGroupID
+                tId_acc = lambda x: x.tId
+                rName = lambda x: x['Name']
+                tIdStart = 0
 
             if correctIds and self._stackedReferenceInfoTable:
                 log.debug("Must correct index tId's")
                 tIdMap = {n: name
                           for n, name in enumerate(
-                              rr.referenceInfoTable['Name'])}
+                              rName(rr.referenceInfoTable),
+                              start=tIdStart)}
                 nameMap = self.refIds
 
             if not self._filters or self.noFiltering:
                 if correctIds and self._stackedReferenceInfoTable:
-                    for i in range(len(indices)):
-                        tId(indices)[i] = nameMap[
-                            tIdMap[tId(indices)[i]]]
+                    for tId in tIdMap.keys():
+                        indices[tId_acc(indices) == tId] = nameMap[tIdMap[tId]]
                 recArrays.append(indices)
                 self._indexMap.extend([(rrNum, i) for i in
                                        range(len(indices))])
@@ -2377,9 +2393,10 @@ class AlignmentSet(ReadSet):
             self._indexMap = self._indexMap[sort_order]
 
             for ref in self.referenceInfoTable:
-                hits = np.nonzero(tbr.RefGroupID == ref.ID)
-                ref.StartRow = hits[0][0]
-                ref.EndRow = hits[0][-1]
+                hits = np.flatnonzero(tbr.RefGroupID == ref.ID)
+                if len(hits) != 0:
+                    ref.StartRow = hits[0]
+                    ref.EndRow = hits[-1]
                 # and fix the naming scheme while we're at it
                 ref.Name = self._cleanCmpName(ref.FullName)
         return tbr
@@ -3092,6 +3109,18 @@ class AlignmentSet(ReadSet):
                     yield read
 
     @property
+    def tId(self):
+        if self.isCmpH5:
+            return self.index.RefGroupID
+        return self.index.tId
+
+    @property
+    def mapQV(self):
+        if self.isCmpH5:
+            return self.index.MapQV
+        return self.index.mapQV
+
+    @property
     def isSorted(self):
         return self._checkIdentical('isSorted')
 
@@ -3173,10 +3202,7 @@ class AlignmentSet(ReadSet):
 
         """
         if self._referenceInfoTable is None:
-            # This isn't really right for cmp.h5 files (rowStart, rowEnd, for
-            # instance). Use the resource readers directly instead. We need
-            # basic support however, so updating StartRow and EndRow for single
-            # reference cmp.h5 merges
+            self._referenceInfoTableIsStacked = False
             responses = []
 
             # allow for merge here:
@@ -3189,7 +3215,11 @@ class AlignmentSet(ReadSet):
                     responses.append(res)
             table = []
             if len(responses) > 1:
+                # perhaps this can be removed someday so that cmpH5 references
+                # are 0-indexed even if only one exists
                 try:
+                    # this works even for cmp's, because we overwrite the
+                    # highly variable fields above
                     table = self._unifyResponses(
                         responses,
                         eqFunc=np.array_equal)
@@ -3198,12 +3228,13 @@ class AlignmentSet(ReadSet):
                     table = np.unique(table)
                     for i, rec in enumerate(table):
                         rec.ID = i
-                    self._stackedReferenceInfoTable = True
+                        rec.RefInfoID = i
+                    self._referenceInfoTableIsStacked = True
             else:
                 table = responses[0]
-                if self.isCmpH5:
-                    for rec in table:
-                        rec.Name = self._cleanCmpName(rec.FullName)
+            if self.isCmpH5:
+                for rec in table:
+                    rec.Name = self._cleanCmpName(rec.FullName)
             log.debug("Filtering reference entries")
             if not self.noFiltering and self._filters:
                 passes = []
@@ -3216,6 +3247,12 @@ class AlignmentSet(ReadSet):
             #self._referenceDict.update(zip(self.refIds.values(),
             #                               self._referenceInfoTable))
         return self._referenceInfoTable
+
+    @property
+    def _stackedReferenceInfoTable(self):
+        if self._referenceInfoTableIsStacked is None:
+            _ = self.referenceInfoTable
+        return self._referenceInfoTableIsStacked
 
     @property
     def _referenceIdMap(self):
