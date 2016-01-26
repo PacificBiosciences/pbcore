@@ -1636,6 +1636,8 @@ class TestDataSet(unittest.TestCase):
         # + 1, because bounds are inclusive, rather than exclusive
         self.assertEqual(len3, (aln.referenceInfoTable[0].EndRow -
                                 aln.referenceInfoTable[0].StartRow) + 1)
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(1))
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
@@ -1663,6 +1665,10 @@ class TestDataSet(unittest.TestCase):
                                 aln.referenceInfoTable[1].StartRow) + 1)
         self.assertEqual(len2, (aln.referenceInfoTable[0].EndRow -
                                 aln.referenceInfoTable[0].StartRow) + 1)
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
+        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
+                         aln.referenceInfo(1))
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
@@ -1686,6 +1692,8 @@ class TestDataSet(unittest.TestCase):
             ("[ (0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
              "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 0L)]"))
         self.assertEqual(set(aln.tId), {0})
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
@@ -1711,6 +1719,45 @@ class TestDataSet(unittest.TestCase):
              " (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
              "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)]"))
         self.assertEqual(set(aln.tId), {0, 1})
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
+        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
+                         aln.referenceInfo(1))
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_two_ref_three_bam(self):
+        # Here we test whether duplicate references in a non-identical
+        # reference situation remain duplicates or are collapsed
+        cmp1 = upstreamdata.getBamAndCmpH5()[0]
+        # this is the supposedly the same data as above:
+        cmp2 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
+                "m140913_222218_42240_c1006999524000000018231"
+                "39203261564_s1_p0.all.alignmentset.xml")
+        cmp3 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c1007136524000000018231"
+                "52404301534_s1_p0.all.alignmentset.xml")
+        len1 = len(AlignmentSet(cmp1))
+        len2 = len(AlignmentSet(cmp2))
+        len3 = len(AlignmentSet(cmp3))
+        aln = AlignmentSet(cmp1, cmp2, cmp3)
+        len4 = len(aln)
+        self.assertEqual(len1 + len2 + len3, len4)
+        self.assertEqual(len4, 160376)
+        self.assertEqual(
+            str(aln.referenceInfoTable),
+            ("[ (0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
+             "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 0L)\n"
+             " (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502, "
+             "'a1319ff90e994c8190a4fe6569d0822a', 0L, 0L)]"))
+        self.assertEqual(set(aln.tId), {0, 1})
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
+        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
+                         aln.referenceInfo(1))
+
 
     def test_exceptions(self):
         try:

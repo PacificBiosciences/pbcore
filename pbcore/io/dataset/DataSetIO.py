@@ -338,7 +338,7 @@ class DataSet(object):
         else:
             dsType = self.objMetadata.setdefault("MetaType",
                                                  _toDsId('DataSet'))
-        if not self.objMetadata.get("TimeStampedName", ""):
+        if not "TimeStampedName" in self.objMetadata:
             self.objMetadata["TimeStampedName"] = _getTimeStampedName(
                 self.objMetadata["MetaType"])
         self.objMetadata.setdefault("Name",
@@ -1149,12 +1149,21 @@ class DataSet(object):
             :newMetadata: The object metadata of a DataSet being considered for
                           merging
         """
-        if self.objMetadata.get('Version'):
-            if newMetadata.get('Version') > self.objMetadata.get('Version'):
-                raise ValueError("Wrong dataset version for merging {v1} vs "
-                                 "{v2}".format(
-                                     v1=newMetadata.get('Version'),
-                                     v2=self.objMetadata.get('Version')))
+        if 'Version' in self.objMetadata and 'Version' in newMetadata:
+            if newMetadata['Version'] == self.objMetadata['Version']:
+                return True
+            # We'll make an exception for now: major version number passes
+            elif (newMetadata['Version'].split('.')[0] ==
+                    self.objMetadata['Version'].split('.')[0]):
+                log.warn("Future warning: merging datasets that don't share a "
+                         "version number will fail.")
+                return True
+            raise ValueError("Wrong dataset version for merging {v1} vs "
+                             "{v2}".format(
+                                 v1=newMetadata.get('Version'),
+                                 v2=self.objMetadata.get('Version')))
+        log.warn("Future warning: merging datasets that don't share a version "
+                 "number will fail.")
 
 
     def addMetadata(self, newMetadata, **kwargs):
@@ -3182,16 +3191,20 @@ class AlignmentSet(ReadSet):
 
     def referenceInfo(self, refName):
         """Select a row from the DataSet.referenceInfoTable using the reference
-        name as a unique key"""
-        # TODO: upgrade to use _referenceDict if needed
-        if not self.isCmpH5:
-            for row in self.referenceInfoTable:
-                if row.Name == refName:
-                    return row
-        else:
-            for row in self.referenceInfoTable:
-                if row.FullName.startswith(refName):
-                    return row
+        name as a unique key (or ID, if you really have to)"""
+
+        # Convert it to a name if you have to:
+        if not isinstance(refName, str):
+            refName = str(refName)
+        if refName.isdigit():
+            if not refName in self.refNames:
+                refName = self._idToRname(int(refName))
+
+        tbr = self.referenceInfoTable[
+            self.referenceInfoTable['Name'] == refName]
+        if len(tbr) > 1:
+            log.warn("Duplicate reference names detected")
+        return tbr[0]
 
     @property
     def referenceInfoTable(self):
@@ -3199,6 +3212,8 @@ class AlignmentSet(ReadSet):
         Record.ID is remapped to a unique integer key (though using record.Name
         is preferred). Record.Names are remapped for cmp.h5 files to be
         consistent with bam files.
+
+        ..note:: Reference names are assumed to be unique
 
         """
         if self._referenceInfoTable is None:
@@ -3260,21 +3275,7 @@ class AlignmentSet(ReadSet):
         from.
 
         """
-        # This isn't really possible for cmp.h5 files (rowStart, rowEnd, for
-        # instance). Use the resource readers directly instead.
-        responses = self._pollResources(lambda x: x.referenceInfoTable)
-        if len(responses) > 1:
-            assert not self.isCmpH5 # see above
-            tbr = reduce(np.append, responses)
-            tbrMeta = []
-            for i, res in enumerate(responses):
-                for j in res['ID']:
-                    tbrMeta.append([i, j])
-            _, indices = np.unique(tbr, return_index=True)
-            tbrMeta = list(tbrMeta[i] for i in indices)
-            return {i: meta for i, meta in enumerate(tbrMeta)}
-        else:
-            return {i: [0, i] for i in responses[0]['ID']}
+        return {ref.ID: ref.Name for ref in self.referenceInfoTable}
 
     def _cleanCmpName(self, name):
         return splitFastaHeader(name)[0]
@@ -3301,24 +3302,8 @@ class AlignmentSet(ReadSet):
         return [name for _, name in self.refInfo('FullName')]
 
     def refInfo(self, key):
-        """The reference names present in the referenceInfoTable of the
-        ExtResources.
-
-        Args:
-            :key: a key for the referenceInfoTable of each resource
-        Returns:
-            A list of tuples of refrence name, key_result pairs
-
-        """
-        #log.debug("Sampling references")
-        names = self.referenceInfoTable['Name']
-        infos = self.referenceInfoTable[key]
-
-        #log.debug("Removing duplicate reference entries")
-        sampled = zip(names, infos)
-        sampled = set(sampled)
-
-        return sampled
+        return zip(self.referenceInfoTable['Name'],
+                   self.referenceInfoTable[key])
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
@@ -3331,17 +3316,7 @@ class AlignmentSet(ReadSet):
             The referenceInfoTable.Name corresponding to rId
 
         """
-        resNo, rId = self._referenceIdMap[rId]
-        if self.isCmpH5:
-            rId -= 1
-        if self.isCmpH5:
-            # This is what CmpIO recognizes as the 'shortname'
-            refName = self.resourceReaders()[
-                resNo].referenceInfoTable[rId]['FullName']
-        else:
-            refName = self.resourceReaders()[
-                resNo].referenceInfoTable[rId]['Name']
-        return refName
+        return self._referenceIdMap[rId]
 
     @staticmethod
     def _metaTypeMapping():
