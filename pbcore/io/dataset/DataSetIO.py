@@ -3204,7 +3204,10 @@ class AlignmentSet(ReadSet):
             self.referenceInfoTable['Name'] == refName]
         if len(tbr) > 1:
             log.warn("Duplicate reference names detected")
-        return tbr[0]
+        elif len(tbr) == 1:
+            return tbr[0]
+        else:
+            log.warn("No reference found by that Name or ID")
 
     @property
     def referenceInfoTable(self):
@@ -3245,8 +3248,11 @@ class AlignmentSet(ReadSet):
                         rec.ID = i
                         rec.RefInfoID = i
                     self._referenceInfoTableIsStacked = True
-            else:
+            elif len(responses) == 1:
                 table = responses[0]
+            else:
+                raise InvalidDataSetIOError("No reference tables found, "
+                                            "are these input files aligned?")
             if self.isCmpH5:
                 for rec in table:
                     rec.Name = self._cleanCmpName(rec.FullName)
