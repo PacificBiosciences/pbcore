@@ -1613,36 +1613,32 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfoTable['EndRow'][0], 195)
         self.assertEqual(len(aln), 196)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
     def test_two_cmpH5(self):
-        #cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
-        cmp1 = ("/mnt/secondary/Share/Quiver/TestData/"
-                "ecoli/job_059531.cmp.h5")
-        cmp2 = ("/pbi/dept/secondary/siv/testdata/"
-                "genomic_consensus-unittest/bam_c4p6_tests/"
-                "ecoli_c4p6.cmp.h5")
+        cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
+        cmp2 = upstreamdata.getBamAndCmpH5()[1]
         len1 = len(AlignmentSet(cmp1))
         len2 = len(AlignmentSet(cmp2))
         aln = AlignmentSet(cmp1, cmp2)
         len3 = len(aln)
         self.assertEqual(len1 + len2, len3)
-        self.assertEqual(len3, 264793)
+        self.assertEqual(len3, 196)
         self.assertEqual(
             str(aln.referenceInfoTable),
-            ("[ (1, 1, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
-             "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 264792L)]"))
+            ("[ (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', "
+             "48502, 'a1319ff90e994c8190a4fe6569d0822a', 0L, 195L)]"))
         self.assertEqual(set(aln.tId), {1})
         # + 1, because bounds are inclusive, rather than exclusive
         self.assertEqual(len3, (aln.referenceInfoTable[0].EndRow -
                                 aln.referenceInfoTable[0].StartRow) + 1)
-        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
                          aln.referenceInfo(1))
+        # ask for the wrong one:
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         None)
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
     def test_two_ref_cmpH5(self):
-        #cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
         cmp1 = upstreamdata.getBamAndCmpH5()[1]
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
                 "genomic_consensus-unittest/bam_c4p6_tests/"
@@ -1672,7 +1668,61 @@ class TestDataSet(unittest.TestCase):
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
+    def test_two_bam_one_missing(self):
+        cmp1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.1.aligned.bam")
+        cmp2 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.4.aligned.bam")
+        len1 = len(AlignmentSet(cmp1))
+        len2 = len(AlignmentSet(cmp2))
+        aln = AlignmentSet(cmp1, cmp2)
+        len3 = len(aln)
+        #self.assertEqual(len1 + len2, len3)
+        #self.assertEqual(len3, 65346)
+        # We will let this be zero. While the other file has reads, this really
+        # should raise an exception. As a compromise, we'll just have the
+        # metadata be clearly wrong.
+        self.assertEqual(len3, 0)
+        self.assertEqual(
+            str(aln.referenceInfoTable),
+            ("[ (0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
+             "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 0L)]"))
+        self.assertEqual(set(aln.tId), {0})
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_two_bam(self):
+        cmp1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.1.aligned.bam")
+        cmp2 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.2.aligned.bam")
+        len1 = len(AlignmentSet(cmp1))
+        len2 = len(AlignmentSet(cmp2))
+        aln = AlignmentSet(cmp1, cmp2)
+        len3 = len(aln)
+        self.assertEqual(len1 + len2, len3)
+        self.assertEqual(len3, 65346)
+        self.assertEqual(
+            str(aln.referenceInfoTable),
+            ("[ (0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
+             "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 0L)]"))
+        self.assertEqual(set(aln.tId), {0})
+        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
+                         aln.referenceInfo(0))
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_two_xml(self):
         cmp1 = ("/pbi/dept/secondary/siv/testdata/"
                 "SA3-DS/ecoli/2590953/0001/Alignment_Results/"
                 "m140913_005018_42139_c1007136524000000018231"
