@@ -293,8 +293,9 @@ class CCSZmwRead(ZmwRead):
 def _makeOffsetsDataStructure(h5Group):
     numEvent   = h5Group["ZMW/NumEvent"].value
     holeNumber = h5Group["ZMW/HoleNumber"].value
-    endOffset = np.cumsum(numEvent)
-    beginOffset = np.hstack(([0], endOffset[0:-1]))
+    endOffset = np.cumsum(numEvent, dtype=np.uint32)
+    singleZero = np.array([0], dtype=np.uint32)
+    beginOffset = np.hstack((singleZero, endOffset[0:-1]))
     offsets = zip(beginOffset, endOffset)
     return dict(zip(holeNumber, offsets))
 
