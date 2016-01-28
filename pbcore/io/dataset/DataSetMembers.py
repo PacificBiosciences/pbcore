@@ -435,6 +435,8 @@ class Filters(RecordWrapper):
                '<': OP.lt,
                '&lt;': OP.lt,
                'lt': OP.lt,
+               '&': lambda x, y: OP.and_(x, y).view(np.bool_),
+               '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
               }
         return ops[op]
 
@@ -494,6 +496,7 @@ class Filters(RecordWrapper):
                 'bcq': (lambda x: x.bcQual),
                 'bq': (lambda x: x.bcQual),
                 'bc': (lambda x: np.array(zip(x.bcForward, x.bcReverse))),
+                'cx': (lambda x: x.contextFlag),
                }
 
     @property
@@ -515,6 +518,7 @@ class Filters(RecordWrapper):
                 'tend': int,
                 'accuracy': float,
                 'readstart': int,
+                'cx': int,
                }
 
     def tests(self, readType="bam", tIdMap=None):
@@ -598,7 +602,7 @@ class Filters(RecordWrapper):
                         del reqResultsForRecords
                 else:
                     log.warn("Filter not recognized: {f}".format(f=param))
-                    lastResult = [True] * len(indexRecords)
+                    lastResult = np.ones(len(indexRecords), dtype=np.bool_)
             if filterLastResult is None:
                 filterLastResult = lastResult
             else:
@@ -641,12 +645,31 @@ class Filters(RecordWrapper):
             self.extend(newFilts)
         self._runCallbacks()
 
+    def mapRequirement(self, **kwargs):
+        """Add requirements to each of the existing requirements, mapped one
+        to one"""
+        # Check that all lists of values are the same length:
+        values = kwargs.values()
+        if len(values) > 1:
+            for v in values[1:]:
+                assert len(v) == len(values[0])
+
+        # Check that this length is equal to the current number of filters:
+        assert len(kwargs.values()[0]) == len(list(self))
+
+        for req, opvals in kwargs.items():
+            for filt, opval in zip(self, opvals):
+                filt.addRequirement(req, opval[0], opval[1])
+
     def removeRequirement(self, req):
         log.debug("Removing requirement {r}".format(r=req))
+        to_remove = []
         for i, filt in enumerate(self):
             empty = filt.removeRequirement(req)
             if empty:
-                self.pop(i)
+                to_remove.append(i)
+        for i in sorted(to_remove, reverse=True):
+            self.pop(i)
         self._runCallbacks()
 
 
@@ -681,9 +704,12 @@ class Filter(RecordWrapper):
         self.plist.append(param)
 
     def removeRequirement(self, req):
+        to_remove = []
         for i, param in enumerate(self):
             if param.name == req:
-                self.pop(i)
+                to_remove.append(i)
+        for i in sorted(to_remove, reverse=True):
+            self.pop(i)
         if len(self.plist):
             return False
         else:
