@@ -181,4 +181,10 @@
     <SequencingKit>100-620-000</SequencingKit>
     <SoftwareVersion>3.0</SoftwareVersion>
   </Mapping>
+  <Mapping>
+    <SequencingChemistry>S/P1-C1</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-620-000</SequencingKit>
+    <SoftwareVersion>3.1</SoftwareVersion>
+  </Mapping>
 </MappingTable>
