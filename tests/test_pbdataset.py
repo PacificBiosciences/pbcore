@@ -1004,6 +1004,10 @@ class TestDataSet(unittest.TestCase):
     def test_context_filters(self):
         ss = SubreadSet(upstreamdata.getUnalignedBam())
         self.assertEqual(set(ss.index.contextFlag), {0, 1, 2, 3})
+        self.assertEqual(
+            [len(np.flatnonzero(ss.index.contextFlag == cx))
+             for cx in sorted(set(ss.index.contextFlag))],
+            [15, 33, 32, 37])
         self.assertEqual(len(ss.index), 117)
 
         # no adapters/barcodes
@@ -1024,6 +1028,12 @@ class TestDataSet(unittest.TestCase):
         ss.filters.removeRequirement('cx')
         self.assertEqual(len(ss.index), 117)
 
+        # adapter before
+        ss.filters.addRequirement(cx=[('&', 'ADAPTER_BEFORE')])
+        self.assertEqual(len(ss.index), 70)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
         # adapter after
         ss.filters.addRequirement(cx=[('&', 2)])
         self.assertEqual(len(ss.index), 69)
@@ -1033,6 +1043,20 @@ class TestDataSet(unittest.TestCase):
         # adapter before or after
         ss.filters.addRequirement(cx=[('&', 3)])
         self.assertEqual(len(ss.index), 102)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before or after
+        ss.filters.addRequirement(cx=[('&', 'ADAPTER_BEFORE | ADAPTER_AFTER')])
+        self.assertEqual(len(ss.index), 102)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before or after but not both
+        ss.filters.addRequirement(cx=[('!=', 0)])
+        ss.filters.addRequirement(cx=[('~', 1),
+                                      ('~', 2)])
+        self.assertEqual(len(ss.index), 65)
         ss.filters.removeRequirement('cx')
         self.assertEqual(len(ss.index), 117)
 
@@ -1060,6 +1084,19 @@ class TestDataSet(unittest.TestCase):
         # no adapter before
         ss.filters.addRequirement(cx=[('~', 1)])
         self.assertEqual(len(ss.index), 47)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # no adapter before or after
+        ss.filters.addRequirement(cx=[('~', 1)])
+        ss.filters.addRequirement(cx=[('~', 2)])
+        self.assertEqual(len(ss.index), 15)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # no adapter before or after
+        ss.filters.addRequirement(cx=[('~', 3)])
+        self.assertEqual(len(ss.index), 15)
         ss.filters.removeRequirement('cx')
         self.assertEqual(len(ss.index), 117)
 

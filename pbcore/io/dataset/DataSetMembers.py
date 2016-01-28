@@ -83,6 +83,22 @@ def getTime():
 def getTimeStampedName(mType):
     return "{m}-{t}".format(m=mType, t=getTime())
 
+class PbiFlags(object):
+    ADAPTER_BEFORE = 1
+    ADAPTER_AFTER = 2
+    BARCODE_BEFORE = 4
+    BARCODE_AFTER = 8
+    FORWARD_PASS = 16
+    REVERSE_PASS = 32
+
+    @classmethod
+    def flagMap(cls, flag):
+        if flag.isdigit():
+            return int(flag)
+        return reduce(OP.or_,
+                      (getattr(cls, fl.strip()) for fl in flag.split('|')))
+
+
 class RecordWrapper(object):
     """The base functionality of a metadata element.
 
@@ -461,9 +477,8 @@ class Filters(RecordWrapper):
                 'tend': (lambda x: int(x.tEnd)),
                }
 
-    def _pbiAccMap(self, tIdMap):
-        return {'rname': (lambda x, m=tIdMap: m[x.tId]),
-                'length': (lambda x: int(x.aEnd)-int(x.aStart)),
+    def _pbiAccMap(self):
+        return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
                 'qname': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
@@ -472,19 +487,19 @@ class Filters(RecordWrapper):
                 'tend': (lambda x: int(x.tEnd)),
                }
 
-    def _pbiMappedVecAccMap(self, tIdMap):
-        plus = {'rname': (lambda x, m=tIdMap: m[x.tId]),
+    def _pbiMappedVecAccMap(self):
+        plus = {'rname': (lambda x: x.tId),
                 'length': (lambda x: x.aEnd - x.aStart),
                 'pos': (lambda x: x.tStart),
                 'readstart': (lambda x: x.aStart),
                 'tstart': (lambda x: x.tStart),
                 'tend': (lambda x: x.tEnd),
                }
-        base = self._pbiVecAccMap(tIdMap)
+        base = self._pbiVecAccMap()
         base.update(plus)
         return base
 
-    def _pbiVecAccMap(self, tIdMap):
+    def _pbiVecAccMap(self):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
@@ -518,7 +533,7 @@ class Filters(RecordWrapper):
                 'tend': int,
                 'accuracy': float,
                 'readstart': int,
-                'cx': int,
+                'cx': PbiFlags.flagMap,
                }
 
     def tests(self, readType="bam", tIdMap=None):
@@ -537,7 +552,7 @@ class Filters(RecordWrapper):
                        'length': int,
                       }
         elif readType.lower() == "pbi":
-            accMap = self._pbiAccMap(tIdMap)
+            accMap = self._pbiAccMap()
             typeMap = self._bamTypeMap
         else:
             raise TypeError("Read type not properly specified")
@@ -556,10 +571,9 @@ class Filters(RecordWrapper):
     def filterIndexRecords(self, indexRecords, nameMap, readType='bam'):
         if readType == 'bam':
             typeMap = self._bamTypeMap
-            accMap = self._pbiVecAccMap({})
+            accMap = self._pbiVecAccMap()
             if 'aEnd' in indexRecords.dtype.names:
-                accMap = self._pbiMappedVecAccMap({})
-                accMap['rname'] = lambda x: x.tId
+                accMap = self._pbiMappedVecAccMap()
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(x.length)),
@@ -568,9 +582,9 @@ class Filters(RecordWrapper):
                        'length': int,
                       }
 
-        filterLastResult = None
+        filterLastResult = np.zeros(len(indexRecords), dtype=np.bool_)
         for filt in self:
-            lastResult = None
+            lastResult = np.ones(len(indexRecords), dtype=np.bool_)
             for req in filt:
                 param = req.name
                 if param in accMap.keys():
@@ -594,20 +608,12 @@ class Filters(RecordWrapper):
                         operator = self.opMap(req.operator)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
-                    if lastResult is None:
-                        lastResult = reqResultsForRecords
-                    else:
-                        lastResult = np.logical_and(lastResult,
-                                                    reqResultsForRecords)
-                        del reqResultsForRecords
+                    lastResult &= reqResultsForRecords
+                    del reqResultsForRecords
                 else:
                     log.warn("Filter not recognized: {f}".format(f=param))
-                    lastResult = np.ones(len(indexRecords), dtype=np.bool_)
-            if filterLastResult is None:
-                filterLastResult = lastResult
-            else:
-                filterLastResult = np.logical_or(filterLastResult, lastResult)
-                del lastResult
+            filterLastResult |= lastResult
+            del lastResult
         return filterLastResult
 
     def fromString(self, filterString):
