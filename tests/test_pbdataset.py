@@ -388,6 +388,45 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
 
+    def test_read_ranges(self):
+        # This models the old and new ways by which Genomic Consensus generates
+        # lists of paired tStarts and tEnds.
+
+        full_bam = upstreamdata.getBamAndCmpH5()[0]
+        empty_bam = data.getEmptyAlignedBam()
+        file_lists = [[full_bam, empty_bam],
+                      [empty_bam, full_bam]]
+        refId_list = ['lambda_NEB3011', 0]
+        minMapQV = 30
+
+        for file_list in file_lists:
+            for refId in refId_list:
+                alnFile = AlignmentSet(*file_list)
+
+                # old GC:
+                # TODO(mdsmith)(2016-01-27): Remove assertRaises when tId
+                # accession is fixed for empty aligned bam+pbi files
+                with self.assertRaises(AttributeError):
+                    for reader in alnFile.resourceReaders(refId):
+                        reader.index.tId
+                        refLen = reader.referenceInfo(refId).Length
+                        rows = reader.readsInRange(refId, 0, refLen,
+                                                   justIndices=True)
+
+                # new GC (just testing that it doesn't raise exceptions):
+                rows = alnFile.index[
+                    ((alnFile.tId == alnFile.referenceInfo(refId).ID) &
+                     (alnFile.mapQV >= minMapQV))]
+
+                unsorted_tStart = rows.tStart
+                unsorted_tEnd = rows.tEnd
+
+                # Sort (expected by CoveredIntervals)
+                sort_order = np.lexsort((unsorted_tEnd, unsorted_tStart))
+                tStart = unsorted_tStart[sort_order].tolist()
+                tEnd = unsorted_tEnd[sort_order].tolist()
+
+
 
     def test_loading_reference(self):
         log.info('Opening Reference')
@@ -961,6 +1000,68 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 92)
         ds2.enableFilters()
         self.assertEqual(len(list(ds2.records)), 20)
+
+    def test_context_filters(self):
+        ss = SubreadSet(upstreamdata.getUnalignedBam())
+        self.assertEqual(set(ss.index.contextFlag), {0, 1, 2, 3})
+        self.assertEqual(len(ss.index), 117)
+
+        # no adapters/barcodes
+        ss.filters.addRequirement(cx=[('=', 0)])
+        self.assertEqual(len(ss.index), 15)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # some adapters/barcodes
+        ss.filters.addRequirement(cx=[('!=', 0)])
+        self.assertEqual(len(ss.index), 102)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before
+        ss.filters.addRequirement(cx=[('&', 1)])
+        self.assertEqual(len(ss.index), 70)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter after
+        ss.filters.addRequirement(cx=[('&', 2)])
+        self.assertEqual(len(ss.index), 69)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before or after
+        ss.filters.addRequirement(cx=[('&', 3)])
+        self.assertEqual(len(ss.index), 102)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before or after
+        ss.filters.addRequirement(cx=[('&', 1),
+                                      ('&', 2)])
+        self.assertEqual(len(ss.index), 102)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before and after
+        ss.filters.addRequirement(cx=[('&', 1)])
+        ss.filters.addRequirement(cx=[('&', 2)])
+        self.assertEqual(len(ss.index), 37)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # adapter before but not after
+        ss.filters.addRequirement(cx=[('&', 1)])
+        ss.filters.addRequirement(cx=[('~', 2)])
+        self.assertEqual(len(ss.index), 33)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
+        # no adapter before
+        ss.filters.addRequirement(cx=[('~', 1)])
+        self.assertEqual(len(ss.index), 47)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
 
     @SkipTest
     def test_split_by_contigs_presplit(self):

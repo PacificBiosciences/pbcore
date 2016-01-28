@@ -1149,21 +1149,25 @@ class DataSet(object):
             :newMetadata: The object metadata of a DataSet being considered for
                           merging
         """
-        if 'Version' in self.objMetadata and 'Version' in newMetadata:
-            if newMetadata['Version'] == self.objMetadata['Version']:
-                return True
-            # We'll make an exception for now: major version number passes
-            elif (newMetadata['Version'].split('.')[0] ==
-                    self.objMetadata['Version'].split('.')[0]):
-                log.warn("Future warning: merging datasets that don't share a "
-                         "version number will fail.")
-                return True
-            raise ValueError("Wrong dataset version for merging {v1} vs "
-                             "{v2}".format(
-                                 v1=newMetadata.get('Version'),
-                                 v2=self.objMetadata.get('Version')))
-        log.warn("Future warning: merging datasets that don't share a version "
-                 "number will fail.")
+        # If there is no objMetadata, this is a new dataset being populated
+        if self.objMetadata:
+            # if there isn't a Version in each, that will fail eventually
+            if 'Version' in self.objMetadata and 'Version' in newMetadata:
+                if newMetadata['Version'] == self.objMetadata['Version']:
+                    return True
+                # We'll make an exception for now: major version number passes
+                elif (newMetadata['Version'].split('.')[0] ==
+                      self.objMetadata['Version'].split('.')[0]):
+                    log.warn("Future warning: merging datasets that don't "
+                             "share a version number will fail.")
+                    return True
+                raise ValueError("Wrong dataset version for merging {v1} vs "
+                                 "{v2}".format(
+                                     v1=newMetadata.get('Version'),
+                                     v2=self.objMetadata.get('Version')))
+            log.warn("Future warning: merging will require Version "
+                     "numbers for both DataSets")
+        return True
 
 
     def addMetadata(self, newMetadata, **kwargs):
@@ -1670,6 +1674,10 @@ class DataSet(object):
                 self._strict = tmp
                 raise
             finally:
+                # if the original _strict was not True, these files have been
+                # opened in a strict manner and must be wiped
+                if not tmp:
+                    self.close()
                 self._strict = tmp
         else:
             for fname, reader in zip(self.toExternalFiles(),
@@ -2109,6 +2117,9 @@ class ReadSet(DataSet):
             self.metadata.numRecords = -1
             return
         try:
+            # open the files to take their length (and so they're not reopened
+            # during assertIndexed()):
+            self._openFiles()
             self.assertIndexed()
             log.debug('Updating counts')
             numRecords, totalLength = self._length
@@ -3308,6 +3319,10 @@ class AlignmentSet(ReadSet):
         return [name for _, name in self.refInfo('FullName')]
 
     def refInfo(self, key):
+        """Return a column in the referenceInfoTable, tupled with the reference
+        name. TODO(mdsmith)(2016-01-27): pick a better name for this method...
+
+        """
         return zip(self.referenceInfoTable['Name'],
                    self.referenceInfoTable[key])
 
