@@ -597,14 +597,19 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(expLen, accLen)
         self.assertEqual(expNum, accNum)
 
-    # TODO: turn this back on once a bam is found with a different
-    # referenceInfoTable
-    @SkipTest
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_referenceInfoTableMerging(self):
         log.info("Testing refIds, etc. after merging")
-        ds = DataSet(data.getXml(17))
-        also_lambda = ds.toExternalFiles()[0]
-        aln = AlignmentSet(data.getBam(0), data.getBam(0), also_lambda)
+        bam1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.1.aligned.bam")
+        bam2 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
+                "2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c100713652400000001823152"
+                "404301534_s1_p0.4.aligned.bam")
+        aln = AlignmentSet(bam1, bam2)
         readers = aln.resourceReaders()
 
         ids = sorted([i for _, i in aln.refInfo('ID')])
@@ -1735,12 +1740,15 @@ class TestDataSet(unittest.TestCase):
             150292.0,
             ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_merged_cmp(self):
-        cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
+        cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
+                "-unittest/data/sat/aligned_reads.cmp.h5")
         cmp2 = upstreamdata.getBamAndCmpH5()[1]
         aln0 = AlignmentSet(cmp1)
-        self.assertEqual(aln0.referenceInfoTable['EndRow'][0], 83)
-        self.assertEqual(len(aln0), 84)
+        self.assertEqual(aln0.referenceInfoTable['EndRow'][0], 338001)
+        self.assertEqual(len(aln0), 338002)
         aln1 = AlignmentSet(cmp2)
         self.assertEqual(aln1.referenceInfoTable['EndRow'][0], 111)
         self.assertEqual(len(aln1), 112)
@@ -1748,22 +1756,25 @@ class TestDataSet(unittest.TestCase):
         refnames = aln.refNames
         self.assertEqual(refnames, ['lambda_NEB3011'])
         self.assertEqual(aln.refIds[aln.refNames[0]], 1)
-        self.assertEqual(aln.referenceInfoTable['EndRow'][0], 195)
-        self.assertEqual(len(aln), 196)
+        self.assertEqual(aln.referenceInfoTable['EndRow'][0], 338113)
+        self.assertEqual(len(aln), 338114)
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_two_cmpH5(self):
-        cmp1 = upstreamdata.getCmpH5s()[0]['cmph5']
+        cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
+                "-unittest/data/sat/aligned_reads.cmp.h5")
         cmp2 = upstreamdata.getBamAndCmpH5()[1]
         len1 = len(AlignmentSet(cmp1))
         len2 = len(AlignmentSet(cmp2))
         aln = AlignmentSet(cmp1, cmp2)
         len3 = len(aln)
         self.assertEqual(len1 + len2, len3)
-        self.assertEqual(len3, 196)
+        self.assertEqual(len3, 338114)
         self.assertEqual(
             str(aln.referenceInfoTable),
             ("[ (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', "
-             "48502, 'a1319ff90e994c8190a4fe6569d0822a', 0L, 195L)]"))
+             "48502, 'a1319ff90e994c8190a4fe6569d0822a', 0L, 338113L)]"))
         self.assertEqual(set(aln.tId), {1})
         # + 1, because bounds are inclusive, rather than exclusive
         self.assertEqual(len3, (aln.referenceInfoTable[0].EndRow -
@@ -1946,6 +1957,72 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
                          aln.referenceInfo(1))
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_movie_filter(self):
+        # unaligned bam
+        bam0 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590956/0003/"
+                "Analysis_Results/m140913_222218_42240_c10069"
+                "9952400000001823139203261564_s1_p0.all.subreadset.xml")
+        bam1 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590953/0001/"
+                "Analysis_Results/m140913_005018_42139_c10071"
+                "3652400000001823152404301534_s1_p0.all.subreadset.xml")
+        aln = SubreadSet(bam0, bam1)
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(aln.readGroupTable['ID']))
+        self.assertEqual(len(set(aln.readGroupTable['ID'])), 2)
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(set(aln.index.qId)))
+        self.assertEqual(len(aln), 178570)
+        aln.filters.addRequirement(movie=[(
+            '=',
+            'm140913_005018_42139_c100713652400000001823152404301534_s1_p0')])
+        self.assertEqual(len(SubreadSet(bam1)), len(aln))
+
+        # aligned bam
+        #bam0 = ("/pbi/dept/secondary/siv/testdata/"
+        #        "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
+        #        "m140913_222218_42240_c1006999524000000018231"
+        #        "39203261564_s1_p0.all.alignmentset.xml")
+        bam0 = upstreamdata.getBamAndCmpH5()[0]
+        bam1 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590953/0001/Alignment_Results/"
+                "m140913_005018_42139_c1007136524000000018231"
+                "52404301534_s1_p0.all.alignmentset.xml")
+        aln = AlignmentSet(bam0, bam1)
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(aln.readGroupTable['ID']))
+        self.assertEqual(len(set(aln.readGroupTable['ID'])), 2)
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(set(aln.index.qId)))
+        self.assertEqual(len(aln), 103144)
+        aln.filters.addRequirement(movie=[(
+            '=',
+            'm140913_005018_42139_c100713652400000001823152404301534_s1_p0')])
+        self.assertEqual(len(AlignmentSet(bam1)), len(aln))
+
+        # cmpH5
+        cmp1 = upstreamdata.getBamAndCmpH5()[1]
+        cmp2 = ("/pbi/dept/secondary/siv/testdata/"
+                "genomic_consensus-unittest/bam_c4p6_tests/"
+                "ecoli_c4p6.cmp.h5")
+        aln = AlignmentSet(cmp1, cmp2)
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(aln.readGroupTable['ID']))
+        self.assertEqual(len(set(aln.readGroupTable['ID'])),
+                         len(set(aln.index.MovieID)))
+        self.assertEqual(len(set(aln.readGroupTable['ID'])), 2)
+        self.assertEqual(len(aln), 57147)
+        aln.filters.addRequirement(movie=[(
+            '=',
+            'm140905_042212_sidney_c100564852550000001823085912221377_s1_X0')])
+        len1 = len(AlignmentSet(cmp1))
+        self.assertEqual(len1, len(aln))
+
+        aln.filters.removeRequirement('movie')
+        self.assertEqual(len(aln), 57147)
 
     def test_exceptions(self):
         try:

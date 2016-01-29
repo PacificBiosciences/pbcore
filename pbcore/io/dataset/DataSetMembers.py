@@ -504,6 +504,7 @@ class Filters(RecordWrapper):
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
                 'qname': (lambda x: x.qId),
+                'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
                 'rq': (lambda x: x.readQual),
                 'bcf': (lambda x: x.bcForward),
@@ -568,12 +569,20 @@ class Filters(RecordWrapper):
                 lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
         return tests
 
-    def filterIndexRecords(self, indexRecords, nameMap, readType='bam'):
+    def filterIndexRecords(self, indexRecords, nameMap, movieMap,
+                           readType='bam'):
         if readType == 'bam':
             typeMap = self._bamTypeMap
             accMap = self._pbiVecAccMap()
+            if 'MovieID' in indexRecords.dtype.names:
+                # TODO(mdsmith)(2016-01-29) remove these once the fields are
+                # renamed:
+                accMap['movie'] = (lambda x: x.MovieID)
+                accMap['qname'] = (lambda x: x.MovieID)
             if 'aEnd' in indexRecords.dtype.names:
                 accMap = self._pbiMappedVecAccMap()
+                if 'RefGroupID' in indexRecords.dtype.names:
+                    accMap['rname'] = (lambda x: x.RefGroupID)
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(x.length)),
@@ -591,6 +600,8 @@ class Filters(RecordWrapper):
                     value = typeMap[param](req.value)
                     if param == 'rname':
                         value = nameMap[value]
+                    if param == 'movie':
+                        value = movieMap[value]
                     if param == 'bc':
                         # convert string to list:
                         values = ast.literal_eval(value)
