@@ -17,6 +17,7 @@ from functools import wraps
 import numpy as np
 from urlparse import urlparse
 from pbcore.util.Process import backticks
+from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
@@ -164,6 +165,23 @@ def _stackRecArrays(recArrays):
     tbr = np.concatenate(recArrays)
     tbr = tbr.view(np.recarray)
     return tbr
+
+def _uniqueRecords(recArray):
+    """Remove duplicate records"""
+    unique = set()
+    unique_i = []
+    for i, rec in enumerate(recArray):
+        rect = tuple(rec)
+        if rect not in unique:
+            unique.add(rect)
+            unique_i.append(i)
+    return recArray[unique_i]
+
+def _renameField(recArray, current, new):
+    ind = recArray.dtype.names.index(current)
+    names = list(recArray.dtype.names)
+    names[ind] = new
+    recArray.dtype.names = names
 
 def _flatten(lol, times=1):
     """ This wont do well with mixed nesting"""
@@ -379,6 +397,7 @@ class DataSet(object):
         self._referenceDict = {}
         self._indexMap = None
         self._referenceInfoTableIsStacked = None
+        self._readGroupTableIsRemapped = False
         self._index = None
 
         # update counts
@@ -1309,7 +1328,7 @@ class DataSet(object):
         raise RuntimeError("Not defined for this type of DataSet")
 
     def resourceReaders(self):
-        """Return a list of open pbcore *Reader objects for the
+        """Return a list of open pbcore Reader objects for the
         top level ExternalResources in this DataSet"""
         raise RuntimeError("Not defined for this type of DataSet")
 
@@ -1502,7 +1521,7 @@ class DataSet(object):
     @property
     def filters(self):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self._filters.registerCallback(lambda x=self: x.reFilter())
+        self._filters.registerCallback(lambda x=self, y=False: x.reFilter(y))
         return self._filters
 
     @filters.setter
@@ -1960,10 +1979,20 @@ class ReadSet(DataSet):
         """Combine the readGroupTables of each external resource"""
         responses = self._pollResources(lambda x: x.readGroupTable)
         if len(responses) > 1:
-            tbr = reduce(np.append, responses)
+            # append the read groups, but eliminate duplicates.
+            tbr = _uniqueRecords(reduce(np.append, responses))
+            # reassign qIds if dupes:
+            if len(set(tbr['ID'])) < len(tbr):
+                self._readGroupTableIsRemapped = True
+                tbr['ID'] = range(len(tbr))
             return tbr
         else:
             return responses[0]
+
+    @property
+    def movieIds(self):
+        """A dict of movieName: movieId for the joined readGroupTable"""
+        return {rg.MovieName: rg.ID for rg in self.readGroupTable}
 
     def assertIndexed(self):
         self._assertIndexed((IndexedBamReader, CmpH5Reader))
@@ -1973,6 +2002,33 @@ class ReadSet(DataSet):
         """Test whether all resources are cmp.h5 files"""
         res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
         return self._unifyResponses(res)
+
+    def _fixQIds(self, indices, resourceReader):
+        qId_acc = lambda x: x.MovieID
+        if not self.isCmpH5:
+            qId_acc = lambda x: x.qId
+
+        rr = resourceReader
+        try:
+            # this would populate the _readGroupTableIsRemapped member, but
+            # for whatever reason a lot of cmp.h5's are broken
+            _ = self.readGroupTable
+        except ChemistryLookupError:
+            # this should be an error, but that would mess up Quiver cram
+            # tests. If anyone tries to access the readGroupTable in a
+            # dataset it will still fail, at least
+            log.info("Chemistry information could not be found in "
+                     "cmp.h5, cannot fix the readGroupTable or "
+                     "MovieID field.")
+        if self._readGroupTableIsRemapped:
+            log.debug("Must correct index qId's")
+            qIdMap = dict(zip(rr.readGroupTable.ID,
+                              rr.readGroupTable.MovieName))
+            nameMap = self.movieIds
+            for qId in qIdMap.keys():
+                qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
+                    qIdMap[qId]]
+
 
     def _indexRecords(self):
         """Returns index recarray summarizing all of the records in all of
@@ -1987,6 +2043,8 @@ class ReadSet(DataSet):
             if len(indices) == 0:
                 continue
 
+            self._fixQIds(indices, rr)
+
             if not self._filters or self.noFiltering:
                 recArrays.append(indices._tbl)
                 self._indexMap.extend([(rrNum, i) for i in
@@ -2000,7 +2058,8 @@ class ReadSet(DataSet):
                                    rr.referenceInfoTable['Name'])}
 
                 passes = self._filters.filterIndexRecords(indices._tbl,
-                                                          nameMap)
+                                                          nameMap,
+                                                          self.movieIds)
                 newInds = indices._tbl[passes]
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in
@@ -2347,6 +2406,21 @@ class AlignmentSet(ReadSet):
                 res.reference = reference[0]
             self._openFiles()
 
+    def _fixTIds(self, indices, rr, correctIds=True):
+        tId_acc = lambda x: x.RefGroupID
+        rName = lambda x: x['FullName']
+        if not self.isCmpH5:
+            tId_acc = lambda x: x.tId
+            rName = lambda x: x['Name']
+        if correctIds and self._stackedReferenceInfoTable:
+            log.debug("Must correct index tId's")
+            tIdMap = dict(zip(rr.referenceInfoTable['ID'],
+                              rName(rr.referenceInfoTable)))
+            nameMap = self.refIds
+            for tId in tIdMap.keys():
+                tId_acc(indices)[tId_acc(indices) == tId] = nameMap[
+                    tIdMap[tId]]
+
     def _indexRecords(self, correctIds=True):
         """Returns index records summarizing all of the records in all of
         the resources that conform to those filters addressing parameters
@@ -2361,42 +2435,27 @@ class AlignmentSet(ReadSet):
             # pbi files lack e.g. mapping cols when bam emtpy, ignore
             if len(indices) == 0:
                 continue
-            tId_acc = lambda x: x.RefGroupID
-            rName = lambda x: x['FullName']
-            tIdStart = 1
+            # TODO(mdsmith)(2016-01-19) rename the fields instead of branching:
+            #if self.isCmpH5:
+            #    _renameField(indices, 'MovieID', 'qId')
+            #    _renameField(indices, 'RefGroupID', 'tId')
             if not self.isCmpH5:
                 indices = indices._tbl
-                tId_acc = lambda x: x.tId
-                rName = lambda x: x['Name']
-                tIdStart = 0
 
-            if correctIds and self._stackedReferenceInfoTable:
-                log.debug("Must correct index tId's")
-                tIdMap = {n: name
-                          for n, name in enumerate(
-                              rName(rr.referenceInfoTable),
-                              start=tIdStart)}
-                nameMap = self.refIds
+            # Correct tId field
+            self._fixTIds(indices, rr, correctIds)
 
+            # Correct qId field
+            self._fixQIds(indices, rr)
+
+            # filter
             if not self._filters or self.noFiltering:
-                if correctIds and self._stackedReferenceInfoTable:
-                    for tId in tIdMap.keys():
-                        indices[tId_acc(indices) == tId] = nameMap[tIdMap[tId]]
                 recArrays.append(indices)
                 self._indexMap.extend([(rrNum, i) for i in
                                        range(len(indices))])
             else:
-                # Filtration will be necessary:
-                nameMap = {name: n
-                           for n, name in enumerate(
-                               rr.referenceInfoTable['Name'])}
-
-                passes = self._filters.filterIndexRecords(indices,
-                                                          nameMap)
-                if correctIds and self._stackedReferenceInfoTable:
-                    for i in range(len(indices)):
-                        tId(indices)[i] = nameMap[
-                            tIdMap[tId(indices)[i]]]
+                passes = self._filters.filterIndexRecords(indices, self.refIds,
+                                                          self.movieIds)
                 newInds = indices[passes]
                 recArrays.append(newInds)
                 self._indexMap.extend([(rrNum, i) for i in
@@ -2405,13 +2464,13 @@ class AlignmentSet(ReadSet):
         if recArrays == []:
             return recArrays
         tbr = _stackRecArrays(recArrays)
+
         # sort if cmp.h5 so we can rectify RowStart/End, maybe someday bam
         if self.isCmpH5:
-            sort_order = np.argsort(tbr, order=('tEnd', 'tStart',
-                                                'RefGroupID'))
+            sort_order = np.argsort(tbr, order=('RefGroupID', 'tStart',
+                                                'tEnd',))
             tbr = tbr[sort_order]
             self._indexMap = self._indexMap[sort_order]
-
             for ref in self.referenceInfoTable:
                 hits = np.flatnonzero(tbr.RefGroupID == ref.ID)
                 if len(hits) != 0:
@@ -2836,7 +2895,8 @@ class AlignmentSet(ReadSet):
             if updateCounts:
                 result._openReaders = self._openReaders
                 passes = result._filters.filterIndexRecords(self.index,
-                                                            self.refIds)
+                                                            self.refIds,
+                                                            self.movieIds)
                 result._index = self.index[passes]
                 result.updateCounts()
                 del result._index
@@ -3773,7 +3833,7 @@ class ContigSet(DataSet):
                 # dummy map, the id is the name in fasta space
                 nameMap = {name: name for name in indices.id}
 
-                passes = self._filters.filterIndexRecords(indices, nameMap,
+                passes = self._filters.filterIndexRecords(indices, nameMap, {},
                                                           readType='fasta')
                 newInds = indices[passes]
                 recArrays.append(newInds)

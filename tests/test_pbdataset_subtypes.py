@@ -529,18 +529,18 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.numRecords, 40)
 
         # AlignmentSet with cmp.h5
-        aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
-        self.assertEqual(len(aln), 84)
-        self.assertEqual(aln._length, (84, 26103))
-        self.assertEqual(aln.totalLength, 26103)
-        self.assertEqual(aln.numRecords, 84)
+        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
+        self.assertEqual(len(aln), 112)
+        self.assertEqual(aln._length, (112, 59970))
+        self.assertEqual(aln.totalLength, 59970)
+        self.assertEqual(aln.numRecords, 112)
         aln.totalLength = -1
         aln.numRecords = -1
         self.assertEqual(aln.totalLength, -1)
         self.assertEqual(aln.numRecords, -1)
         aln.updateCounts()
-        self.assertEqual(aln.totalLength, 26103)
-        self.assertEqual(aln.numRecords, 84)
+        self.assertEqual(aln.totalLength, 59970)
+        self.assertEqual(aln.numRecords, 112)
 
 
         # SubreadSet
@@ -685,8 +685,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds[0].name, "lambda_NEB3011")
 
     def test_alignmentset_index(self):
-        aln = AlignmentSet(upstreamData.getCmpH5(), strict=True)
+        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
         reads = aln.readsInRange(aln.refNames[0], 0, 1000)
         self.assertEqual(len(list(reads)), 2)
-        self.assertEqual(len(list(aln)), 84)
-        self.assertEqual(len(aln.index), 84)
+        self.assertEqual(len(list(aln)), 112)
+        self.assertEqual(len(aln.index), 112)
