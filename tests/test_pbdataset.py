@@ -8,6 +8,7 @@ import tempfile
 import numpy as np
 import unittest
 import shutil
+from random import shuffle
 from unittest.case import SkipTest
 
 from pbcore.io import PacBioBamIndex, IndexedBamReader
@@ -15,7 +16,8 @@ from pbcore.io import openIndexedAlignmentFile
 from pbcore.io.dataset.utils import BamtoolsVersion
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet,
-                       ConsensusReadSet, ConsensusAlignmentSet, openDataFile)
+                       ConsensusReadSet, ConsensusAlignmentSet, openDataFile,
+                       divideKeys, keysToRanges)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix, InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetWriter import toXml
@@ -270,7 +272,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(dset.resourceReaders()), 2)
         self.assertEqual(
             len(dset.split(zmws=True, maxChunks=12)),
-            2)
+            9)
 
 
         dset = AlignmentSet(upstreamdata.getEmptyBam())
@@ -294,7 +296,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(dset.resourceReaders()), 2)
         self.assertEqual(
             len(dset.split(zmws=True, maxChunks=12)),
-            2)
+            9)
 
         dset = ConsensusReadSet(upstreamdata.getEmptyBam())
         self.assertEqual(dset.numRecords, 0)
@@ -687,18 +689,74 @@ class TestDataSet(unittest.TestCase):
         test_file = upstreamdata.getUnalignedBam()
         ds1 = openDataFile(test_file)
         self.assertEqual(len([r for r in ds1]), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
         dss = ds1.split(chunks=1, zmws=True)
         self.assertEqual(len(dss), 1)
-        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), N_RECORDS)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
         dss = ds1.split(chunks=12, zmws=True)
-        self.assertEqual(len(dss), 10)
-        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]), N_RECORDS)
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
         self.assertEqual(
             dss[0].zmwRanges,
-            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0', 1650, 6251)])
+            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
+              1650, 6469)])
         self.assertEqual(
             dss[-1].zmwRanges,
-            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0', 49521, 54396)])
+            [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
+              50621, 54396)])
+        ranges = sorted([c.zmwRanges[0][1:] for c in dss])
+        interspans = []
+        last = None
+        for rg in ranges:
+            if not last is None:
+                interspans.append((last, rg[0]))
+                self.assertFalse(last == rg[0])
+            last = rg[1]
+        for rg in interspans:
+            self.assertEqual(len(np.nonzero(np.logical_and(
+                ds1.index.holeNumber < rg[1],
+                ds1.index.holeNumber > rg[0]))[0]), 0)
+
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_multi_movie_split_zmws(self):
+        N_RECORDS = 1745161
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        dss = ds1.split(chunks=1, zmws=True)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+
+        dss = ds1.split(chunks=12, zmws=True)
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(
+            dss[0].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              7, 22098)])
+        self.assertEqual(
+            dss[-1].zmwRanges,
+            [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+              127814, 163468)])
+
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
@@ -2033,4 +2091,143 @@ class TestDataSet(unittest.TestCase):
     def test_createdAt(self):
         aln = AlignmentSet(data.getXml(8))
         self.assertEqual(aln.createdAt, '2015-08-05T10:25:18')
+
+    def test_divideKeys_keysToRanges(self):
+        keys = [0, 1, 2, 3, 5, 8, 50]
+        res = divideKeys(keys, 0)
+        self.assertEqual(res, [])
+        res = keysToRanges(res)
+        self.assertEqual(res, [])
+
+        res = divideKeys(keys, 1)
+        self.assertEqual(res, [[0, 1, 2, 3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 50]])
+
+        res = divideKeys(keys, 2)
+        self.assertEqual(res, [[0, 1, 2], [3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 2], [3, 50]])
+
+        res = divideKeys(keys, 3)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 50]])
+
+        res = divideKeys(keys, 7)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+        res = divideKeys(keys, 8)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+
+        keys = [0, 1, 2, 3, 5, 8, 50]
+        shuffle(keys)
+        res = divideKeys(keys, 0)
+        self.assertEqual(res, [])
+        res = keysToRanges(res)
+        self.assertEqual(res, [])
+
+        res = divideKeys(keys, 1)
+        self.assertEqual(res, [[0, 1, 2, 3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 50]])
+
+        res = divideKeys(keys, 2)
+        self.assertEqual(res, [[0, 1, 2], [3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 2], [3, 50]])
+
+        res = divideKeys(keys, 3)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 50]])
+
+        res = divideKeys(keys, 7)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+        res = divideKeys(keys, 8)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+
+        keys = [0, 1, 2, 2, 3, 5, 8, 50, 50]
+        res = divideKeys(keys, 0)
+        self.assertEqual(res, [])
+        res = keysToRanges(res)
+        self.assertEqual(res, [])
+
+        res = divideKeys(keys, 1)
+        self.assertEqual(res, [[0, 1, 2, 3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 50]])
+
+        res = divideKeys(keys, 2)
+        self.assertEqual(res, [[0, 1, 2], [3, 5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 2], [3, 50]])
+
+        res = divideKeys(keys, 3)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 8, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 1], [2, 3], [5, 50]])
+
+        res = divideKeys(keys, 7)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+        res = divideKeys(keys, 8)
+        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50]])
+
+
+        keys = [0, 1, 2, 2, 3, 5, 8, 50, 50]
+        res = divideKeys(keys, 0, count_dupes=True)
+        self.assertEqual(res, [])
+        res = keysToRanges(res)
+        self.assertEqual(res, [])
+
+        res = divideKeys(keys, 1, count_dupes=True)
+        self.assertEqual(res, [[0, 1, 2, 2, 3, 5, 8, 50, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 50]])
+
+        res = divideKeys(keys, 2, count_dupes=True)
+        self.assertEqual(res, [[0, 1, 2, 2], [3, 5, 8, 50, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 2], [3, 50]])
+
+        res = divideKeys(keys, 3, count_dupes=True)
+        self.assertEqual(res, [[0, 1, 2], [2, 3, 5], [8, 50, 50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 2], [2, 5], [8, 50]])
+
+        res = divideKeys(keys, 9, count_dupes=True)
+        self.assertEqual(res, [[0], [1], [2], [2], [3], [5], [8], [50], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50], [50, 50]])
+
+        res = divideKeys(keys, 10, count_dupes=True)
+        self.assertEqual(res, [[0], [1], [2], [2], [3], [5], [8], [50], [50]])
+        res = keysToRanges(res)
+        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
+                               [5, 5], [8, 8], [50, 50], [50, 50]])
+
+
 
