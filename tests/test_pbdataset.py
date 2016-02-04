@@ -270,9 +270,10 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         self.assertNotEqual(list(dset.index), [])
         self.assertEqual(len(dset.resourceReaders()), 2)
+        # there are 9 reads in this set, < the minimum chunk size
         self.assertEqual(
             len(dset.split(zmws=True, maxChunks=12)),
-            9)
+            2)
 
 
         dset = AlignmentSet(upstreamdata.getEmptyBam())
@@ -282,6 +283,7 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         dset.index
         self.assertEqual(len(dset.resourceReaders()), 1)
+        # there is a minimum chunk size here:
         self.assertEqual(
             len(dset.split(contigs=True, maxChunks=12, breakContigs=True)),
             1)
@@ -294,9 +296,10 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         self.assertNotEqual(list(dset.index), [])
         self.assertEqual(len(dset.resourceReaders()), 2)
+        # there are 9 reads in this set, < the minimum chunk size
         self.assertEqual(
             len(dset.split(zmws=True, maxChunks=12)),
-            9)
+            2)
 
         dset = ConsensusReadSet(upstreamdata.getEmptyBam())
         self.assertEqual(dset.numRecords, 0)
@@ -696,8 +699,10 @@ class TestDataSet(unittest.TestCase):
                          N_RECORDS)
         self.assertEqual(sum([len(ds_) for ds_ in dss]),
                          N_RECORDS)
+
+        # We have a lower limit on the number of zmws, now
         dss = ds1.split(chunks=12, zmws=True)
-        self.assertEqual(len(dss), 12)
+        self.assertEqual(len(dss), 2)
         self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
                          N_RECORDS)
         self.assertEqual(sum([len(ds_) for ds_ in dss]),
@@ -705,11 +710,11 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(
             dss[0].zmwRanges,
             [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
-              1650, 6469)])
+              1650, 32328)])
         self.assertEqual(
             dss[-1].zmwRanges,
             [('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
-              50621, 54396)])
+              32560, 54396)])
         ranges = sorted([c.zmwRanges[0][1:] for c in dss])
         interspans = []
         last = None
@@ -722,6 +727,46 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(np.nonzero(np.logical_and(
                 ds1.index.holeNumber < rg[1],
                 ds1.index.holeNumber > rg[0]))[0]), 0)
+
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_large_split_zmws(self):
+        N_RECORDS = 959539
+        test_file = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                     "2372215/0007/Analysis_Results/m150404_101626_42"
+                     "267_c100807920800000001823174110291514_s1_p0.al"
+                     "l.subreadset.xml")
+        ds1 = openDataFile(test_file)
+        self.assertEqual(len(ds1), N_RECORDS)
+        dss = ds1.split(chunks=1, zmws=True)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        dss = ds1.split(chunks=12, zmws=True)
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(
+            dss[0].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              7, 14007)])
+        self.assertEqual(
+            dss[-1].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              149876, 163475)])
+        ranges = sorted([c.zmwRanges[0][1:] for c in dss])
+        interspans = []
+        last = None
+        for rg in ranges:
+            if not last is None:
+                interspans.append((last, rg[0]))
+                self.assertFalse(last == rg[0])
+            last = rg[1]
+        for rg in interspans:
+            self.assertEqual(len(np.nonzero(np.logical_and(
+                ds1.index.holeNumber < rg[1],
+                ds1.index.holeNumber > rg[0]))[0]), 0)
+
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
@@ -2230,4 +2275,17 @@ class TestDataSet(unittest.TestCase):
                                [5, 5], [8, 8], [50, 50], [50, 50]])
 
 
-
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_load_sts_from_extres(self):
+        # don't have a subreadset.xml with loaded sts.xml in testdata,
+        # fabricate one here:
+        ss = SubreadSet(data.getXml(10))
+        ss.externalResources[0].sts = ('/pbi/dept/secondary/siv/testdata/'
+                                         'SA3-Sequel/lambda/roche_SAT/'
+                                         'm54013_151205_032353.sts.xml')
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outXml = os.path.join(outdir, 'tempfile.xml')
+        ss.write(outXml)
+        ss = SubreadSet(outXml)
+        self.assertTrue(ss.metadata.summaryStats)

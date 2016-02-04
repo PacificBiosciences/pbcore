@@ -969,6 +969,14 @@ class ExternalResource(RecordWrapper):
                 return index.resourceId
 
     @property
+    def sts(self):
+        return self._getSubResByMetaType('PacBio.SubreadFile.ChipStatsFile')
+
+    @sts.setter
+    def sts(self, value):
+        self._setSubResByMetaType('PacBio.SubreadFile.ChipStatsFile', value)
+
+    @property
     def scraps(self):
         return self._getSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile')
 

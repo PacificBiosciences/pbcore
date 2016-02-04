@@ -58,6 +58,10 @@ def _addXmlFile(dset, path):
     root = tree.getroot()
     tmp = _parseXml(type(dset), root)
     tmp.makePathsAbsolute(curStart=os.path.dirname(path))
+    if not tmp.metadata.summaryStats:
+        for extres in tmp.externalResources:
+            if extres.sts:
+                tmp.loadStats(extres.sts)
     # copyOnMerge must be false, you're merging in a tmp and maintaining dset
     dset.merge(tmp, copyOnMerge=False)
 
