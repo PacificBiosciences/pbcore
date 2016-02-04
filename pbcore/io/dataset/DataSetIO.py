@@ -1933,6 +1933,13 @@ class ReadSet(DataSet):
         active_holenumbers = set(zip(self.index.qId, self.index.holeNumber))
         n_chunks = min(len(active_holenumbers), chunks)
 
+        # if we have a target size and can have two or more chunks:
+        if (not targetSize is None and len(active_holenumbers) > 1 and
+                chunks > 1):
+            n_chunks = min(n_chunks, len(active_holenumbers)/targetSize)
+            # we want at least two if we can swing it:
+            n_chunks = max(n_chunks, 2)
+
         # make sure there aren't too few atoms
         if n_chunks != chunks:
             log.info("Adjusted number of chunks to %d" % n_chunks)
