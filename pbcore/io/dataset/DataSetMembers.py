@@ -84,6 +84,7 @@ def getTimeStampedName(mType):
     return "{m}-{t}".format(m=mType, t=getTime())
 
 class PbiFlags(object):
+    NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
     ADAPTER_AFTER = 2
     BARCODE_BEFORE = 4

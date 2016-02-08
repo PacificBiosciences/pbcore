@@ -1124,6 +1124,12 @@ class TestDataSet(unittest.TestCase):
         ss.filters.removeRequirement('cx')
         self.assertEqual(len(ss.index), 117)
 
+        # no adapters/barcodes
+        ss.filters.addRequirement(cx=[('=', 'NO_LOCAL_CONTEXT')])
+        self.assertEqual(len(ss.index), 15)
+        ss.filters.removeRequirement('cx')
+        self.assertEqual(len(ss.index), 117)
+
         # some adapters/barcodes
         ss.filters.addRequirement(cx=[('!=', 0)])
         self.assertEqual(len(ss.index), 102)
