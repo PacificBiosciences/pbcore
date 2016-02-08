@@ -8,6 +8,7 @@ import datetime
 import math
 import copy
 import os
+import re
 import errno
 import logging
 import itertools
@@ -3635,6 +3636,8 @@ class ContigSet(DataSet):
         """Chunking and quivering appends a window to the contig ID, which
         allows us to consolidate the contig chunks."""
         name, _ = self._popSuffix(name)
+        if re.search("_\d+_\d+$", name) is None:
+            return None
         possibilities = name.split('_')[-2:]
         for pos in possibilities:
             if not pos.isdigit():

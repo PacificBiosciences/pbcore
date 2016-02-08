@@ -461,6 +461,41 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(acc_file.get_contig(double).sequence[:],
                          exp_double_seq)
 
+    def test_contigset_consolidate_int_names(self):
+        #build set to merge
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+
+        inFas = os.path.join(outdir, 'infile.fasta')
+        outFas1 = os.path.join(outdir, 'tempfile1.fasta')
+        outFas2 = os.path.join(outdir, 'tempfile2.fasta')
+
+        # copy fasta reference to hide fai and ensure FastaReader is used
+        backticks('cp {i} {o}'.format(
+                      i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+                      o=inFas))
+        rs1 = ContigSet(inFas)
+
+        double = 'B.cereus.1'
+        exp_double = rs1.get_contig(double)
+
+        # todo: modify the names first:
+        with FastaWriter(outFas1) as writer:
+            writer.writeRecord('5141', exp_double.sequence)
+        with FastaWriter(outFas2) as writer:
+            writer.writeRecord('5142', exp_double.sequence)
+
+        exp_double_seqs = [exp_double.sequence, exp_double.sequence]
+        exp_names = ['5141', '5142']
+
+        obs_file = ContigSet(outFas1, outFas2)
+        log.debug(obs_file.toExternalFiles())
+        obs_file.consolidate()
+        log.debug(obs_file.toExternalFiles())
+
+        # open obs and compare to exp
+        for name, seq in zip(exp_names, exp_double_seqs):
+            self.assertEqual(obs_file.get_contig(name).sequence[:], seq)
+
     def test_contigset_consolidate_genomic_consensus(self):
         """
         Verify that the contigs output by GenomicConsensus (e.g. quiver) can
@@ -482,13 +517,13 @@ class TestDataSet(unittest.TestCase):
                 _files.append(tmpfile)
             files.append(_files)
         for i in range(3):
-            ds = ContigSet(*[ f[i] for f in files ])
+            ds = ContigSet(*[f[i] for f in files])
             out1 = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
             fa1 = tempfile.NamedTemporaryFile(suffix=".fasta").name
             ds.consolidate(fa1)
             ds.write(out1)
             with ContigSet(out1) as ds_new:
-                self.assertEqual(len([ rec for rec in ds_new ]), 1,
+                self.assertEqual(len([rec for rec in ds_new]), 1,
                                  "failed on %d" % i)
 
     def test_split_hdfsubreadset(self):
