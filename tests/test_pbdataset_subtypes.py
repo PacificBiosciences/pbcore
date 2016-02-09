@@ -23,11 +23,6 @@ import xml.etree.ElementTree as ET
 log = logging.getLogger(__name__)
 
 def _check_constools():
-    cmd = "dataset.py"
-    o, r, m = backticks(cmd)
-    if r != 2:
-        return False
-
     if not BamtoolsVersion().good:
         log.warn("Bamtools not found or out of date")
         return False
@@ -342,16 +337,6 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(read1, read2)
         self.assertEqual(len(list(aln)), len(list(nonCons)))
 
-        log.debug("Test cli")
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        datafile = os.path.join(outdir, "merged.bam")
-        xmlfile = os.path.join(outdir, "merged.xml")
-        cmd = "dataset.py consolidate {i} {d} {x}".format(i=data.getXml(12),
-                                                          d=datafile,
-                                                          x=xmlfile)
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
 
     @unittest.skipIf(not _check_constools() or not _internal_data(),
                      "bamtools, pbindex or data not found, skipping")
@@ -376,15 +361,6 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(read1, read2)
         self.assertEqual(len(aln), len(nonCons))
 
-        log.debug("Test cli")
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        datafile = os.path.join(outdir, "merged.bam")
-        xmlfile = os.path.join(outdir, "merged.xml")
-        cmd = "dataset.py consolidate --numFiles 2 {i} {d} {x}".format(
-            i=testFile, d=datafile, x=xmlfile)
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
 
     @unittest.skipIf(not _check_constools(),
                      "bamtools or pbindex not found, skipping")
