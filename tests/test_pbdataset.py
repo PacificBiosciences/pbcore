@@ -1431,6 +1431,76 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds.refWindows, [('E.faecalis.2', 0, 99),
                                          ('E.faecalis.2', 100, 299)])
 
+    def test_intervalContour(self):
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.1')
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.1', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.1')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        starts = ds.index.tStart
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # test a second reference in this set
+        ds.filters.removeRequirement('rname')
+        coverage = ds.intervalContour('E.faecalis.2')
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.2')])
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.2', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.2')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        starts = ds.index.tStart
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+
+        # test a cmp.h5 alignmentset
+        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
+        coverage = ds.intervalContour('lambda_NEB3011')
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
+        coverage = ds.intervalContour('lambda_NEB3011', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        starts = ds.index.tStart
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
 
     def test_refLengths(self):
         ds = AlignmentSet(data.getBam(0))

@@ -1569,6 +1569,7 @@ class DataSet(object):
             self.metadata.numRecords = -1
             if self.metadata.summaryStats:
                 self.metadata.removeChildren('SummaryStats')
+            self.updateCounts()
 
     @property
     def createdAt(self):
@@ -2561,7 +2562,7 @@ class AlignmentSet(ReadSet):
         refName = self.guaranteeName(refName)
 
         desiredTid = self.refIds[refName]
-        tIds = self.index.tId
+        tIds = self.tId
         passes = tIds == desiredTid
         return self.index[passes]
 
@@ -2687,7 +2688,7 @@ class AlignmentSet(ReadSet):
             for read in self.readsInRange(refName, 0, refLen):
                 yield read
 
-    def _intervalContour(self, rname):
+    def intervalContour(self, rname, tStart=0, tEnd=None):
         """Take a set of index records and build a pileup of intervals, or
         "contour" describing coverage over the contig
 
@@ -2703,15 +2704,28 @@ class AlignmentSet(ReadSet):
         """
         log.debug("Generating coverage summary")
         index = self._indexReadsInReference(rname)
-        # indexing issue. Doesn't really matter (just for split). Shifted:
-        coverage = [0] * (self.refLengths[rname] + 1)
+        reflen = self.refLengths[rname]
+        if tEnd is None:
+            tEnd = reflen
+        coverage = [0] * (tEnd - tStart)
         starts = sorted(index.tStart)
         for i in starts:
-            coverage[i] += 1
+            # ends are exclusive
+            if i >= tEnd:
+                continue
+            if i >= tStart:
+                coverage[i - tStart] += 1
+            else:
+                coverage[0] += 1
         del starts
         ends = sorted(index.tEnd)
         for i in ends:
-            coverage[i] -= 1
+            # ends are exclusive
+            if i <= tStart:
+                continue
+            # ends are exclusive
+            if i < tEnd:
+                coverage[i - tStart] -= 1
         del ends
         curCov = 0
         for i, delta in enumerate(coverage):
@@ -2719,7 +2733,7 @@ class AlignmentSet(ReadSet):
             coverage[i] = curCov
         return coverage
 
-    def _splitContour(self, contour, splits):
+    def splitContour(self, contour, splits):
         """Take a contour and a number of splits, return the location of each
         coverage mediated split with the first at 0"""
         log.debug("Splitting coverage summary")
@@ -2746,8 +2760,8 @@ class AlignmentSet(ReadSet):
             rnames[atom[0]].append(atom)
         for rname, rAtoms in rnames.iteritems():
             if len(rAtoms) > 1:
-                contour = self._intervalContour(rname)
-                splits = self._splitContour(contour, len(rAtoms))
+                contour = self.intervalContour(rname)
+                splits = self.splitContour(contour, len(rAtoms))
                 ends = splits[1:] + [self.refLengths[rname]]
                 for start, end in zip(splits, ends):
                     newAtom = (rname, start, end)

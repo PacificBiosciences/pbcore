@@ -575,15 +575,15 @@ class Filters(RecordWrapper):
         if readType == 'bam':
             typeMap = self._bamTypeMap
             accMap = self._pbiVecAccMap()
+            if 'tStart' in indexRecords.dtype.names:
+                accMap = self._pbiMappedVecAccMap()
+                if 'RefGroupID' in indexRecords.dtype.names:
+                    accMap['rname'] = (lambda x: x.RefGroupID)
             if 'MovieID' in indexRecords.dtype.names:
                 # TODO(mdsmith)(2016-01-29) remove these once the fields are
                 # renamed:
                 accMap['movie'] = (lambda x: x.MovieID)
                 accMap['qname'] = (lambda x: x.MovieID)
-            if 'aEnd' in indexRecords.dtype.names:
-                accMap = self._pbiMappedVecAccMap()
-                if 'RefGroupID' in indexRecords.dtype.names:
-                    accMap['rname'] = (lambda x: x.RefGroupID)
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(x.length)),

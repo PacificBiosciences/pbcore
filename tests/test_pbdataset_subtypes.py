@@ -525,6 +525,8 @@ class TestDataSet(unittest.TestCase):
         aln.updateCounts()
         self.assertEqual(aln.totalLength, 123588)
         self.assertEqual(aln.numRecords, 92)
+        self.assertEqual(sum(1 for _ in aln), 92)
+        self.assertEqual(sum(len(rec) for rec in aln), 123588)
 
         # AlignmentSet with filters
         aln = AlignmentSet(data.getXml(15), strict=True)
@@ -568,6 +570,8 @@ class TestDataSet(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(sset.totalLength, 124093)
         self.assertEqual(sset.numRecords, 92)
+        self.assertEqual(sum(1 for _ in sset), 92)
+        self.assertEqual(sum(len(rec) for rec in sset), 124093)
 
         # HdfSubreadSet
         # len means something else in bax/bas land. These numbers may actually
