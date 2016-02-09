@@ -29,11 +29,6 @@ import pbcore.data as upstreamdata
 log = logging.getLogger(__name__)
 
 def _check_constools():
-    cmd = "dataset.py"
-    o, r, m = backticks(cmd)
-    if r != 2:
-        return False
-
     if not BamtoolsVersion().good:
         log.warn("Bamtools not found or out of date")
         return False
@@ -115,45 +110,6 @@ class TestDataSet(unittest.TestCase):
             ds.externalResources[-1].indices[0].resourceId ==
             "IdontExist.bam.pbi")
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
-    def test_split_cli(self):
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        cmd = "dataset.py split --outdir {o} --contigs --chunks 2 {d}".format(
-            o=outdir,
-            d=data.getXml(8))
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
-        self.assertTrue(os.path.exists(
-            os.path.join(outdir, os.path.basename(data.getXml(15)))))
-        self.assertTrue(os.path.exists(
-            os.path.join(outdir, os.path.basename(data.getXml(16)))))
-
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
-    def test_filter_cli(self):
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outfn = os.path.join(outdir, "filtered8.xml")
-        log.debug(outfn)
-        cmd = "dataset.py filter {i} {o} {f}".format(
-            i=data.getXml(8),
-            o=outfn,
-            f="rname=E.faecalis.1")
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        if r != 0:
-            log.debug(m)
-        self.assertEqual(r, 0)
-        self.assertTrue(os.path.exists(outfn))
-        aln = AlignmentSet(data.getXml(8))
-        aln.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
-        aln.updateCounts()
-        dset = AlignmentSet(outfn)
-        self.assertEqual(str(aln.filters), str(dset.filters))
-        self.assertEqual(aln.totalLength, dset.totalLength)
-        self.assertEqual(aln.numRecords, dset.numRecords)
-
     def test_merge_subdatasets(self):
         # from data file
         ds1 = AlignmentSet(data.getBam(0))
@@ -192,45 +148,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
         self.assertEqual(merged.subdatasets[1].toExternalFiles(),
                          AlignmentSet(data.getXml(11)).toExternalFiles())
-
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
-    def test_create_cli(self):
-        log.debug("Absolute")
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        cmd = "dataset.py create --type AlignmentSet {o} {i1} {i2}".format(
-            o=os.path.join(outdir, 'pbalchemysim.alignmentset.xml'),
-            i1=data.getXml(8), i2=data.getXml(11))
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
-        self.assertTrue(os.path.exists(
-            os.path.join(outdir, os.path.basename(data.getXml(12)))))
-
-        log.debug("Relative")
-        cmd = ("dataset.py create --relative --type AlignmentSet "
-               "{o} {i1} {i2}".format(
-                   o=os.path.join(outdir, 'pbalchemysim.alignmentset.xml'),
-                   i1=data.getXml(8),
-                   i2=data.getXml(11)))
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
-        self.assertTrue(os.path.exists(
-            os.path.join(outdir, os.path.basename(data.getXml(12)))))
-
-        log.debug("Emtpy ContigSet")
-        emptyfastafile = tempfile.NamedTemporaryFile(suffix=".fasta")
-        emptyfasta = emptyfastafile.name
-        emptycontigset = os.path.join(outdir, 'empty.contigset.xml')
-        cmd = ("dataset.py create --relative --type ContigSet "
-               "{o} {i}".format(
-                   o=emptycontigset,
-                   i=emptyfasta))
-        log.debug(cmd)
-        o, r, m = backticks(cmd)
-        self.assertEqual(r, 0)
-        self.assertTrue(os.path.exists(emptycontigset))
 
     def test_empty_metatype(self):
         inBam = data.getBam()
