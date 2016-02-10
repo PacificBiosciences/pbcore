@@ -1,4 +1,7 @@
-* Current progress
+* Version 1.2.8
+  - Dataset improvements
+  - Support for context flag filtering
+  - Misc fixes
 
 * Version 1.2.7...
   - Improved IPython tab completion
