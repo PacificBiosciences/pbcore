@@ -311,7 +311,8 @@ class DataSet(object):
             >>> ds1.numExternalResources
             2
             >>> # Constructors should be used directly
-            >>> SubreadSet(data.getSubreadSet()) # doctest:+ELLIPSIS
+            >>> SubreadSet(data.getSubreadSet(),
+            ...            skipMissing=True) # doctest:+ELLIPSIS
             <SubreadSet...
             >>> # Even with untyped inputs
             >>> AlignmentSet(data.getBam()) # doctest:+ELLIPSIS
@@ -330,6 +331,7 @@ class DataSet(object):
 
         """
         self._strict = kwargs.get('strict', False)
+        skipMissing = kwargs.get('skipMissing', False)
         self._skipCounts = kwargs.get('skipCounts', False)
         _induceIndices = kwargs.get('generateIndices', False)
 
@@ -355,8 +357,7 @@ class DataSet(object):
         populateDataSet(self, files)
         log.debug('Done populating')
 
-        if self._strict:
-            log.debug('Strictly checking ResourceIds')
+        if not skipMissing:
             self._modResources(_fileExists)
 
         # DataSet base class shouldn't really be used. It is ok-ish for just
@@ -940,9 +941,9 @@ class DataSet(object):
             >>> import tempfile, os
             >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
             >>> outfile = os.path.join(outdir, 'tempfile.xml')
-            >>> ds1 = DataSet(data.getXml())
+            >>> ds1 = DataSet(data.getXml(), skipMissing=True)
             >>> ds1.write(outfile, validate=False)
-            >>> ds2 = DataSet(outfile)
+            >>> ds2 = DataSet(outfile, skipMissing=True)
             >>> ds1 == ds2
             True
         """
@@ -1167,9 +1168,9 @@ class DataSet(object):
 
         Doctest:
             >>> import pbcore.data.datasets as data
-            >>> from pbcore.io import DataSet
+            >>> from pbcore.io import SubreadSet
             >>> from pbcore.io.dataset.DataSetMembers import Filters
-            >>> ds1 = DataSet()
+            >>> ds1 = SubreadSet()
             >>> filt = Filters()
             >>> filt.addRequirement(rq=[('>', '0.85')])
             >>> ds1.addFilters(filt)
@@ -1472,7 +1473,8 @@ class DataSet(object):
 
         Doctest:
             >>> from pbcore.io import DataSet
-            >>> DataSet("bam1.bam", "bam2.bam", strict=False).toFofn(uri=False)
+            >>> DataSet("bam1.bam", "bam2.bam", strict=False,
+            ...         skipMissing=True).toFofn(uri=False)
             ['bam1.bam', 'bam2.bam']
         """
         lines = [er.resourceId for er in self.externalResources]
@@ -1545,7 +1547,7 @@ class DataSet(object):
     @property
     def filters(self):
         """Limit setting to ensure cache hygiene and filter compatibility"""
-        self._filters.registerCallback(lambda x=self, y=False: x.reFilter(y))
+        self._filters.registerCallback(self._wipeCaches)
         return self._filters
 
     @filters.setter
@@ -1570,6 +1572,9 @@ class DataSet(object):
             if self.metadata.summaryStats:
                 self.metadata.removeChildren('SummaryStats')
             self.updateCounts()
+
+    def _wipeCaches(self):
+        self.reFilter(False)
 
     @property
     def createdAt(self):
@@ -1708,26 +1713,11 @@ class DataSet(object):
 
     def _assertIndexed(self, acceptableTypes):
         if not self._openReaders:
-            try:
-                tmp = self._strict
-                self._strict = True
-                self._openFiles()
-            except Exception:
-                # Catch everything to recover the strictness status, then raise
-                # whatever error was found.
-                self._strict = tmp
-                raise
-            finally:
-                # if the original _strict was not True, these files have been
-                # opened in a strict manner and must be wiped
-                if not tmp:
-                    self.close()
-                self._strict = tmp
-        else:
-            for fname, reader in zip(self.toExternalFiles(),
-                                     self.resourceReaders()):
-                if not isinstance(reader, acceptableTypes):
-                    raise IOError(errno.EIO, "File not indexed", fname)
+            self._openFiles()
+        for fname, reader in zip(self.toExternalFiles(),
+                                 self.resourceReaders()):
+            if not isinstance(reader, acceptableTypes):
+                raise IOError(errno.EIO, "File not indexed", fname)
         return True
 
     def __getitem__(self, index):
@@ -2211,9 +2201,6 @@ class ReadSet(DataSet):
             self.metadata.numRecords = -1
             return
         try:
-            # open the files to take their length (and so they're not reopened
-            # during assertIndexed()):
-            self._openFiles()
             self.assertIndexed()
             log.debug('Updating counts')
             numRecords, totalLength = self._length
@@ -2313,8 +2300,8 @@ class SubreadSet(ReadSet):
         >>> from pbcore.io import SubreadSet
         >>> from pbcore.io.dataset.DataSetMembers import ExternalResources
         >>> import pbcore.data.datasets as data
-        >>> ds1 = SubreadSet(data.getXml(no=5))
-        >>> ds2 = SubreadSet(data.getXml(no=5))
+        >>> ds1 = SubreadSet(data.getXml(no=5), skipMissing=True)
+        >>> ds2 = SubreadSet(data.getXml(no=5), skipMissing=True)
         >>> # So they don't conflict:
         >>> ds2.externalResources = ExternalResources()
         >>> ds1 # doctest:+ELLIPSIS
@@ -2332,7 +2319,7 @@ class SubreadSet(ReadSet):
         >>> ds3 = ds1 + ds2
         >>> len(ds3.metadata.collections)
         2
-        >>> ds4 = SubreadSet(data.getSubreadSet())
+        >>> ds4 = SubreadSet(data.getSubreadSet(), skipMissing=True)
         >>> ds4 # doctest:+ELLIPSIS
         <SubreadSet...
         >>> ds4._metadata # doctest:+ELLIPSIS
@@ -3465,7 +3452,8 @@ class ConsensusReadSet(ReadSet):
     Doctest:
         >>> import pbcore.data.datasets as data
         >>> from pbcore.io import ConsensusReadSet
-        >>> ds2 = ConsensusReadSet(data.getXml(2), strict=False)
+        >>> ds2 = ConsensusReadSet(data.getXml(2), strict=False,
+        ...                        skipMissing=True)
         >>> ds2 # doctest:+ELLIPSIS
         <ConsensusReadSet...
         >>> ds2._metadata # doctest:+ELLIPSIS

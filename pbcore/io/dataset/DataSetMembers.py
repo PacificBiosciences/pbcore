@@ -629,6 +629,7 @@ class Filters(RecordWrapper):
         return filterLastResult
 
     def fromString(self, filterString):
+        # TODO(mdsmith)(2016-02-09) finish this
         filtDict = {}
         self._runCallbacks()
 
@@ -661,6 +662,7 @@ class Filters(RecordWrapper):
                 for i, (oper, val) in enumerate(options):
                     newFilts[i].addRequirement(name, oper, val)
             self.extend(newFilts)
+        log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
 
     def mapRequirement(self, **kwargs):
@@ -1823,7 +1825,7 @@ class PrimaryMetadata(RecordWrapper):
         >>> import os, tempfile
         >>> from pbcore.io import SubreadSet
         >>> import pbcore.data.datasets as data
-        >>> ds1 = SubreadSet(data.getXml(5))
+        >>> ds1 = SubreadSet(data.getXml(5), skipMissing=True)
         >>> ds1.metadata.collections[0].primary.outputOptions.resultsFolder
         'Analysis_Results'
         >>> ds1.metadata.collections[0].primary.outputOptions.resultsFolder = (
@@ -1833,7 +1835,7 @@ class PrimaryMetadata(RecordWrapper):
         >>> outdir = tempfile.mkdtemp(suffix="dataset-doctest")
         >>> outXml = 'xml:' + os.path.join(outdir, 'tempfile.xml')
         >>> ds1.write(outXml, validate=False)
-        >>> ds2 = SubreadSet(outXml)
+        >>> ds2 = SubreadSet(outXml, skipMissing=True)
         >>> ds2.metadata.collections[0].primary.outputOptions.resultsFolder
         'BetterAnalysis_Results'
     """
@@ -1885,7 +1887,7 @@ class BioSamplesMetadata(RecordWrapper):
         Doctest:
             >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
-            >>> ds = SubreadSet(data.getSubreadSet())
+            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
             >>> ds.metadata.bioSamples[0].name
             'consectetur purus'
             >>> for bs in ds.metadata.bioSamples:

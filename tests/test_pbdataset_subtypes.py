@@ -49,8 +49,8 @@ class TestDataSet(unittest.TestCase):
 
 
     def test_subread_build(self):
-        ds1 = SubreadSet(data.getXml(no=5))
-        ds2 = SubreadSet(data.getXml(no=5))
+        ds1 = SubreadSet(data.getXml(no=5), skipMissing=True)
+        ds2 = SubreadSet(data.getXml(no=5), skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'SubreadSet')
         self.assertEquals(ds1._metadata.__class__.__name__,
                           'SubreadSetMetadata')
@@ -60,7 +60,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(len(ds2.metadata.collections), 1)
         ds3 = ds1 + ds2
         self.assertEquals(len(ds3.metadata.collections), 2)
-        ds4 = SubreadSet(data.getSubreadSet())
+        ds4 = SubreadSet(data.getSubreadSet(), skipMissing=True)
         self.assertEquals(type(ds4).__name__, 'SubreadSet')
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
         self.assertEquals(len(ds4.metadata.collections), 1)
@@ -133,10 +133,10 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(ds[name].id == name)
 
     def test_ccsread_build(self):
-        ds1 = ConsensusReadSet(data.getXml(2), strict=False)
+        ds1 = ConsensusReadSet(data.getXml(2), strict=False, skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
-        ds2 = ConsensusReadSet(data.getXml(2), strict=False)
+        ds2 = ConsensusReadSet(data.getXml(2), strict=False, skipMissing=True)
         self.assertEquals(type(ds2).__name__, 'ConsensusReadSet')
         self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
@@ -157,7 +157,8 @@ class TestDataSet(unittest.TestCase):
         ds1.write(fn)
 
     def test_ccsalignment_build(self):
-        ds1 = ConsensusAlignmentSet(data.getXml(20), strict=False)
+        ds1 = ConsensusAlignmentSet(data.getXml(20), strict=False,
+                                    skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'ConsensusAlignmentSet')
         self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
         # XXX strict=True requires actual existing .bam files
@@ -219,10 +220,10 @@ class TestDataSet(unittest.TestCase):
 
 
     def test_contigset_build(self):
-        ds1 = ContigSet(data.getXml(3))
+        ds1 = ContigSet(data.getXml(3), skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'ContigSet')
         self.assertEquals(type(ds1._metadata).__name__, 'ContigSetMetadata')
-        ds2 = ContigSet(data.getXml(3))
+        ds2 = ContigSet(data.getXml(3), skipMissing=True)
         self.assertEquals(type(ds2).__name__, 'ContigSet')
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
         for contigmd in ds2.metadata.contigs:
@@ -633,7 +634,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_nested_external_resources(self):
         log.debug("Testing nested externalResources in AlignmentSets")
-        aln = AlignmentSet(data.getXml(0))
+        aln = AlignmentSet(data.getXml(0), skipMissing=True)
         self.assertTrue(aln.externalResources[0].pbi)
         self.assertTrue(aln.externalResources[0].reference)
         self.assertEqual(
@@ -642,7 +643,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.externalResources[0].scraps, None)
 
         log.debug("Testing nested externalResources in SubreadSets")
-        subs = SubreadSet(data.getXml(5))
+        subs = SubreadSet(data.getXml(5), skipMissing=True)
         self.assertTrue(subs.externalResources[0].scraps)
         self.assertEqual(
             subs.externalResources[0].externalResources[0].metaType,

@@ -126,12 +126,6 @@ def wrapNewResource(path):
 def _parseXml(dsetType, element):
     """Parse an XML DataSet tag, or the root tag of a DataSet XML file (they
     should be equivalent)
-
-    Doctest:
-        >>> import pbcore.data.datasets as data
-        >>> ds = _openXmlFile(data.getXml(no=8).split(':')[-1])
-        >>> type(ds).__name__
-        'SubreadSet'
     """
     result = dsetType()
     result.objMetadata = element.attrib
@@ -237,15 +231,6 @@ def _parseXmlFilters(element):
     """Pull filters from XML file, put them in a list of dictionaries, where
     each dictionary contains a representation of a Filter tag: key, value pairs
     with parameter names and value expressions.
-
-    Doctest:
-        >>> import xml.etree.ElementTree as ET
-        >>> import pbcore.data.datasets as data
-        >>> tree = ET.parse(data.getXml(no=8).split(':')[1])
-        >>> root = tree.getroot()
-        >>> filters = root[1]
-        >>> str(_parseXmlFilters(filters))
-        '( rq > 0.75 ) OR ( qname == 100/0/0_100 )'
     """
     return Filters(_eleToDictList(element))
 
