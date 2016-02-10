@@ -1,5 +1,6 @@
 * Version 1.2.8
   - Dataset improvements
+  - Dataset CLI moved to pbcoretools
   - Support for context flag filtering
   - Misc fixes
 
