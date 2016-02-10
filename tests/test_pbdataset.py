@@ -82,7 +82,8 @@ class TestDataSet(unittest.TestCase):
         ds1 = DataSet(data.getFofn())
         self.assertEquals(ds1.numExternalResources, 2)
         # New! Use the correct constructor:
-        self.assertEquals(type(SubreadSet(data.getSubreadSet())).__name__,
+        self.assertEquals(type(SubreadSet(data.getSubreadSet(),
+                                          skipMissing=True)).__name__,
                           'SubreadSet')
         # Even with untyped inputs
         self.assertTrue(str(SubreadSet(data.getBam())).startswith(
@@ -530,7 +531,7 @@ class TestDataSet(unittest.TestCase):
         bam2 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
                 "2590953/0001/Alignment_Results/"
                 "m140913_005018_42139_c100713652400000001823152"
-                "404301534_s1_p0.4.aligned.bam")
+                "404301534_s1_p0.3.aligned.bam")
         aln = AlignmentSet(bam1, bam2)
         readers = aln.resourceReaders()
 
@@ -843,7 +844,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_toFofn(self):
         self.assertEquals(DataSet("bam1.bam", "bam2.bam",
-                                  strict=False).toFofn(),
+                                  strict=False, skipMissing=True).toFofn(),
                           ['bam1.bam', 'bam2.bam'])
         realDS = DataSet(data.getXml(8))
         files = realDS.toFofn()
@@ -856,12 +857,14 @@ class TestDataSet(unittest.TestCase):
         self.assertFalse(os.path.isabs(files[0]))
 
     def test_toExternalFiles(self):
-        bogusDS = DataSet("bam1.bam", "bam2.bam", strict=False)
+        bogusDS = DataSet("bam1.bam", "bam2.bam", strict=False,
+                          skipMissing=True)
         self.assertEqual(['bam1.bam', 'bam2.bam'],
                          bogusDS.externalResources.resourceIds)
-        self.assertEquals(DataSet("bam1.bam", "bam2.bam",
-                                  strict=False).toExternalFiles(),
-                          ['bam1.bam', 'bam2.bam'])
+        self.assertEquals(
+            DataSet("bam1.bam", "bam2.bam", strict=False,
+                    skipMissing=True).toExternalFiles(),
+                    ['bam1.bam', 'bam2.bam'])
         realDS = DataSet(data.getXml(8))
         files = realDS.toExternalFiles()
         self.assertEqual(len(files), 1)
@@ -1431,6 +1434,76 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds.refWindows, [('E.faecalis.2', 0, 99),
                                          ('E.faecalis.2', 100, 299)])
 
+    def test_intervalContour(self):
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.1')
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.1', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.1')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        starts = ds.index.tStart
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # test a second reference in this set
+        ds.filters.removeRequirement('rname')
+        coverage = ds.intervalContour('E.faecalis.2')
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.2')])
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(data.getBam(0))
+        coverage = ds.intervalContour('E.faecalis.2', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'E.faecalis.2')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        starts = ds.index.tStart
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+
+        # test a cmp.h5 alignmentset
+        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
+        coverage = ds.intervalContour('lambda_NEB3011')
+        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
+        # partial interval
+        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
+        coverage = ds.intervalContour('lambda_NEB3011', tStart=100, tEnd=500)
+        ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011')],
+                                  tStart=[('<', '500')],
+                                  tEnd=[('>', '100')])
+        # regular totalLength uses aEnd/aStart, which includes insertions
+        starts = ds.index.tStart
+        ends = ds.index.tEnd
+        post = ends > 500
+        ends[post] = 500
+        pre = starts < 100
+        starts[pre] = 100
+        totalTargetLength = sum(ends - starts)
+        self.assertEqual(totalTargetLength, sum(coverage))
+
 
     def test_refLengths(self):
         ds = AlignmentSet(data.getBam(0))
@@ -1656,6 +1729,10 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(readers[2].readGroupTable), 1)
         self.assertEqual(len(aln.readGroupTable), 3)
 
+    def test_missing_file(self):
+        with self.assertRaises(InvalidDataSetIOError):
+            aln = AlignmentSet("NOPE")
+
     def test_repr(self):
         ds = DataSet(data.getBam())
         rep = str(ds)
@@ -1841,34 +1918,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
                          aln.referenceInfo(1))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
-    def test_two_bam_one_missing(self):
-        cmp1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
-                "2590953/0001/Alignment_Results/"
-                "m140913_005018_42139_c100713652400000001823152"
-                "404301534_s1_p0.1.aligned.bam")
-        cmp2 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
-                "2590953/0001/Alignment_Results/"
-                "m140913_005018_42139_c100713652400000001823152"
-                "404301534_s1_p0.4.aligned.bam")
-        len1 = len(AlignmentSet(cmp1))
-        len2 = len(AlignmentSet(cmp2))
-        aln = AlignmentSet(cmp1, cmp2)
-        len3 = len(aln)
-        #self.assertEqual(len1 + len2, len3)
-        #self.assertEqual(len3, 65346)
-        # We will let this be zero. While the other file has reads, this really
-        # should raise an exception. As a compromise, we'll just have the
-        # metadata be clearly wrong.
-        self.assertEqual(len3, 0)
-        self.assertEqual(
-            str(aln.referenceInfoTable),
-            ("[ (0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013', "
-             "4642522, '52cd7c5fa92877152fa487906ae484c5', 0L, 0L)]"))
-        self.assertEqual(set(aln.tId), {0})
-        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
-                         aln.referenceInfo(0))
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
