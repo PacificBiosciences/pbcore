@@ -470,6 +470,15 @@ class TestCCSBam(object):
                 aln.qEnd
 
 
+class TestEmptyBam(object):
+
+    def test_empty_bam_reads_in_range(self):
+        with IndexedBamReader(data.getEmptyAlignedBam()) as bam:
+            reads = bam.readsInRange("lambda_NEB3011", 0, 50000,
+                justIndices=True)
+            EQ(len(reads), 0)
+
+
 class TestMultipleReadGroups(object):
     """
     Verify that BAM files with multiple read groups are handled sensibly - see
