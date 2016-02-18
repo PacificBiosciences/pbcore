@@ -178,6 +178,10 @@ def _uniqueRecords(recArray):
             unique_i.append(i)
     return recArray[unique_i]
 
+def _fieldsView(recArray, fields):
+    vdtype = np.dtype({fi:recArray.dtype.fields[fi] for fi in fields})
+    return np.ndarray(recArray.shape, vdtype, recArray, 0, recArray.strides)
+
 def _renameField(recArray, current, new):
     ind = recArray.dtype.names.index(current)
     names = list(recArray.dtype.names)
@@ -190,21 +194,26 @@ def _flatten(lol, times=1):
         lol = np.concatenate(lol)
     return lol
 
-def divideKeys(keys, chunks, count_dupes=False):
+def divideKeys(keys, chunks):
     if chunks < 1:
         return []
-    key_ranges = []
-    if not count_dupes:
-        real_keys = list(set(keys))
-    else:
-        real_keys = keys
-    real_keys.sort()
-    if chunks > len(real_keys):
-        chunks = len(real_keys)
-    chunksize = len(real_keys)/chunks
-    key_chunks = [real_keys[(i * chunksize):((i + 1) * chunksize)] for i in
+    if chunks > len(keys):
+        chunks = len(keys)
+    chunksize = len(keys)/chunks
+    key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
                   range(chunks-1)]
-    key_chunks.append(real_keys[((chunks - 1) * chunksize):])
+    key_chunks.append(keys[((chunks - 1) * chunksize):])
+    return key_chunks
+
+def splitKeys(keys, chunks):
+    if chunks < 1:
+        return []
+    if chunks > len(keys):
+        chunks = len(keys)
+    chunksize = len(keys)/chunks
+    key_chunks = [(keys[i * chunksize], keys[(i + 1) * chunksize - 1]) for i in
+                  range(chunks-1)]
+    key_chunks.append((keys[(chunks - 1) * chunksize], keys[-1]))
     return key_chunks
 
 def keysToRanges(keys):
@@ -600,6 +609,7 @@ class DataSet(object):
                              "closed properly.")
                 else:
                     raise
+            del reader
         self._openReaders = []
 
     def __exit__(self, *exec_info):
@@ -1921,8 +1931,14 @@ class ReadSet(DataSet):
 
     def _split_zmws(self, chunks, targetSize=None):
         """Holenumbers must be unique within each movie"""
+
+        if chunks == 1:
+            return [self.copy()]
+        # make sure we can pull out the movie name:
+        rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
+
         # find atoms:
-        active_holenumbers = set(zip(self.index.qId, self.index.holeNumber))
+        active_holenumbers = self.index
         n_chunks = min(len(active_holenumbers), chunks)
 
         # if we have a target size and can have two or more chunks:
@@ -1937,62 +1953,71 @@ class ReadSet(DataSet):
             log.info("Adjusted number of chunks to %d" % n_chunks)
 
         # sort atoms and group into chunks:
-        hn_chunks = divideKeys(active_holenumbers, n_chunks)
+        active_holenumbers.sort(order=['qId', 'holeNumber'])
+        view = _fieldsView(self.index, ['qId', 'holeNumber'])
+        keys = np.unique(view)
+        ranges = splitKeys(keys, n_chunks)
 
-        # make sure we can pull out the movie name:
-        rgs = set()
-        for bam in self.resourceReaders():
-            for rg in bam.readGroupTable:
-                rgs.add(tuple(rg))
-        rgIdMovieNameMap = {rg[0]: rg[1] for rg in rgs}
+        # The above ranges can include hidden, unrepresented movienames that
+        # are sandwiched between those in the range. In order to capture those,
+        # we need to find the indices of the range bounds, then pull out the
+        # chunks.
+        hn_chunks = []
+        for zmw_range in ranges:
+            if zmw_range[0][0] == zmw_range[1][0]:
+                hn_chunks.append(active_holenumbers[
+                    (active_holenumbers['qId'] == zmw_range[0][0]) &
+                    (active_holenumbers['holeNumber'] >= zmw_range[0][1]) &
+                    (active_holenumbers['holeNumber'] <= zmw_range[1][1])])
+            else:
+                start = np.flatnonzero(
+                    (active_holenumbers['qId'] == zmw_range[0][0]) &
+                    (active_holenumbers['holeNumber'] == zmw_range[0][1]))[0]
+                end = np.flatnonzero(
+                    (active_holenumbers['qId'] == zmw_range[1][0]) &
+                    (active_holenumbers['holeNumber'] == zmw_range[1][1]))[-1]
+                hn_chunks.append(active_holenumbers[start:(end + 1)])
 
         results = []
         log.debug("Making copies")
         tmp_results = [self.copy() for _ in range(n_chunks)]
 
-
         # add filters
         for chunk, res in zip(hn_chunks, tmp_results):
             # check if multiple movies:
-            if chunk[0][0] == chunk[-1][0]:
-                movieName = rgIdMovieNameMap[chunk[0][0]]
-                zmw_start = chunk[0][1]
-                zmw_end = chunk[-1][1]
-                res.filters.addRequirement(
+            if chunk[0]['qId'] == chunk[-1]['qId']:
+                movieName = rgIdMovieNameMap[chunk[0]['qId']]
+                zmwStart = chunk[0]['holeNumber']
+                zmwEnd = chunk[-1]['holeNumber']
+                res._filters.clearCallbacks()
+                res._filters.addRequirement(
                     movie=[('=', movieName)],
-                    zm=[('<', zmw_end+1)])
-                res.filters.addRequirement(
-                    zm=[('>', zmw_start-1)])
-                results.append(res)
+                    zm=[('<', zmwEnd+1)])
+                res._filters.addRequirement(
+                    zm=[('>', zmwStart-1)])
             else:
-                atoms_by_movie = defaultdict(list)
-                for atom in chunk:
-                    atoms_by_movie[atom[0]].append(atom[1])
                 movieNames = []
-                zmw_starts = []
-                zmw_ends = []
-                for rgId, hns in atoms_by_movie.items():
-                    movieNames.append(rgIdMovieNameMap[rgId])
-                    zmw_starts.append(hns[0])
-                    zmw_ends.append(hns[-1])
-                res.filters.addRequirement(
+                zmwStarts = []
+                zmwEnds = []
+                for mov in np.unique(chunk['qId']):
+                    movieNames.append(rgIdMovieNameMap[mov])
+                    inds = np.flatnonzero(chunk['qId'] == mov)
+                    zmwStarts.append(chunk[inds[0]]['holeNumber'])
+                    zmwEnds.append(chunk[inds[-1]]['holeNumber'])
+                res._filters.clearCallbacks()
+                res._filters.addRequirement(
                     movie=[('=', mn) for mn in movieNames],
-                    zm=[('<', ze + 1) for ze in zmw_ends])
-                res.filters.mapRequirement(
-                    zm=[('>', zs - 1) for zs in zmw_starts])
-                results.append(res)
+                    zm=[('<', ze + 1) for ze in zmwEnds])
+                res._filters.mapRequirement(
+                    zm=[('>', zs - 1) for zs in zmwStarts])
+            res.numRecords = len(chunk)
+            res.totalLength = sum(chunk['qEnd'] - chunk['qStart'])
+            res.newUuid()
+            results.append(res)
 
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        for result in results:
-            result.reFilter()
-            result.newUuid()
-            # use some cheats to save RAM while updating counts:
-            result._openReaders = self._openReaders
-            result.updateCounts()
-            del result._index
-            result._index = None
+        # we changed the sort order above, so this is dirty:
+        self._index = None
+        self._indexMap = None
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
@@ -2559,29 +2584,6 @@ class AlignmentSet(ReadSet):
             sizes.append((len(rr.index), sum(rr.index.aEnd - rr.index.aStart)))
         return sizes
 
-    def _countMappedReads(self):
-        """It is too slow for large datasets to use _indexReadsInReference"""
-        counts = {rId: 0 for _, rId in self.refIds.items()}
-        for ind in self.index:
-            counts[ind["tId"]] += 1
-        tbr = {}
-        idMap = {rId: name for name, rId in self.refIds.items()}
-        for key, value in counts.iteritems():
-            tbr[idMap[key]] = value
-        return tbr
-
-    def _getMappedReads(self):
-        """It is too slow for large datasets to use _indexReadsInReference for
-        each reference"""
-        counts = {rId: 0 for _, rId in self.refIds.items()}
-        for ind in self.index:
-            counts[ind["tId"]].append(ind)
-        tbr = {}
-        idMap = {rId: name for name, rId in self.refIds.items()}
-        for key, value in counts.iteritems():
-            tbr[idMap[key]] = value
-        return tbr
-
     @property
     def refWindows(self):
         """Going to be tricky unless the filters are really focused on
@@ -2691,9 +2693,8 @@ class AlignmentSet(ReadSet):
         """
         log.debug("Generating coverage summary")
         index = self._indexReadsInReference(rname)
-        reflen = self.refLengths[rname]
         if tEnd is None:
-            tEnd = reflen
+            tEnd = self.refLengths[rname]
         coverage = [0] * (tEnd - tStart)
         starts = sorted(index.tStart)
         for i in starts:
@@ -2781,37 +2782,18 @@ class AlignmentSet(ReadSet):
         log.debug("{i} references found".format(i=len(refNames)))
 
         log.debug("Finding contigs")
-        # FIXME: this mess:
-        if len(refNames) < 100 and len(refNames) > 1:
-            if byRecords:
-                log.debug("Counting records...")
-                atoms = [(rn, 0, 0, self.countRecords(rn))
-                         for rn in refNames
-                         if len(self._indexReadsInReference(rn)) != 0]
-            else:
-                atoms = [(rn, 0, refLens[rn]) for rn in refNames if
-                         len(self._indexReadsInReference(rn)) != 0]
-        else:
-            log.debug("Skipping records for each reference check")
-            atoms = [(rn, 0, refLens[rn]) for rn in refNames]
-            if byRecords:
-                log.debug("Counting records...")
-                # This is getting out of hand, but the number of references
-                # determines the best read counting algorithm:
-                if len(refNames) < 100:
-                    atoms = [(rn, 0, refLens[rn], self.countRecords(rn))
-                             for rn in refNames]
-                else:
-                    counts = self._countMappedReads()
-                    atoms = [(rn, 0, refLens[rn], counts[rn])
-                             for rn in refNames]
-        log.debug("{i} contigs found".format(i=len(atoms)))
-
         if byRecords:
+            log.debug("Counting records...")
+            atoms = [(rn, 0, 0, count)
+                     for rn, count in zip(refNames, map(self.countRecords,
+                                                        refNames))
+                     if count != 0]
             balanceKey = lambda x: self.countRecords(*x)
         else:
-            # The window length is used for balancing
+            atoms = [(rn, 0, refLens[rn]) for rn in refNames if
+                     self.countRecords(rn) != 0]
             balanceKey = lambda x: x[2] - x[1]
+        log.debug("{i} contigs found".format(i=len(atoms)))
 
         # By providing maxChunks and not chunks, this combination will set
         # chunks down to < len(atoms) < maxChunks

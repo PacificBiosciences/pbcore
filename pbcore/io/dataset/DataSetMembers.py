@@ -367,6 +367,9 @@ class Filters(RecordWrapper):
         if func not in self._callbacks:
             self._callbacks.append(func)
 
+    def clearCallbacks(self):
+        self._callbacks = []
+
     def _runCallbacks(self):
         for func in self._callbacks:
             func()
@@ -476,6 +479,9 @@ class Filters(RecordWrapper):
                 'readstart': (lambda x: int(x.aStart)),
                 'tstart': (lambda x: int(x.tStart)),
                 'tend': (lambda x: int(x.tEnd)),
+                'n_subreads': (lambda x: len(np.flatnonzero(
+                                            x.reader.holeNumber ==
+                                            x.HoleNumber))),
                }
 
     def _pbiAccMap(self):
@@ -514,6 +520,9 @@ class Filters(RecordWrapper):
                 'bq': (lambda x: x.bcQual),
                 'bc': (lambda x: np.array(zip(x.bcForward, x.bcReverse))),
                 'cx': (lambda x: x.contextFlag),
+                'n_subreads': (lambda x: np.array(
+                    [len(np.flatnonzero(x.holeNumber == hn))
+                     for hn in x.holeNumber])),
                }
 
     @property
@@ -536,6 +545,7 @@ class Filters(RecordWrapper):
                 'accuracy': float,
                 'readstart': int,
                 'cx': PbiFlags.flagMap,
+                'n_subreads': int,
                }
 
     def tests(self, readType="bam", tIdMap=None):
@@ -644,6 +654,8 @@ class Filters(RecordWrapper):
             name: The name of the requirement, e.g. 'rq'
             options: A list of (operator, value) tuples, e.g. ('>', '0.85')
         """
+        if not kwargs:
+            return
         # if there are already filters, you must copy the filters for each new
         # option and add one set of requirements to each option:
         if self.submetadata:

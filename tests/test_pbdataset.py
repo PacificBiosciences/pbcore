@@ -20,7 +20,6 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        divideKeys, keysToRanges)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix, InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
-from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
@@ -1019,6 +1018,12 @@ class TestDataSet(unittest.TestCase):
         reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
         for r1, r2 in itertools.izip(reads1, reads2):
             self.assertEqual(r1, r2)
+
+    def test_n_subreads_filter(self):
+        ds2 = AlignmentSet(data.getXml(8))
+        ds2.filters.addRequirement(n_subreads=[('>', '4')])
+        self.assertEqual(len(list(ds2.records)), 87)
+        self.assertEqual(len(ds2), 87)
 
     def test_filter(self):
         ds2 = AlignmentSet(data.getXml(8))
@@ -2144,41 +2149,6 @@ class TestDataSet(unittest.TestCase):
                                [5, 5], [8, 8], [50, 50]])
 
 
-        keys = [0, 1, 2, 3, 5, 8, 50]
-        shuffle(keys)
-        res = divideKeys(keys, 0)
-        self.assertEqual(res, [])
-        res = keysToRanges(res)
-        self.assertEqual(res, [])
-
-        res = divideKeys(keys, 1)
-        self.assertEqual(res, [[0, 1, 2, 3, 5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 50]])
-
-        res = divideKeys(keys, 2)
-        self.assertEqual(res, [[0, 1, 2], [3, 5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 2], [3, 50]])
-
-        res = divideKeys(keys, 3)
-        self.assertEqual(res, [[0, 1], [2, 3], [5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 1], [2, 3], [5, 50]])
-
-        res = divideKeys(keys, 7)
-        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
-                               [5, 5], [8, 8], [50, 50]])
-
-        res = divideKeys(keys, 8)
-        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
-                               [5, 5], [8, 8], [50, 50]])
-
-
         keys = [0, 1, 2, 2, 3, 5, 8, 50, 50]
         res = divideKeys(keys, 0)
         self.assertEqual(res, [])
@@ -2186,61 +2156,27 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(res, [])
 
         res = divideKeys(keys, 1)
-        self.assertEqual(res, [[0, 1, 2, 3, 5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 50]])
-
-        res = divideKeys(keys, 2)
-        self.assertEqual(res, [[0, 1, 2], [3, 5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 2], [3, 50]])
-
-        res = divideKeys(keys, 3)
-        self.assertEqual(res, [[0, 1], [2, 3], [5, 8, 50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 1], [2, 3], [5, 50]])
-
-        res = divideKeys(keys, 7)
-        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
-                               [5, 5], [8, 8], [50, 50]])
-
-        res = divideKeys(keys, 8)
-        self.assertEqual(res, [[0], [1], [2], [3], [5], [8], [50]])
-        res = keysToRanges(res)
-        self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [3, 3],
-                               [5, 5], [8, 8], [50, 50]])
-
-
-        keys = [0, 1, 2, 2, 3, 5, 8, 50, 50]
-        res = divideKeys(keys, 0, count_dupes=True)
-        self.assertEqual(res, [])
-        res = keysToRanges(res)
-        self.assertEqual(res, [])
-
-        res = divideKeys(keys, 1, count_dupes=True)
         self.assertEqual(res, [[0, 1, 2, 2, 3, 5, 8, 50, 50]])
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 50]])
 
-        res = divideKeys(keys, 2, count_dupes=True)
+        res = divideKeys(keys, 2)
         self.assertEqual(res, [[0, 1, 2, 2], [3, 5, 8, 50, 50]])
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 2], [3, 50]])
 
-        res = divideKeys(keys, 3, count_dupes=True)
+        res = divideKeys(keys, 3)
         self.assertEqual(res, [[0, 1, 2], [2, 3, 5], [8, 50, 50]])
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 2], [2, 5], [8, 50]])
 
-        res = divideKeys(keys, 9, count_dupes=True)
+        res = divideKeys(keys, 9)
         self.assertEqual(res, [[0], [1], [2], [2], [3], [5], [8], [50], [50]])
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
                                [5, 5], [8, 8], [50, 50], [50, 50]])
 
-        res = divideKeys(keys, 10, count_dupes=True)
+        res = divideKeys(keys, 10)
         self.assertEqual(res, [[0], [1], [2], [2], [3], [5], [8], [50], [50]])
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
@@ -2261,3 +2197,10 @@ class TestDataSet(unittest.TestCase):
         ss.write(outXml)
         ss = SubreadSet(outXml)
         self.assertTrue(ss.metadata.summaryStats)
+
+    @unittest.skip("Too expensive")
+    def test_huge_zmw_split(self):
+        human = ('/pbi/dept/secondary/siv/testdata/SA3-DS/'
+                 'human/JCV_85x_v030/jcv_85x_v030.subreadset.xml')
+        sset = SubreadSet(human)
+        ssets = sset.split(zmws=True, maxChunks=5)
