@@ -110,9 +110,7 @@ class _BamReaderBase(ReaderBase):
             triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
-            # TODO(dalexander): need FRAMERATEHZ in RG::DS!
-            #rgFrameRate = ds["FRAMERATEHZ"]
-            rgFrameRate = 75.0
+            rgFrameRate = ds["FRAMERATEHZ"]
             readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate))
 
             # Look for the features manifest entries within the DS tag,
