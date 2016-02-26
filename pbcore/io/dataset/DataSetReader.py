@@ -61,7 +61,11 @@ def _addXmlFile(dset, path):
     if not tmp.metadata.summaryStats:
         for extres in tmp.externalResources:
             if extres.sts:
-                tmp.loadStats(extres.sts)
+                try:
+                    tmp.loadStats(extres.sts)
+                except IOError as e:
+                    log.info("Sts.xml file {f} "
+                              "unopenable".format(f=extres.sts))
     # copyOnMerge must be false, you're merging in a tmp and maintaining dset
     dset.merge(tmp, copyOnMerge=False)
 
@@ -172,7 +176,7 @@ def _updateStats(element):
         ]
     for tag in binCounts:
         if element.findall(tag):
-            log.error("Outdated stats XML received")
+            log.info("Outdated stats XML received")
             finds = element.findall(tag)
             parent = tag.split('Dist')[0] + 'Dist'
             parent = element.find(parent)
@@ -184,7 +188,7 @@ def _updateStats(element):
             parent.append(binCounts)
     for tag in binLabels:
         if element.findall(tag):
-            log.error("Outdated stats XML received")
+            log.info("Outdated stats XML received")
             finds = element.findall(tag)
             parent = tag.split('Dist')[0] + 'Dist'
             parent = element.find(parent)

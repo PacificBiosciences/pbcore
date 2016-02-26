@@ -2198,6 +2198,55 @@ class TestDataSet(unittest.TestCase):
         ss = SubreadSet(outXml)
         self.assertTrue(ss.metadata.summaryStats)
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_missing_extres(self):
+        # copy a file with relative paths, rescue ResourceId's
+        test_file = ('/pbi/dept/secondary/siv/testdata/'
+                     'SA3-Sequel/lambda/roche_SAT/'
+                     'm54013_151205_032353.subreadset.xml')
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outXml = os.path.join(outdir, 'tempfile.xml')
+        resXml = os.path.join(outdir, 'tempfile.rescued.xml')
+        sset = SubreadSet(test_file)
+
+        # record the original paths:
+        path_map = {}
+        recorder = lambda x, m=path_map: m.setdefault(os.path.split(x)[1], x)
+        sset._changePaths(recorder)
+
+        # make the paths relative and write out dataset with all missing:
+        sset.makePathsRelative(os.path.dirname(test_file))
+        sset.write(outXml, validate=False)
+
+        print outXml
+        # check that it is broken:
+        with self.assertRaises(InvalidDataSetIOError):
+            sset = SubreadSet(outXml)
+
+        # check that rescuing fixes it:
+        replacer = lambda x, m=path_map: m[x]
+        sset = SubreadSet(outXml, skipMissing=True)
+        sset._changePaths(replacer)
+        sset.write(resXml, validate=False)
+        sset = SubreadSet(resXml)
+
+        # check that removing any one breaks it:
+        for key in path_map.keys():
+            mod_pmap = path_map.copy()
+
+            # remove a resourceId from the map:
+            mod_pmap.pop(key)
+            log.debug(key)
+            # use dict.get to maintain the breakage:
+            replacer = lambda x, m=mod_pmap: m.get(x, x)
+            sset = SubreadSet(outXml, skipMissing=True)
+            sset._changePaths(replacer)
+            sset.write(resXml, validate=False)
+            with self.assertRaises(InvalidDataSetIOError):
+                sset = SubreadSet(resXml)
+
+
     @unittest.skip("Too expensive")
     def test_huge_zmw_split(self):
         human = ('/pbi/dept/secondary/siv/testdata/SA3-DS/'

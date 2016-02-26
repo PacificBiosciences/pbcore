@@ -2,10 +2,8 @@
 Classes representing DataSets of various types.
 """
 
-from collections import defaultdict, Counter
 import hashlib
 import datetime
-import math
 import copy
 import os
 import re
@@ -14,9 +12,10 @@ import logging
 import itertools
 import xml.dom.minidom
 import tempfile
-from functools import wraps
 import numpy as np
 from urlparse import urlparse
+from functools import wraps, partial
+from collections import defaultdict, Counter
 from pbcore.util.Process import backticks
 from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
@@ -271,6 +270,16 @@ def checkAndResolve(fname, possibleRelStart=None):
         tbr = resolveLocation(fname, possibleRelStart)
     return tbr
 
+def _pathChanger(osPathFunc, metaTypeFunc, resource):
+    """Apply these two functions to the resource or ResourceId"""
+    resId = resource.resourceId
+    currentPath = urlparse(resId)
+    if currentPath.scheme == 'file' or not currentPath.scheme:
+        currentPath = currentPath.path
+        currentPath = osPathFunc(currentPath)
+        resource.resourceId = currentPath
+        metaTypeFunc(resource)
+
 
 class DataSet(object):
     """The record containing the DataSet information, with possible type
@@ -511,7 +520,7 @@ class DataSet(object):
             # Block on filters?
             if (not firstIn and
                     not self.filters.testCompatibility(other.filters)):
-                log.warning("Filter incompatibility has blocked the addition "
+                log.warning("Filter incompatibility has blocked the merging "
                             "of two datasets")
                 return None
             else:
@@ -619,8 +628,8 @@ class DataSet(object):
         """Return the number of records in this DataSet"""
         if self.numRecords == -1:
             if self._filters:
-                log.warn("Base class DataSet length cannot be calculate when "
-                         "filters present")
+                log.debug("Base class DataSet length cannot be calculated "
+                          "when filters are present")
             else:
                 count = 0
                 for reader in self.resourceReaders():
@@ -1084,6 +1093,7 @@ class DataSet(object):
             func(item)
             try:
                 stack.extend(list(item.indices))
+                stack.extend(list(item.externalResources))
             except AttributeError:
                 # Some things just don't have indices
                 pass
@@ -1100,32 +1110,9 @@ class DataSet(object):
             :osPathFunc: A function for modifying paths (e.g. os.path.abspath)
             :checkMetaType: Update the metatype of externalResources if needed
         """
-        # check all ExternalResources
-        stack = list(self.externalResources)
-        while stack:
-            item = stack.pop()
-            resId = item.resourceId
-            if not resId:
-                continue
-            currentPath = urlparse(resId)
-            if currentPath.scheme == 'file' or not currentPath.scheme:
-                currentPath = currentPath.path
-                currentPath = osPathFunc(currentPath)
-                item.resourceId = currentPath
-                if checkMetaType:
-                    self._updateMetaType(item)
-            try:
-                stack.extend(list(item.indices))
-                stack.extend(list(item.externalResources))
-            except AttributeError:
-                # Some things just don't have indices or subresources
-                pass
-
-        # check all DataSetMetadata
-
-        # check all SubDatasets
-        for dataset in self.subdatasets:
-            dataset._changePaths(osPathFunc)
+        metaTypeFunc = self._updateMetaType if checkMetaType else lambda x: x
+        resFunc = partial(_pathChanger, osPathFunc, metaTypeFunc)
+        self._modResources(resFunc)
 
     def _populateMetaTypes(self):
         """Add metatypes to those ExternalResources that currently are
@@ -1844,11 +1831,11 @@ class ReadSet(DataSet):
             self._openReaders.append(resource)
             try:
                 if resource.isEmpty:
-                    log.warn("{f} contains no reads!".format(
+                    log.debug("{f} contains no reads!".format(
                         f=extRes.resourceId))
             except UnavailableFeature: # isEmpty requires bai
                 if not list(itertools.islice(resource, 1)):
-                    log.warn("{f} contains no reads!".format(
+                    log.debug("{f} contains no reads!".format(
                         f=extRes.resourceId))
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
@@ -1866,7 +1853,7 @@ class ReadSet(DataSet):
             return self._unifyResponses(res)
         except ResourceMismatchError:
             if not self._strict:
-                log.error("Resources inconsistently indexed")
+                log.warn("Resources inconsistently indexed")
                 return False
             else:
                 raise
@@ -1886,7 +1873,7 @@ class ReadSet(DataSet):
         try:
             self.assertBarcoded()
         except RuntimeError:
-            log.warn("No barcodes found in BAM file, skipping split")
+            log.info("No barcodes found in BAM file, skipping split")
             return [self.copy()]
         barcodes = defaultdict(int)
         for bcTuple in itertools.izip(self.index.bcForward,
@@ -3251,11 +3238,11 @@ class AlignmentSet(ReadSet):
                 try:
                     length = sum(self.index.aEnd - self.index.aStart)
                 except AttributeError:
-                    # If the bam is empty or the file is not actually aligned, this
-                    # field wont be populated
+                    # If the bam is empty or the file is not actually aligned,
+                    # this field wont be populated
                     if self.isMapped:
-                        log.warn(".pbi mapping columns missing from mapped bam, "
-                                 "bam may be empty")
+                        log.debug(".pbi mapping columns missing from mapped "
+                                  "bam, bam may be empty")
                     else:
                         log.warn("File not actually mapped!")
                     length = 0
@@ -3291,11 +3278,11 @@ class AlignmentSet(ReadSet):
         tbr = self.referenceInfoTable[
             self.referenceInfoTable['Name'] == refName]
         if len(tbr) > 1:
-            log.warn("Duplicate reference names detected")
+            log.info("Duplicate reference names detected")
         elif len(tbr) == 1:
             return tbr[0]
         else:
-            log.warn("No reference found by that Name or ID")
+            log.debug("No reference found by that Name or ID")
 
     @property
     def referenceInfoTable(self):
@@ -3728,7 +3715,7 @@ class ContigSet(DataSet):
                 else:
                     raise
             except ValueError:
-                log.warn("Fasta file is empty")
+                log.debug("Fasta file is empty")
                 # this seems to work for an emtpy fasta, interesting:
                 resource = FastaReader(location)
                 # we know this file is empty
@@ -3791,13 +3778,13 @@ class ContigSet(DataSet):
             return self._unifyResponses(res)
         except ResourceMismatchError:
             if not self._strict:
-                log.error("Not all resource are equally indexed.")
+                log.info("Not all resource are equally indexed.")
                 return False
             else:
                 raise
         except IndexError:
             if not self._strict:
-                log.error("No resource readers!")
+                log.info("No resource readers!")
                 return False
             else:
                 raise InvalidDataSetIOError("No openable resources!")
