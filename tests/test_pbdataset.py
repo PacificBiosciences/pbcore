@@ -793,6 +793,26 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(str(ds2.filters).startswith(
             '( rname = E.faecalis'))
 
+    def test_add_double_bound_filters(self):
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.filters.addRequirement(rq=[('>', '0.85'),
+                                       ('<', '0.99')])
+        self.assertEquals(str(ds1.filters), '( rq > 0.85 ) OR ( rq < 0.99 )')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        self.assertEquals(str(ds1.filters), '')
+        ds1.filters.addFilter(rq=[('>', '0.85'),
+                                  ('<', '0.99')])
+        self.assertEquals(str(ds1.filters), '( rq > 0.85 AND rq < 0.99 )')
+
+        ds1.filters.addFilter(length=[('>', '1000')])
+        self.assertEquals(str(ds1.filters),
+                          '( rq > 0.85 AND rq < 0.99 ) OR ( length > 1000 )')
+
+        ds1.filters.removeFilter(0)
+        self.assertEquals(str(ds1.filters),
+                          '( length > 1000 )')
+
     def test_addMetadata(self):
         ds = DataSet()
         ds.addMetadata(None, Name='LongReadsRock')
@@ -2219,7 +2239,6 @@ class TestDataSet(unittest.TestCase):
         sset.makePathsRelative(os.path.dirname(test_file))
         sset.write(outXml, validate=False)
 
-        print outXml
         # check that it is broken:
         with self.assertRaises(InvalidDataSetIOError):
             sset = SubreadSet(outXml)

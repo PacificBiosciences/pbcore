@@ -83,6 +83,30 @@ def getTime():
 def getTimeStampedName(mType):
     return "{m}-{t}".format(m=mType, t=getTime())
 
+OPMAP = {'==': OP.eq,
+         '=': OP.eq,
+         'eq': OP.eq,
+         '!=': OP.ne,
+         'ne': OP.ne,
+         '>=': OP.ge,
+         '&gt;=': OP.ge,
+         'gte': OP.ge,
+         '<=': OP.le,
+         '&lt;=': OP.le,
+         'lte': OP.le,
+         '>': OP.gt,
+         '&gt;': OP.gt,
+         'gt': OP.gt,
+         '<': OP.lt,
+         '&lt;': OP.lt,
+         'lt': OP.lt,
+         '&': lambda x, y: OP.and_(x, y).view(np.bool_),
+         '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
+        }
+
+def mapOp(op):
+    return OPMAP[op]
+
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
@@ -432,33 +456,10 @@ class Filters(RecordWrapper):
         for i, filt in enumerate(self):
             for req in filt:
                 if req.name == param:
-                    if not self.opMap(oper)(testType(req.value),
+                    if not mapOp(oper)(testType(req.value),
                                             testType(value)):
                         options[i] = False
         return any(options)
-
-    def opMap(self, op):
-        ops = {'==': OP.eq,
-               '=': OP.eq,
-               'eq': OP.eq,
-               '!=': OP.ne,
-               'ne': OP.ne,
-               '>=': OP.ge,
-               '&gt;=': OP.ge,
-               'gte': OP.ge,
-               '<=': OP.le,
-               '&lt;=': OP.le,
-               'lte': OP.le,
-               '>': OP.gt,
-               '&gt;': OP.gt,
-               'gt': OP.gt,
-               '<': OP.lt,
-               '&lt;': OP.lt,
-               'lt': OP.lt,
-               '&': lambda x, y: OP.and_(x, y).view(np.bool_),
-               '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
-              }
-        return ops[op]
 
     @property
     def _bamAccMap(self):
@@ -574,7 +575,7 @@ class Filters(RecordWrapper):
             for req in filt:
                 param = req.name
                 value = typeMap[param](req.value)
-                operator = self.opMap(req.operator)
+                operator = mapOp(req.operator)
                 reqTests.append(P(filter_read, accMap[param], operator, value))
             tests.append(
                 lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
@@ -618,16 +619,16 @@ class Filters(RecordWrapper):
                         values = ast.literal_eval(value)
                         param = 'bcf'
                         value = values[0]
-                        operator = self.opMap(req.operator)
+                        operator = mapOp(req.operator)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
                         param = 'bcr'
                         value = values[1]
-                        operator = self.opMap(req.operator)
+                        operator = mapOp(req.operator)
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
                     else:
-                        operator = self.opMap(req.operator)
+                        operator = mapOp(req.operator)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
                     lastResult &= reqResultsForRecords
@@ -674,6 +675,30 @@ class Filters(RecordWrapper):
                 for i, (oper, val) in enumerate(options):
                     newFilts[i].addRequirement(name, oper, val)
             self.extend(newFilts)
+        log.debug("Current filters: {s}".format(s=str(self)))
+        self._runCallbacks()
+
+    def addFilter(self, **kwargs):
+        """Use this to add filters. Members of the list will be considered
+        requirements for fulfilling this option. Use multiple calls to add
+        multiple filters.
+
+        Args:
+            name: The name of the requirement, e.g. 'rq'
+            options: A list of (operator, value) tuples, e.g. ('>', '0.85')
+        """
+        if not kwargs:
+            return
+        newFilt = Filter()
+        for name, options in kwargs.items():
+            for oper, val in options:
+                newFilt.addRequirement(name, oper, val)
+        self.append(newFilt)
+        log.debug("Current filters: {s}".format(s=str(self)))
+        self._runCallbacks()
+
+    def removeFilter(self, index):
+        self.pop(index)
         log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
 
