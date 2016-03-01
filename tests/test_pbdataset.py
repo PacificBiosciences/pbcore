@@ -1766,6 +1766,133 @@ class TestDataSet(unittest.TestCase):
                                   rep))
         self.assertTrue(re.search('pbalchemysim0.pbalign.bam', rep))
 
+    def test_stats_metadata_zero_binwidth(self):
+        # both zero
+        ds1 = DataSet(data.getXml(8))
+        ds1.loadStats(data.getStats())
+        ds2 = DataSet(data.getXml(11))
+        ds2.loadStats(data.getStats())
+        ds1.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds1.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds1.metadata.summaryStats.readLenDist.binWidth = 0
+        ds2.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds2.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds2.metadata.summaryStats.readLenDist.binWidth = 0
+        ds3 = ds1 + ds2
+        self.assertEqual(len(ds3.metadata.summaryStats.readLenDists), 1)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        # one zero
+        ds1 = DataSet(data.getXml(8))
+        ds1.loadStats(data.getStats())
+        ds2 = DataSet(data.getXml(11))
+        ds2.loadStats(data.getStats())
+        ds1.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds1.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds1.metadata.summaryStats.readLenDist.binWidth = 0
+        ds2.metadata.summaryStats.readLenDist.bins = (
+            [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        ds2.metadata.summaryStats.readLenDist.minBinValue = 20
+        ds2.metadata.summaryStats.readLenDist.binWidth = 10
+        ds3 = ds1 + ds2
+        self.assertEqual(len(ds3.metadata.summaryStats.readLenDists), 1)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+
+        # other zero
+        ds1 = DataSet(data.getXml(8))
+        ds1.loadStats(data.getStats())
+        ds2 = DataSet(data.getXml(11))
+        ds2.loadStats(data.getStats())
+        ds1.metadata.summaryStats.readLenDist.bins = (
+            [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        ds1.metadata.summaryStats.readLenDist.minBinValue = 10
+        ds1.metadata.summaryStats.readLenDist.binWidth = 10
+        ds2.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds2.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds2.metadata.summaryStats.readLenDist.binWidth = 0
+        ds3 = ds1 + ds2
+        self.assertEqual(len(ds3.metadata.summaryStats.readLenDists), 1)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+
+        # one zero more zero
+        ds1 = DataSet(data.getXml(8))
+        ds1.loadStats(data.getStats())
+        ds2 = DataSet(data.getXml(11))
+        ds2.loadStats(data.getStats())
+        ds3 = DataSet(data.getXml(11))
+        ds3.loadStats(data.getStats())
+        ds1.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds1.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds1.metadata.summaryStats.readLenDist.binWidth = 0
+        ds2.metadata.summaryStats.readLenDist.bins = (
+            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.bins,
+                         [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
+        ds2.metadata.summaryStats.readLenDist.minBinValue = 20
+        ds2.metadata.summaryStats.readLenDist.binWidth = 10
+        ds3.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds3.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds3.metadata.summaryStats.readLenDist.binWidth = 0
+        ds4 = ds1 + ds2 + ds3
+        self.assertEqual(len(ds3.metadata.summaryStats.readLenDists), 1)
+        self.assertEqual(ds4.metadata.summaryStats.readLenDist.bins,
+                         [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
+
+        # other zero
+        ds1 = DataSet(data.getXml(8))
+        ds1.loadStats(data.getStats())
+        ds2 = DataSet(data.getXml(11))
+        ds2.loadStats(data.getStats())
+        ds3 = DataSet(data.getXml(11))
+        ds3.loadStats(data.getStats())
+        ds1.metadata.summaryStats.readLenDist.bins = (
+            [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+        ds1.metadata.summaryStats.readLenDist.minBinValue = 10
+        ds1.metadata.summaryStats.readLenDist.binWidth = 10
+        ds2.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds2.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds2.metadata.summaryStats.readLenDist.binWidth = 0
+        ds3.metadata.summaryStats.readLenDist.bins = (
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
+                         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        ds3.metadata.summaryStats.readLenDist.minBinValue = 0
+        ds3.metadata.summaryStats.readLenDist.binWidth = 0
+        ds4 = ds1 + ds2 + ds3
+        self.assertEqual(len(ds3.metadata.summaryStats.readLenDists), 1)
+        self.assertEqual(ds4.metadata.summaryStats.readLenDist.bins,
+                         [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
+
     def test_stats_metadata(self):
         ds = DataSet(data.getBam())
         ds.loadStats(data.getStats())
@@ -2272,3 +2399,4 @@ class TestDataSet(unittest.TestCase):
                  'human/JCV_85x_v030/jcv_85x_v030.subreadset.xml')
         sset = SubreadSet(human)
         ssets = sset.split(zmws=True, maxChunks=5)
+

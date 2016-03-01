@@ -9,7 +9,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata,
                                               Filters, AutomationParameters,
-                                              StatsMetadata)
+                                              StatsMetadata, DISTLIST)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 
 log = logging.getLogger(__name__)
@@ -250,10 +250,7 @@ def parseStats(filename):
     stats = StatsMetadata(_eleToDictList(root))
     stats.record['tag'] = 'SummaryStats'
     whitelist = ['ShortInsertFraction', 'AdapterDimerFraction',
-                 'MedianInsertDist', 'ProdDist', 'ReadTypeDist',
-                 'ReadLenDist', 'ReadQualDist', 'InsertReadQualDist',
-                 'InsertReadLenDist', 'ControlReadQualDist',
-                 'ControlReadLenDist', 'NumSequencingZmws']
+                 'NumSequencingZmws'] + DISTLIST
     stats.pruneChildrenTo(whitelist)
     return stats
 

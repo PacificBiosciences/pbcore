@@ -65,6 +65,11 @@ from pbcore.io.dataset.DataSetWriter import namespaces
 
 log = logging.getLogger(__name__)
 
+DISTLIST = ["ProdDist", "ReadTypeDist", "ReadLenDist", "ReadQualDist",
+            "medianInsertDist", "InsertReadQualDist",
+            "InsertReadLenDist", "ControlReadQualDist",
+            "ControlReadLenDist"]
+
 def newUuid(record):
     # At some point the uuid may need to be a digest
     #newId = str(hashlib.md5(str(record)).hexdigest())
@@ -333,10 +338,14 @@ class RecordWrapper(object):
 
     def removeChildren(self, tag):
         keepers = []
+        removed = []
         for child in self.record['children']:
             if child['tag'] != tag:
                 keepers.append(child)
+            else:
+                removed.append(child)
         self.record['children'] = keepers
+        return removed
 
     def pruneChildrenTo(self, whitelist):
         newChildren = []
@@ -1509,21 +1518,15 @@ class StatsMetadata(RecordWrapper):
                                          self.prodDist.bins[1]
                                          + other.prodDist.bins[1])
         self.numSequencingZmws += other.numSequencingZmws
-        toHandle = [
-            (self.prodDist, other.prodDist),
-            (self.readTypeDist, other.readTypeDist),
-            (self.readLenDist, other.readLenDist),
-            (self.readQualDist, other.readQualDist),
-            (self.medianInsertDist, other.medianInsertDist),
-            (self.insertReadQualDist, other.insertReadQualDist),
-            (self.insertReadLenDist, other.insertReadLenDist),
-            (self.controlReadQualDist, other.controlReadQualDist),
-            (self.controlReadLenDist, other.controlReadLenDist),
-            ]
-        for selfDist, otherDist in toHandle:
+        for dist in DISTLIST:
+            selfDist = getattr(self, dist[0].lower() + dist[1:])
+            otherDist = getattr(other, dist[0].lower() + dist[1:])
             try:
                 selfDist.merge(otherDist)
-            except (BinMismatchError, ZeroBinWidthError) as e:
+            except ZeroBinWidthError as e:
+                removed = self.removeChildren(dist)
+                self.append(otherDist)
+            except BinMismatchError:
                 self.append(otherDist)
             except ValueError:
                 if otherDist:
@@ -1633,7 +1636,9 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
 class ContinuousDistribution(RecordWrapper):
 
     def merge(self, other):
-        if self.binWidth == 0 or other.binWidth == 0:
+        if other.binWidth == 0:
+            return
+        if self.binWidth == 0:
             raise ZeroBinWidthError(self.binWidth, other.binWidth)
         if self.binWidth != other.binWidth:
             raise BinWidthMismatchError(self.binWidth, other.binWidth)
