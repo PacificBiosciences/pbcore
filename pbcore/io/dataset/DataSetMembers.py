@@ -1523,7 +1523,7 @@ class StatsMetadata(RecordWrapper):
         for selfDist, otherDist in toHandle:
             try:
                 selfDist.merge(otherDist)
-            except BinMismatchError:
+            except (BinMismatchError, ZeroBinWidthError) as e:
                 self.append(otherDist)
             except ValueError:
                 if otherDist:
@@ -1633,6 +1633,8 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
 class ContinuousDistribution(RecordWrapper):
 
     def merge(self, other):
+        if self.binWidth == 0 or other.binWidth == 0:
+            raise ZeroBinWidthError(self.binWidth, other.binWidth)
         if self.binWidth != other.binWidth:
             raise BinWidthMismatchError(self.binWidth, other.binWidth)
         if (self.minBinValue % self.binWidth
@@ -1721,6 +1723,16 @@ class ContinuousDistribution(RecordWrapper):
         # work well here:
         return [self.minBinValue + i * self.binWidth for i in
                 range(len(self.bins))]
+
+class ZeroBinWidthError(Exception):
+
+    def __init__(self, width1, width2):
+        self.width1 = width1
+        self.width2 = width2
+
+    def __str__(self):
+        return "Zero bin width: {w1}, {w2}".format(w1=self.width1,
+                                                   w2=self.width2)
 
 class BinMismatchError(Exception):
     pass
