@@ -2777,8 +2777,14 @@ class AlignmentSet(ReadSet):
                      if count != 0]
             balanceKey = lambda x: self.countRecords(*x)
         else:
-            atoms = [(rn, 0, refLens[rn]) for rn in refNames if
-                     self.countRecords(rn) != 0]
+            # if there are that many references, on average they will probably
+            # be distributed pretty evenly. Checking the counts will also be
+            # super expensive
+            if len(refNames) < 100:
+                atoms = [(rn, 0, refLens[rn]) for rn in refNames if
+                         self.countRecords(rn) != 0]
+            else:
+                atoms = [(rn, 0, refLens[rn]) for rn in refNames]
             balanceKey = lambda x: x[2] - x[1]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
@@ -2880,13 +2886,16 @@ class AlignmentSet(ReadSet):
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
         for result, chunk in zip(results, chunks):
+            # we don't want to updateCounts or anything right now, so we'll
+            # block that functionality:
+            result._filters.clearCallbacks()
             if atoms[0][2]:
-                result.filters.addRequirement(
+                result._filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk],
                     tStart=[('<', c[2]) for c in chunk],
                     tEnd=[('>', c[1]) for c in chunk])
             else:
-                result.filters.addRequirement(
+                result._filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk])
 
         # UniqueId was regenerated when the ExternalResource list was
@@ -2896,7 +2905,19 @@ class AlignmentSet(ReadSet):
         # here:
         for result in results:
             result.newUuid()
-            if updateCounts:
+            # If there are so many filters that it will be really expensive, we
+            # will use an approximation for the number of records and bases.
+            # This is probably not too far off, if there are that many chunks
+            # to distribute. We'll still round to indicate that it is an
+            # abstraction.
+            if len(result._filters) > 100:
+                meanNum = self.numRecords/len(chunks)
+                result.numRecords = long(round(meanNum,
+                                               (-1 * len(str(meanNum))) + 3))
+                meanLen = self.totalLength/len(chunks)
+                result.totalLength = long(round(meanLen,
+                                                (-1 * len(str(meanLen))) + 3))
+            elif updateCounts:
                 result._openReaders = self._openReaders
                 passes = result._filters.filterIndexRecords(self.index,
                                                             self.refIds,

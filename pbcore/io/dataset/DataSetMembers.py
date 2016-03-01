@@ -684,7 +684,7 @@ class Filters(RecordWrapper):
                 for i, (oper, val) in enumerate(options):
                     newFilts[i].addRequirement(name, oper, val)
             self.extend(newFilts)
-        log.debug("Current filters: {s}".format(s=str(self)))
+        #log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
 
     def addFilter(self, **kwargs):
