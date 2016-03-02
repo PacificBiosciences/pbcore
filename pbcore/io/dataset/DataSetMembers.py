@@ -1252,6 +1252,11 @@ class SubreadSetMetadata(DataSetMetadata):
         return CollectionsMetadata(self.getV(tag='Collections',
                                              container='children'))
 
+    @collections.setter
+    def collections(self, value):
+        self.removeChildren('Collections')
+        self.append(value)
+
     @property
     def bioSamples(self):
         """Return a list of wrappers around BioSamples elements of the Metadata
