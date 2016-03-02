@@ -156,6 +156,8 @@ def _parseXmls(dsetType, element):
     return result
 
 def _updateStats(element):
+    """This is ugly, hackish and prone to failure. Delete as soon as pre 3.0.16
+    sts.xml files can go unsupported"""
     namer = functools.partial(
         _namespaceTag,
         "http://pacificbiosciences.com/PipelineStats/PipeStats.xsd")
@@ -182,10 +184,10 @@ def _updateStats(element):
             parent = element.find(parent)
             for sub_ele in finds:
                 parent.remove(sub_ele)
-            binCounts = ET.Element(namer('BinCounts'))
+            bce = ET.Element(namer('BinCounts'))
             for sub_ele in finds:
-                binCounts.append(sub_ele)
-            parent.append(binCounts)
+                bce.append(sub_ele)
+            parent.append(bce)
     for tag in binLabels:
         if element.findall(tag):
             log.info("Outdated stats XML received")
@@ -194,10 +196,10 @@ def _updateStats(element):
             parent = element.find(parent)
             for sub_ele in finds:
                 parent.remove(sub_ele)
-            binCounts = ET.Element(namer('BinLabels'))
+            bce = ET.Element(namer('BinLabels'))
             for sub_ele in finds:
-                binCounts.append(sub_ele)
-            parent.append(binCounts)
+                bce.append(sub_ele)
+            parent.append(bce)
     return element
 
 def _namespaceTag(xmlns, tagName):

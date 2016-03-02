@@ -66,7 +66,7 @@ from pbcore.io.dataset.DataSetWriter import namespaces
 log = logging.getLogger(__name__)
 
 DISTLIST = ["ProdDist", "ReadTypeDist", "ReadLenDist", "ReadQualDist",
-            "medianInsertDist", "InsertReadQualDist",
+            "MedianInsertDist", "InsertReadQualDist",
             "InsertReadLenDist", "ControlReadQualDist",
             "ControlReadLenDist"]
 
