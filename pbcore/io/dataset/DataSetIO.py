@@ -1806,17 +1806,20 @@ class ReadSet(DataSet):
             log.debug("Closing old readers...")
             self.close()
         log.debug("Opening ReadSet resources")
+        sharedRefs = {}
         for extRes in self.externalResources:
             refFile = extRes.reference
             if refFile:
-                log.debug("Using reference: {r}".format(r=refFile))
+                if not refFile in sharedRefs:
+                    log.debug("Using reference: {r}".format(r=refFile))
+                    sharedRefs[refFile] = IndexedFastaReader(refFile)
             location = urlparse(extRes.resourceId).path
             resource = None
             try:
                 if extRes.resourceId.endswith('bam'):
-                    resource = IndexedBamReader(
-                        location,
-                        referenceFastaFname=refFile)
+                    resource = IndexedBamReader(location)
+                    if refFile:
+                        resource.referenceFasta = sharedRefs[refFile]
                 else:
                     resource = CmpH5Reader(location)
             except (IOError, ValueError):
@@ -1824,8 +1827,9 @@ class ReadSet(DataSet):
                     log.warn("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
-                    resource = BamReader(
-                        location, referenceFastaFname=refFile)
+                    resource = BamReader(location)
+                    if refFile:
+                        resource.referenceFasta = sharedRefs[refFile]
                 else:
                     raise
             self._openReaders.append(resource)
@@ -3719,12 +3723,19 @@ class ContigSet(DataSet):
             self.close()
         log.debug("Opening resources")
         for extRes in self.externalResources:
-            location = urlparse(extRes.resourceId).path
-            if location.endswith("fastq"):
-                self._fastq = True
-                self._openReaders.append(FastqReader(location))
-                continue
-            resource = None
+            resource = self._openFile(urlparse(extRes.resourceId).path)
+            if resource is not None:
+                self._openReaders.append(resource)
+        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
+            raise IOError("No files were openable")
+        log.debug("Done opening resources")
+
+    def _openFile(self, location):
+        resource = None
+        if location.endswith("fastq"):
+            self._fastq = True
+            resource = FastqReader(location)
+        else:
             try:
                 resource = IndexedFastaReader(location)
             except IOError:
@@ -3743,11 +3754,7 @@ class ContigSet(DataSet):
                 self._skipCounts = True
                 self.metadata.totalLength = 0
                 self.metadata.numRecords = 0
-            if resource is not None:
-                self._openReaders.append(resource)
-        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
-            raise IOError("No files were openable")
-        log.debug("Done opening resources")
+        return resource
 
     def resourceReaders(self, refName=None):
         """A generator of fastaReader objects for the ExternalResources in this
