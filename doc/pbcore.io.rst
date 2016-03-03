@@ -21,7 +21,7 @@ to provide a uniform API:
     For example::
     
       from pbcore.io import *
-      withIndexedBamReader(filename) as f:
+      with IndexedBamReader(filename) as f:
         for r in f:
             print r.HoleNumber
     
@@ -30,7 +30,7 @@ to provide a uniform API:
     
       from pbcore.io import *
       from tqdm import *
-      withIndexedBamReader(filename) as f:
+      with IndexedBamReader(filename) as f:
         for r in tqdm(f):
             print r.HoleNumber
     
