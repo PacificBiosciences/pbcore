@@ -242,7 +242,6 @@ def _parseXmlFilters(element):
 
 def parseStats(filename):
     url = urlparse(filename)
-    fileType = url.scheme
     fileLocation = url.path.strip()
     if url.netloc:
         fileLocation = url.netloc

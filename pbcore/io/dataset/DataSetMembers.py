@@ -470,6 +470,19 @@ class Filters(RecordWrapper):
                         options[i] = False
         return any(options)
 
+    def testField(self, param, values, testType=str, oper='='):
+        passes = np.zeros(len(values), dtype=np.bool_)
+        tested = False
+        for i, filt in enumerate(self):
+            for req in filt:
+                if req.name == param:
+                    tested = True
+                    passes |= mapOp(oper)(testType(req.value),
+                                          values)
+        if not tested:
+            return np.ones(len(values), dtype=np.bool_)
+        return passes
+
     @property
     def _bamAccMap(self):
         return {'rname': (lambda x: x.referenceName),
@@ -1210,6 +1223,12 @@ class DataSetMetadata(RecordWrapper):
         except ValueError:
             return None
 
+    @summaryStats.setter
+    def summaryStats(self, value):
+        self.removeChildren('SummaryStats')
+        if value:
+            self.append(value)
+
     @property
     def provenance(self):
         try:
@@ -1255,7 +1274,8 @@ class SubreadSetMetadata(DataSetMetadata):
     @collections.setter
     def collections(self, value):
         self.removeChildren('Collections')
-        self.append(value)
+        if value:
+            self.append(value)
 
     @property
     def bioSamples(self):

@@ -2344,6 +2344,10 @@ class TestDataSet(unittest.TestCase):
         ss.write(outXml)
         ss = SubreadSet(outXml)
         self.assertTrue(ss.metadata.summaryStats)
+        # test validation on write with loaded stats:
+        outXml = os.path.join(outdir, 'tempfileWithStats.xml')
+        ss.write(outXml, validate=False)
+        ss.write(outXml)
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")

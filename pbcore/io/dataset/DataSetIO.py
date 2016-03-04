@@ -2381,6 +2381,7 @@ class AlignmentSet(ReadSet):
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
+        self.__referenceIdMap = None
 
     @property
     @filtered
@@ -2557,7 +2558,7 @@ class AlignmentSet(ReadSet):
     @property
     def refNames(self):
         """A list of reference names (id)."""
-        return sorted([name for _, name in self.refInfo('Name')])
+        return np.sort(self.referenceInfoTable["Name"])
 
     def _indexReadsInReference(self, refName):
         # This can probably be deprecated for all but the official reads in
@@ -3358,10 +3359,7 @@ class AlignmentSet(ReadSet):
                     rec.Name = self._cleanCmpName(rec.FullName)
             log.debug("Filtering reference entries")
             if not self.noFiltering and self._filters:
-                passes = []
-                for i, reference in enumerate(table):
-                    if self._filters.testParam('rname', reference.Name):
-                        passes.append(i)
+                passes = self._filters.testField('rname', table['Name'])
                 table = table[passes]
             self._referenceInfoTable = table
             #TODO: Turn on when needed (expensive)
@@ -3381,7 +3379,10 @@ class AlignmentSet(ReadSet):
         from.
 
         """
-        return {ref.ID: ref.Name for ref in self.referenceInfoTable}
+        if self.__referenceIdMap is None:
+            self.__referenceIdMap = {ref.ID: ref.Name
+                                     for ref in self.referenceInfoTable}
+        return self.__referenceIdMap
 
     def _cleanCmpName(self, name):
         return splitFastaHeader(name)[0]

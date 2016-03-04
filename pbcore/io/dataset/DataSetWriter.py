@@ -2,6 +2,9 @@
 
 import copy, time
 import xml.etree.ElementTree as ET
+import logging
+
+log = logging.getLogger(__name__)
 
 # TODO add in other namespaces
 XMLNS = 'http://pacificbiosciences.com/PacBioDatasets.xsd'
@@ -218,7 +221,16 @@ def _addDataSetMetadataElement(dataSet, root):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataSet.metadata:
+        # hide the stats:
+        log.info("SummaryStats are no longer written to the XML, instead "
+                 "they are read from an external resource as appropriate")
+        stats = None
+        if dataSet.metadata.summaryStats:
+            stats = dataSet.metadata.summaryStats
+            dataSet.metadata.summaryStats = None
         root.append(_eleFromDictList(dataSet.metadata.record))
+        if stats:
+            dataSet.metadata.summaryStats = stats
         # Metadata order matters....
         #tl = dsmd.find('TotalLength')
         #tl = dsmd.remove(tl)
