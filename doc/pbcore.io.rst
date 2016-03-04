@@ -50,8 +50,6 @@ to provide a uniform API:
     the `CmpH5Reader` object will be automatically closed after the
     block within the "with" statement is executed.
 
-  -
-
 BAM/cmp.h5 compatibility: quick start
 -------------------------------------
 
