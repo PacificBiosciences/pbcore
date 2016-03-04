@@ -222,8 +222,6 @@ def _addDataSetMetadataElement(dataSet, root):
     """
     if dataSet.metadata:
         # hide the stats:
-        log.info("SummaryStats are no longer written to the XML, instead "
-                 "they are read from an external resource as appropriate")
         stats = None
         if dataSet.metadata.summaryStats:
             stats = dataSet.metadata.summaryStats

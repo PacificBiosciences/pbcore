@@ -371,9 +371,7 @@ class DataSet(object):
         self.fileNames = files
 
         # parse files
-        log.debug('Containers specified')
         populateDataSet(self, files)
-        log.debug('Done populating')
 
         if not skipMissing:
             self._modResources(_fileExists)
@@ -2236,7 +2234,6 @@ class HdfSubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.HDF_SUBREAD
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening HdfSubreadSet")
         super(HdfSubreadSet, self).__init__(*files, **kwargs)
 
         # The metatype for this dataset type is inconsistent, plaster over it
@@ -2347,7 +2344,6 @@ class SubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.SUBREAD
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening SubreadSet")
         super(SubreadSet, self).__init__(*files, **kwargs)
 
     @staticmethod
@@ -2376,7 +2372,6 @@ class AlignmentSet(ReadSet):
             :strict=False: see base class
             :skipCounts=False: see base class
         """
-        log.debug("Opening AlignmentSet with {f}".format(f=files))
         super(AlignmentSet, self).__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
@@ -2581,6 +2576,7 @@ class AlignmentSet(ReadSet):
         """Going to be tricky unless the filters are really focused on
         windowing the reference. Much nesting or duplication and the correct
         results are really not guaranteed"""
+        log.debug("Fetching reference windows...")
         windowTuples = []
         nameIDs = self.refInfo('Name')
         refLens = None
@@ -2613,6 +2609,7 @@ class AlignmentSet(ReadSet):
                     refLens = self.refLengths
                 refLen = refLens[name]
                 windowTuples.append((refId, 0, refLen))
+        log.debug("Done fetching reference windows")
         return sorted(windowTuples)
 
     def countRecords(self, rname=None, winStart=None, winEnd=None):
@@ -3488,7 +3485,6 @@ class ContigSet(DataSet):
     datasetType = DataSetMetaTypes.CONTIG
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening ContigSet")
         super(ContigSet, self).__init__(*files, **kwargs)
         self._metadata = ContigSetMetadata(self._metadata)
         self._updateMetadata()
@@ -3720,16 +3716,16 @@ class ContigSet(DataSet):
         type before accessing any file)
         """
         if self._openReaders:
-            log.debug("Closing old readers...")
+            log.debug("Closing old Contig readers...")
             self.close()
-        log.debug("Opening resources")
+        log.debug("Opening Contig resources")
         for extRes in self.externalResources:
             resource = self._openFile(urlparse(extRes.resourceId).path)
             if resource is not None:
                 self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
-        log.debug("Done opening resources")
+        log.debug("Done opening Contig resources")
 
     def _openFile(self, location):
         resource = None
@@ -3888,7 +3884,6 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening ReferenceSet with {f}".format(f=files))
         super(ReferenceSet, self).__init__(*files, **kwargs)
 
     @property
@@ -3915,7 +3910,6 @@ class BarcodeSet(DataSet):
     datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files, **kwargs):
-        log.debug("Opening BarcodeSet")
         super(BarcodeSet, self).__init__(*files, **kwargs)
         self._metadata = BarcodeSetMetadata(self._metadata)
 
