@@ -23,16 +23,16 @@ to provide a uniform API:
       from pbcore.io import *
       with IndexedBamReader(filename) as f:
         for r in f:
-            print r.HoleNumber
+            process(r)
     
     To make scripts a bit more user friendly, a progress bar can be
-    easily added using the `tqdm` class::
+    easily added using the `tqdm` third-party package::
     
       from pbcore.io import *
-      from tqdm import *
+      from tqdm import tqdm
       with IndexedBamReader(filename) as f:
         for r in tqdm(f):
-            print r.HoleNumber
+            process(r)
     
 
   - The constructor argument needed to instantiate `Reader` and
