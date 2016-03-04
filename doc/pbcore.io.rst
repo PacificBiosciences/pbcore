@@ -12,9 +12,28 @@ The classes within ``pbcore.io`` adhere to a few conventions, in order
 to provide a uniform API:
 
   - Each data file type is thought of as a container of a `Record`
-    type; all `Reader` classes support streaming access, and
-    `CmpH5Reader` and `BasH5Reader` additionally provide random-access
+    type; all `Reader` classes support streaming access by iterating on the 
+    reader object, and
+    `CmpH5Reader`, `BasH5Reader` and `IndexedBarReader` additionally 
+    provide random-access
     to alignments/reads.
+    
+    For example::
+    
+      from pbcore.io import *
+      with IndexedBamReader(filename) as f:
+        for r in f:
+            process(r)
+    
+    To make scripts a bit more user friendly, a progress bar can be
+    easily added using the `tqdm` third-party package::
+    
+      from pbcore.io import *
+      from tqdm import tqdm
+      with IndexedBamReader(filename) as f:
+        for r in tqdm(f):
+            process(r)
+    
 
   - The constructor argument needed to instantiate `Reader` and
     `Writer` objects can be either a filename (which can be suffixed
@@ -30,7 +49,6 @@ to provide a uniform API:
 
     the `CmpH5Reader` object will be automatically closed after the
     block within the "with" statement is executed.
-
 
 BAM/cmp.h5 compatibility: quick start
 -------------------------------------
