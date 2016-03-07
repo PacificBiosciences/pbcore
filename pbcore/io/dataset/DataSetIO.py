@@ -348,6 +348,7 @@ class DataSet(object):
             True
 
         """
+        files = [str(fn) for fn in files]
         self._strict = kwargs.get('strict', False)
         skipMissing = kwargs.get('skipMissing', False)
         self._skipCounts = kwargs.get('skipCounts', False)
@@ -1012,8 +1013,8 @@ class DataSet(object):
             [3152, 1802, 798, 0]
 
         """
-        if isinstance(filename, str):
-            statsMetadata = parseStats(filename)
+        if isinstance(filename, basestring):
+            statsMetadata = parseStats(str(filename))
         else:
             statsMetadata = filename
         if self.metadata.summaryStats:
@@ -1805,6 +1806,8 @@ class ReadSet(DataSet):
             self.close()
         log.debug("Opening ReadSet resources")
         sharedRefs = {}
+        infotables = []
+        infodicts = []
         for extRes in self.externalResources:
             refFile = extRes.reference
             if refFile:
@@ -1830,6 +1833,24 @@ class ReadSet(DataSet):
                         resource.referenceFasta = sharedRefs[refFile]
                 else:
                     raise
+            # Consolidate referenceDicts
+            # This gets huge when there are ~90k references. If you have ~28
+            # chunks, each with 28 BamReaders, each with 100MB referenceDicts,
+            # you end up storing tens of gigs of just these (often identical)
+            # dicts
+            if not len(infotables):
+                infotables.append(resource._referenceInfoTable)
+                infodicts.append(resource._referenceDict)
+            else:
+                for ri, rd in zip(infotables, infodicts):
+                    if np.array_equal(resource._referenceInfoTable, ri):
+                        del resource._referenceInfoTable
+                        del resource._referenceDict
+                        resource._referenceInfoTable = ri
+                        resource._referenceDict = rd
+                        break
+                    infotables.append(resource._referenceInfoTable)
+                    infodicts.append(resource._referenceDict)
             self._openReaders.append(resource)
             try:
                 if resource.isEmpty:
@@ -1842,6 +1863,7 @@ class ReadSet(DataSet):
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
         log.debug("Done opening resources")
+
 
     def _filterType(self):
         return 'bam'
@@ -2077,7 +2099,7 @@ class ReadSet(DataSet):
 
         """
         recArrays = []
-        self._indexMap = []
+        _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
             if len(indices) == 0:
@@ -2087,7 +2109,7 @@ class ReadSet(DataSet):
 
             if not self._filters or self.noFiltering:
                 recArrays.append(indices._tbl)
-                self._indexMap.extend([(rrNum, i) for i in
+                _indexMap.extend([(rrNum, i) for i in
                                        range(len(indices._tbl))])
             else:
                 # Filtration will be necessary:
@@ -2101,9 +2123,10 @@ class ReadSet(DataSet):
                                                           self.movieIds)
                 newInds = indices._tbl[passes]
                 recArrays.append(newInds)
-                self._indexMap.extend([(rrNum, i) for i in
-                                       np.nonzero(passes)[0]])
-        self._indexMap = np.array(self._indexMap)
+                _indexMap.extend([(rrNum, i) for i in
+                                       np.flatnonzero(passes)])
+        self._indexMap = np.array(_indexMap, dtype=[('reader', 'uint64'),
+                                                    ('index', 'uint64')])
         if recArrays == []:
             return recArrays
         return _stackRecArrays(recArrays)
@@ -2463,7 +2486,7 @@ class AlignmentSet(ReadSet):
         """
         recArrays = []
         log.debug("Processing resource pbis")
-        self._indexMap = []
+        _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
             # pbi files lack e.g. mapping cols when bam emtpy, ignore
@@ -2485,16 +2508,17 @@ class AlignmentSet(ReadSet):
             # filter
             if not self._filters or self.noFiltering:
                 recArrays.append(indices)
-                self._indexMap.extend([(rrNum, i) for i in
-                                       range(len(indices))])
+                _indexMap.extend([(rrNum, i) for i in
+                                  range(len(indices))])
             else:
                 passes = self._filters.filterIndexRecords(indices, self.refIds,
                                                           self.movieIds)
                 newInds = indices[passes]
                 recArrays.append(newInds)
-                self._indexMap.extend([(rrNum, i) for i in
-                                       np.nonzero(passes)[0]])
-        self._indexMap = np.array(self._indexMap)
+                _indexMap.extend([(rrNum, i) for i in
+                                  np.flatnonzero(passes)])
+        self._indexMap = np.array(_indexMap, dtype=[('reader', 'uint64'),
+                                                    ('index', 'uint64')])
         if recArrays == []:
             return recArrays
         tbr = _stackRecArrays(recArrays)
@@ -2643,28 +2667,13 @@ class AlignmentSet(ReadSet):
 
         """
 
-        if isinstance(refName, np.int64):
-            refName = str(refName)
-        if refName.isdigit():
-            if (not refName in self.refNames
-                    and not refName in self.fullRefNames):
-                try:
-                    refName = self._idToRname(int(refName))
-                except AttributeError:
-                    raise StopIteration
-
-        # I would love to use readsInRange(refName, None, None), but
-        # IndexedBamReader breaks this (works for regular BamReader).
-        # So I have to do a little hacking...
-        refLen = 0
-        for resource in self.resourceReaders():
-            if (refName in resource.referenceInfoTable['Name'] or
-                    refName in resource.referenceInfoTable['FullName']):
-                refLen = resource.referenceInfo(refName).Length
-                break
-        if refLen:
-            for read in self.readsInRange(refName, 0, refLen):
-                yield read
+        try:
+            refName = self.guaranteeName(refName)
+            refLen = self.refLengths[refName]
+        except (KeyError, AttributeError):
+            raise StopIteration
+        for read in self.readsInRange(refName, 0, refLen):
+            yield read
 
     def intervalContour(self, rname, tStart=0, tEnd=None):
         """Take a set of index records and build a pileup of intervals, or
@@ -3844,7 +3853,7 @@ class ContigSet(DataSet):
 
         """
         recArrays = []
-        self._indexMap = []
+        _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.fai
             if len(indices) == 0:
@@ -3858,8 +3867,8 @@ class ContigSet(DataSet):
 
             if not self._filters or self.noFiltering:
                 recArrays.append(indices)
-                self._indexMap.extend([(rrNum, i) for i in
-                                       range(len(indices))])
+                _indexMap.extend([(rrNum, i) for i in
+                                  range(len(indices))])
             else:
                 # Filtration will be necessary:
                 # dummy map, the id is the name in fasta space
@@ -3869,9 +3878,10 @@ class ContigSet(DataSet):
                                                           readType='fasta')
                 newInds = indices[passes]
                 recArrays.append(newInds)
-                self._indexMap.extend([(rrNum, i) for i in
-                                       np.nonzero(passes)[0]])
-        self._indexMap = np.array(self._indexMap)
+                _indexMap.extend([(rrNum, i) for i in
+                                  np.flatnonzero(passes)])
+        self._indexMap = np.array(_indexMap, dtype=[('reader', 'uint64'),
+                                                    ('index', 'uint64')])
         return _stackRecArrays(recArrays)
 
     def _filterType(self):

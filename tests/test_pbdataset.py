@@ -383,6 +383,11 @@ class TestDataSet(unittest.TestCase):
                 ds = openDataSet(infn, strict=False)
             self.assertEqual(type(ds), exp)
 
+    def test_openDataSet_unicode(self):
+        # Test to see if we can't open a unicode filename
+        fn = data.getXml(8)
+        aln = openDataSet(unicode(fn))
+
     def test_type_checking(self):
         bam = data.getBam()
         fasta = ReferenceSet(data.getXml(9)).toExternalFiles()[0]
