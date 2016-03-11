@@ -975,8 +975,14 @@ class DataSet(object):
         if pretty:
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
+
+        # not useful yet as a list, but nice to keep the options open:
+        validation_errors = []
         if validate:
-            validateString(xml_string, relTo=os.path.dirname(outFile))
+            try:
+                validateString(xml_string, relTo=os.path.dirname(outFile))
+            except Exception as e:
+                validation_errors.append(e)
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):
             if not fileName.endswith(_dsIdToSuffix(self.datasetType)):
@@ -987,6 +993,10 @@ class DataSet(object):
                               fileName)
         with open(fileName, 'w') as outFile:
             outFile.writelines(xml_string)
+
+        for e in validation_errors:
+            log.error("Invalid file produced: {f}".format(f=fileName))
+            raise e
 
     def loadStats(self, filename):
         """Load pipeline statistics from a <moviename>.sts.xml file. The subset
@@ -3499,6 +3509,16 @@ class ContigSet(DataSet):
         self._updateMetadata()
         self._fastq = False
 
+    def split(self, nchunks):
+        keys = self.index.id
+        chunks = divideKeys(keys, nchunks)
+        results = [self.copy() for _ in range(nchunks)]
+        for chunk, res in zip(chunks, results):
+            res._filters.addRequirement(id=[('=', n) for n in chunk])
+            res.newUuid()
+            res.updateCounts()
+        return results
+
     def consolidate(self, outfn=None, numFiles=1, useTmp=False):
         """Consolidation should be implemented for window text in names and
         for filters in ContigSets"""
@@ -3667,14 +3687,15 @@ class ContigSet(DataSet):
             if not self.metadata.numRecords:
                 self.metadata.numRecords = -1
             return
-        try:
-            log.debug('Updating counts')
+        if not self.isIndexed:
+            log.info("Cannot updateCounts without an index file")
             self.metadata.totalLength = 0
             self.metadata.numRecords = 0
-            for res in self.resourceReaders():
-                self.metadata.numRecords += len(res)
-                for index in res.fai:
-                    self.metadata.totalLength += index.length
+            return
+        try:
+            log.debug('Updating counts')
+            self.metadata.totalLength = sum(self.index.length)
+            self.metadata.numRecords = len(self.index)
         except (IOError, UnavailableFeature, TypeError):
             # IOError for missing files
             # UnavailableFeature for files without companion files
@@ -3827,6 +3848,8 @@ class ContigSet(DataSet):
     def contigNames(self):
         """The names assigned to the External Resources, or contigs if no name
         assigned."""
+        # TODO{mdsmith}{3/10/2016} Make this faster by using (optionally) the
+        # index file
         names = []
         for contig in self.contigs:
             if (self.noFiltering
@@ -3882,6 +3905,12 @@ class ContigSet(DataSet):
                                   np.flatnonzero(passes)])
         self._indexMap = np.array(_indexMap, dtype=[('reader', 'uint64'),
                                                     ('index', 'uint64')])
+        if len(recArrays) == 0:
+            recArrays = [np.array(
+                [],
+                dtype=[('id', 'O'), ('comment', 'O'), ('header', 'O'),
+                       ('length', '<i8'), ('offset', '<i8'),
+                       ('lineWidth', '<i8'), ('stride', '<i8')])]
         return _stackRecArrays(recArrays)
 
     def _filterType(self):

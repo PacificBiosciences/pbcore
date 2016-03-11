@@ -132,6 +132,28 @@ class TestDataSet(unittest.TestCase):
         for name in names:
             self.assertTrue(ds[name].id == name)
 
+    def test_contigset_split(self):
+        ref = ReferenceSet(data.getXml(9))
+        exp_n_contigs = len(ref)
+        refs = ref.split(10)
+        self.assertEqual(len(refs), 10)
+        obs_n_contigs = 0
+        for r in refs:
+            obs_n_contigs += sum(1 for _ in r)
+        self.assertEqual(obs_n_contigs, exp_n_contigs)
+
+
+    def test_contigset_len(self):
+        ref = ReferenceSet(data.getXml(9))
+        exp_n_contigs = len(ref)
+        refs = ref.split(10)
+        self.assertEqual(len(refs), 10)
+        obs_n_contigs = 0
+        for r in refs:
+            obs_n_contigs += len(r)
+        self.assertEqual(obs_n_contigs, exp_n_contigs)
+
+
     def test_ccsread_build(self):
         ds1 = ConsensusReadSet(data.getXml(2), strict=False, skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'ConsensusReadSet')
