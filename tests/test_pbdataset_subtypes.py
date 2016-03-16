@@ -7,11 +7,13 @@ import os
 import itertools
 import numpy as np
 
+import pysam
+
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
                                     BamtoolsVersion)
 from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
-                       ReferenceSet, ContigSet, AlignmentSet,
+                       ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
                        openDataFile, FastaWriter)
@@ -729,3 +731,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(reads)), 2)
         self.assertEqual(len(list(aln)), 112)
         self.assertEqual(len(aln.index), 112)
+
+    @unittest.skip("TODO")
+    def test_barcodeset(self):
+        fa_out = tempfile.NamedTemporaryFile(suffix=".fasta").name
+        with open(fa_out, "w") as f:
+            f.write(">bc1\nAAAAAAAAAAAAAAAA\n>bc2\nCCCCCCCCCCCCCCCC")
+        ds = BarcodeSet(fa_out)
+        ds.induceIndices()
+        self.assertEqual([r.id for r in ds], ["bc1","bc2"])
+        ds_out = tempfile.NamedTemporaryFile(suffix=".barcodeset.xml").name
+        ds.write(ds_out)
