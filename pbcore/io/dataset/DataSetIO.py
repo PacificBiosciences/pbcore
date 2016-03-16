@@ -2290,7 +2290,7 @@ class HdfSubreadSet(ReadSet):
 
     @property
     def isIndexed(self):
-        return True
+        return False
 
     def _openFiles(self):
         """Open the files (assert they exist, assert they are of the proper
@@ -3514,6 +3514,7 @@ class ContigSet(DataSet):
     datasetType = DataSetMetaTypes.CONTIG
 
     def __init__(self, *files, **kwargs):
+        self._fastq = False
         super(ContigSet, self).__init__(*files, **kwargs)
         # weaken by permitting failure to allow BarcodeSet to have own
         # Metadata type
@@ -3522,7 +3523,6 @@ class ContigSet(DataSet):
             self._updateMetadata()
         except TypeError:
             pass
-        self._fastq = False
 
     def split(self, nchunks):
         log.debug("Getting and dividing contig id's")
@@ -3617,18 +3617,23 @@ class ContigSet(DataSet):
             if not outfn:
                 log.debug("Writing to a temp directory as no path given")
                 outdir = tempfile.mkdtemp(suffix="consolidated-contigset")
-                outfn = os.path.join(outdir,
-                                     'consolidated_contigs.fasta')
+                if self._fastq:
+                    outfn = os.path.join(outdir,
+                                         'consolidated_contigs.fastq')
+                else:
+                    outfn = os.path.join(outdir,
+                                         'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
                 for name, seq in writeMatches.items():
+                    name_key = name
                     if writeComments[name]:
                         name = ' '.join([name, writeComments[name]])
                     if self._fastq:
-                        outfile.writeRecord(name, seq,
-                                            qvsFromAscii(writeQualities[name]))
-                        continue
-                    outfile.writeRecord(name, seq)
+                        outfile.writeRecord(
+                            name, seq, qvsFromAscii(writeQualities[name_key]))
+                    else:
+                        outfile.writeRecord(name, seq)
             if not self._fastq:
                 _indexFasta(outfn)
             # replace resources
@@ -3636,9 +3641,10 @@ class ContigSet(DataSet):
             self.externalResources = ExternalResources()
             self.addExternalResources([outfn])
             # replace contig info
-            log.debug("Replacing metadata")
-            self._metadata.contigs = []
-            self._populateContigMetadata()
+            if not self._fastq:
+                log.debug("Replacing metadata")
+                self._metadata.contigs = []
+                self._populateContigMetadata()
         self._populateMetaTypes()
 
     @property
@@ -3818,7 +3824,7 @@ class ContigSet(DataSet):
             self._openFiles()
         else:
             for reader in self._openReaders:
-                if isinstance(reader, FastaReader):
+                if isinstance(reader, (FastaReader, FastqReader)):
                     reader.file = open(reader.filename, "r")
         return self._openReaders
 

@@ -16,7 +16,7 @@ from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile, FastaWriter)
+                       openDataFile, FastaWriter, FastqReader)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -545,6 +545,52 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(hdfdss), 2)
         self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
         self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_len_fastq(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
+              'lambda/2590980/0008/Analysis_Results/'
+              'm141115_075238_ethan_c100699872550000001'
+              '823139203261572_s1_p0.1.subreads.fastq')
+        fq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
+        with open(fq_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 24):
+                    fqh.write(line)
+        cset = ContigSet(fq_out)
+        self.assertFalse(cset.isIndexed)
+        self.assertTrue(isinstance(cset.resourceReaders()[0], FastqReader))
+        self.assertEqual(sum(1 for _ in cset),
+                         sum(1 for _ in FastqReader(fq_out)))
+        self.assertEqual(sum(1 for _ in cset), 6)
+        # XXX not possible, fastq files can't be indexed:
+        #self.assertEqual(len(cset), sum(1 for _ in cset))
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_fastq_consolidate(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
+              'lambda/2590980/0008/Analysis_Results/'
+              'm141115_075238_ethan_c100699872550000001'
+              '823139203261572_s1_p0.1.subreads.fastq')
+        fq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
+        cfq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
+        with open(fq_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 240):
+                    fqh.write(line)
+        cset = ContigSet(fq_out)
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 60)
+        cset.filters.addRequirement(length=[('>', 1000)])
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 23)
+        cset.consolidate(cfq_out)
+        cset_l = sum(1 for _ in cset)
+        cfq = FastqReader(cfq_out)
+        self.assertEqual(cset_l, 23)
+        self.assertEqual(cset_l, sum(1 for _ in cfq))
 
 
     def test_len(self):
