@@ -362,6 +362,17 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(read1, read2)
         self.assertEqual(len(list(aln)), len(list(nonCons)))
 
+    def test_accuracy_filter(self):
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        aln.filters.addRequirement(accuracy=[('>', '.85')])
+        self.assertEqual(len(list(aln)), 174)
+
+    def test_contigset_filter(self):
+        ref = ReferenceSet(data.getXml(9))
+        self.assertEqual(len(list(ref)), 59)
+        ref.filters.addRequirement(length=[('>', '1450')])
+        self.assertEqual(len(list(ref)), 34)
 
     @unittest.skipIf(not _check_constools() or not _internal_data(),
                      "bamtools, pbindex or data not found, skipping")
@@ -742,3 +753,37 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual([r.id for r in ds], ["bc1","bc2"])
         ds_out = tempfile.NamedTemporaryFile(suffix=".barcodeset.xml").name
         ds.write(ds_out)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_barcode_split_cornercases(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/'
+              'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
+              '.tiny.subreadset.xml')
+        sset = SubreadSet(fn)
+        ssets = sset.split(chunks=3, barcodes=True)
+        self.assertEqual([str(ss.filters) for ss in ssets],
+                         ["( bc = [0, 0] )",
+                          "( bc = [1, 1] )",
+                          "( bc = [2, 2] )"])
+        sset = SubreadSet(fn)
+        self.assertEqual(len(sset), 15133)
+        sset.filters = None
+        self.assertEqual(str(sset.filters), "")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 2667562)
+
+        sset.filters.addRequirement(bc=[('=', '[2, 2]')])
+        self.assertEqual(str(sset.filters), "( bc = [2, 2] )")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 4710)
+
+        sset.filters = None
+        self.assertEqual(str(sset.filters), "")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 2667562)
+
+        sset.filters.addRequirement(bc=[('=', '[2,2]')])
+        self.assertEqual(str(sset.filters), "( bc = [2,2] )")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 4710)

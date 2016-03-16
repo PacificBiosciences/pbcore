@@ -798,6 +798,18 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(str(ds2.filters).startswith(
             '( rname = E.faecalis'))
 
+    def test_setFilters(self):
+        ds1 = DataSet()
+        filt = Filters()
+        filt.addRequirement(rq=[('>', '0.85')])
+        ds1.addFilters(filt)
+        self.assertEquals(str(ds1.filters), '( rq > 0.85 )')
+        # Or added from a source XML
+        ds2 = DataSet()
+        ds2.filters = ds1.filters
+        self.assertEquals(str(ds2.filters), '( rq > 0.85 )')
+
+
     def test_add_double_bound_filters(self):
         ds1 = AlignmentSet(data.getXml(8))
         ds1.filters.addRequirement(rq=[('>', '0.85'),

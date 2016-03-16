@@ -524,6 +524,11 @@ class Filters(RecordWrapper):
                 'readstart': (lambda x: x.aStart),
                 'tstart': (lambda x: x.tStart),
                 'tend': (lambda x: x.tEnd),
+                'accuracy': (
+                    lambda x: (np.ones(len(x.nMM), dtype='f4') -
+                               (x.nMM + x.nIns + x.nDel).astype(np.float32)/
+                               (x.aEnd - x.aStart + x.tEnd - x.tStart -
+                                x.nM - x.nMM)))
                }
         base = self._pbiVecAccMap()
         base.update(plus)
@@ -541,7 +546,7 @@ class Filters(RecordWrapper):
                 'bcr': (lambda x: x.bcForward),
                 'bcq': (lambda x: x.bcQual),
                 'bq': (lambda x: x.bcQual),
-                'bc': (lambda x: np.array(zip(x.bcForward, x.bcReverse))),
+                'bc': (lambda x: x['bcForward', 'bcReverse']),
                 'cx': (lambda x: x.contextFlag),
                 'n_subreads': (lambda x: np.array(
                     [len(np.flatnonzero(x.holeNumber == hn))
@@ -581,7 +586,7 @@ class Filters(RecordWrapper):
             typeMap = self._bamTypeMap
         elif readType.lower() == "fasta":
             accMap = {'id': (lambda x: x.id),
-                      'length': (lambda x: int(x.length)),
+                      'length': (lambda x: int(len(x))),
                      }
             typeMap = {'id': str,
                        'length': int,
@@ -619,7 +624,7 @@ class Filters(RecordWrapper):
                 accMap['qname'] = (lambda x: x.MovieID)
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
-                      'length': (lambda x: int(x.length)),
+                      'length': (lambda x: x.length.astype(int)),
                      }
             typeMap = {'id': str,
                        'length': int,
@@ -1109,7 +1114,7 @@ class ExternalResource(RecordWrapper):
             fileIndices = FileIndices(fileIndices[0])
         else:
             fileIndices = FileIndices()
-        for index in indices:
+        for index in list(indices):
             temp = FileIndex()
             temp.resourceId = index
             fileIndices.append(temp)

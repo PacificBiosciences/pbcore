@@ -113,10 +113,11 @@ def isDataSet(xmlfile):
 
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
-    if not isDataSet(files[0]):
+    try:
+        tbrType = _typeDataSet(files[0])
+        return tbrType(*files, **kwargs)
+    except Exception:
         raise TypeError("openDataSet requires that the first file is a DS")
-    tbrType = _typeDataSet(files[0])
-    return tbrType(*files, **kwargs)
 
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
@@ -1390,8 +1391,14 @@ class DataSet(object):
 
         The order of yielded reads is determined by the order of the
         ExternalResources and record order within each file"""
-        for record in self.records:
-            yield record
+        if self.isIndexed:
+            # this uses the index to respect filters
+            for i in xrange(len(self)):
+                yield self[i]
+        else:
+            # this uses post-filtering to respect filters
+            for record in self.records:
+                yield record
 
     @property
     def subSetNames(self):
@@ -1562,7 +1569,9 @@ class DataSet(object):
         if value is None:
             self._filters = Filters()
         else:
+            value.clearCallbacks()
             self._filters = value
+        self.reFilter()
 
     def reFilter(self, light=True):
         """
@@ -1934,6 +1943,7 @@ class ReadSet(DataSet):
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
         for result, chunk in zip(results, chunks):
+            result.filters.removeRequirement('bc')
             result.filters.addRequirement(
                 bc=[('=', list(c[0])) for c in chunk])
 
@@ -3510,12 +3520,16 @@ class ContigSet(DataSet):
         self._fastq = False
 
     def split(self, nchunks):
+        log.debug("Getting and dividing contig id's")
         keys = self.index.id
         chunks = divideKeys(keys, nchunks)
+        log.debug("Creating copies of the dataset")
         results = [self.copy() for _ in range(nchunks)]
+        log.debug("Applying filters and updating counts")
         for chunk, res in zip(chunks, results):
             res._filters.addRequirement(id=[('=', n) for n in chunk])
             res.newUuid()
+            log.debug("Updating new res counts:")
             res.updateCounts()
         return results
 
@@ -3551,6 +3565,8 @@ class ContigSet(DataSet):
         writeTemp = False
         # consolidate multiple files into one
         if len(self.toExternalFiles()) > 1:
+            writeTemp = True
+        if self._filters and not self.noFiltering:
             writeTemp = True
         writeMatches = {}
         writeComments = {}
@@ -3793,7 +3809,12 @@ class ContigSet(DataSet):
         """
         if refName:
             log.error("Specifying a contig name not yet implemented")
-        self._openFiles()
+        if not self._openReaders:
+            self._openFiles()
+        else:
+            for reader in self._openReaders:
+                if isinstance(reader, FastaReader):
+                    reader.file = open(reader.filename, "r")
         return self._openReaders
 
     @property
@@ -3818,11 +3839,7 @@ class ContigSet(DataSet):
                 return contig
 
     def assertIndexed(self):
-        # I would prefer to use _assertIndexed, but want to pass up the
-        # original error
-        if not self.isIndexed:
-            self._strict = True
-            self._openFiles()
+        self._assertIndexed(IndexedFastaReader)
         return True
 
     @property
@@ -3943,7 +3960,7 @@ class ReferenceSet(ContigSet):
                }
 
 
-class BarcodeSet(DataSet):
+class BarcodeSet(ContigSet):
     """DataSet type specific to Barcodes"""
 
     datasetType = DataSetMetaTypes.BARCODE
