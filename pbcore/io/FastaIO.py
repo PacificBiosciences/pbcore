@@ -253,7 +253,7 @@ class FastaWriter(WriterBase):
         if len(args) == 1:
             record = args[0]
             if isinstance(record, IndexedFastaRecord):
-                record = FastaRecord(record.header, record.sequence)
+                record = FastaRecord(record.header, record.sequence[:])
             assert isinstance(record, FastaRecord)
         else:
             header, sequence = args
