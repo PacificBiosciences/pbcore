@@ -1373,7 +1373,14 @@ class BarcodeSetMetadata(DataSetMetadata):
 
     @property
     def barcodeConstruction(self):
-        return self.getMemberV('BarcodeConstruction')
+        try:
+            return self.getMemberV('BarcodeConstruction')
+        except ValueError:
+            return None
+
+    @barcodeConstruction.setter
+    def barcodeConstruction(self, value):
+        self.setMemberV('BarcodeConstruction', value)
 
 
 class ContigsMetadata(RecordWrapper):

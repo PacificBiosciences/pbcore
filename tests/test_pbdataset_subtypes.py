@@ -743,7 +743,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(aln)), 112)
         self.assertEqual(len(aln.index), 112)
 
-    @unittest.skip("TODO")
     def test_barcodeset(self):
         fa_out = tempfile.NamedTemporaryFile(suffix=".fasta").name
         with open(fa_out, "w") as f:

@@ -3515,8 +3515,13 @@ class ContigSet(DataSet):
 
     def __init__(self, *files, **kwargs):
         super(ContigSet, self).__init__(*files, **kwargs)
-        self._metadata = ContigSetMetadata(self._metadata)
-        self._updateMetadata()
+        # weaken by permitting failure to allow BarcodeSet to have own
+        # Metadata type
+        try:
+            self._metadata = ContigSetMetadata(self._metadata)
+            self._updateMetadata()
+        except TypeError:
+            pass
         self._fastq = False
 
     def split(self, nchunks):
@@ -3967,7 +3972,8 @@ class BarcodeSet(ContigSet):
 
     def __init__(self, *files, **kwargs):
         super(BarcodeSet, self).__init__(*files, **kwargs)
-        self._metadata = BarcodeSetMetadata(self._metadata)
+        self._metadata = BarcodeSetMetadata(self._metadata.record)
+        self._updateMetadata()
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add metadata specific to this subtype, while leaning on the
@@ -3989,6 +3995,24 @@ class BarcodeSet(ContigSet):
 
         # Pull subtype specific values where important
         # -> No type specific merging necessary, for now
+
+    @property
+    def metadata(self):
+        if not isinstance(self._metadata, BarcodeSetMetadata):
+           self._metadata = BarcodeSetMetadata(self._metadata)
+        return self._metadata
+
+    @metadata.setter
+    def metadata(self, value):
+        if not isinstance(value, BarcodeSetMetadata):
+            value = BarcodeSetMetadata(value)
+        self._metadata = value
+
+    def _updateMetadata(self):
+        # update barcode specific metadata:
+        if not self._metadata.barcodeConstruction:
+            self._metadata.barcodeConstruction = ''
+
 
     @staticmethod
     def _metaTypeMapping():
