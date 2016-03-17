@@ -463,7 +463,10 @@ class TestDataSet(unittest.TestCase):
         exp_single_seqs = [rec.sequence for rec in exp_singles]
 
         acc_file = ContigSet(outFas1, outFas2)
+        acc_file.induceIndices()
         log.debug(acc_file.toExternalFiles())
+        self.assertEqual(len(acc_file), 4)
+        self.assertEqual(len(list(acc_file)), 4)
         acc_file.consolidate()
         log.debug(acc_file.toExternalFiles())
 
@@ -472,6 +475,12 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(acc_file.get_contig(name).sequence[:], seq)
         self.assertEqual(acc_file.get_contig(double).sequence[:],
                          exp_double_seq)
+
+        self.assertEqual(len(acc_file._openReaders), 1)
+        self.assertEqual(len(acc_file.index), 3)
+        self.assertEqual(len(acc_file._indexMap), 3)
+        self.assertEqual(len(acc_file), 3)
+        self.assertEqual(len(list(acc_file)), 3)
 
     def test_contigset_consolidate_int_names(self):
         #build set to merge
@@ -832,3 +841,18 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(str(sset.filters), "( bc = [2,2] )")
         sset.updateCounts()
         self.assertEqual(len(sset), 4710)
+
+    def test_merged_contigset(self):
+        fn = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
+        with ContigSet(upstreamData.getLambdaFasta(),
+                upstreamData.getFasta()) as cset:
+            self.assertEqual(len(list(cset)), 49)
+            self.assertEqual(len(cset), 49)
+            cset.consolidate()
+            cset.write(fn)
+            log.debug("Writing to {f}".format(f=fn))
+            self.assertEqual(len(list(cset)), 49)
+            self.assertEqual(len(cset), 49)
+        with ContigSet(fn) as cset:
+            self.assertEqual(len(list(cset)), 49)
+            self.assertEqual(len(cset), 49)

@@ -626,15 +626,23 @@ class DataSet(object):
 
     def __len__(self):
         """Return the number of records in this DataSet"""
-        if self.numRecords == -1:
+        if self.numRecords <= 0:
             if self._filters:
-                log.debug("Base class DataSet length cannot be calculated "
-                          "when filters are present")
+                if isinstance(self.datasetType, tuple):
+                    log.debug("Base class DataSet length cannot be calculated "
+                              "when filters are present")
+                else:
+                    self.updateCounts()
             else:
-                count = 0
-                for reader in self.resourceReaders():
-                    count += len(reader)
-                self.numRecords = count
+                try:
+                    # a little cheaper:
+                    count = 0
+                    for reader in self.resourceReaders():
+                        count += len(reader)
+                    self.numRecords = count
+                except UnavailableFeature:
+                    # UnavailableFeature: no .bai
+                    self.updateCounts()
         return self.numRecords
 
     def newUuid(self, setter=True):
@@ -2240,17 +2248,6 @@ class ReadSet(DataSet):
         self._openReaders = []
         self._populateMetaTypes()
 
-    def __len__(self):
-        if self.numRecords == -1:
-            if self._filters:
-                self.updateCounts()
-            else:
-                count = 0
-                for reader in self.resourceReaders():
-                    count += len(reader)
-                self.numRecords = count
-        return self.numRecords
-
     def updateCounts(self):
         if self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
@@ -3640,6 +3637,12 @@ class ContigSet(DataSet):
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([outfn])
+            self._index = None
+            self._indexMap = None
+            self._openReaders = []
+            self._populateMetaTypes()
+            self.updateCounts()
+
             # replace contig info
             if not self._fastq:
                 log.debug("Replacing metadata")
