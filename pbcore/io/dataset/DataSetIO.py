@@ -1824,11 +1824,16 @@ class ReadSet(DataSet):
             return True
         return False
 
-    def assertBarcoded(self):
-        """Test whether all resources are barcoded files"""
+    @property
+    def isBarcoded(self):
+        """Determine whether all resources are barcoded files"""
         res = self._pollResources(
             lambda x: x.index.pbiFlags & PBI_FLAGS_BARCODE)
-        if not self._unifyResponses(res):
+        return self._unifyResponses(res)
+
+    def assertBarcoded(self):
+        """Test whether all resources are barcoded files"""
+        if not self.isBarcoded:
             raise RuntimeError("File not barcoded")
 
     def _openFiles(self):
