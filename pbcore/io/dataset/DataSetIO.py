@@ -440,6 +440,9 @@ class DataSet(object):
         self._referenceInfoTableIsStacked = None
         self._readGroupTableIsRemapped = False
         self._index = None
+        # only to be used against incorrect counts from the XML, not for
+        # internal accounting:
+        self._countsUpdated = False
 
         # update counts
         if files:
@@ -643,6 +646,9 @@ class DataSet(object):
                 except UnavailableFeature:
                     # UnavailableFeature: no .bai
                     self.updateCounts()
+        elif not self._countsUpdated:
+            # isn't that expensive, avoids crashes due to incorrect numRecords:
+            self.updateCounts()
         return self.numRecords
 
     def newUuid(self, setter=True):
@@ -1297,6 +1303,7 @@ class DataSet(object):
         """
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
+        self._countsUpdated = True
 
     def addExternalResources(self, newExtResources, updateCount=True):
         """Add additional ExternalResource objects, ensuring no duplicate
@@ -2249,6 +2256,7 @@ class ReadSet(DataSet):
         self._populateMetaTypes()
 
     def updateCounts(self):
+        self._countsUpdated = True
         if self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
@@ -2318,6 +2326,7 @@ class HdfSubreadSet(ReadSet):
 
     def updateCounts(self):
         """Overriding here so we don't have to assertIndexed"""
+        self._countsUpdated = True
         if self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
@@ -3711,6 +3720,7 @@ class ContigSet(DataSet):
             self._metadata.addContig(contig)
 
     def updateCounts(self):
+        self._countsUpdated = True
         if self._skipCounts:
             if not self.metadata.totalLength:
                 self.metadata.totalLength = -1

@@ -856,3 +856,20 @@ class TestDataSet(unittest.TestCase):
         with ContigSet(fn) as cset:
             self.assertEqual(len(list(cset)), 49)
             self.assertEqual(len(cset), 49)
+
+    def test_incorrect_len_getitem(self):
+        types = [AlignmentSet(data.getXml(8)),
+                 ReferenceSet(data.getXml(9)),
+                 SubreadSet(data.getXml(10)),
+                 HdfSubreadSet(data.getXml(19))]
+        fn = tempfile.NamedTemporaryFile(suffix=".xml").name
+        for ds in types:
+            explen = -2
+            with openDataFile(ds.toExternalFiles()[0]) as mystery:
+                # try to avoid crashes...
+                explen = len(mystery)
+                mystery.numRecords = 1000000000
+                mystery.write(fn)
+            with openDataFile(fn) as mystery:
+                self.assertEqual(len(list(mystery)), explen)
+
