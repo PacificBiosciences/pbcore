@@ -873,3 +873,19 @@ class TestDataSet(unittest.TestCase):
             with openDataFile(fn) as mystery:
                 self.assertEqual(len(list(mystery)), explen)
 
+    def test_missing_fai_error_message(self):
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+
+        inFas = os.path.join(outdir, 'infile.fasta')
+
+        # copy fasta reference to hide fai and ensure FastaReader is used
+        backticks('cp {i} {o}'.format(
+            i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+            o=inFas))
+        rs1 = ContigSet(inFas)
+        with self.assertRaises(IOError) as cm:
+            rs1.assertIndexed()
+        self.assertEqual(
+            str(cm.exception),
+            ( "Companion FASTA index (.fai) file not found or malformatted! "
+             "Use 'samtools faidx' to generate FASTA index."))

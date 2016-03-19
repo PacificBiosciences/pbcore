@@ -5,7 +5,7 @@ Classes representing DataSets of various types.
 import hashlib
 import datetime
 import copy
-import os
+import os, sys
 import re
 import errno
 import logging
@@ -3868,7 +3868,12 @@ class ContigSet(DataSet):
                 return contig
 
     def assertIndexed(self):
-        self._assertIndexed(IndexedFastaReader)
+        try:
+            self._assertIndexed(IndexedFastaReader)
+        except IOError:
+            raise IOError("Companion FASTA index (.fai) file not found or "
+                          "malformatted! Use 'samtools faidx' to generate "
+                          "FASTA index.")
         return True
 
     @property
