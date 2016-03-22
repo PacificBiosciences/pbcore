@@ -252,12 +252,9 @@ class FastaWriter(WriterBase):
             raise ValueError
         if len(args) == 1:
             record = args[0]
-            if isinstance(record, IndexedFastaRecord):
-                record = FastaRecord(record.header, record.sequence[:])
-            assert isinstance(record, FastaRecord)
         else:
             header, sequence = args
-            record = FastaRecord(header, sequence)
+            record = FastaRecord(header, str(sequence))
         self.file.write(str(record))
         self.file.write("\n")
 
@@ -350,7 +347,14 @@ class MmappedFastaSequence(Sequence):
         return (isinstance(other, MmappedFastaSequence) and
                 self[:] == other[:])
 
+    def __str__(self):
+        return str(self[:])
+
+
 class IndexedFastaRecord(object):
+
+    COLUMNS   = 60
+
     def __init__(self, view, faiRecord):
         self.view = view
         self.faiRecord = faiRecord
@@ -390,6 +394,14 @@ class IndexedFastaRecord(object):
         return (isinstance(other, IndexedFastaRecord) and
                 self.header == other.header and
                 self.sequence == other.sequence)
+
+    def __str__(self):
+        """
+        Output a string representation of this FASTA record, observing
+        standard conventions about sequence wrapping.
+        """
+        return (">%s\n" % self.header) + \
+            wrap(self.sequence, self.COLUMNS)
 
 class IndexedFastaReader(ReaderBase, Sequence):
     """
