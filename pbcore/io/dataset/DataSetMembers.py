@@ -1691,6 +1691,10 @@ class ContinuousDistribution(RecordWrapper):
     def numBins(self):
         return int(self.getMemberV('NumBins'))
 
+    @numBins.setter
+    def numBins(self, value):
+        self.setMemberV('NumBins', str(value))
+
     @property
     def sampleSize(self):
         return int(self.getMemberV('SampleSize'))
@@ -1738,6 +1742,10 @@ class ContinuousDistribution(RecordWrapper):
     @property
     def maxBinValue(self):
         return float(self.getMemberV('MaxBinValue'))
+
+    @maxBinValue.setter
+    def maxBinValue(self, value):
+        self.setMemberV('MaxBinValue', str(value))
 
     @property
     def description(self):

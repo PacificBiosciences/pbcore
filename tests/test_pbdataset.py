@@ -2368,6 +2368,30 @@ class TestDataSet(unittest.TestCase):
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
+    def test_fixed_bin_sts(self):
+        # don't have a subreadset.xml with loaded sts.xml in testdata,
+        # fabricate one here:
+        ss = SubreadSet(data.getXml(10))
+        ss.externalResources[0].sts = ('/pbi/dept/secondary/siv/testdata/'
+                                       'pbreports-unittest/data/sts_xml/'
+                                       '3120134-r54009_20160323_173308-'
+                                       '1_A01-Bug30772/m54009_160323_'
+                                       '173323.sts.xml')
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outXml = os.path.join(outdir, 'tempfile.xml')
+        outXml2 = os.path.join(outdir, 'tempfile2.xml')
+        ss.write(outXml)
+        ss.write(outXml2)
+        ss = SubreadSet(outXml)
+        ss2 = SubreadSet(outXml2)
+        ss3 = ss + ss2
+        self.assertEqual(ss3.metadata.summaryStats.readLenDist.bins,
+                         [b1 + b2 for b1, b2 in
+                          zip(ss.metadata.summaryStats.readLenDist.bins,
+                              ss2.metadata.summaryStats.readLenDist.bins)])
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_missing_extres(self):
         # copy a file with relative paths, rescue ResourceId's
         test_file = ('/pbi/dept/secondary/siv/testdata/'

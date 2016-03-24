@@ -3791,16 +3791,19 @@ class ContigSet(DataSet):
         type before accessing any file)
         """
         if self._openReaders:
-            log.debug("Closing old Contig readers...")
+            log.debug("Closing old {t} readers".format(
+                t=self.__class__.__name__))
             self.close()
-        log.debug("Opening Contig resources")
+        log.debug("Opening {t} resources".format(
+            t=self.__class__.__name__))
         for extRes in self.externalResources:
             resource = self._openFile(urlparse(extRes.resourceId).path)
             if resource is not None:
                 self._openReaders.append(resource)
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
-        log.debug("Done opening Contig resources")
+        log.debug("Done opening {t} resources".format(
+            t=self.__class__.__name__))
 
     def _openFile(self, location):
         resource = None
