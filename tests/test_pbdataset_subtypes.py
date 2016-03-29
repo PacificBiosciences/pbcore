@@ -748,6 +748,11 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(
             subs.externalResources[0].externalResources[0].metaType,
             'PacBio.SubreadFile.ScrapsBamFile')
+        subs.externalResources[0].barcodes = 'bc.fasta'
+        self.assertTrue(subs.externalResources[0].barcodes)
+        self.assertEqual(
+            subs.externalResources[0].externalResources[1].metaType,
+            "PacBio.DataSet.BarcodeSet")
 
         log.debug("Testing adding nested externalResources to AlignmetnSet "
                   "manually")

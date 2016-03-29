@@ -1052,6 +1052,14 @@ class ExternalResource(RecordWrapper):
         self._setSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile', value)
 
     @property
+    def barcodes(self):
+        return self._getSubResByMetaType("PacBio.DataSet.BarcodeSet")
+
+    @barcodes.setter
+    def barcodes(self, value):
+        self._setSubResByMetaType("PacBio.DataSet.BarcodeSet", value)
+
+    @property
     def reference(self):
         return self._getSubResByMetaType(
             'PacBio.ReferenceFile.ReferenceFastaFile')
