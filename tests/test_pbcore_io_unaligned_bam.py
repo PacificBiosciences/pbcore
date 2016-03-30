@@ -69,7 +69,7 @@ class TestUnalignedBam(object):
 
     def testIpd(self):
         """Check that 'Ipd' feature is recognized correctly."""
-        pfa = self.bam.pulseFeaturesAvailable()
+        pfa = self.bam.baseFeaturesAvailable()
         EQ(pfa, frozenset(['Ipd', 'DeletionTag', 'MergeQV', 'SubstitutionQV',
                            'InsertionQV', 'DeletionQV']))
         ipd = self.bamRead0.IPD(aligned=False, orientation="native")

@@ -98,7 +98,10 @@ class _BamReaderBase(ReaderBase):
     def _loadReadGroupInfo(self):
         rgs = self.peer.header["RG"]
         readGroupTable_ = []
-        self._featureNameMappings = {}  # RGID -> ("abstract feature name" -> actual feature name)
+
+        # RGID -> ("abstract feature name" -> actual feature name)
+        self._baseFeatureNameMappings = {}
+        self._pulseFeatureNameMappings = {}
 
         for rg in rgs:
             rgID = rgAsInt(rg["ID"])
@@ -118,10 +121,14 @@ class _BamReaderBase(ReaderBase):
             # "Ipd"  to "Ipd:Frames"
             # (This is a bit messy.  Can we separate the manifest from
             # the rest of the DS content?)
-            featureNameMapping = { key.split(":")[0] : key
-                                   for key in ds.keys()
-                                   if key in PULSE_FEATURE_TAGS }
-            self._featureNameMappings[rgID] = featureNameMapping
+            baseFeatureNameMapping  = { key.split(":")[0] : key
+                                        for key in ds.keys()
+                                        if key in BASE_FEATURE_TAGS }
+            pulseFeatureNameMapping = { key.split(":")[0] : key
+                                        for key in ds.keys()
+                                        if key in PULSE_FEATURE_TAGS }
+            self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
+            self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -136,10 +143,12 @@ class _BamReaderBase(ReaderBase):
         self._readGroupDict = { rg.ID : rg
                                 for rg in self._readGroupTable }
 
-        # The pulse features "available" to clients of this file are the intersection
-        # of pulse features available from each read group.
+        # The base/pulse features "available" to clients of this file are the intersection
+        # of features available from each read group.
+        self._baseFeaturesAvailable = set.intersection(
+            *[set(mapping.keys()) for mapping in self._baseFeatureNameMappings.values()])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._featureNameMappings.values()])
+            *[set(mapping.keys()) for mapping in self._pulseFeatureNameMappings.values()])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
@@ -286,11 +295,24 @@ class _BamReaderBase(ReaderBase):
         self.peer.seek(offset)
         return BamAlignment(self, next(self.peer))
 
+    def hasBaseFeature(self, featureName):
+        return featureName in self._baseFeaturesAvailable
+
+    def baseFeaturesAvailable(self):
+        return self._baseFeaturesAvailable
+
     def hasPulseFeature(self, featureName):
         return featureName in self._pulseFeaturesAvailable
 
     def pulseFeaturesAvailable(self):
         return self._pulseFeaturesAvailable
+
+    def hasPulseFeatures(self):
+        """
+        Is this BAM file a product of running analysis with the
+        PacBio-internal analysis mode enabled?
+        """
+        return self.hasPulseFeature("PulseCall")
 
     @property
     def barcode(self):

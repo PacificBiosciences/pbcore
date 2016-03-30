@@ -1681,8 +1681,8 @@ class DataSet(object):
             lambda x: x.hasPulseFeature(featureName))
         return self._unifyResponses(responses)
 
-    def pulseFeaturesAvailable(self):
-        responses = self._pollResources(lambda x: x.pulseFeaturesAvailable())
+    def baseFeaturesAvailable(self):
+        responses = self._pollResources(lambda x: x.baseFeaturesAvailable())
         return self._unifyResponses(responses)
 
     @property
