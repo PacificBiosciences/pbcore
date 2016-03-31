@@ -3,7 +3,8 @@
     reflect features accompanying basecalls as opposed to pulse calls;
     add "pulseFeature..." accessors that actually get the pulse
     features (from an internal-mode BAM)
-  - more... some help here @mdsmith?
+  - Improve FastaWriter performance with IndexedFastaRecords
+  - Improve DataSet chunking, filtration, consolidation
 
 * Version 1.2.8
   - Dataset improvements
