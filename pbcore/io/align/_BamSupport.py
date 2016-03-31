@@ -50,8 +50,8 @@ BASE_FEATURE_TAGS =  { "InsertionQV"        : ("iq", "qv",      np.uint8),
 
 PULSE_FEATURE_TAGS = { "PulseCall"          : ("pc", "pulse",    np.uint8),
                        "StartFrame"         : ("sf", "frames32", np.uint32),
-                       "Pkmid"              : ("pm", "photons",  np.uint16),
-                       "Pkmean"             : ("pa", "photons",  np.uint16) }
+                       "PkMid"              : ("pm", "photons",  np.uint16),
+                       "PkMean"             : ("pa", "photons",  np.uint16) }
 
 ASCII_COMPLEMENT_MAP = { ord("A") : ord("T"),
                          ord("T") : ord("A"),
