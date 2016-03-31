@@ -517,6 +517,7 @@ class TestDataSet(unittest.TestCase):
         for name, seq in zip(exp_names, exp_double_seqs):
             self.assertEqual(obs_file.get_contig(name).sequence[:], seq)
 
+
     def test_contigset_consolidate_genomic_consensus(self):
         """
         Verify that the contigs output by GenomicConsensus (e.g. quiver) can

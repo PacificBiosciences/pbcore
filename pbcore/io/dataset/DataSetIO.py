@@ -117,7 +117,8 @@ def openDataSet(*files, **kwargs):
         tbrType = _typeDataSet(files[0])
         return tbrType(*files, **kwargs)
     except Exception:
-        raise TypeError("openDataSet requires that the first file is a DS")
+        raise TypeError("openDataSet requires that at least the first file is "
+                        "a DataSet")
 
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
@@ -3906,8 +3907,9 @@ class ContigSet(DataSet):
         # index file
         names = []
         for contig in self.contigs:
-            if (self.noFiltering
-                    or self._filters.testParam('id', contig.id, str)):
+            if self.noFiltering:
+                names.append(contig.id)
+            elif self._filters.testParam('id', contig.id, str):
                 names.append(contig.id)
         return sorted(list(set(names)))
 

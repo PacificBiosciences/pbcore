@@ -650,8 +650,9 @@ class TestDataSet(unittest.TestCase):
                 ds1.index.holeNumber < rg[1],
                 ds1.index.holeNumber > rg[0]))[0]), 0)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    #@unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+    #                     "Missing testadata directory")
+    @unittest.skip("Too expensive")
     def test_large_split_zmws(self):
         N_RECORDS = 959539
         test_file = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -725,8 +726,9 @@ class TestDataSet(unittest.TestCase):
               127814, 163468)])
 
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    #@unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+    #                     "Missing testadata directory")
+    @unittest.skip("Too expensive")
     def test_large_pbi(self):
         pbiFn = ('/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/simulated'
                  '/100Gb/alnsubreads/pbalchemy_100Gb_Seq_sim1_p0.'
@@ -979,7 +981,7 @@ class TestDataSet(unittest.TestCase):
     def test_reads_in_range_order(self):
         log.debug("Testing with one file")
         testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
-                    "2372215/0007/Alignment_Results/m150404_101"
+                    "2372215/0007_tiny/Alignment_Results/m150404_101"
                     "626_42267_c1008079208000000018231741102915"
                     "14_s1_p0.1.alignmentset.xml")
         aln = AlignmentSet(testFile)
@@ -991,11 +993,11 @@ class TestDataSet(unittest.TestCase):
         for r1, r2 in itertools.izip(reads1, reads2):
             self.assertEqual(r1, r2)
             num += 1
-        self.assertTrue(num > 2000)
+        self.assertEqual(num, 28)
 
         log.debug("Testing with three files")
         testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
-                    "2372215/0007/Alignment_Results/m150404_101"
+                    "2372215/0007_tiny/Alignment_Results/m150404_101"
                     "626_42267_c1008079208000000018231741102915"
                     "14_s1_p0.all.alignmentset.xml")
         aln = AlignmentSet(testFile)
@@ -1007,7 +1009,7 @@ class TestDataSet(unittest.TestCase):
         for r1, r2 in itertools.izip(reads1, reads2):
             self.assertEqual(r1, r2)
             num += 1
-        self.assertTrue(num > 2000)
+        self.assertEqual(num, 105)
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
