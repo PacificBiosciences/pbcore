@@ -187,9 +187,9 @@ OFFSET_TABLE_DTYPE = [ ("ID",       np.uint32),
                        ("EndRow",   np.uint32) ]
 
 
-def _makePulseFeatureAccessor(featureName):
+def _makeBaseFeatureAccessor(featureName):
     def f(self, aligned=True, orientation="native"):
-        return self.pulseFeature(featureName, aligned, orientation)
+        return self.baseFeature(featureName, aligned, orientation)
     return f
 
 class CmpH5Alignment(AlignmentRecordMixin):
@@ -546,9 +546,9 @@ class CmpH5Alignment(AlignmentRecordMixin):
         else:
             return self.rStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
 
-    def pulseFeature(self, featureName, aligned=True, orientation="native"):
+    def baseFeature(self, featureName, aligned=True, orientation="native"):
         """
-        Access a pulse feature by name.
+        Access a base feature by name.
         """
         pulseDataset = self._alignmentGroup[featureName]
         pulseArray = arrayFromDataset(pulseDataset, self.Offset_begin, self.Offset_end)
@@ -561,14 +561,14 @@ class CmpH5Alignment(AlignmentRecordMixin):
         else:
             return ungappedPulseArray(alignedPulseArray)
 
-    IPD            = _makePulseFeatureAccessor("IPD")
-    PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
-    QualityValue   = _makePulseFeatureAccessor("QualityValue")
-    InsertionQV    = _makePulseFeatureAccessor("InsertionQV")
-    DeletionQV     = _makePulseFeatureAccessor("DeletionQV")
-    DeletionTag    = _makePulseFeatureAccessor("DeletionTag")
-    MergeQV        = _makePulseFeatureAccessor("MergeQV")
-    SubstitutionQV = _makePulseFeatureAccessor("SubstitutionQV")
+    IPD            = _makeBaseFeatureAccessor("IPD")
+    PulseWidth     = _makeBaseFeatureAccessor("PulseWidth")
+    QualityValue   = _makeBaseFeatureAccessor("QualityValue")
+    InsertionQV    = _makeBaseFeatureAccessor("InsertionQV")
+    DeletionQV     = _makeBaseFeatureAccessor("DeletionQV")
+    DeletionTag    = _makeBaseFeatureAccessor("DeletionTag")
+    MergeQV        = _makeBaseFeatureAccessor("MergeQV")
+    SubstitutionQV = _makeBaseFeatureAccessor("SubstitutionQV")
 
     def __getattr__(self, key):
         return self.cmpH5.alignmentIndex[self.rowNumber][key]
@@ -1180,7 +1180,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         else:
             return self[rowNumbers]
 
-    def hasPulseFeature(self, featureName):
+    def hasBaseFeature(self, featureName):
         """
         Are the datasets for pulse feature `featureName` loaded in
         this file?  Specifically, is it loaded for all movies within
@@ -1188,30 +1188,30 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
         .. doctest::
 
-            >>> c.hasPulseFeature("InsertionQV")
+            >>> c.hasBaseFeature("InsertionQV")
             True
-            >>> c.hasPulseFeature("MergeQV")
+            >>> c.hasBaseFeature("MergeQV")
             False
 
         """
         return all(featureName in alnGroup.keys()
                    for alnGroup in self._alignmentGroupById.values())
 
-    def pulseFeaturesAvailable(self):
+    def baseFeaturesAvailable(self):
         """
         What pulse features are available in this cmp.h5 file?
 
         .. doctest::
 
-            >>> c.pulseFeaturesAvailable()
+            >>> c.baseFeaturesAvailable()
             [u'QualityValue', u'IPD', u'PulseWidth', u'InsertionQV', u'DeletionQV']
 
         """
-        pulseFeaturesByMovie = [ alnGroup.keys()
+        baseFeaturesByMovie = [ alnGroup.keys()
                                  for alnGroup in self._alignmentGroupById.values() ]
-        pulseFeaturesAvailableAsSet = set.intersection(*map(set, pulseFeaturesByMovie))
-        pulseFeaturesAvailableAsSet.discard("AlnArray")
-        return list(pulseFeaturesAvailableAsSet)
+        baseFeaturesAvailableAsSet = set.intersection(*map(set, baseFeaturesByMovie))
+        baseFeaturesAvailableAsSet.discard("AlnArray")
+        return list(baseFeaturesAvailableAsSet)
 
     @property
     def barcode(self):

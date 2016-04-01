@@ -38,7 +38,7 @@ class ReferenceMismatch(Exception):  pass
 class IncompatibleFile(Exception):   pass
 
 
-PULSE_FEATURE_TAGS = { "InsertionQV"        : ("iq", "qv",      np.uint8),
+BASE_FEATURE_TAGS =  { "InsertionQV"        : ("iq", "qv",      np.uint8),
                        "DeletionQV"         : ("dq", "qv",      np.uint8),
                        "DeletionTag"        : ("dt", "base",    np.int8 ),
                        "SubstitutionQV"     : ("sq", "qv",      np.uint8),
@@ -47,6 +47,11 @@ PULSE_FEATURE_TAGS = { "InsertionQV"        : ("iq", "qv",      np.uint8),
                        "Ipd:CodecV1"        : ("ip", "codecV1", np.uint8),
                        "PulseWidth:Frames"  : ("pw", "frames",  np.uint16),
                        "PulseWidth:CodecV1" : ("pw", "codecV1", np.uint8) }
+
+PULSE_FEATURE_TAGS = { "PulseCall"          : ("pc", "pulse",    np.uint8),
+                       "StartFrame"         : ("sf", "frames32", np.uint32),
+                       "PkMid"              : ("pm", "photons",  np.uint16),
+                       "PkMean"             : ("pa", "photons",  np.uint16) }
 
 ASCII_COMPLEMENT_MAP = { ord("A") : ord("T"),
                          ord("T") : ord("A"),

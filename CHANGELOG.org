@@ -1,3 +1,11 @@
+* Version 1.2.9
+  - Rename pulseFeature accessors to "baseFeature...", since they
+    reflect features accompanying basecalls as opposed to pulse calls;
+    add "pulseFeature..." accessors that actually get the pulse
+    features (from an internal-mode BAM)
+  - Improve FastaWriter performance with IndexedFastaRecords
+  - Improve DataSet chunking, filtration, consolidation
+
 * Version 1.2.8
   - Dataset improvements
   - Dataset CLI moved to pbcoretools

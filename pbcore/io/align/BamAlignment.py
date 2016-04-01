@@ -58,11 +58,10 @@ def _unrollCigar(cigar, exciseSoftClips=False):
     else:
         return ops
 
-def _makePulseFeatureAccessor(featureName):
+def _makeBaseFeatureAccessor(featureName):
     def f(self, aligned=True, orientation="native"):
-        return self.pulseFeature(featureName, aligned, orientation)
+        return self.baseFeature(featureName, aligned, orientation)
     return f
-
 
 def requiresReference(method):
     @wraps(method)
@@ -447,9 +446,9 @@ class BamAlignment(AlignmentRecordMixin):
             return pos[ucOriented != BAM_CINS]
 
 
-    def pulseFeature(self, featureName, aligned=True, orientation="native"):
+    def baseFeature(self, featureName, aligned=True, orientation="native"):
         """
-        Retrieve the pulse feature as indicated.
+        Retrieve the base feature as indicated.
         - `aligned`    : whether gaps should be inserted to reflect the alignment
         - `orientation`: "native" or "genomic"
 
@@ -466,10 +465,10 @@ class BamAlignment(AlignmentRecordMixin):
 
         # 0. Get the "concrete" feature name.  (Example: Ipd could be
         # Ipd:Frames or Ipd:CodecV1)
-        concreteFeatureName = self.bam._featureNameMappings[self.qId][featureName]
+        concreteFeatureName = self.bam._baseFeatureNameMappings[self.qId][featureName]
 
         # 1. Extract in native orientation
-        tag, kind_, dtype_ = PULSE_FEATURE_TAGS[concreteFeatureName]
+        tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
         if isinstance(data_, str):
@@ -534,14 +533,14 @@ class BamAlignment(AlignmentRecordMixin):
         alnData[~gapMask] = data
         return alnData
 
-    IPD            = _makePulseFeatureAccessor("Ipd")
-    PulseWidth     = _makePulseFeatureAccessor("PulseWidth")
-    #QualityValue   = _makePulseFeatureAccessor("QualityValue")
-    InsertionQV    = _makePulseFeatureAccessor("InsertionQV")
-    DeletionQV     = _makePulseFeatureAccessor("DeletionQV")
-    DeletionTag    = _makePulseFeatureAccessor("DeletionTag")
-    MergeQV        = _makePulseFeatureAccessor("MergeQV")
-    SubstitutionQV = _makePulseFeatureAccessor("SubstitutionQV")
+    IPD            = _makeBaseFeatureAccessor("Ipd")
+    PulseWidth     = _makeBaseFeatureAccessor("PulseWidth")
+    #QualityValue   = _makeBaseFeatureAccessor("QualityValue")
+    InsertionQV    = _makeBaseFeatureAccessor("InsertionQV")
+    DeletionQV     = _makeBaseFeatureAccessor("DeletionQV")
+    DeletionTag    = _makeBaseFeatureAccessor("DeletionTag")
+    MergeQV        = _makeBaseFeatureAccessor("MergeQV")
+    SubstitutionQV = _makeBaseFeatureAccessor("SubstitutionQV")
 
     def read(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
