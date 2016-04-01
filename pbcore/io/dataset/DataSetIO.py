@@ -1676,9 +1676,9 @@ class DataSet(object):
                     raise ResourceMismatchError(responses)
         return responses[0]
 
-    def hasPulseFeature(self, featureName):
+    def hasBaseFeature(self, featureName):
         responses = self._pollResources(
-            lambda x: x.hasPulseFeature(featureName))
+            lambda x: x.hasBaseFeature(featureName))
         return self._unifyResponses(responses)
 
     def baseFeaturesAvailable(self):
