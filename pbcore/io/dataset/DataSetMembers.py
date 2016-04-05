@@ -211,14 +211,14 @@ class RecordWrapper(object):
     def merge(self, other):
         pass
 
-    def getMemberV(self, tag, container='text'):
+    def getMemberV(self, tag, container='text', default=None, asType=str):
         """Generic accessor for the contents of the children of this element,
         without having to interface with them directly"""
         try:
-            return self.record['children'][self.index(str(tag))][
-                str(container)]
-        except KeyError:
-            return None
+            return asType(self.record['children'][self.index(str(tag))][
+                str(container)])
+        except (KeyError, ValueError):
+            return default
 
     def setMemberV(self, tag, value, container='text'):
         """Generic accessor for the contents of the children of this element,
@@ -1203,10 +1203,7 @@ class DataSetMetadata(RecordWrapper):
     def numRecords(self):
         """Return the number of records in a DataSet using helper functions
         defined in the base class"""
-        try:
-            return int(self.getMemberV('NumRecords'))
-        except ValueError:
-            return 0
+        return self.getMemberV('NumRecords', default=0, asType=int)
 
     @numRecords.setter
     def numRecords(self, value):
@@ -1218,10 +1215,7 @@ class DataSetMetadata(RecordWrapper):
         """Return the TotalLength property of this dataset.
         TODO: update the value from the actual external reference on
         ValueError"""
-        try:
-            return int(self.getMemberV('TotalLength'))
-        except ValueError:
-            return 0
+        return self.getMemberV('TotalLength', default=0, asType=int)
 
     @totalLength.setter
     def totalLength(self, value):
@@ -1320,10 +1314,7 @@ class ContigSetMetadata(DataSetMetadata):
 
     @property
     def organism(self):
-        try:
-            return self.getMemberV('Organism')
-        except ValueError:
-            return None
+        return self.getMemberV('Organism')
 
     @organism.setter
     def organism(self, value):
@@ -1331,10 +1322,7 @@ class ContigSetMetadata(DataSetMetadata):
 
     @property
     def ploidy(self):
-        try:
-            return self.getMemberV('Ploidy')
-        except ValueError:
-            return None
+        return self.getMemberV('Ploidy')
 
     @ploidy.setter
     def ploidy(self, value):
@@ -1381,10 +1369,7 @@ class BarcodeSetMetadata(DataSetMetadata):
 
     @property
     def barcodeConstruction(self):
-        try:
-            return self.getMemberV('BarcodeConstruction')
-        except ValueError:
-            return None
+        return self.getMemberV('BarcodeConstruction')
 
     @barcodeConstruction.setter
     def barcodeConstruction(self, value):
@@ -1550,31 +1535,34 @@ class StatsMetadata(RecordWrapper):
     """The metadata from the machine sts.xml"""
 
     def merge(self, other):
-        self.shortInsertFraction = (self.shortInsertFraction *
-                                    self.prodDist.bins[1] +
-                                    other.shortInsertFraction *
-                                    other.prodDist.bins[1])/(
-                                        self.prodDist.bins[1]
-                                        + other.prodDist.bins[1])
-        self.adapterDimerFraction = (self.adapterDimerFraction *
-                                     self.prodDist.bins[1] +
-                                     other.adapterDimerFraction *
-                                     other.prodDist.bins[1])/(
-                                         self.prodDist.bins[1]
-                                         + other.prodDist.bins[1])
+        if other.shortInsertFraction and other.prodDist:
+            self.shortInsertFraction = (self.shortInsertFraction *
+                                        self.prodDist.bins[1] +
+                                        other.shortInsertFraction *
+                                        other.prodDist.bins[1])/(
+                                            self.prodDist.bins[1]
+                                            + other.prodDist.bins[1])
+        if other.adapterDimerFraction and other.prodDist:
+            self.adapterDimerFraction = (self.adapterDimerFraction *
+                                         self.prodDist.bins[1] +
+                                         other.adapterDimerFraction *
+                                         other.prodDist.bins[1])/(
+                                             self.prodDist.bins[1]
+                                             + other.prodDist.bins[1])
         self.numSequencingZmws += other.numSequencingZmws
         for dist in DISTLIST:
             selfDist = getattr(self, dist[0].lower() + dist[1:])
             otherDist = getattr(other, dist[0].lower() + dist[1:])
-            try:
-                selfDist.merge(otherDist)
-            except ZeroBinWidthError as e:
-                removed = self.removeChildren(dist)
-                self.append(otherDist)
-            except BinMismatchError:
-                self.append(otherDist)
-            except ValueError:
+            if not selfDist:
                 if otherDist:
+                    self.append(otherDist)
+            else:
+                try:
+                    selfDist.merge(otherDist)
+                except ZeroBinWidthError as e:
+                    removed = self.removeChildren(dist)
+                    self.append(otherDist)
+                except BinMismatchError:
                     self.append(otherDist)
 
     @property
@@ -1633,7 +1621,7 @@ class StatsMetadata(RecordWrapper):
 
     @property
     def adapterDimerFraction(self):
-        return float(self.getMemberV('AdapterDimerFraction'))
+        return self.getMemberV('AdapterDimerFraction', asType=float)
 
     @adapterDimerFraction.setter
     def adapterDimerFraction(self, value):
@@ -1641,7 +1629,7 @@ class StatsMetadata(RecordWrapper):
 
     @property
     def numSequencingZmws(self):
-        return float(self.getMemberV('NumSequencingZmws'))
+        return self.getMemberV('NumSequencingZmws', asType=float)
 
     @numSequencingZmws.setter
     def numSequencingZmws(self, value):
@@ -1649,7 +1637,7 @@ class StatsMetadata(RecordWrapper):
 
     @property
     def shortInsertFraction(self):
-        return float(self.getMemberV('ShortInsertFraction'))
+        return self.getMemberV('ShortInsertFraction', asType=float)
 
     @shortInsertFraction.setter
     def shortInsertFraction(self, value):
@@ -1697,7 +1685,7 @@ class ContinuousDistribution(RecordWrapper):
 
     @property
     def numBins(self):
-        return int(self.getMemberV('NumBins'))
+        return self.getMemberV('NumBins', asType=int)
 
     @numBins.setter
     def numBins(self, value):
@@ -1705,27 +1693,27 @@ class ContinuousDistribution(RecordWrapper):
 
     @property
     def sampleSize(self):
-        return int(self.getMemberV('SampleSize'))
+        return self.getMemberV('SampleSize', asType=int)
 
     @property
     def sampleMean(self):
-        return float(self.getMemberV('SampleMean'))
+        return self.getMemberV('SampleMean', asType=float)
 
     @property
     def sampleMed(self):
-        return float(self.getMemberV('SampleMed'))
+        return self.getMemberV('SampleMed', asType=float)
 
     @property
     def sampleStd(self):
-        return float(self.getMemberV('SampleStd'))
+        return self.getMemberV('SampleStd', asType=float)
 
     @property
     def sample95thPct(self):
-        return float(self.getMemberV('Sample95thPct'))
+        return self.getMemberV('Sample95thPct', asType=float)
 
     @property
     def binWidth(self):
-        return float(self.getMemberV('BinWidth'))
+        return self.getMemberV('BinWidth', asType=float)
 
     @binWidth.setter
     def binWidth(self, value):
@@ -1733,15 +1721,15 @@ class ContinuousDistribution(RecordWrapper):
 
     @property
     def minOutlierValue(self):
-        return float(self.getMemberV('MinOutlierValue'))
+        return self.getMemberV('MinOutlierValue', asType=float)
 
     @property
     def maxOutlierValue(self):
-        return float(self.getMemberV('MaxOutlierValue'))
+        return self.getMemberV('MaxOutlierValue', asType=float)
 
     @property
     def minBinValue(self):
-        return float(self.getMemberV('MinBinValue'))
+        return self.getMemberV('MinBinValue', asType=float)
 
     @minBinValue.setter
     def minBinValue(self, value):
@@ -1749,7 +1737,7 @@ class ContinuousDistribution(RecordWrapper):
 
     @property
     def maxBinValue(self):
-        return float(self.getMemberV('MaxBinValue'))
+        return self.getMemberV('MaxBinValue', asType=float)
 
     @maxBinValue.setter
     def maxBinValue(self, value):
@@ -1838,7 +1826,7 @@ class DiscreteDistribution(RecordWrapper):
 
     @property
     def numBins(self):
-        return int(self.getMemberV('NumBins'))
+        return self.getMemberV('NumBins', asType=int)
 
     @property
     def bins(self):
