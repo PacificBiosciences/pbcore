@@ -127,11 +127,11 @@ def _sortBam(fname):
     shutil.move(tmpname, fname)
 
 def _indexBam(fname):
-    pysam.index(fname)
+    pysam.samtools.index(fname, catch_stdout=False)
     return fname + ".bai"
 
 def _indexFasta(fname):
-    pysam.faidx(fname)
+    pysam.samtools.faidx(fname, catch_stdout=False)
     return fname + ".fai"
 
 def _mergeBams(inFiles, outFile):
