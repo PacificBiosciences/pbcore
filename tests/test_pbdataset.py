@@ -2392,6 +2392,10 @@ class TestDataSet(unittest.TestCase):
                           zip(ss.metadata.summaryStats.readLenDist.bins,
                               ss2.metadata.summaryStats.readLenDist.bins)])
 
+        # smoke tests
+        ss3.metadata.summaryStats.insertReadLenDists
+        ss3.metadata.summaryStats.insertReadQualDists
+
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
     def test_reduced_sts_merging(self):

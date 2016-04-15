@@ -1597,9 +1597,19 @@ class StatsMetadata(RecordWrapper):
                                                 'InsertReadQualDist'))
 
     @property
+    def insertReadLenDists(self):
+        return [ContinuousDistribution(child) for child in
+                self.findChildren('InsertReadLenDist')]
+
+    @property
     def insertReadLenDist(self):
         return ContinuousDistribution(self.getV('children',
                                                 'InsertReadLenDist'))
+    @property
+    def insertReadQualDists(self):
+        return [ContinuousDistribution(child) for child in
+                self.findChildren('InsertReadQualDist')]
+
     @property
     def controlReadQualDist(self):
         return ContinuousDistribution(self.getV('children',

@@ -426,10 +426,13 @@ class DataSet(object):
                         break
                 if not found:
                     allowed = self._metaTypeMapping().keys()
+                    extension = fname.split('.')[-1]
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
-                                  "{t}, only {a}".format(c=dsType, t=fname,
-                                                         a=allowed))
+                                  "'{t}' ({f}), only {a}".format(c=dsType,
+                                                           t=extension,
+                                                           f=fname,
+                                                           a=allowed))
 
         # State tracking:
         self._cachedFilters = []
