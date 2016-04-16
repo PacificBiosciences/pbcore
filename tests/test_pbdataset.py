@@ -149,6 +149,49 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(merged.subdatasets[1].toExternalFiles(),
                          AlignmentSet(data.getXml(11)).toExternalFiles())
 
+        # No filters, 3 files:
+        ds1 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(ds1.subdatasets), 0)
+        ds2 = AlignmentSet(data.getXml(11))
+        self.assertEqual(len(ds2.subdatasets), 0)
+        ds3 = AlignmentSet(data.getXml(11))
+        self.assertEqual(len(ds3.subdatasets), 0)
+        ds3.externalResources[0].resourceId = "/blah.bam"
+        ds4 = ds1 + ds2 + ds3
+        self.assertEqual(len(ds4.externalResources), 3)
+        self.assertEqual(len(ds4.subdatasets), 3)
+
+        # Filters, 3 files:
+        ds1 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(ds1.subdatasets), 0)
+        ds1.filters.addRequirement(rq=[('>', 0.8)])
+        ds2 = AlignmentSet(data.getXml(11))
+        self.assertEqual(len(ds2.subdatasets), 0)
+        ds2.filters.addRequirement(rq=[('>', 0.8)])
+        ds3 = AlignmentSet(data.getXml(11))
+        self.assertEqual(len(ds3.subdatasets), 0)
+        ds3.externalResources[0].resourceId = "/blah.bam"
+        ds3.filters.addRequirement(rq=[('>', 0.8)])
+        ds4 = ds1 + ds2 + ds3
+        self.assertEqual(len(ds4.externalResources), 3)
+        self.assertEqual(len(ds4.subdatasets), 3)
+        self.assertEqual(str(ds4.filters), '( rq > 0.8 )')
+        for sss in ds4.subdatasets:
+            self.assertEqual(str(sss.filters), '( rq > 0.8 )')
+        with self.assertRaises(TypeError):
+            # mismatched Filters, 3 files:
+            ds1 = AlignmentSet(data.getXml(8))
+            self.assertEqual(len(ds1.subdatasets), 0)
+            ds1.filters.addRequirement(rq=[('>', 0.8)])
+            ds2 = AlignmentSet(data.getXml(11))
+            self.assertEqual(len(ds2.subdatasets), 0)
+            ds2.filters.addRequirement(rq=[('>', 0.7)])
+            ds3 = AlignmentSet(data.getXml(11))
+            self.assertEqual(len(ds3.subdatasets), 0)
+            ds3.externalResources[0].resourceId = "/blah.bam"
+            ds3.filters.addRequirement(rq=[('>', 0.8)])
+            ds4 = ds1 + ds2 + ds3
+
     def test_empty_metatype(self):
         inBam = data.getBam()
         d = DataSet(inBam)

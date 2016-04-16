@@ -524,27 +524,28 @@ class DataSet(object):
             # dataset for the first time
             firstIn = True if len(self.externalResources) == 0 else False
 
+            if copyOnMerge:
+                result = self.copy()
+            else:
+                result = self
+
             # Block on filters?
             if (not firstIn and
                     not self.filters.testCompatibility(other.filters)):
                 log.warning("Filter incompatibility has blocked the merging "
                             "of two datasets")
                 return None
-            else:
-                self.addFilters(other.filters, underConstruction=True)
+            elif firstIn:
+                result.addFilters(other.filters, underConstruction=True)
 
             # reset the filters, just in case
-            self._cachedFilters = []
+            result._cachedFilters = []
 
             # block on object metadata?
-            self._checkObjMetadata(other.objMetadata)
+            result._checkObjMetadata(other.objMetadata)
 
             # There is probably a cleaner way to do this:
-            self.objMetadata.update(other.objMetadata)
-            if copyOnMerge:
-                result = self.copy()
-            else:
-                result = self
+            result.objMetadata.update(other.objMetadata)
 
             # If this dataset has no subsets representing it, add self as a
             # subdataset to the result
