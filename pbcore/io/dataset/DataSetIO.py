@@ -1767,7 +1767,9 @@ class DataSet(object):
             rrNo, recNo = self._indexMap[index]
             return self.resourceReaders()[rrNo][recNo]
         elif isinstance(index, slice):
-            raise NotImplementedError()
+            indexTuples = self._indexMap[index]
+            return [self.resourceReaders()[ind[0]][ind[1]] for ind in
+                    indexTuples]
         elif isinstance(index, list):
             indexTuples = [self._indexMap[ind] for ind in index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in

@@ -557,6 +557,8 @@ class Filters(RecordWrapper):
     def _bamTypeMap(self):
         return {'rname': str,
                 'length': int,
+                'qstart': int,
+                'qend': int,
                 'qname': str,
                 'movie': str,
                 'zm': int,
@@ -654,6 +656,29 @@ class Filters(RecordWrapper):
                         operator = mapOp(req.operator)
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
+                    elif param == 'qname':
+                        movie, hole, span = value.split('/')
+                        operator = mapOp(req.operator)
+
+                        value = movieMap[movie]
+                        reqResultsForRecords = operator(
+                            accMap[param](indexRecords), value)
+
+                        param = 'zm'
+                        value = typeMap[param](hole)
+                        reqResultsForRecords &= operator(
+                            accMap[param](indexRecords), value)
+
+                        param = 'qstart'
+                        value = typeMap[param](span.split('_')[0])
+                        reqResultsForRecords &= operator(
+                            accMap[param](indexRecords), value)
+
+                        param = 'qend'
+                        value = typeMap[param](span.split('_')[1])
+                        reqResultsForRecords &= operator(
+                            accMap[param](indexRecords), value)
+
                     else:
                         operator = mapOp(req.operator)
                         reqResultsForRecords = operator(

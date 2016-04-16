@@ -2248,6 +2248,38 @@ class TestDataSet(unittest.TestCase):
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
+    def test_qname_filter_scaling(self):
+        # unaligned bam
+        bam0 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590956/0003/"
+                "Analysis_Results/m140913_222218_42240_c10069"
+                "9952400000001823139203261564_s1_p0.all.subreadset.xml")
+        bam1 = ("/pbi/dept/secondary/siv/testdata/"
+                "SA3-DS/ecoli/2590953/0001/"
+                "Analysis_Results/m140913_005018_42139_c10071"
+                "3652400000001823152404301534_s1_p0.all.subreadset.xml")
+        sset = SubreadSet(bam0, bam1)
+        self.assertEqual(len(sset), 178570)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        good_qn = [('=', name) for name in qn]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+
+
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), 92)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        good_qn = [('=', name) for name in qn]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_movie_filter(self):
         # unaligned bam
         bam0 = ("/pbi/dept/secondary/siv/testdata/"
