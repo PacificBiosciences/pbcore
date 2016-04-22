@@ -1899,6 +1899,10 @@ class RunDetailsMetadata(RecordWrapper):
     def name(self):
         return self.getMemberV('Name')
 
+    @name.setter
+    def name(self, value):
+        return self.setMemberV('Name', value)
+
 
 class WellSampleMetadata(RecordWrapper):
 

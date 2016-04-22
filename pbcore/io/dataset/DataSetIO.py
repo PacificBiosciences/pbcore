@@ -1771,6 +1771,7 @@ class DataSet(object):
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
         elif isinstance(index, list):
+            # TODO: support numpy arrays
             indexTuples = [self._indexMap[ind] for ind in index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
