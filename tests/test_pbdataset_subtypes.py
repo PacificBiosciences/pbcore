@@ -603,6 +603,86 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(cset_l, sum(1 for _ in cfq))
 
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_empty_fastq_consolidate(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
+              'lambda/2590980/0008/Analysis_Results/'
+              'm141115_075238_ethan_c100699872550000001'
+              '823139203261572_s1_p0.1.subreads.fastq')
+        fq1_out = tempfile.NamedTemporaryFile(suffix="1.fastq").name
+        fq2_out = tempfile.NamedTemporaryFile(suffix="2.fastq").name
+        cfq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
+
+        # Two full
+        with open(fq1_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 240):
+                    fqh.write(line)
+        with open(fq2_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 240, 480):
+                    fqh.write(line)
+        cset = ContigSet(fq1_out, fq2_out)
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 120)
+        cset.consolidate(cfq_out)
+        cset_l = sum(1 for _ in cset)
+        cfq = FastqReader(cfq_out)
+        self.assertEqual(cset_l, 120)
+        self.assertEqual(cset_l, sum(1 for _ in cfq))
+
+        # one full one empty
+        with open(fq1_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 240):
+                    fqh.write(line)
+        with open(fq2_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                fqh.write("")
+        cset = ContigSet(fq1_out, fq2_out)
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 60)
+        cset.consolidate(cfq_out)
+        cset_l = sum(1 for _ in cset)
+        cfq = FastqReader(cfq_out)
+        self.assertEqual(cset_l, 60)
+        self.assertEqual(cset_l, sum(1 for _ in cfq))
+
+        # one empty one full
+        with open(fq1_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                fqh.write("")
+        with open(fq2_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                for line in itertools.islice(fih, 240):
+                    fqh.write(line)
+        cset = ContigSet(fq1_out, fq2_out)
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 60)
+        cset.consolidate(cfq_out)
+        cset_l = sum(1 for _ in cset)
+        cfq = FastqReader(cfq_out)
+        self.assertEqual(cset_l, 60)
+        self.assertEqual(cset_l, sum(1 for _ in cfq))
+
+        # both empty
+        with open(fq1_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                fqh.write("")
+        with open(fq2_out, 'w') as fqh:
+            with open(fn, 'r') as fih:
+                fqh.write("")
+        cset = ContigSet(fq1_out, fq2_out)
+        cset_l = sum(1 for _ in cset)
+        self.assertEqual(cset_l, 0)
+        cset.consolidate(cfq_out)
+        cset_l = sum(1 for _ in cset)
+        cfq = FastqReader(cfq_out)
+        self.assertEqual(cset_l, 0)
+        self.assertEqual(cset_l, sum(1 for _ in cfq))
+
+
     def test_len(self):
         # AlignmentSet
         aln = AlignmentSet(data.getXml(8), strict=True)
