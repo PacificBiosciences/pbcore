@@ -302,7 +302,7 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     @requiresMapping
     def identity(self):
-        if self.hasPbi is not None:
+        if self.hasPbi:
             # Fast (has pbi)
             if self.readLength == 0:
                 return 0.

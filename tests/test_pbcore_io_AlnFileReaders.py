@@ -7,6 +7,7 @@ from nose.tools import (nottest,
 from nose import SkipTest
 
 import tempfile
+import shutil
 import pysam
 import numpy as np
 import bisect
@@ -426,11 +427,29 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         EQ(len(bam), 0)
 
     def test_alignment_identity(self):
+        """
+        Check that the values of the 'identity' property are consistent
+        between IndexedBamReader (numpy array) and BamAlignment (float)
+        """
         fn = data.getBamAndCmpH5()[0]
         with IndexedBamReader(fn) as bam_in:
             i1 = bam_in.identity
             i2 = np.array([ rec.identity for rec in bam_in ])
             EQ((i2 == i1).all(), True)
+
+    def test_alignment_identity_unindexed(self):
+        """
+        Check that the value of the 'identity' property is the same whether
+        or not the .pbi index was used to calculate it.
+        """
+        fn1 = data.getBamAndCmpH5()[0]
+        fn2 = tempfile.NamedTemporaryFile(suffix=".bam").name
+        shutil.copyfile(fn1, fn2)
+        with IndexedBamReader(fn1) as bam_pbi:
+            with BamReader(fn2) as bam_noindex:
+                i1 = np.array([ rec.identity for rec in bam_pbi ])
+                i2 = np.array([ rec.identity for rec in bam_noindex ])
+                EQ((i2 == i1).all(), True)
 
 
 class TestCCSBam(object):
