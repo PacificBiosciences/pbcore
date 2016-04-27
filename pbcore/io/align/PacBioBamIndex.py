@@ -74,6 +74,10 @@ class PacBioBamIndex(object):
         return (self.pbiFlags & PBI_FLAGS_MAPPED)
 
     @property
+    def hasCoordinateSortedInfo(self):
+        return (self.pbiFlags & PBI_FLAGS_COORDINATE_SORTED)
+
+    @property
     def hasBarcodeInfo(self):
         return (self.pbiFlags & PBI_FLAGS_BARCODE)
 
@@ -98,6 +102,11 @@ class PacBioBamIndex(object):
             ("nM"                , "u4"),
             ("nMM"               , "u4"),
             ("mapQV"             , "u1") ]
+
+        COORDINATE_SORTED_DTYPE = [
+            ("tId"               , "u4"),
+            ("beginRow"          , "u4"),
+            ("endRow"            , "u4")]
 
         BARCODE_INDEX_DTYPE = [
             ("bcForward"         , "i2"),
@@ -134,6 +143,14 @@ class PacBioBamIndex(object):
             # Computed columns
             tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
             tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
+
+        # TODO: do something with these:
+        # TODO: remove nReads check when the rest of this code can handle empty
+        # mapped bam files (columns are missing, flags don't reflect that)
+        if self.hasCoordinateSortedInfo and self.nReads:
+            ntId = peek("u4", 1)
+            for columnName, columnType in COORDINATE_SORTED_DTYPE:
+                peek(columnType, ntId)
 
         if self.hasBarcodeInfo:
             for columnName, columnType in BARCODE_INDEX_DTYPE:
