@@ -1860,7 +1860,15 @@ class ReadSet(DataSet):
             if refFile:
                 if not refFile in sharedRefs:
                     log.debug("Using reference: {r}".format(r=refFile))
-                    sharedRefs[refFile] = IndexedFastaReader(refFile)
+                    try:
+                        sharedRefs[refFile] = IndexedFastaReader(refFile)
+                    except IOError:
+                        if not self._strict:
+                            log.warn("Problem opening reference with"
+                                     "IndexedFastaReader")
+                            sharedRefs[refFile] = None
+                        else:
+                            raise
             location = urlparse(extRes.resourceId).path
             resource = None
             try:
