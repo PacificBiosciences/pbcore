@@ -206,7 +206,7 @@
 
   <!-- 2.0/2.0: new kits... but which are somehow 1/1 compatible... -->
   <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective</SequencingChemistry>
+    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
     <BindingKit>100-864-400</BindingKit>
     <SequencingKit>100-864-100</SequencingKit>
     <SoftwareVersion>3.1</SoftwareVersion>
@@ -214,7 +214,7 @@
 
   <!-- 2.1/2.1, ibid -->
   <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective</SequencingChemistry>
+    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
     <BindingKit>100-864-600</BindingKit>
     <SequencingKit>100-864-200</SequencingKit>
     <SoftwareVersion>3.1</SoftwareVersion>
@@ -243,14 +243,14 @@
   </Mapping>
 
   <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective</SequencingChemistry>
+    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
     <BindingKit>100-864-400</BindingKit>
     <SequencingKit>100-864-100</SequencingKit>
     <SoftwareVersion>3.2</SoftwareVersion>
   </Mapping>
 
   <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective</SequencingChemistry>
+    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
     <BindingKit>100-864-600</BindingKit>
     <SequencingKit>100-864-200</SequencingKit>
     <SoftwareVersion>3.2</SoftwareVersion>
