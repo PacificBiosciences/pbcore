@@ -111,6 +111,19 @@ def isDataSet(xmlfile):
     except Exception:
         return False
 
+def getDataSetUuid(xmlfile):
+    """
+    Quickly retrieve the uuid from the root element of a dataset XML file,
+    using a streaming parser to avoid loading the entire dataset into memory.
+    Returns None if the parsing fails.
+    """
+    try:
+        import xml.etree.cElementTree as ET
+        for event, element in ET.iterparse(xmlfile, events=("start",)):
+            return element.get("UniqueId")
+    except Exception:
+        return None
+
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
     try:
