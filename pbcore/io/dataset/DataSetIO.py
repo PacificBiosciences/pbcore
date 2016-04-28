@@ -195,6 +195,12 @@ def _flatten(lol, times=1):
         lol = np.concatenate(lol)
     return lol
 
+def _ranges_in_list(alist):
+    """Takes a sorted list, finds the boundaries of runs of each value"""
+    unique, indices, counts = np.unique(np.array(alist), return_index=True,
+                                        return_counts=True)
+    return {u: (i, i + c) for u, i, c in zip(unique, indices, counts)}
+
 def divideKeys(keys, chunks):
     if chunks < 1:
         return []
@@ -2532,7 +2538,7 @@ class AlignmentSet(ReadSet):
 
         """
         recArrays = []
-        log.debug("Processing resource pbis")
+        log.debug("Processing resource indices")
         _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
@@ -2576,11 +2582,13 @@ class AlignmentSet(ReadSet):
                                                 'tEnd',))
             tbr = tbr[sort_order]
             self._indexMap = self._indexMap[sort_order]
+            ranges = _ranges_in_list(tbr.RefGroupID)
             for ref in self.referenceInfoTable:
-                hits = np.flatnonzero(tbr.RefGroupID == ref.ID)
-                if len(hits) != 0:
-                    ref.StartRow = hits[0]
-                    ref.EndRow = hits[-1]
+                bounds = ranges.get(ref.ID)
+                if bounds:
+                    ref.StartRow = bounds[0]
+                    # we want the ranges to be inclusive:
+                    ref.EndRow = bounds[1] - 1
                 # and fix the naming scheme while we're at it
                 ref.Name = self._cleanCmpName(ref.FullName)
         return tbr
