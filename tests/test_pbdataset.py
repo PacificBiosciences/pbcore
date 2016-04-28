@@ -17,7 +17,7 @@ from pbcore.io.dataset.utils import BamtoolsVersion
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet,
                        ConsensusReadSet, ConsensusAlignmentSet, openDataFile,
-                       divideKeys, keysToRanges)
+                       divideKeys, keysToRanges, getDataSetUuid)
 from pbcore.io.dataset.DataSetIO import _dsIdToSuffix, InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetValidator import validateFile
@@ -2536,3 +2536,13 @@ class TestDataSet(unittest.TestCase):
         sset = SubreadSet(human)
         ssets = sset.split(zmws=True, maxChunks=5)
 
+    def test_get_dataset_uuid(self):
+        ds = SubreadSet(upstreamdata.getUnalignedBam(), strict=True)
+        ds_file = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds.write(ds_file)
+        uuid = getDataSetUuid(ds_file)
+        self.assertEqual(uuid, ds.uuid)
+        with open(ds_file, "w") as out:
+            out.write("hello world!")
+        uuid = getDataSetUuid(ds_file)
+        self.assertEqual(uuid, None)
