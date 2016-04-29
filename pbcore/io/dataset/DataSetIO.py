@@ -124,6 +124,21 @@ def getDataSetUuid(xmlfile):
     except Exception:
         return None
 
+
+def getDataSetMetaType(xmlfile):
+    """
+    Quickly retrieve the MetaType from the root element of a dataset XML file,
+    using a streaming parser to avoid loading the entire dataset into memory.
+    Returns None if the parsing fails.
+    """
+    try:
+        import xml.etree.cElementTree as ET
+        for event, element in ET.iterparse(xmlfile, events=("start",)):
+            return element.get("MetaType")
+    except Exception:
+        return None
+
+
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
     try:
