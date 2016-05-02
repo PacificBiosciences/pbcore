@@ -148,7 +148,7 @@ class PacBioBamIndex(object):
         # TODO: remove nReads check when the rest of this code can handle empty
         # mapped bam files (columns are missing, flags don't reflect that)
         if self.hasCoordinateSortedInfo and self.nReads:
-            ntId = peek("u4", 1)
+            ntId = int(peek("u4", 1))
             for columnName, columnType in COORDINATE_SORTED_DTYPE:
                 peek(columnType, ntId)
 
