@@ -8,6 +8,7 @@ import tempfile
 import numpy as np
 import unittest
 import shutil
+import copy
 from random import shuffle
 from unittest.case import SkipTest
 
@@ -887,6 +888,33 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds2._metadata.totalLength, 100000)
         ds2._metadata.totalLength += 100000
         self.assertEquals(ds2._metadata.totalLength, 200000)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_loadMetadata(self):
+        aln = AlignmentSet(data.getXml(no=8))
+        self.assertFalse(aln.metadata.collections)
+        aln.loadMetadata('/pbi/dept/secondary/siv/testdata/'
+                         'SA3-Sequel/lambda/roche_SAT/'
+                         'm54013_151205_032353.run.metadata.xml')
+        self.assertTrue(aln.metadata.collections)
+        sset_fn = ('/pbi/dept/secondary/siv/testdata/'
+                'SA3-Sequel/lambda/roche_SAT/'
+                'm54013_151205_032353.subreadset.xml')
+        sset = SubreadSet(sset_fn)
+        orig_metadata = copy.deepcopy(sset.metadata)
+        sset.metadata.collections = None
+        self.assertFalse(sset.metadata.collections)
+        sset.loadMetadata('/pbi/dept/secondary/siv/testdata/'
+                          'SA3-Sequel/lambda/roche_SAT/'
+                          'm54013_151205_032353.run.metadata.xml')
+        stack = zip(sset.metadata, orig_metadata)
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        sset.write(fn)
+        validateFile(fn)
+        validateFile(sset_fn)
+        self.assertEqual(sset.metadata, orig_metadata)
+
 
     def test_addExternalResources(self):
         ds = DataSet()

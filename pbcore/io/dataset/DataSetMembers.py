@@ -205,6 +205,18 @@ class RecordWrapper(object):
             **repr_d)
         return rep
 
+    def __eq__(self, other):
+        """Does not take child order into account!!!!"""
+        if (sorted([c.record['tag'] for c in self]) !=
+                sorted([c.record['tag'] for c in other])):
+            return False
+        if self.__class__.__name__ != other.__class__.__name__:
+            return False
+        for attrib in ['metaname', 'namespace', 'metavalue', 'metadata']:
+            if getattr(self, attrib) != getattr(other, attrib):
+                return False
+        return True
+
     def pop(self, index):
         return self.record['children'].pop(index)
 
@@ -420,8 +432,8 @@ class Filters(RecordWrapper):
         if len(self) == 0:
             return True
         return all([sFilt == oFilt for sFilt, oFilt in zip(
-            sorted(list(self)),
-            sorted(list(other)))])
+            sorted(list(self), key=lambda x: x.metaname),
+            sorted(list(other), key=lambda x: x.metaname))])
 
     def __nonzero__(self):
         for filt in self:

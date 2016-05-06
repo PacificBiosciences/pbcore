@@ -26,7 +26,8 @@ from pbcore.io import (BaxH5Reader, FastaReader, IndexedFastaReader,
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
-                                             wrapNewResource, openFofnFile)
+                                             wrapNewResource, openFofnFile,
+                                             parseMetadata)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -1091,6 +1092,19 @@ class DataSet(object):
         else:
             self.metadata.append(statsMetadata)
 
+    def loadMetadata(self, filename):
+        """Load pipeline metadata from a <moviename>.run.metadata.xml file.
+
+        Args:
+            :filename: the filename of a <moviename>.run.metadata.xml file
+
+        """
+        if isinstance(filename, basestring):
+            metadata = parseMetadata(str(filename))
+        else:
+            metadata = filename
+        self.addMetadata(metadata)
+
     def processFilters(self):
         """Generate a list of functions to apply to a read, all of which return
         T/F. Each function is an OR filter, so any() true passes the read.
@@ -1724,6 +1738,15 @@ class DataSet(object):
         responses = self._pollResources(lambda x: x.baseFeaturesAvailable())
         return self._unifyResponses(responses)
 
+    def hasPulseFeature(self, featureName):
+        responses = self._pollResources(
+            lambda x: x.hasPulseFeature(featureName))
+        return self._unifyResponses(responses)
+
+    def pulseFeaturesAvailable(self):
+        responses = self._pollResources(lambda x: x.pulseFeaturesAvailable())
+        return self._unifyResponses(responses)
+
     @property
     def sequencingChemistry(self):
         responses = self._pollResources(lambda x: x.sequencingChemistry)
@@ -1805,8 +1828,11 @@ class DataSet(object):
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
         elif isinstance(index, list):
-            # TODO: support numpy arrays
             indexTuples = [self._indexMap[ind] for ind in index]
+            return [self.resourceReaders()[ind[0]][ind[1]] for ind in
+                    indexTuples]
+        elif isinstance(index, np.ndarray):
+            indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
         elif isinstance(index, str):

@@ -255,3 +255,14 @@ def parseStats(filename):
     stats.pruneChildrenTo(whitelist)
     return stats
 
+def parseMetadata(filename):
+    url = urlparse(filename)
+    fileLocation = url.path.strip()
+    if url.netloc:
+        fileLocation = url.netloc
+    tree = ET.parse(fileLocation)
+    dsm_tag = (".//{http://pacificbiosciences.com/PacBioDatasets.xsd}"
+               "DataSetMetadata")
+    metadata = _parseXmlDataSetMetadata(tree.getroot().find(dsm_tag))
+    return metadata
+
