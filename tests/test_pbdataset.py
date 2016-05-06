@@ -916,6 +916,20 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sset.metadata, orig_metadata)
 
 
+        # load the wrong thing...
+        sset_fn = ('/pbi/dept/secondary/siv/testdata/'
+                'SA3-Sequel/lambda/roche_SAT/'
+                'm54013_151205_032353.subreadset.xml')
+        sset = SubreadSet(sset_fn)
+        orig_metadata = copy.deepcopy(sset.metadata)
+        sset.metadata.collections = None
+        self.assertFalse(sset.metadata.collections)
+        with self.assertRaises(InvalidDataSetIOError):
+            sset.loadMetadata('/pbi/dept/secondary/siv/testdata/'
+                              'SA3-Sequel/lambda/roche_SAT/'
+                              'm54013_151205_032353.sts.xml')
+
+
     def test_addExternalResources(self):
         ds = DataSet()
         er1 = ExternalResource()

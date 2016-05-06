@@ -38,6 +38,8 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      _indexBam, _indexFasta)
+from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
+                                             ResourceMismatchError)
 
 
 log = logging.getLogger(__name__)
@@ -1104,6 +1106,7 @@ class DataSet(object):
         else:
             metadata = filename
         self.addMetadata(metadata)
+        self.updateCounts()
 
     def processFilters(self):
         """Generate a list of functions to apply to a read, all of which return
@@ -1841,22 +1844,6 @@ class DataSet(object):
                 return self[row]
             else:
                 raise NotImplementedError()
-
-
-class InvalidDataSetIOError(Exception):
-    """The base class for all DataSetIO related custom exceptions
-    """
-
-
-class ResourceMismatchError(InvalidDataSetIOError):
-
-    def __init__(self, responses):
-        super(ResourceMismatchError, self).__init__()
-        self.responses = responses
-
-    def __str__(self):
-        return "Resources responded differently: " + ', '.join(
-            map(str, self.responses))
 
 
 class ReadSet(DataSet):
