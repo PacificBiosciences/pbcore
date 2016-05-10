@@ -1032,15 +1032,16 @@ class DataSet(object):
             results.append(newCopy)
         return results
 
-    def write(self, outFile, validate=True, modPaths=False,
-              relPaths=False, pretty=True):
+    def write(self, outFile, validate=True, modPaths=None,
+              relPaths=None, pretty=True):
         """Write to disk as an XML file
 
         Args:
             :outFile: The filename of the xml file to be created
             :validate: T/F (True) validate the ExternalResource ResourceIds
-            :relPaths: T/F (False) make the ExternalResource ResourceIds
-                       relative instead of absolute filenames
+            :relPaths: T/F (None/no change) make the ExternalResource
+                       ResourceIds relative instead of absolute filenames
+            :modPaths: DEPRECATED (T/F) allow paths to be modified
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -1054,8 +1055,17 @@ class DataSet(object):
             >>> ds1 == ds2
             True
         """
+        if not modPaths is None:
+            log.info("modPaths as a write argument is deprecated. Paths "
+                     "aren't modified unless relPaths is explicitly set "
+                     "to True or False. Will be removed in future versions.")
+            # make sure we keep the same effect for now, in case someone has
+            # something odd like modPaths=False, relPaths=True
+            if not modPaths:
+                relPaths = None
+
         # fix paths if validate:
-        if validate and modPaths:
+        if validate and not relPaths is None:
             if relPaths:
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
@@ -3817,6 +3827,7 @@ class ContigSet(DataSet):
             self._populateContigMetadata()
 
     def _populateContigMetadata(self):
+        log.debug("Adding contig metadata...")
         numrec = 0
         totlen = 0
         for contig in self.contigs:
@@ -3824,6 +3835,8 @@ class ContigSet(DataSet):
             numrec += 1
             totlen += len(contig)
         if not self._countsUpdated:
+            log.debug("Counts updated: numrec={n} totlen={l}".format(n=numrec,
+                                                                     l=totlen))
             self.numRecords = numrec
             self.totalLength = totlen
             self._countsUpdated = True
@@ -3836,9 +3849,11 @@ class ContigSet(DataSet):
                 self.metadata.numRecords = -1
             return
         if not self.isIndexed:
-            log.info("Cannot updateCounts without an index file")
-            self.metadata.totalLength = 0
-            self.metadata.numRecords = 0
+            if (not self.totalLength and not self.numRecords and not
+                    self._countsUpdated):
+                log.info("Cannot updateCounts without an index file")
+                self.metadata.totalLength = 0
+                self.metadata.numRecords = 0
             return
         try:
             log.debug('Updating counts')
