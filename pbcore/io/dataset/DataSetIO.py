@@ -741,7 +741,7 @@ class DataSet(object):
             self.objMetadata['UniqueId'] = newId
         return newId
 
-    def copyTo(self, dest):
+    def copyTo(self, dest, relative=False):
         """Doesn't resolve resource name collisions"""
         ofn = None
         dest = os.path.abspath(dest)
@@ -755,7 +755,7 @@ class DataSet(object):
         resFunc = partial(_copier, dest, subfolder=state)
         self._modResources(resFunc)
         if not ofn is None:
-            self.write(ofn)
+            self.write(ofn, relPaths=relative)
 
     def copy(self, asType=None):
         """Deep copy the representation of this DataSet
