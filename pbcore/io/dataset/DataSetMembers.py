@@ -1014,6 +1014,10 @@ class ExternalResource(RecordWrapper):
             return True
         return False
 
+    @property
+    def uniqueId(self):
+        return self.getV('attrib', 'UniqueId')
+
     def merge(self, other):
         if self.metaType:
             if self.metaType != other.metaType:

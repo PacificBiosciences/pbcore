@@ -930,6 +930,44 @@ class TestDataSet(unittest.TestCase):
                               'm54013_151205_032353.sts.xml')
 
 
+    def test_copyTo(self):
+        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        explen = len(aln)
+        fn = tempfile.NamedTemporaryFile(suffix=".alignmentset.xml").name
+        aln.copyTo(fn)
+        aln.close()
+        del aln
+        aln = AlignmentSet(fn, strict=True)
+        self.assertEqual(explen, len(aln))
+
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        aln.copyTo(outdir)
+        fn = os.path.join(outdir, "test.alignmentset.xml")
+        aln.write(fn)
+        aln.close()
+        del aln
+        aln = AlignmentSet(fn, strict=True)
+        self.assertEqual(explen, len(aln))
+
+        # do it twice to same dir to induce collisions
+        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        aln.copyTo(outdir)
+        fn = os.path.join(outdir, "test.alignmentset.xml")
+        aln.write(fn)
+
+        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        aln.copyTo(outdir)
+        fn2 = os.path.join(outdir, "test2.alignmentset.xml")
+        aln.write(fn2)
+
+        aln = AlignmentSet(fn, strict=True)
+        aln2 = AlignmentSet(fn2, strict=True)
+        self.assertEqual(explen, len(aln))
+        self.assertEqual(explen, len(aln2))
+        self.assertNotEqual(sorted(aln.toExternalFiles()),
+                            sorted(aln2.toExternalFiles()))
+
     def test_addExternalResources(self):
         ds = DataSet()
         er1 = ExternalResource()

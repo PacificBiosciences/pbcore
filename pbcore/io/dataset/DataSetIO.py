@@ -8,6 +8,7 @@ import copy
 import os, sys
 import re
 import errno
+import uuid
 import logging
 import itertools
 import xml.dom.minidom
@@ -37,7 +38,8 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResources,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
-                                     _indexBam, _indexFasta)
+                                     _indexBam, _indexFasta, _fileCopy,
+                                     _swapPath)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 
@@ -144,12 +146,8 @@ def getDataSetMetaType(xmlfile):
 
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
-    try:
-        tbrType = _typeDataSet(files[0])
-        return tbrType(*files, **kwargs)
-    except Exception:
-        raise TypeError("openDataSet requires that at least the first file is "
-                        "a DataSet")
+    tbrType = _typeDataSet(files[0])
+    return tbrType(*files, **kwargs)
 
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
@@ -318,6 +316,24 @@ def _pathChanger(osPathFunc, metaTypeFunc, resource):
         currentPath = osPathFunc(currentPath)
         resource.resourceId = currentPath
         metaTypeFunc(resource)
+
+def _copier(dest, resource, subfolder=None):
+    """Apply these two functions to the resource or ResourceId"""
+    if subfolder is None:
+        subfolder = [uuid.uuid4()]
+    resId = resource.resourceId
+    currentPath = urlparse(resId)
+    if currentPath.scheme == 'file' or not currentPath.scheme:
+        currentPath = currentPath.path
+        try:
+            currentPath = _fileCopy(dest, currentPath, uuid=resource.uniqueId)
+            subfolder[0] = resource.uniqueId
+        except AttributeError:
+            if subfolder:
+                currentPath = _fileCopy(dest, currentPath, uuid=subfolder[0])
+            else:
+                raise
+        resource.resourceId = currentPath
 
 
 class DataSet(object):
@@ -724,6 +740,22 @@ class DataSet(object):
         if setter:
             self.objMetadata['UniqueId'] = newId
         return newId
+
+    def copyTo(self, dest):
+        """Doesn't resolve resource name collisions"""
+        ofn = None
+        dest = os.path.abspath(dest)
+        if not os.path.isdir(dest):
+            ofn = dest
+            dest = os.path.split(dest)[0]
+        # unfortunately file indices must have the same name as the file they
+        # index, so we carry around some state to store the most recent uuid
+        # seen. Good thing we do a depth first traversal!
+        state = [self.uuid]
+        resFunc = partial(_copier, dest, subfolder=state)
+        self._modResources(resFunc)
+        if not ofn is None:
+            self.write(ofn)
 
     def copy(self, asType=None):
         """Deep copy the representation of this DataSet
@@ -1359,7 +1391,6 @@ class DataSet(object):
         """
         self.metadata.totalLength = -1
         self.metadata.numRecords = -1
-        self._countsUpdated = True
 
     def addExternalResources(self, newExtResources, updateCount=True):
         """Add additional ExternalResource objects, ensuring no duplicate
@@ -2324,7 +2355,6 @@ class ReadSet(DataSet):
         self._populateMetaTypes()
 
     def updateCounts(self):
-        self._countsUpdated = True
         if self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
@@ -2336,6 +2366,7 @@ class ReadSet(DataSet):
             numRecords, totalLength = self._length
             self.metadata.totalLength = totalLength
             self.metadata.numRecords = numRecords
+            self._countsUpdated = True
         except (IOError, UnavailableFeature):
             if not self._strict:
                 log.debug("File problem, metadata not populated")
@@ -2394,7 +2425,6 @@ class HdfSubreadSet(ReadSet):
 
     def updateCounts(self):
         """Overriding here so we don't have to assertIndexed"""
-        self._countsUpdated = True
         if self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
@@ -2405,6 +2435,7 @@ class HdfSubreadSet(ReadSet):
             numRecords, totalLength = self._length
             self.metadata.totalLength = totalLength
             self.metadata.numRecords = numRecords
+            self._countsUpdated = True
         except (IOError, UnavailableFeature):
             if not self._strict:
                 log.debug("File problem, metadata not populated")
@@ -3786,11 +3817,18 @@ class ContigSet(DataSet):
             self._populateContigMetadata()
 
     def _populateContigMetadata(self):
+        numrec = 0
+        totlen = 0
         for contig in self.contigs:
             self._metadata.addContig(contig)
+            numrec += 1
+            totlen += len(contig)
+        if not self._countsUpdated:
+            self.numRecords = numrec
+            self.totalLength = totlen
+            self._countsUpdated = True
 
     def updateCounts(self):
-        self._countsUpdated = True
         if self._skipCounts:
             if not self.metadata.totalLength:
                 self.metadata.totalLength = -1
@@ -3806,6 +3844,7 @@ class ContigSet(DataSet):
             log.debug('Updating counts')
             self.metadata.totalLength = sum(self.index.length)
             self.metadata.numRecords = len(self.index)
+            self._countsUpdated = True
         except (IOError, UnavailableFeature, TypeError):
             # IOError for missing files
             # UnavailableFeature for files without companion files

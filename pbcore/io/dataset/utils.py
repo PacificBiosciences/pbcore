@@ -162,6 +162,30 @@ def _infixFname(fname, infix):
     prefix, extension = os.path.splitext(fname)
     return prefix + str(infix) + extension
 
+def _earlyInfixFname(fname, infix):
+    path, name = os.path.split(fname)
+    tokens = name.split('.')
+    tokens.insert(1, str(infix))
+    return os.path.join(path, '.'.join(tokens))
+
+def _swapPath(dest, infile):
+    return os.path.join(dest, os.path.split(infile)[1])
+
+def _fileCopy(dest, infile, uuid=None):
+    fn = _swapPath(dest, infile)
+    if os.path.exists(fn):
+        if uuid is None:
+            raise IOError("File name exists in destination: "
+                          "{f}".format(f=infile))
+        subdir = os.path.join(dest, uuid)
+        if not os.path.exists(subdir):
+            os.mkdir(subdir)
+        fn = _swapPath(subdir, fn)
+    shutil.copy(infile, fn)
+    assert os.path.exists(fn)
+    return fn
+
+
 def _emitFilterScript(filterDset, filtScriptName):
     """Use the filter script feature of bamtools. Use with specific filters if
     all that are needed are available, otherwise filter by readname (easy but
