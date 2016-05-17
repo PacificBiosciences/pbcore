@@ -2339,6 +2339,8 @@ class ReadSet(DataSet):
             :numFiles: The number of data files to be produced.
 
         """
+        references = [er.reference for er in self.externalResources if
+                      er.reference]
         if numFiles > 1:
             assert len(self.resourceReaders()) == len(self.toExternalFiles())
             resSizes = [[i, size[0], size[1]]
@@ -2359,10 +2361,21 @@ class ReadSet(DataSet):
         else:
             consolidateBams(self.toExternalFiles(), dataFile, filterDset=self,
                             useTmp=useTmp)
-            # TODO: add as subdatasets
+            # TODO: remove subdatasets?
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources([dataFile])
+        # make sure reference gets passed through:
+        if references:
+            refCounts = dict(Counter(references))
+            if len(refCounts) > 1:
+                log.warn("Consolidating AlignmentSets with "
+                         "different references, but BamReaders "
+                         "can only have one. References will be "
+                         "lost")
+            else:
+                for extres in self.externalResources:
+                    extres.reference = refCounts.keys()[0]
         # reset the indexmap especially, as it is out of date:
         self._index = None
         self._indexMap = None

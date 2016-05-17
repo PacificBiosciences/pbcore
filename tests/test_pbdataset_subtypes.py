@@ -362,6 +362,43 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(read1, read2)
         self.assertEqual(len(list(aln)), len(list(nonCons)))
 
+        log.debug("Test with one reference")
+        aln = AlignmentSet(data.getXml(12))
+        reference = upstreamData.getFasta()
+        aln.externalResources[0].reference = reference
+        nonCons = aln.copy()
+        self.assertEqual(len(aln.toExternalFiles()), 2)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, 'merged.bam')
+        aln.consolidate(outfn)
+        self.assertTrue(os.path.exists(outfn))
+        self.assertEqual(len(aln.toExternalFiles()), 1)
+        #nonCons = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(nonCons.toExternalFiles()), 2)
+        for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
+            self.assertEqual(read1, read2)
+        self.assertEqual(len(aln), len(nonCons))
+        self.assertEqual(aln.externalResources[0].reference, reference)
+
+        log.debug("Test with two references")
+        aln = AlignmentSet(data.getXml(12))
+        reference = upstreamData.getFasta()
+        for extRes in aln.externalResources:
+            extRes.reference = reference
+        self.assertEqual(len(aln.toExternalFiles()), 2)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, 'merged.bam')
+        aln.consolidate(outfn)
+        self.assertTrue(os.path.exists(outfn))
+        self.assertEqual(len(aln.toExternalFiles()), 1)
+        #nonCons = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(nonCons.toExternalFiles()), 2)
+        for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
+            self.assertEqual(read1, read2)
+        self.assertEqual(len(aln), len(nonCons))
+        self.assertEqual(aln.externalResources[0].reference, reference)
+
+
     def test_accuracy_filter(self):
         aln = AlignmentSet(data.getXml(12))
         self.assertEqual(len(list(aln)), 177)
