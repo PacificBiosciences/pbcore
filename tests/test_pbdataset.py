@@ -82,7 +82,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds1.numExternalResources, 2)
         ds1 = DataSet(data.getFofn())
         self.assertEquals(ds1.numExternalResources, 2)
-        # New! Use the correct constructor:
         self.assertEquals(type(SubreadSet(data.getSubreadSet(),
                                           skipMissing=True)).__name__,
                           'SubreadSet')
@@ -571,6 +570,42 @@ class TestDataSet(unittest.TestCase):
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
+    def test_scraps_detection(self):
+        path = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/'
+                'lambda/315/3150128/r54008_20160308_001811/'
+                '2_B01/m54008_160308_053311.')
+        subreads = path + 'subreads.bam'
+        control = path + 'control.subreads.bam'
+        controlscraps = path + 'control.scraps.bam'
+        scraps = path + 'scraps.bam'
+        subreadspbi = subreads + '.pbi'
+        scrapspbi = scraps + '.pbi'
+
+        filesets = [[subreads],
+                    [subreads, scraps],
+                    [subreads, subreadspbi],
+                    [subreads, scrapspbi]]
+
+        for files in filesets:
+            sset = SubreadSet(*files, strict=True)
+            self.assertEqual(len(sset.externalResources), 1)
+            self.assertEqual(sset.externalResources[0].resourceId, subreads)
+            self.assertEqual(sset.externalResources[0].scraps, scraps)
+            self.assertEqual(sset.externalResources[0].control, control)
+            self.assertEqual(
+                sset.externalResources[0].externalResources[0].resourceId,
+                scraps)
+            self.assertEqual(
+                sset.externalResources[0].externalResources[1].resourceId,
+                control)
+            self.assertEqual(
+                sset.externalResources[
+                    0].externalResources[1].externalResources[0].resourceId,
+                controlscraps)
+
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
     def test_referenceInfoTableMerging(self):
         log.info("Testing refIds, etc. after merging")
         bam1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
@@ -769,6 +804,39 @@ class TestDataSet(unittest.TestCase):
             dss[-1].zmwRanges,
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127814, 163468)])
+
+
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_multi_movie_readsByName(self):
+        N_RECORDS = 1745161
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        self.assertEqual(len(ds1), N_RECORDS)
+        queries = [('m150404_101626_42267_c1008079208000'
+                    '00001823174110291514_s1_p0/7/*', 2),
+                   ('m141115_075238_ethan_c1006998725500'
+                    '00001823139203261572_s1_p0/9/*', 39),
+                   ]
+        for query, count in queries:
+            reads = ds1.readsByName(query)
+            self.assertEqual(len(reads), count)
+            parts = query.split('/')
+            movie = parts[0]
+            hn = int(parts[1])
+            if len(parts) > 2:
+                qrange = parts[2]
+            for read in reads:
+                self.assertEqual(read.movieName, movie)
+                self.assertEqual(read.holeNumber, hn)
+                # TODO: test qrange/ccs
 
 
     #@unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),

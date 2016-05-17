@@ -636,6 +636,7 @@ class Filters(RecordWrapper):
                 # renamed:
                 accMap['movie'] = (lambda x: x.MovieID)
                 accMap['qname'] = (lambda x: x.MovieID)
+                accMap['zm'] = (lambda x: x.HoleNumber)
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: x.length.astype(int)),
@@ -1093,6 +1094,14 @@ class ExternalResource(RecordWrapper):
         self._setSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile', value)
 
     @property
+    def control(self):
+        return self._getSubResByMetaType('PacBio.SubreadFile.Control.SubreadBamFile')
+
+    @control.setter
+    def control(self, value):
+        self._setSubResByMetaType('PacBio.SubreadFile.Control.SubreadBamFile', value)
+
+    @property
     def barcodes(self):
         return self._getSubResByMetaType("PacBio.DataSet.BarcodeSet")
 
@@ -1117,8 +1126,11 @@ class ExternalResource(RecordWrapper):
                 return res.resourceId
 
     def _setSubResByMetaType(self, mType, value):
-        tmp = ExternalResource()
-        tmp.resourceId = value
+        if not isinstance(value, ExternalResource):
+            tmp = ExternalResource()
+            tmp.resourceId = value
+        else:
+            tmp = value
         tmp.metaType = mType
         tmp.timeStampedName = getTimeStampedName(mType)
         resources = self.externalResources

@@ -1136,6 +1136,11 @@ class DataSet(object):
         else:
             self.metadata.append(statsMetadata)
 
+    def readsByName(self, query):
+        reads = _flatten([rr.readsByName(query)
+                          for rr in self.resourceReaders()])
+        return sorted(reads, key=lambda a: a.readStart)
+
     def loadMetadata(self, filename):
         """Load pipeline metadata from a <moviename>.run.metadata.xml file.
 

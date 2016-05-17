@@ -99,10 +99,21 @@ def _addUnknownFile(dset, path):
     else:
         return _addGenericFile(dset, path)
 
+SUB_RESOURCES = ['.scraps.bam', '.control.subreads.bam']
+FILE_INDICES = ['.fai', '.pbi', '.bai', '.metadata.xml',
+                '.index', '.contig.index', '.sa']
+
 # TODO needs namespace
 def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
+    # filter out resource file types that aren't top level:
+    for ext in SUB_RESOURCES + FILE_INDICES:
+        if path.endswith(ext):
+            log.debug('Sub resource file {f} given as regular file, '
+                      'will be treated '
+                      'as a sub resource file instead'.format(f=path))
+            return
     extRes = wrapNewResource(path)
     extRess = ExternalResources()
     extRess.append(extRes)
@@ -111,9 +122,8 @@ def _addGenericFile(dset, path):
 
 # TODO needs namespace
 def wrapNewResource(path):
-    possible_indices = ['.fai', '.pbi', '.bai', '.metadata.xml',
-                        '.index', '.contig.index', '.sa']
-    for ext in possible_indices:
+    # filter out non-resource file types:
+    for ext in FILE_INDICES:
         if path.endswith(ext):
             log.debug('Index file {f} given as regular file, will be treated '
                       ' as an index file instead'.format(f=path))
@@ -121,10 +131,18 @@ def wrapNewResource(path):
     extRes = ExternalResource()
     path = resolveLocation(path)
     extRes.resourceId = path
-    index_files = [path + ext for ext in possible_indices if
+    index_files = [path + ext for ext in FILE_INDICES if
                    os.path.exists(path + ext)]
     if index_files:
         extRes.addIndices(index_files)
+
+    # Check for sub resources:
+    for ext in SUB_RESOURCES:
+        filen = '.'.join(path.split('.')[:-2]) + ext
+        # don't want to add e.g. scraps to scraps:
+        if os.path.exists(filen) and path.endswith('subreads.bam'):
+            subres = wrapNewResource(filen)
+            setattr(extRes, ext.split('.')[1], subres)
     return extRes
 
 
