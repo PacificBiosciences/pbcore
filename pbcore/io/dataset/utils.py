@@ -11,6 +11,50 @@ from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
 
+def which(exe):
+    if os.path.exists(exe) and os.access(exe, os.X_OK):
+        return exe
+    path = os.getenv('PATH')
+    for this_path in path.split(os.path.pathsep):
+        this_path = os.path.join(this_path, exe)
+        if os.path.exists(this_path) and os.access(this_path, os.X_OK):
+            return this_path
+    return None
+
+def consolidateXml(indset, outbam, useTmp=True):
+    tmpout = tempfile.mkdtemp(suffix="consolidate-xml")
+    tmp_xml = os.path.join(tmpout,
+                           "orig.{t}.xml".format(
+                               t=indset.__class__.__name__.lower()))
+
+    final_free_space = disk_free(os.path.split(outbam)[0])
+    projected_size = sum(file_size(infn)
+                         for infn in indset.toExternalFiles())
+    log.debug("Projected size:            {p}".format(p=projected_size))
+    log.debug("In place free space:       {f}".format(f=final_free_space))
+    # give it a 5% buffer
+    if final_free_space < (projected_size * 1.05):
+        raise RuntimeError("No space available to consolidate")
+    if useTmp:
+        tmp_free_space = disk_free(tmpout)
+        log.debug("Tmp free space (need ~2x): {f}".format(f=tmp_free_space))
+        # need 2x for tmp in and out, plus 10% buffer
+        if tmp_free_space > (projected_size * 2.1):
+            log.debug("Using tmp storage: " + tmpout)
+            indset.copyTo(tmp_xml)
+            origOutBam = outbam
+            outbam = os.path.join(tmpout, "outfile.bam")
+        else:
+            log.debug("Using in place storage")
+            indset.write(tmp_xml)
+            useTmp = False
+    _pbmergeXML(tmp_xml, outbam)
+    if useTmp:
+        shutil.copy(outbam, origOutBam)
+        # cleanup:
+        shutil.rmtree(tmpout)
+    return outbam
+
 def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
     """Take a list of infiles, an outFile to produce, and optionally a dataset
     (filters) to provide the definition and content of filtrations."""
@@ -145,6 +189,15 @@ def _mergeBams(inFiles, outFile):
             raise RuntimeError(m)
     else:
         shutil.copy(inFiles[0], outFile)
+
+def _pbmergeXML(indset, outbam):
+    cmd = "pbmerge -o {o} {i} ".format(i=indset,
+                                             o=outbam)
+    log.info(cmd)
+    o, r, m = backticks(cmd)
+    if r != 0:
+        raise RuntimeError(m)
+    return outbam
 
 def _filterBam(inFile, outFile, filterDset):
     BamtoolsVersion().check()

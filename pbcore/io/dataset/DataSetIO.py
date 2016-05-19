@@ -39,7 +39,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     _swapPath)
+                                     _swapPath, which, consolidateXml)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 
@@ -1864,9 +1864,9 @@ class DataSet(object):
     def __getitem__(self, index):
         """Should respect filters for free, as _indexMap should only be
         populated by filtered reads. Only pbi filters considered, however."""
+        if self._indexMap is None:
+            _ = self.index
         if isinstance(index, int):
-            if self._indexMap is None:
-                _ = self.index
             # support negatives
             if index < 0:
                 index = len(self.index) + index
@@ -1910,7 +1910,8 @@ class ReadSet(DataSet):
             if not res.bai:
                 newInds.append(_indexBam(fname))
                 self.close()
-            res.addIndices(newInds)
+            if newInds:
+                res.addIndices(newInds)
         self._populateMetaTypes()
         self.updateCounts()
 
@@ -2341,30 +2342,48 @@ class ReadSet(DataSet):
         """
         references = [er.reference for er in self.externalResources if
                       er.reference]
-        if numFiles > 1:
-            assert len(self.resourceReaders()) == len(self.toExternalFiles())
-            resSizes = [[i, size[0], size[1]]
-                        for i, size in enumerate(self._resourceSizes())]
-            chunks = self._chunkList(resSizes, numFiles, lambda x: x[1])
-            resLists = []
-            for chunk in chunks:
-                thisResList = []
-                for i in chunk:
-                    thisResList.append(self.toExternalFiles()[i[0]])
-                resLists.append(thisResList)
-            fnames = [_infixFname(dataFile, str(i)) for i in range(numFiles)]
-            for resList, fname in zip(resLists, fnames):
-                consolidateBams(resList, fname, filterDset=self, useTmp=useTmp)
+        if which('pbmerge'):
+            log.debug("Using pbmerge to consolidate")
+            dsets = self.split(zmws=True, chunks=numFiles)
+            if numFiles > 1:
+                fnames = [_infixFname(dataFile, str(i))
+                          for i in range(numFiles)]
+            else:
+                fnames = [dataFile]
+            for chunk, fname in zip(dsets, fnames):
+                consolidateXml(chunk, fname, useTmp=useTmp)
             log.debug("Replacing resources")
             self.externalResources = ExternalResources()
             self.addExternalResources(fnames)
+            self.induceIndices()
         else:
-            consolidateBams(self.toExternalFiles(), dataFile, filterDset=self,
-                            useTmp=useTmp)
-            # TODO: remove subdatasets?
-            log.debug("Replacing resources")
-            self.externalResources = ExternalResources()
-            self.addExternalResources([dataFile])
+            if numFiles > 1:
+                assert (len(self.resourceReaders()) ==
+                        len(self.toExternalFiles()))
+                resSizes = [[i, size[0], size[1]]
+                            for i, size in enumerate(self._resourceSizes())]
+                chunks = self._chunkList(resSizes, numFiles, lambda x: x[1])
+                resLists = []
+                for chunk in chunks:
+                    thisResList = []
+                    for i in chunk:
+                        thisResList.append(self.toExternalFiles()[i[0]])
+                    resLists.append(thisResList)
+                fnames = [_infixFname(dataFile, str(i))
+                          for i in range(numFiles)]
+                for resList, fname in zip(resLists, fnames):
+                    consolidateBams(resList, fname, filterDset=self,
+                                    useTmp=useTmp)
+                log.debug("Replacing resources")
+                self.externalResources = ExternalResources()
+                self.addExternalResources(fnames)
+            else:
+                consolidateBams(self.toExternalFiles(), dataFile,
+                                filterDset=self, useTmp=useTmp)
+                # TODO: remove subdatasets?
+                log.debug("Replacing resources")
+                self.externalResources = ExternalResources()
+                self.addExternalResources([dataFile])
         # make sure reference gets passed through:
         if references:
             refCounts = dict(Counter(references))

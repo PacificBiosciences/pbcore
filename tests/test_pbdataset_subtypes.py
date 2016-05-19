@@ -16,7 +16,7 @@ from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile, FastaWriter, FastqReader)
+                       openDataFile, FastaWriter, FastqReader, openDataSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -979,6 +979,15 @@ class TestDataSet(unittest.TestCase):
         with ContigSet(fn) as cset:
             self.assertEqual(len(list(cset)), 49)
             self.assertEqual(len(cset), 49)
+
+    def test_getitem(self):
+        types = [AlignmentSet(data.getXml(8)),
+                 ReferenceSet(data.getXml(9)),
+                 SubreadSet(data.getXml(10)),
+                ]
+        for ds in types:
+            self.assertTrue(ds[0])
+
 
     def test_incorrect_len_getitem(self):
         types = [AlignmentSet(data.getXml(8)),

@@ -108,6 +108,7 @@ def _addGenericFile(dset, path):
     """Create and populate an Element object, put it in an available members
     dictionary, return"""
     # filter out resource file types that aren't top level:
+    # if we want to exclude scraps as well:
     for ext in SUB_RESOURCES + FILE_INDICES:
         if path.endswith(ext):
             log.debug('Sub resource file {f} given as regular file, '

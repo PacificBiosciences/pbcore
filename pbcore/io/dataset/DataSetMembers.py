@@ -1175,11 +1175,11 @@ class ExternalResource(RecordWrapper):
             fileIndices = FileIndices(fileIndices[0])
         else:
             fileIndices = FileIndices()
+            self.append(fileIndices)
         for index in list(indices):
             temp = FileIndex()
             temp.resourceId = index
             fileIndices.append(temp)
-        self.append(fileIndices)
 
 class FileIndices(RecordWrapper):
 
