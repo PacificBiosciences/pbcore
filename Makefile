@@ -50,3 +50,8 @@ pip-install:
       && pip uninstall -y pbcore \
       || echo -n ''
 	@pip install --no-index ./
+
+
+publish-to-pypi:
+	@echo "I'm not going to do this for you, but you can do it by:"
+	@echo "    % python setup.py sdist upload -r pypi"
