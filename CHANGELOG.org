@@ -1,3 +1,8 @@
+* Version 1.2.10 (> SMRTanalysis 3.1)
+  - Update to pysam 0.9.0
+  - Recognize new and prospective future partnumbers for the 3.1 timeframe
+  - Misc fixes for speeding up dataset and cmp.h5 access
+
 * Version 1.2.9
   - Rename pulseFeature accessors to "baseFeature...", since they
     reflect features accompanying basecalls as opposed to pulse calls;
