@@ -156,6 +156,8 @@ class TestDataSet(unittest.TestCase):
             obs_n_contigs += len(r)
         self.assertEqual(obs_n_contigs, exp_n_contigs)
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
     def test_gmapreferenceset_len(self):
         fas = ('/pbi/dept/secondary/siv/testdata/isoseq/'
                'lexigoen-ground-truth/reference/SIRV_150601a.fasta')
