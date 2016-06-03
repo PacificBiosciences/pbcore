@@ -62,6 +62,7 @@ import logging
 from functools import partial as P
 from collections import Counter
 from pbcore.io.dataset.DataSetWriter import namespaces
+from pbcore.io.dataset.utils import getTimeStampedName
 
 log = logging.getLogger(__name__)
 
@@ -81,12 +82,6 @@ def newUuid(record):
 
     # Today is not that day
     return str(uuid.uuid4())
-
-def getTime():
-    return datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S")
-
-def getTimeStampedName(mType):
-    return "{m}-{t}".format(m=mType, t=getTime())
 
 OPMAP = {'==': OP.eq,
          '=': OP.eq,
@@ -388,6 +383,10 @@ class RecordWrapper(object):
     @property
     def version(self):
         return self.getV('attrib', 'Version')
+
+    @version.setter
+    def version(self, value):
+        self.setV(value, 'attrib', 'Version')
 
     @property
     def description(self):
@@ -1078,6 +1077,16 @@ class ExternalResource(RecordWrapper):
                 return index.resourceId
 
     @property
+    def gmap(self):
+        """Unusual: returns the gmap external resource instead of the resId"""
+        return self._getSubExtResByMetaType('PacBio.GmapDB.GmapDBPath')
+
+    @gmap.setter
+    def gmap(self, value):
+        """Sets the resourceId"""
+        self._setSubResByMetaType('PacBio.GmapDB.GmapDBPath', value)
+
+    @property
     def sts(self):
         return self._getSubResByMetaType('PacBio.SubreadFile.ChipStatsFile')
 
@@ -1119,11 +1128,16 @@ class ExternalResource(RecordWrapper):
         self._setSubResByMetaType('PacBio.ReferenceFile.ReferenceFastaFile',
                                   value)
 
-    def _getSubResByMetaType(self, mType):
+    def _getSubExtResByMetaType(self, mType):
         resources = self.externalResources
         for res in resources:
             if res.metaType == mType:
-                return res.resourceId
+                return res
+
+    def _getSubResByMetaType(self, mType):
+        res = self._getSubExtResByMetaType(mType)
+        if not res is None:
+            return res.resourceId
 
     def _setSubResByMetaType(self, mType, value):
         if not isinstance(value, ExternalResource):

@@ -3,7 +3,6 @@ Classes representing DataSets of various types.
 """
 
 import hashlib
-import datetime
 import copy
 import os, sys
 import re
@@ -39,7 +38,8 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     _swapPath, which, consolidateXml)
+                                     _swapPath, which, consolidateXml,
+                                     getTimeStampedName)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 
@@ -60,14 +60,6 @@ def filtered(generator):
                 if any(filt(read) for filt in filter_tests):
                     yield read
     return wrapper
-
-def _getTimeStampedName(mType):
-    """Generate a timestamped name using the given metatype 'mType' and the
-    current UTC time"""
-    mType = mType.lower()
-    mType = '_'.join(mType.split('.'))
-    time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
-    return "{m}-{t}".format(m=mType, t=time)
 
 def _toDsId(name):
     """Translate a class name into a MetaType/ID"""
@@ -268,6 +260,7 @@ class DataSetMetaTypes(object):
     CCS_ALIGNMENT = _toDsId("ConsensusAlignmentSet")
     CCS = _toDsId("ConsensusReadSet")
     REFERENCE = _toDsId("ReferenceSet")
+    GMAPREFERENCE = _toDsId("GmapReferenceSet")
     CONTIG = _toDsId("ContigSet")
 
     ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
@@ -295,7 +288,7 @@ def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
     if not isinstance(fname, str):
         fname = fname.resourceId
-    if not os.path.isfile(fname):
+    if not os.path.exists(fname):
         raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
     return True
 
@@ -452,7 +445,7 @@ class DataSet(object):
             dsType = self.objMetadata.setdefault("MetaType",
                                                  _toDsId('DataSet'))
         if not "TimeStampedName" in self.objMetadata:
-            self.objMetadata["TimeStampedName"] = _getTimeStampedName(
+            self.objMetadata["TimeStampedName"] = getTimeStampedName(
                 self.objMetadata["MetaType"])
         self.objMetadata.setdefault("Name",
                                     self.objMetadata["TimeStampedName"])
@@ -709,7 +702,7 @@ class DataSet(object):
             self.updateCounts()
         return self.numRecords
 
-    def newUuid(self, setter=True):
+    def newUuid(self, setter=True, random=False):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
         While user setable fields are stripped out of the Core DataSet object
         used for comparison, the previous UniqueId is not. That means that
@@ -730,12 +723,15 @@ class DataSet(object):
             >>> old != ds.uuid
             True
         """
-        coreXML = toXml(self, core=True)
-        newId = str(hashlib.md5(coreXML).hexdigest())
+        if random:
+            newId = str(uuid.uuid4())
+        else:
+            coreXML = toXml(self, core=True)
+            newId = str(hashlib.md5(coreXML).hexdigest())
 
-        # Group appropriately
-        newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
-                          newId[20:]])
+            # Group appropriately
+            newId = '-'.join([newId[:8], newId[8:12], newId[12:16],
+                              newId[16:20], newId[20:]])
 
         if setter:
             self.objMetadata['UniqueId'] = newId
@@ -1254,7 +1250,7 @@ class DataSet(object):
             resource.metaType = self._metaTypeMapping().get(file_type, "")
         if not resource.timeStampedName:
             mtype = resource.metaType
-            tsName = _getTimeStampedName(mtype)
+            tsName = getTimeStampedName(mtype)
             resource.timeStampedName = tsName
 
     @staticmethod
@@ -1655,6 +1651,7 @@ class DataSet(object):
                 'ConsensusReadSet': ConsensusReadSet,
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
+                'GmapReferenceSet': GmapReferenceSet,
                 'BarcodeSet': BarcodeSet}
     @property
     def metadata(self):
@@ -2433,7 +2430,7 @@ class HdfSubreadSet(ReadSet):
         # The metatype for this dataset type is inconsistent, plaster over it
         # here:
         self.objMetadata["MetaType"] = "PacBio.DataSet.HdfSubreadSet"
-        self.objMetadata["TimeStampedName"] = _getTimeStampedName(
+        self.objMetadata["TimeStampedName"] = getTimeStampedName(
             self.objMetadata["MetaType"])
 
     def induceIndices(self):
@@ -4151,6 +4148,35 @@ class ReferenceSet(ContigSet):
                 'contig.index':'PacBio.Index.FastaContigIndex',
                 'index':'PacBio.Index.Indexer',
                 'sa':'PacBio.Index.SaWriterIndex',
+               }
+
+
+class GmapReferenceSet(ReferenceSet):
+    """DataSet type specific to GMAP References"""
+
+    datasetType = DataSetMetaTypes.GMAPREFERENCE
+
+    def __init__(self, *files, **kwargs):
+        super(GmapReferenceSet, self).__init__(*files, **kwargs)
+
+    @property
+    def gmap(self):
+        return self.externalResources[0].gmap
+
+    @gmap.setter
+    def gmap(self, value):
+        self.externalResources[0].gmap = value
+
+    @staticmethod
+    def _metaTypeMapping():
+        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
+                'fa':'PacBio.ContigFile.ContigFastaFile',
+                'fas':'PacBio.ContigFile.ContigFastaFile',
+                'fai':'PacBio.Index.SamIndex',
+                'contig.index':'PacBio.Index.FastaContigIndex',
+                'index':'PacBio.Index.Indexer',
+                'sa':'PacBio.Index.SaWriterIndex',
+                'gmap': 'PacBio.GmapDB.GmapDBPath',
                }
 
 

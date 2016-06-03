@@ -16,7 +16,8 @@ from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile, FastaWriter, FastqReader, openDataSet)
+                       openDataFile, FastaWriter, FastqReader, openDataSet,
+                       GmapReferenceSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -155,6 +156,28 @@ class TestDataSet(unittest.TestCase):
             obs_n_contigs += len(r)
         self.assertEqual(obs_n_contigs, exp_n_contigs)
 
+    def test_gmapreferenceset_len(self):
+        fas = ('/pbi/dept/secondary/siv/testdata/isoseq/'
+               'lexigoen-ground-truth/reference/SIRV_150601a.fasta')
+        ref = GmapReferenceSet(fas)
+        fn = '/pbi/dept/secondary/siv/testdata/isoseq/gmap_db'
+        ver = '2014-12-19'
+        name = 'SIRV'
+        ref.gmap = fn
+        self.assertEqual(ref.gmap.resourceId, fn)
+        ref.gmap.version = ver
+        self.assertEqual(ref.gmap.version, ver)
+        ref.gmap.name = name
+        self.assertEqual(ref.gmap.name, name)
+        fn = tempfile.NamedTemporaryFile(suffix=".gmapreferenceset.xml").name
+        # TODO: Turn validation back on when xsd sync happens
+        ref.write(fn, validate=False)
+        log.debug(fn)
+        gref = GmapReferenceSet(fn)
+        gref.gmap.resourceId
+        gref.gmap.version
+        gref.gmap.name
+        gref.gmap.timeStampedName
 
     def test_ccsread_build(self):
         ds1 = ConsensusReadSet(data.getXml(2), strict=False, skipMissing=True)

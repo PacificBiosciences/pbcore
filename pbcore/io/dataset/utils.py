@@ -6,10 +6,19 @@ import tempfile
 import logging
 import json
 import shutil
+import datetime
 import pysam
 from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
+
+def getTimeStampedName(mType):
+    """Generate a timestamped name using the given metatype 'mType' and the
+    current UTC time"""
+    mType = mType.lower()
+    mType = '_'.join(mType.split('.'))
+    time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
+    return "{m}-{t}".format(m=mType, t=time)
 
 def which(exe):
     if os.path.exists(exe) and os.access(exe, os.X_OK):

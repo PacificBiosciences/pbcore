@@ -663,6 +663,53 @@ class TestDataSet(unittest.TestCase):
         _ = ds.newUuid()
         self.assertTrue(old != ds.uuid)
 
+    def test_newUuid_repeat(self):
+        ds = DataSet()
+        old = ds.uuid
+        new = ds.newUuid()
+        self.assertTrue(old != ds.uuid)
+        self.assertTrue(old != new)
+        self.assertTrue(ds.uuid == new)
+        reallynew = ds.newUuid()
+        # Note that you can keep calling new, and each tiem it will be
+        # different:
+        last = ds.uuid
+        for _ in range(10):
+            ds.newUuid()
+            self.assertTrue(ds.uuid != new)
+            self.assertTrue(ds.uuid != last)
+            last = ds.uuid
+        self.assertTrue(reallynew != new)
+        self.assertTrue(reallynew != old)
+
+    def test_newUuid_copy(self):
+        fn_orig = data.getXml(8)
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        shutil.copy(fn_orig, fn1)
+        shutil.copy(fn_orig, fn2)
+        ds1 = openDataSet(fn1)
+        ds2 = openDataSet(fn2)
+        self.assertEqual(ds1.uuid, ds2.uuid)
+        for _ in range(10):
+            ds1.newUuid()
+            ds2.newUuid()
+            self.assertEqual(ds1.uuid, ds2.uuid)
+
+    def test_newUuid_random(self):
+        fn_orig = data.getXml(8)
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        shutil.copy(fn_orig, fn1)
+        shutil.copy(fn_orig, fn2)
+        ds1 = openDataSet(fn1)
+        ds2 = openDataSet(fn2)
+        self.assertEqual(ds1.uuid, ds2.uuid)
+        for _ in range(10):
+            ds1.newUuid(random=True)
+            ds2.newUuid(random=True)
+            self.assertNotEqual(ds1.uuid, ds2.uuid)
+
     def test_split(self):
         ds1 = openDataSet(data.getXml(12))
         self.assertTrue(ds1.numExternalResources > 1)

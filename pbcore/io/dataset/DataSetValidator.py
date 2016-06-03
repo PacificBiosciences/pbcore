@@ -27,10 +27,10 @@ def validateResources(xmlroot, relTo='.'):
         if resId:
             parsedId = urlparse(resId)
             rfn = urlparse(resId).path.strip()
-            if not os.path.isfile(rfn):
-                if (not os.path.isfile(os.path.join(relTo,
+            if not os.path.exists(rfn):
+                if (not os.path.exists(os.path.join(relTo,
                                                     rfn)) and
-                        not os.path.isfile(os.path.join('.',
+                        not os.path.exists(os.path.join('.',
                                                         rfn))):
                     raise IOError, "{f} not found".format(f=rfn)
 
