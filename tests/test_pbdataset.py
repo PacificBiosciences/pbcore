@@ -710,15 +710,41 @@ class TestDataSet(unittest.TestCase):
             ds2.newUuid(random=True)
             self.assertNotEqual(ds1.uuid, ds2.uuid)
 
+    def test_bad_xml_extension(self):
+        fn = tempfile.NamedTemporaryFile(
+            suffix=".alignmentset.xml.disabled").name
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(fn)
+        with AlignmentSet(fn) as aln:
+            self.assertEqual(len(aln), 92)
+        shutil.copy(data.getBam(), fn)
+        with self.assertRaises(IOError):
+            with AlignmentSet(fn) as aln:
+                self.assertEqual(len(aln), 92)
+
     def test_split(self):
         ds1 = openDataSet(data.getXml(12))
         self.assertTrue(ds1.numExternalResources > 1)
         dss = ds1.split()
         self.assertTrue(len(dss) == ds1.numExternalResources)
+        self.assertEqual(sum(ds.numRecords for ds in dss), ds1.numRecords)
+        self.assertEqual(sum(ds.totalLength for ds in dss), ds1.totalLength)
+        self.assertEqual(sum(len(ds) for ds in dss), len(ds1))
         dss = ds1.split(chunks=1)
         self.assertTrue(len(dss) == 1)
+        self.assertEqual(sum(ds.numRecords for ds in dss), ds1.numRecords)
+        self.assertEqual(sum(ds.totalLength for ds in dss), ds1.totalLength)
+        self.assertEqual(sum(len(ds) for ds in dss), len(ds1))
+        dss = ds1.split(chunks=2)
+        self.assertTrue(len(dss) == 2)
+        self.assertEqual(sum(ds.numRecords for ds in dss), ds1.numRecords)
+        self.assertEqual(sum(ds.totalLength for ds in dss), ds1.totalLength)
+        self.assertEqual(sum(len(ds) for ds in dss), len(ds1))
         dss = ds1.split(chunks=2, ignoreSubDatasets=True)
         self.assertTrue(len(dss) == 2)
+        self.assertEqual(sum(ds.numRecords for ds in dss), ds1.numRecords)
+        self.assertEqual(sum(ds.totalLength for ds in dss), ds1.totalLength)
+        self.assertEqual(sum(len(ds) for ds in dss), len(ds1))
         self.assertFalse(dss[0].uuid == dss[1].uuid)
         self.assertTrue(dss[0].name == dss[1].name)
         # Lets try merging and splitting on subdatasets
@@ -2013,7 +2039,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(aln.readGroupTable), 3)
 
     def test_missing_file(self):
-        with self.assertRaises(InvalidDataSetIOError):
+        with self.assertRaises(IOError):
             aln = AlignmentSet("NOPE")
 
     def test_repr(self):

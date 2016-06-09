@@ -859,14 +859,14 @@ class DataSet(object):
 
         Args:
             :chunks: the number of chunks to split the DataSet.
-            :ignoreSubDatasets: (True) do not split on subdatasets
-            :contigs: split on contigs instead of external resources etc
+            :ignoreSubDatasets: (True) do not split by subdatasets
+            :contigs: split on contigs instead of external resources
+            :zmws: Split by zmws instead of external resources
+            :barcodes: Split by barcodes instead of external resources
             :maxChunks: The upper limit on the number of chunks.
-            :breakContigs: Whether or not to break contigs when using maxChunks
-            :targetSize: The target number of reads per chunk
-            :zmws: Split by zmws
-            :barcodes: Split by barcodes
+            :breakContigs: Whether or not to break contigs
             :byRecords: Split contigs by mapped records, rather than ref length
+            :targetSize: The target minimum number of reads per chunk
             :updateCounts: Update the count metadata in each chunk
 
         Returns:
@@ -971,6 +971,8 @@ class DataSet(object):
         # whole, therefore we need to regenerate it again here
         log.debug("Generating new UUID")
         for result in results:
+            if updateCounts:
+                result.updateCounts()
             result.newUuid()
 
         # Update the basic metadata for the new DataSets from external

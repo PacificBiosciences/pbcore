@@ -964,6 +964,8 @@ class ExternalResources(RecordWrapper):
         Args:
             resourceIds: a list of uris as strings
         """
+        if not isinstance(resourceIds, list):
+            resourceIds = [resourceIds]
         templist = []
         self._resourceIds = []
         for res in resourceIds:

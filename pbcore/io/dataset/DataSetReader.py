@@ -97,7 +97,11 @@ def _addUnknownFile(dset, path):
     elif path.endswith('fofn'):
         return _addFofnFile(dset, path)
     else:
-        return _addGenericFile(dset, path)
+        # Give it a shot as an XML file:
+        try:
+            return _addXmlFile(dset, path)
+        except ET.ParseError:
+            return _addGenericFile(dset, path)
 
 SUB_RESOURCES = ['.scraps.bam', '.control.subreads.bam']
 FILE_INDICES = ['.fai', '.pbi', '.bai', '.metadata.xml',
