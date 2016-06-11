@@ -1140,15 +1140,22 @@ class DataSet(object):
         return sorted(reads, key=lambda a: a.readStart)
 
     def loadMetadata(self, filename):
-        """Load pipeline metadata from a <moviename>.run.metadata.xml file.
+        """Load pipeline metadata from a <moviename>.metadata.xml file (or
+        other DataSet)
 
         Args:
-            :filename: the filename of a <moviename>.run.metadata.xml file
+            :filename: the filename of a <moviename>.metadata.xml file
 
         """
         if isinstance(filename, basestring):
-            metadata = parseMetadata(str(filename))
+            if isDataSet(filename):
+                # path to DataSet
+                metadata = openDataSet(filename).metadata
+            else:
+                # path to metadata.xml
+                metadata = parseMetadata(str(filename))
         else:
+            # DataSetMetadata object
             metadata = filename
         self.addMetadata(metadata)
         self.updateCounts()
