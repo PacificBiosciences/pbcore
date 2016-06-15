@@ -264,7 +264,7 @@ class DataSetMetaTypes(object):
     CONTIG = _toDsId("ContigSet")
 
     ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
-           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG)
+           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE)
 
     @classmethod
     def isValid(cls, dsId):
