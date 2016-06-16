@@ -9,7 +9,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata,
                                               Filters, AutomationParameters,
-                                              StatsMetadata, DISTLIST)
+                                              StatsMetadata)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 
@@ -274,9 +274,6 @@ def parseStats(filename):
     root = _updateStats(root)
     stats = StatsMetadata(_eleToDictList(root))
     stats.record['tag'] = 'SummaryStats'
-    whitelist = ['ShortInsertFraction', 'AdapterDimerFraction',
-                 'NumSequencingZmws'] + DISTLIST
-    stats.pruneChildrenTo(whitelist)
     return stats
 
 def parseMetadata(filename):

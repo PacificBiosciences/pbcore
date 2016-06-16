@@ -2177,6 +2177,36 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds4.metadata.summaryStats.readLenDist.bins,
                          [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
 
+    def test_multi_channel_dists(self):
+        ds = DataSet(data.getBam())
+        ds.loadStats(data.getStats())
+        ds2 = DataSet(data.getBam())
+        ds2.loadStats(data.getStats())
+        self.assertTrue(
+            list(ds.metadata.summaryStats.findChildren('BaselineLevelDist')))
+        self.assertTrue(ds.metadata.summaryStats.channelDists)
+        self.assertTrue(ds.metadata.summaryStats.otherDists)
+        self.assertTrue(ds.metadata.summaryStats.otherDists['PausinessDist'])
+        self.assertTrue(
+            ds.metadata.summaryStats.channelDists['HqBasPkMidDist']['G'])
+
+        # merge two
+        ds3 = ds + ds2
+
+        # unmerged dists should increase in length:
+        self.assertEqual(
+            len(ds3.metadata.summaryStats.channelDists['HqBasPkMidDist']['G']),
+            2 * len(
+                ds.metadata.summaryStats.channelDists['HqBasPkMidDist']['G']))
+        self.assertEqual(
+            len(ds3.metadata.summaryStats.otherDists['PausinessDist']),
+            2 * len(
+                ds.metadata.summaryStats.otherDists['PausinessDist']))
+        # merged dists should not:
+        self.assertEqual(
+            len(ds3.metadata.summaryStats.readLenDist),
+            len(ds.metadata.summaryStats.readLenDist))
+
     def test_stats_metadata(self):
         ds = DataSet(data.getBam())
         ds.loadStats(data.getStats())

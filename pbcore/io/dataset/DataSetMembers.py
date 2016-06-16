@@ -51,28 +51,21 @@ serve two pruposes:
 
 """
 
-#import hashlib
 import ast
 import uuid
-import datetime
 import copy
+import logging
 import operator as OP
 import numpy as np
-import logging
 from functools import partial as P
-from collections import Counter
-from pbcore.io.dataset.DataSetWriter import namespaces
+from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
 
 log = logging.getLogger(__name__)
 
-DISTLIST = ["ProdDist", "ReadTypeDist", "ReadLenDist", "ReadQualDist",
-            "MedianInsertDist", "InsertReadQualDist",
-            "InsertReadLenDist", "ControlReadQualDist",
-            "ControlReadLenDist"]
-
 def newUuid(record):
     # At some point the uuid may need to be a digest
+    #import hashlib
     #newId = str(hashlib.md5(str(record)).hexdigest())
 
     # Group appropriately
@@ -1600,8 +1593,45 @@ class Provenance(RecordWrapper):
 class ParentTool(RecordWrapper):
     pass
 
+
 class StatsMetadata(RecordWrapper):
     """The metadata from the machine sts.xml"""
+
+    # merged dists:
+    MERGED_DISTS = ["ProdDist", "ReadTypeDist", "ReadLenDist", "ReadQualDist",
+                "MedianInsertDist", "InsertReadQualDist",
+                "InsertReadLenDist", "ControlReadQualDist",
+                "ControlReadLenDist"]
+
+    # continuous channel dists:
+    CHANNEL_DISTS = ['BaselineLevelDist', 'BaselineStdDist', 'SnrDist',
+                     'HqRegionSnrDist', 'HqBasPkMidDist',
+                     'BaselineLevelSequencingDist']
+
+    # continuous misc. dists:
+    OTHER_DISTS = ['PausinessDist', 'PulseRateDist', 'PulseWidthDist',
+                   'BaseRateDist', 'BaseWidthDist', 'BaseIpdDist', 'LocalBaseRateDist',
+                   'NumUnfilteredBasecallsDist']
+
+    UNMERGED_DISTS = CHANNEL_DISTS + OTHER_DISTS
+
+    @property
+    def channelDists(self):
+        tbr = {}
+        for dist in self.CHANNEL_DISTS:
+            chans = defaultdict(list)
+            for chan in self.findChildren(dist):
+                chans[chan.attrib['Channel']].append(ContinuousDistribution(chan))
+            tbr[dist] = chans
+        return tbr
+
+    @property
+    def otherDists(self):
+        tbr = defaultdict(list)
+        for disttype in self.OTHER_DISTS:
+            for dist in self.findChildren(disttype):
+                tbr[disttype].append(ContinuousDistribution(dist))
+        return tbr
 
     def merge(self, other):
         if other.shortInsertFraction and other.prodDist:
@@ -1619,7 +1649,7 @@ class StatsMetadata(RecordWrapper):
                                              self.prodDist.bins[1]
                                              + other.prodDist.bins[1])
         self.numSequencingZmws += other.numSequencingZmws
-        for dist in DISTLIST:
+        for dist in self.MERGED_DISTS:
             selfDist = getattr(self, dist[0].lower() + dist[1:])
             otherDist = getattr(other, dist[0].lower() + dist[1:])
             if not selfDist:
@@ -1632,6 +1662,11 @@ class StatsMetadata(RecordWrapper):
                     removed = self.removeChildren(dist)
                     self.append(otherDist)
                 except BinMismatchError:
+                    self.append(otherDist)
+        for dist in self.UNMERGED_DISTS:
+            otherDists = other.findChildren(dist)
+            for otherDist in otherDists:
+                if otherDist:
                     self.append(otherDist)
 
     @property
