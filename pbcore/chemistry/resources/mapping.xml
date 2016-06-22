@@ -175,6 +175,8 @@
     <SequencingKit>100612400</SequencingKit>
     <SoftwareVersion>2.3</SoftwareVersion>
   </Mapping>
+
+  <!-- 3.0 ("Dromedary") chemistry -->
   <Mapping>
     <SequencingChemistry>S/P1-C1/beta</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
@@ -188,72 +190,20 @@
     <SoftwareVersion>3.1</SoftwareVersion>
   </Mapping>
 
-  <!-- 1.0/1.1: a 1/1 compabible new SK condition  -->
+  <!-- 3.1 ("Echidna") chemistry -->
   <Mapping>
-    <SequencingChemistry>S/P1-C1</SequencingChemistry>
+    <SequencingChemistry>S/P1-C1.1</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
     <SequencingKit>100-867-300</SequencingKit>
     <SoftwareVersion>3.1</SoftwareVersion>
   </Mapping>
 
-  <!-- 1.1/1.1: a 1/1 compatible new BK and SK condition -->
+  <!-- 3.1.1 ("Flea") -->
   <Mapping>
-    <SequencingChemistry>S/P1-C1</SequencingChemistry>
-    <BindingKit>100-867-500</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <!-- 2.0/2.0: new kits... 1/1 compatible... -->
-  <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
-    <BindingKit>100-864-400</BindingKit>
-    <SequencingKit>100-864-100</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <!-- 2.1/2.1, ibid -->
-  <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
-    <BindingKit>100-864-600</BindingKit>
-    <SequencingKit>100-864-200</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <!-- 3.2 basecaller support -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1/beta</SequencingChemistry>
+    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-620-000</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1</SequencingChemistry>
-    <BindingKit>100-867-500</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
-    <BindingKit>100-864-400</BindingKit>
-    <SequencingKit>100-864-100</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P2-C2/prospective-compatible</SequencingChemistry>
-    <BindingKit>100-864-600</BindingKit>
-    <SequencingKit>100-864-200</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
+    <SequencingKit>100-902-100</SequencingKit>
+    <SoftwareVersion>3.1</SoftwareVersion>
   </Mapping>
 
 </MappingTable>
