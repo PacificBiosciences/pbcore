@@ -837,12 +837,13 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sset.numRecords, 59)
 
     def test_alignment_reference(self):
+        rfn = data.getXml(9)
         rs1 = ReferenceSet(data.getXml(9))
         fasta_res = rs1.externalResources[0]
         fasta_file = urlparse(fasta_res.resourceId).path
 
         ds1 = AlignmentSet(data.getXml(8),
-            referenceFastaFname=rs1)
+                           referenceFastaFname=rs1)
         aln_ref = None
         for aln in ds1:
             aln_ref = aln.reference()
@@ -850,7 +851,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(aln_ref is not None)
 
         ds1 = AlignmentSet(data.getXml(8),
-            referenceFastaFname=fasta_file)
+                           referenceFastaFname=fasta_file)
         aln_ref = None
         for aln in ds1:
             aln_ref = aln.reference()
@@ -864,6 +865,20 @@ class TestDataSet(unittest.TestCase):
             aln_ref = aln.reference()
             break
         self.assertTrue(aln_ref is not None)
+
+        # Re-enable when referenceset is acceptable reference
+        #ds1 = AlignmentSet(data.getXml(8),
+        #                   referenceFastaFname=rfn)
+        #aln_ref = None
+        #for aln in ds1:
+        #    aln_ref = aln.reference()
+        #    break
+        #self.assertTrue(aln_ref is not None)
+        #self.assertTrue(isinstance(aln_ref, basestring))
+        #self.assertEqual(
+        #    ds1.externalResources[0]._getSubExtResByMetaType(
+        #        'PacBio.ReferenceFile.ReferenceFastaFile').uniqueId,
+        #    rs1.uuid)
 
     def test_nested_external_resources(self):
         log.debug("Testing nested externalResources in AlignmentSets")

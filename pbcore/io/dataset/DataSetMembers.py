@@ -60,6 +60,7 @@ import numpy as np
 from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
+from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 
 log = logging.getLogger(__name__)
 
@@ -1009,10 +1010,6 @@ class ExternalResource(RecordWrapper):
             return True
         return False
 
-    @property
-    def uniqueId(self):
-        return self.getV('attrib', 'UniqueId')
-
     def merge(self, other):
         if self.metaType:
             if self.metaType != other.metaType:
@@ -1020,6 +1017,14 @@ class ExternalResource(RecordWrapper):
                               "and different types")
         if self.tags:
             self.tags = ', '.join([self.tags, other.tags])
+
+    @property
+    def uniqueId(self):
+        return self.getV('attrib', 'UniqueId')
+
+    @uniqueId.setter
+    def uniqueId(self, value):
+        return self.setV(value, 'attrib', 'UniqueId')
 
     @property
     def metaType(self):
@@ -1044,6 +1049,9 @@ class ExternalResource(RecordWrapper):
     @resourceId.setter
     def resourceId(self, value):
         self.setV(value, 'attrib', 'ResourceId')
+        dsuuid = getDataSetUuid(value)
+        if dsuuid:
+            self.uniqueId = dsuuid
 
     @property
     def tags(self):

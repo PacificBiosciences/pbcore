@@ -20,7 +20,8 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        ConsensusReadSet, ConsensusAlignmentSet, openDataFile,
                        divideKeys, keysToRanges, getDataSetUuid,
                        getDataSetMetaType)
-from pbcore.io.dataset.DataSetIO import _dsIdToSuffix, InvalidDataSetIOError
+from pbcore.io.dataset.DataSetMetaTypes import (dsIdToSuffix,
+                                                InvalidDataSetIOError)
 from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
@@ -461,7 +462,7 @@ class TestDataSet(unittest.TestCase):
                     'consensusalignmentset.xml',
                     'referenceset.xml', 'contigset.xml']
         for dsId, exp in zip(DataSetMetaTypes.ALL, suffixes):
-            self.assertEqual(_dsIdToSuffix(dsId), exp)
+            self.assertEqual(dsIdToSuffix(dsId), exp)
 
     def test_updateCounts_without_pbi(self):
         log.info("Testing updateCounts without pbi")

@@ -42,28 +42,17 @@ from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      getTimeStampedName)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
+from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
+                                                dsIdToSuffix)
+from pbcore.io.dataset.DataSetUtils import fileType
 
 
 log = logging.getLogger(__name__)
 
-def filtered(generator):
-    """Wrap a generator with postfiltering"""
-    @wraps(generator)
-    def wrapper(dset, *args, **kwargs):
-        filter_tests = dset.processFilters()
-        no_filter = dset.noFiltering
-        if no_filter:
-            for read in generator(dset, *args, **kwargs):
-                yield read
-        else:
-            for read in generator(dset, *args, **kwargs):
-                if any(filt(read) for filt in filter_tests):
-                    yield read
-    return wrapper
-
-def _toDsId(name):
-    """Translate a class name into a MetaType/ID"""
-    return "PacBio.DataSet.{x}".format(x=name)
+def openDataSet(*files, **kwargs):
+    """Factory function for DataSet types as suggested by the first file"""
+    tbrType = _typeDataSet(files[0])
+    return tbrType(*files, **kwargs)
 
 def _dsIdToName(dsId):
     """Translate a MetaType/ID into a class name"""
@@ -80,23 +69,10 @@ def _dsIdToType(dsId):
     else:
         raise InvalidDataSetIOError("Invalid DataSet MetaType")
 
-def _dsIdToSuffix(dsId):
-    """Translate a MetaType/ID into a file suffix"""
-    dsIds = DataSetMetaTypes.ALL
-    suffixMap = {dsId: _dsIdToName(dsId) for dsId in dsIds}
-    suffixMap[_toDsId("DataSet")] = 'DataSet'
-    if DataSetMetaTypes.isValid(dsId):
-        suffix = suffixMap[dsId]
-        suffix = suffix.lower()
-        suffix += '.xml'
-        return suffix
-    else:
-        raise InvalidDataSetIOError("Invalid DataSet MetaType")
-
 def _typeDataSet(dset):
     """Determine the type of a dataset from the xml file without opening it"""
     xml_rt = xmlRootType(dset)
-    dsId = _toDsId(xml_rt)
+    dsId = toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     return tbrType
 
@@ -108,39 +84,6 @@ def isDataSet(xmlfile):
     except Exception:
         return False
 
-def getDataSetUuid(xmlfile):
-    """
-    Quickly retrieve the uuid from the root element of a dataset XML file,
-    using a streaming parser to avoid loading the entire dataset into memory.
-    Returns None if the parsing fails.
-    """
-    try:
-        import xml.etree.cElementTree as ET
-        for event, element in ET.iterparse(xmlfile, events=("start",)):
-            return element.get("UniqueId")
-    except Exception:
-        return None
-
-
-def getDataSetMetaType(xmlfile):
-    """
-    Quickly retrieve the MetaType from the root element of a dataset XML file,
-    using a streaming parser to avoid loading the entire dataset into memory.
-    Returns None if the parsing fails.
-    """
-    try:
-        import xml.etree.cElementTree as ET
-        for event, element in ET.iterparse(xmlfile, events=("start",)):
-            return element.get("MetaType")
-    except Exception:
-        return None
-
-
-def openDataSet(*files, **kwargs):
-    """Factory function for DataSet types as suggested by the first file"""
-    tbrType = _typeDataSet(files[0])
-    return tbrType(*files, **kwargs)
-
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
     possibleTypes = [AlignmentSet, SubreadSet, ConsensusReadSet,
@@ -150,10 +93,10 @@ def openDataFile(*files, **kwargs):
     for dstype in possibleTypes:
         for ftype in dstype._metaTypeMapping():
             fileMap[ftype].append(dstype)
-    ext = _fileType(files[0])
+    ext = fileType(files[0])
     if ext == 'fofn':
         files = openFofnFile(files[0])
-        ext = _fileType(files[0])
+        ext = fileType(files[0])
     if ext == 'xml':
         dsType = _typeDataSet(files[0])
         return dsType(*origFiles, **kwargs)
@@ -182,6 +125,21 @@ def openDataFile(*files, **kwargs):
                     return ConsensusReadSet(*origFiles, **kwargs)
                 else:
                     return SubreadSet(*origFiles, **kwargs)
+
+def filtered(generator):
+    """Wrap a generator with postfiltering"""
+    @wraps(generator)
+    def wrapper(dset, *args, **kwargs):
+        filter_tests = dset.processFilters()
+        no_filter = dset.noFiltering
+        if no_filter:
+            for read in generator(dset, *args, **kwargs):
+                yield read
+        else:
+            for read in generator(dset, *args, **kwargs):
+                if any(filt(read) for filt in filter_tests):
+                    yield read
+    return wrapper
 
 def _stackRecArrays(recArrays):
     """Stack recarrays into a single larger recarray"""
@@ -248,41 +206,6 @@ def keysToRanges(keys):
     key_ranges = [[min(k), max(k)] for k in keys]
     return key_ranges
 
-class DataSetMetaTypes(object):
-    """
-    This mirrors the PacBioSecondaryDataModel.xsd definitions and be used
-    to reference a specific dataset type.
-    """
-    SUBREAD = _toDsId("SubreadSet")
-    HDF_SUBREAD = _toDsId("HdfSubreadSet")
-    ALIGNMENT = _toDsId("AlignmentSet")
-    BARCODE = _toDsId("BarcodeSet")
-    CCS_ALIGNMENT = _toDsId("ConsensusAlignmentSet")
-    CCS = _toDsId("ConsensusReadSet")
-    REFERENCE = _toDsId("ReferenceSet")
-    GMAPREFERENCE = _toDsId("GmapReferenceSet")
-    CONTIG = _toDsId("ContigSet")
-
-    ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
-           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE)
-
-    @classmethod
-    def isValid(cls, dsId):
-        return dsId in cls.ALL
-
-
-def _fileType(fname):
-    """Get the extension of fname (with h5 type)"""
-    remainder, ftype = os.path.splitext(fname)
-    if ftype == '.h5':
-        _, prefix = os.path.splitext(remainder)
-        ftype = prefix + ftype
-    elif ftype == '.index':
-        _, prefix = os.path.splitext(remainder)
-        if prefix == '.contig':
-            ftype = prefix + ftype
-    ftype = ftype.strip('.')
-    return ftype
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
@@ -443,7 +366,7 @@ class DataSet(object):
             dsType = self.objMetadata.setdefault("MetaType", self.datasetType)
         else:
             dsType = self.objMetadata.setdefault("MetaType",
-                                                 _toDsId('DataSet'))
+                                                 toDsId('DataSet'))
         if not "TimeStampedName" in self.objMetadata:
             self.objMetadata["TimeStampedName"] = getTimeStampedName(
                 self.objMetadata["MetaType"])
@@ -1082,11 +1005,11 @@ class DataSet(object):
                 validation_errors.append(e)
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):
-            if not fileName.endswith(_dsIdToSuffix(self.datasetType)):
+            if not fileName.endswith(dsIdToSuffix(self.datasetType)):
                 raise IOError(errno.EIO,
                               "Given filename does not meet standards, "
                               "should end with {s}".format(
-                                  s=_dsIdToSuffix(self.datasetType)),
+                                  s=dsIdToSuffix(self.datasetType)),
                               fileName)
         with open(fileName, 'w') as outFile:
             outFile.writelines(xml_string)
@@ -1255,7 +1178,7 @@ class DataSet(object):
         """Infer and set the metatype of 'resource' if it doesn't already have
         one."""
         if not resource.metaType:
-            file_type = _fileType(resource.resourceId)
+            file_type = fileType(resource.resourceId)
             resource.metaType = self._metaTypeMapping().get(file_type, "")
         if not resource.timeStampedName:
             mtype = resource.metaType
@@ -1638,7 +1561,7 @@ class DataSet(object):
         if isinstance(self.datasetType, tuple):
             return self.datasetType
         else:
-            return (_toDsId('DataSet'), self.datasetType)
+            return (toDsId('DataSet'), self.datasetType)
 
     @classmethod
     def castableTypes(cls):
@@ -1741,6 +1664,11 @@ class DataSet(object):
 
     @property
     def uuid(self):
+        """The UniqueId of this DataSet"""
+        return self.objMetadata.get('UniqueId')
+
+    @property
+    def uniqueId(self):
         """The UniqueId of this DataSet"""
         return self.objMetadata.get('UniqueId')
 
