@@ -369,16 +369,6 @@ class TestDataSet(unittest.TestCase):
             for refId in refId_list:
                 alnFile = AlignmentSet(*file_list)
 
-                # old GC:
-                # TODO(mdsmith)(2016-01-27): Remove assertRaises when tId
-                # accession is fixed for empty aligned bam+pbi files
-                with self.assertRaises(AttributeError):
-                    for reader in alnFile.resourceReaders(refId):
-                        reader.index.tId
-                        refLen = reader.referenceInfo(refId).Length
-                        rows = reader.readsInRange(refId, 0, refLen,
-                                                   justIndices=True)
-
                 # new GC (just testing that it doesn't raise exceptions):
                 rows = alnFile.index[
                     ((alnFile.tId == alnFile.referenceInfo(refId).ID) &

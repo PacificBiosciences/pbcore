@@ -71,7 +71,15 @@ class PacBioBamIndex(object):
 
     @property
     def hasMappingInfo(self):
-        return (self.pbiFlags & PBI_FLAGS_MAPPED)
+        # N.B.: Or'ing in (nReads==0) is HACKish fix for issue with
+        # empty mapped BAM files---the "Mapped" bit doesn't get set
+        # correctly in pbi_flags if the file is empty. So in the empty
+        # file case, assume it may be mapped.  The downside is we
+        # don't get an exception on attempting to access the mapped
+        # columns for empty unmapped BAM pbis.  Not a big deal, I
+        # suppose
+        return ((self.nReads == 0) or
+                (self.pbiFlags & PBI_FLAGS_MAPPED))
 
     @property
     def hasCoordinateSortedInfo(self):
