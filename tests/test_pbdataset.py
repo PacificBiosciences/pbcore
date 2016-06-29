@@ -238,7 +238,7 @@ class TestDataSet(unittest.TestCase):
             2)
 
 
-        dset = AlignmentSet(upstreamdata.getEmptyBam())
+        dset = AlignmentSet(upstreamdata.getEmptyAlignedBam())
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
         self.assertEqual(len(list(dset)), 0)
@@ -251,7 +251,7 @@ class TestDataSet(unittest.TestCase):
             1)
 
         # empty and full:
-        dset = AlignmentSet(upstreamdata.getEmptyBam(), data.getBam())
+        dset = AlignmentSet(upstreamdata.getEmptyAlignedBam(), data.getBam())
         self.assertEqual(dset.numRecords, 92)
         self.assertEqual(dset.totalLength, 123588)
         self.assertEqual(len(list(dset)), 92)
@@ -271,7 +271,7 @@ class TestDataSet(unittest.TestCase):
         dset.index
         self.assertEqual(len(dset.resourceReaders()), 1)
 
-        dset = ConsensusAlignmentSet(upstreamdata.getEmptyBam())
+        dset = ConsensusAlignmentSet(upstreamdata.getEmptyAlignedBam())
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
         self.assertEqual(len(list(dset)), 0)
@@ -284,6 +284,9 @@ class TestDataSet(unittest.TestCase):
         outfile = os.path.split(upstreamdata.getEmptyBam())[1]
         outpath = os.path.join(outdir, outfile)
         shutil.copy(upstreamdata.getEmptyBam(), outpath)
+        alnoutfile = os.path.split(upstreamdata.getEmptyAlignedBam())[1]
+        alnoutpath = os.path.join(outdir, alnoutfile)
+        shutil.copy(upstreamdata.getEmptyAlignedBam(), alnoutpath)
         dset = SubreadSet(outpath)
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
@@ -310,7 +313,7 @@ class TestDataSet(unittest.TestCase):
             1)
 
 
-        dset = AlignmentSet(outpath)
+        dset = AlignmentSet(alnoutpath)
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
         self.assertEqual(len(list(dset)), 0)
@@ -321,7 +324,7 @@ class TestDataSet(unittest.TestCase):
             1)
 
         # empty and full:
-        dset = AlignmentSet(outpath, data.getBam())
+        dset = AlignmentSet(alnoutpath, data.getBam())
         # without a pbi, updating counts is broken
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
@@ -341,19 +344,74 @@ class TestDataSet(unittest.TestCase):
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
 
-        dset = ConsensusAlignmentSet(outpath)
+        dset = ConsensusAlignmentSet(alnoutpath)
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
         self.assertEqual(len(list(dset)), 0)
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
         dset.induceIndices()
-        dset = ConsensusAlignmentSet(outpath)
+        dset = ConsensusAlignmentSet(alnoutpath)
         self.assertEqual(dset.numRecords, 0)
         self.assertEqual(dset.totalLength, 0)
         self.assertEqual(len(list(dset)), 0)
         dset.updateCounts()
         self.assertEqual(len(dset.resourceReaders()), 1)
+
+
+    def test_empty_bam_index_dtype(self):
+        # Make sure the BAM and DataSet APIs are consistent
+        empty_bam = upstreamdata.getEmptyBam()
+        sset = SubreadSet(empty_bam)
+        empty = np.array([], dtype=np.int32)
+
+        # The BAM API
+        self.assertTrue(np.array_equal(
+            sset.resourceReaders()[0].index.qId,
+            empty))
+
+        # The DataSet API
+        self.assertTrue(np.array_equal(
+            sset.index.qId,
+            empty))
+
+        # Check to make sure we can stack them:
+        full_bam = upstreamdata.getUnalignedBam()
+        sset = SubreadSet(empty_bam, full_bam)
+
+        # The BAM API
+        self.assertTrue(len(sset.resourceReaders()[1].index.qId) != 0)
+
+        # The DataSet API
+        self.assertTrue(len(sset.index.qId) != 0)
+
+    def test_empty_aligned_bam_index_dtype(self):
+        # Make sure the BAM and DataSet APIs are consistent
+        empty_bam = data.getEmptyAlignedBam()
+        alnFile = AlignmentSet(empty_bam)
+        empty = np.array([], dtype=np.int32)
+
+        # The BAM API
+        self.assertTrue(np.array_equal(
+            alnFile.resourceReaders()[0].tId,
+            empty))
+        self.assertTrue(np.array_equal(
+            alnFile.resourceReaders()[0].index.tId,
+            empty))
+
+        # The DataSet API
+        self.assertTrue(np.array_equal(alnFile.tId, empty))
+        self.assertTrue(np.array_equal(alnFile.index.tId, empty))
+
+        # Check to make sure we can stack them:
+        full_bam = upstreamdata.getBamAndCmpH5()[0]
+        aset = AlignmentSet(empty_bam, full_bam)
+
+        # The BAM API
+        self.assertTrue(len(aset.resourceReaders()[1].index.qId) != 0)
+
+        # The DataSet API
+        self.assertTrue(len(aset.index.qId) != 0)
 
     def test_read_ranges(self):
         # This models the old and new ways by which Genomic Consensus generates
@@ -361,7 +419,8 @@ class TestDataSet(unittest.TestCase):
 
         full_bam = upstreamdata.getBamAndCmpH5()[0]
         empty_bam = data.getEmptyAlignedBam()
-        file_lists = [[full_bam, empty_bam],
+        file_lists = [[empty_bam],
+                      [full_bam, empty_bam],
                       [empty_bam, full_bam]]
         refId_list = ['lambda_NEB3011', 0]
         minMapQV = 30

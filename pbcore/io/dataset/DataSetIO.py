@@ -143,9 +143,23 @@ def filtered(generator):
 
 def _stackRecArrays(recArrays):
     """Stack recarrays into a single larger recarray"""
-    tbr = np.concatenate(recArrays)
-    tbr = tbr.view(np.recarray)
-    return tbr
+
+    empties = []
+    nonempties = []
+    for array in recArrays:
+        if len(array) == 0:
+            empties.append(array)
+        else:
+            nonempties.append(array)
+    if nonempties:
+        tbr = np.concatenate(nonempties)
+        tbr = tbr.view(np.recarray)
+        return tbr
+    else:
+        # this will check dtypes...
+        tbr = np.concatenate(empties)
+        tbr = tbr.view(np.recarray)
+        return tbr
 
 def _uniqueRecords(recArray):
     """Remove duplicate records"""
@@ -2186,8 +2200,6 @@ class ReadSet(DataSet):
         _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
-            if len(indices) == 0:
-                continue
 
             self._fixQIds(indices, rr)
 
@@ -2596,8 +2608,6 @@ class AlignmentSet(ReadSet):
         for rrNum, rr in enumerate(self.resourceReaders()):
             indices = rr.index
             # pbi files lack e.g. mapping cols when bam emtpy, ignore
-            if len(indices) == 0:
-                continue
             # TODO(mdsmith)(2016-01-19) rename the fields instead of branching:
             #if self.isCmpH5:
             #    _renameField(indices, 'MovieID', 'qId')
