@@ -173,4 +173,4 @@ def getEmptyBam():
     return _getAbsPath("empty.ccs.bam")
 
 def getEmptyAlignedBam():
-    return _getAbsPath("empty.subreads.bam")
+    return _getAbsPath("empty.aligned_subreads.bam")
