@@ -630,6 +630,7 @@ class Filters(RecordWrapper):
                 accMap['movie'] = (lambda x: x.MovieID)
                 accMap['qname'] = (lambda x: x.MovieID)
                 accMap['zm'] = (lambda x: x.HoleNumber)
+                accMap['length'] = (lambda x: x.rEnd - x.rStart)
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: x.length.astype(int)),

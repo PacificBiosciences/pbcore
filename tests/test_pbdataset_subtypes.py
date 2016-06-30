@@ -961,6 +961,12 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(aln)), 112)
         self.assertEqual(len(aln.index), 112)
 
+    def test_cmp_alignmentset_filters(self):
+        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
+        self.assertEqual(len(aln), 112)
+        aln.filters.addRequirement(length=[('>=', 1000)])
+        self.assertEqual(len(aln), 12)
+
     def test_barcodeset(self):
         fa_out = tempfile.NamedTemporaryFile(suffix=".fasta").name
         with open(fa_out, "w") as f:
