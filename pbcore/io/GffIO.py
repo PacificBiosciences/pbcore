@@ -331,10 +331,16 @@ def merge_gffs_sorted(gff_files, output_file_name):
     ordered by genomic location.  (Assuming each input file is already sorted.)
     """
     if len(gff_files) == 1: return gff_files[0]
-    while len(gff_files) > 2:
-        tmpout = tempfile.NamedTemporaryFile(suffix=".gff").name
-        _merge_gffs_sorted(gff_files[0], gff_files[1], tmpout)
-        gff_files = [tmpout] + gff_files[2:]
-    with open(output_file_name, "w") as f:
-        _merge_gffs_sorted(gff_files[0], gff_files[1], f)
-    return output_file_name
+    tmpfiles = []
+    try:
+        while len(gff_files) > 2:
+            tmpout = tempfile.NamedTemporaryFile(suffix=".gff").name
+            _merge_gffs_sorted(gff_files[0], gff_files[1], tmpout)
+            gff_files = [tmpout] + gff_files[2:]
+            tmpfiles.append(tmpout)
+        with open(output_file_name, "w") as f:
+            _merge_gffs_sorted(gff_files[0], gff_files[1], f)
+        return output_file_name
+    finally:
+        for tmp_file_name in tmpfiles:
+            os.remove(tmp_file_name)
