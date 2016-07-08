@@ -297,7 +297,7 @@ def _merge_gff_headers(gff_files):
 
 def _merge_gffs_sorted(gff1, gff2, out_file):
     import logging
-    logging.warn("Merging %s and %s" % (gff1, gff2))
+    logging.info("Merging %s and %s" % (gff1, gff2))
     with GffWriter(out_file) as out:
         n_rec = 0
         headers, header_keys = _merge_gff_headers([gff1, gff2])
