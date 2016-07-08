@@ -176,19 +176,16 @@ class _BamReaderBase(ReaderBase):
     def _checkFileCompatibility(self):
         # Verify that this is a "pacbio" BAM file of version at least
         # 3.0.1
-        try:
-            checkedVersion = self.version
-            if "b" in checkedVersion:
-                raise Exception()
-            else:
-                major, minor, patch = checkedVersion.split('.')
-                assert major >= 3
-                assert minor >= 0
-                assert patch >= 1
-        except:
-            raise IncompatibleFile(
+        badVersionException = IncompatibleFile(
                 "This BAM file is incompatible with this API " +
                 "(only PacBio BAM files version >= 3.0.1 are supported)")
+        checkedVersion = self.version
+        if "b" in checkedVersion:
+            raise badVersionException
+        else:
+            major, minor, patch = checkedVersion.split('.')
+            if not (major, minor, patch) >= (3, 0, 1):
+                raise badVersionException
 
     def __init__(self, fname, referenceFastaFname=None):
         self.filename = fname = abspath(expanduser(fname))
