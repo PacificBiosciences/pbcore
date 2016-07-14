@@ -49,6 +49,11 @@ serve two pruposes:
                               ['WellSample']['BioSamplePointers']\
                               ['BioSamplePointer'].record['text'])
 
+Notes:
+    - If you want temporary children to be retained for a classes's children,
+      pass parent=self to the child's constructor.
+        - it helps to add a TAG member...
+
 """
 
 import ast
@@ -94,12 +99,28 @@ OPMAP = {'==': OP.eq,
          '<': OP.lt,
          '&lt;': OP.lt,
          'lt': OP.lt,
+         'in': np.in1d,
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
         }
 
 def mapOp(op):
     return OPMAP[op]
+
+def setify(value):
+    # This is a string of a python or numpy list, needs to be made into a
+    # python set:
+    value = value.strip('set')
+    value = value.strip('()')
+    value = value.strip('[]')
+    if ',' in value:
+        value = value.split(',')
+    else:
+        value = value.split()
+    value = [v.strip() for v in value]
+    value = [v.strip("'") for v in value]
+    return set(value)
+
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -117,6 +138,48 @@ class PbiFlags(object):
         return reduce(OP.or_,
                       (getattr(cls, fl.strip()) for fl in flag.split('|')))
 
+def subgetter(key, container='text', default=None, asType=(lambda x: x)):
+    def get(self):
+        return self.getMemberV(key, container=container, default=default,
+                               asType=asType)
+    return property(get)
+
+def subsetter(key, container='text'):
+    def set(self, value):
+        self._runCallbacks()
+        self.setMemberV(key, str(value), container=container)
+    return set
+
+def subaccs(key, container='text', default=None, asType=(lambda x: x)):
+    get = subgetter(key, container=container, default=default, asType=asType)
+    get = get.setter(subsetter(key, container=container))
+    return get
+
+def getter(key, container='attrib', asType=(lambda x: x)):
+    def get(self):
+        return asType(self.getV(container, key))
+    return property(get)
+
+def setter(key, container='attrib'):
+    def set(self, value):
+        self._runCallbacks()
+        self.setV(str(value), container, key)
+    return set
+
+def accs(key, container='attrib', asType=(lambda x: x)):
+    get = getter(key, container, asType)
+    get = get.setter(setter(key, container))
+    return get
+
+def runonce(func):
+    def runner():
+        if not runner.hasrun:
+            try:
+                return func()
+            finally:
+                runner.hasrun = True
+    runner.hasrun = False
+    return runner
 
 class RecordWrapper(object):
     """The base functionality of a metadata element.
@@ -125,16 +188,17 @@ class RecordWrapper(object):
     RecordWrapper (e.g. append, extend). Methods in child classes often provide
     similar functionality for more raw inputs (e.g. resourceIds as strings)"""
 
+    KEEP_WITH_PARENT = True
 
-    def __init__(self, record=None):
+    def __init__(self, record=None, parent=None):
         """Here, record is any element in the Metadata Element tree and a
-        dictionary with four members: 'tag', 'attrib', 'text', and 'children'.
-
-        Now with a new member! 'namespace'
+        dictionary with five members: 'tag', 'attrib', 'text', 'children', and
+        'namespace'
 
         Do not deepcopy, we rely on side effects for all persistent
         modifications.
         """
+        self._callbacks = []
         if record:
             try:
                 self.record = record.record
@@ -142,7 +206,29 @@ class RecordWrapper(object):
                 self.record = record
         else:
             self.record = _emptyMember()
+            # register a callback to set the XML element 'tag' to the
+            # class's TAG member if it has one, with the class name as a
+            # fallback
+            self.registerCallback(runonce(
+                P(setattr, self, 'metaname',
+                  getattr(self, 'TAG', self.__class__.__name__))))
+            if not parent is None:
+                # register a callback to append this object to the parent, so
+                # that it will be added to the XML file
+                self.registerCallback(runonce(P(parent.append, self.record)))
         assert 'tag' in self.record.keys()
+
+
+    def registerCallback(self, func):
+        if func not in self._callbacks:
+            self._callbacks.append(func)
+
+    def clearCallbacks(self):
+        self._callbacks = []
+
+    def _runCallbacks(self):
+        for func in self._callbacks:
+            func()
 
     def __len__(self):
         """Return the number of children in this node"""
@@ -266,9 +352,11 @@ class RecordWrapper(object):
     def append(self, newMember):
         """Append to the actual list of child elements"""
         if isinstance(newMember, RecordWrapper):
+            newMember._runCallbacks()
             self.record['children'].append(newMember.record)
         else:
             self.record['children'].append(newMember)
+        self._runCallbacks()
 
     def index(self, tag):
         """Return the index in 'children' list of item with 'tag' member"""
@@ -358,37 +446,12 @@ class RecordWrapper(object):
 
     # Some common attributes (to reduce code duplication):
 
-    @property
-    def name(self):
-        return self.getV('attrib', 'Name')
-
-    @name.setter
-    def name(self, value):
-        self.setV(value, 'attrib', 'Name')
-
-    @property
-    def value(self):
-        return self.getV('attrib', 'Value')
-
-    @value.setter
-    def value(self, value):
-        self.setV(value, 'attrib', 'Value')
-
-    @property
-    def version(self):
-        return self.getV('attrib', 'Version')
-
-    @version.setter
-    def version(self, value):
-        self.setV(value, 'attrib', 'Version')
-
-    @property
-    def description(self):
-        return self.getV('attrib', 'Description')
-
-    @description.setter
-    def description(self, value):
-        return self.setV(value, 'attrib', 'Description')
+    name = accs('Name')
+    value = accs('Value')
+    version = accs('Version')
+    description = accs('Description')
+    uniqueId = accs('UniqueId')
+    createdAt = accs('CreatedAt')
 
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
@@ -399,18 +462,6 @@ class Filters(RecordWrapper):
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
-        self._callbacks = []
-
-    def registerCallback(self, func):
-        if func not in self._callbacks:
-            self._callbacks.append(func)
-
-    def clearCallbacks(self):
-        self._callbacks = []
-
-    def _runCallbacks(self):
-        for func in self._callbacks:
-            func()
 
     def __getitem__(self, index):
         return Filter(self.record['children'][index])
@@ -470,8 +521,8 @@ class Filters(RecordWrapper):
         for i, filt in enumerate(self):
             for req in filt:
                 if req.name == param:
-                    if not mapOp(oper)(testType(req.value),
-                                            testType(value)):
+                    if not mapOp(oper)(testType(value),
+                                            testType(req.value)):
                         options[i] = False
         return any(options)
 
@@ -482,8 +533,8 @@ class Filters(RecordWrapper):
             for req in filt:
                 if req.name == param:
                     tested = True
-                    passes |= mapOp(oper)(testType(req.value),
-                                          values)
+                    passes |= mapOp(oper)(values,
+                                          testType(req.value))
         if not tested:
             return np.ones(len(values), dtype=np.bool_)
         return passes
@@ -492,7 +543,7 @@ class Filters(RecordWrapper):
     def _bamAccMap(self):
         return {'rname': (lambda x: x.referenceName),
                 'length': (lambda x: int(x.readLength)),
-                'qname': (lambda x: x.qNameA),
+                'qname': (lambda x: x.qName),
                 'movie': (lambda x: x.movieName),
                 'zm': (lambda x: int(x.HoleNumber)),
                 # not implemented yet:
@@ -531,7 +582,7 @@ class Filters(RecordWrapper):
                 'tend': (lambda x: x.tEnd),
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
-                               (x.nMM + x.nIns + x.nDel).astype(np.float32)/
+                               (x.nMM + x.nIns + x.nDel).astype(np.float)/
                                (x.aEnd - x.aStart + x.tEnd - x.tStart -
                                 x.nM - x.nMM)))
                }
@@ -573,11 +624,11 @@ class Filters(RecordWrapper):
                 'bcq': int,
                 'bq': int,
                 'qs': int,
-                'rq': np.float32,
+                'rq': np.float,
                 'pos': int,
                 'tstart': int,
                 'tend': int,
-                'accuracy': np.float32,
+                'accuracy': np.float,
                 'readstart': int,
                 'cx': PbiFlags.flagMap,
                 'n_subreads': int,
@@ -611,8 +662,7 @@ class Filters(RecordWrapper):
                 value = typeMap[param](req.value)
                 operator = mapOp(req.operator)
                 reqTests.append(P(filter_read, accMap[param], operator, value))
-            tests.append(
-                lambda x, reqTests=reqTests: all([f(x) for f in reqTests]))
+            tests.append(lambda x, rt=reqTests: all([f(x) for f in rt]))
         return tests
 
     def filterIndexRecords(self, indexRecords, nameMap, movieMap,
@@ -645,7 +695,10 @@ class Filters(RecordWrapper):
             for req in filt:
                 param = req.name
                 if param in accMap.keys():
-                    value = typeMap[param](req.value)
+                    if req.operator == 'in':
+                        value = map(typeMap[param], setify(req.value))
+                    else:
+                        value = typeMap[param](req.value)
                     if param == 'rname':
                         value = nameMap[value]
                     if param == 'movie':
@@ -664,27 +717,45 @@ class Filters(RecordWrapper):
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
                     elif param == 'qname':
-                        movie, hole, span = value.split('/')
-                        operator = mapOp(req.operator)
+                        # TODO: optimize "in" version...
+                        if not isinstance(value, list):
+                            values = [value]
+                        else:
+                            values = value
+                        reqResultsForRecords = np.zeros(len(indexRecords), dtype=np.bool_)
+                        #tempRes = np.ones(len(indexRecords), dtype=np.bool_)
+                        for value in values:
+                            movie, hole, span = value.split('/')
+                            operator = mapOp(req.operator)
 
-                        value = movieMap[movie]
-                        reqResultsForRecords = operator(
-                            accMap[param](indexRecords), value)
+                            param = 'movie'
+                            value = movieMap[movie]
+                            #reqResultsForRecords = operator(
+                            #    accMap[param](indexRecords), value)
+                            tempRes = operator(
+                                accMap[param](indexRecords), value)
 
-                        param = 'zm'
-                        value = typeMap[param](hole)
-                        reqResultsForRecords &= operator(
-                            accMap[param](indexRecords), value)
+                            param = 'zm'
+                            value = typeMap[param](hole)
+                            #reqResultsForRecords &= operator(
+                            #    accMap[param](indexRecords), value)
+                            tempRes &= operator(
+                                accMap[param](indexRecords), value)
 
-                        param = 'qstart'
-                        value = typeMap[param](span.split('_')[0])
-                        reqResultsForRecords &= operator(
-                            accMap[param](indexRecords), value)
+                            param = 'qstart'
+                            value = typeMap[param](span.split('_')[0])
+                            #reqResultsForRecords &= operator(
+                            #    accMap[param](indexRecords), value)
+                            tempRes &= operator(
+                                accMap[param](indexRecords), value)
 
-                        param = 'qend'
-                        value = typeMap[param](span.split('_')[1])
-                        reqResultsForRecords &= operator(
-                            accMap[param](indexRecords), value)
+                            param = 'qend'
+                            value = typeMap[param](span.split('_')[1])
+                            #reqResultsForRecords &= operator(
+                            #    accMap[param](indexRecords), value)
+                            tempRes &= operator(
+                                accMap[param](indexRecords), value)
+                            reqResultsForRecords |= tempRes
 
                     else:
                         operator = mapOp(req.operator)
@@ -725,6 +796,8 @@ class Filters(RecordWrapper):
             for name, options in kwargs.items():
                 for i, (oper, val) in enumerate(options):
                     for filt in newFilts[i]:
+                        if isinstance(val, np.ndarray):
+                            val = list(val)
                         filt.addRequirement(name, oper, val)
             for filtList in newFilts:
                 self.extend(filtList)
@@ -732,6 +805,8 @@ class Filters(RecordWrapper):
             newFilts = [Filter() for _ in kwargs.values()[0]]
             for name, options in kwargs.items():
                 for i, (oper, val) in enumerate(options):
+                    if isinstance(val, np.ndarray):
+                        val = list(val)
                     newFilts[i].addRequirement(name, oper, val)
             self.extend(newFilts)
         #log.debug("Current filters: {s}".format(s=str(self)))
@@ -1019,29 +1094,9 @@ class ExternalResource(RecordWrapper):
         if self.tags:
             self.tags = ', '.join([self.tags, other.tags])
 
-    @property
-    def uniqueId(self):
-        return self.getV('attrib', 'UniqueId')
-
-    @uniqueId.setter
-    def uniqueId(self, value):
-        return self.setV(value, 'attrib', 'UniqueId')
-
-    @property
-    def metaType(self):
-        return self.getV('attrib', 'MetaType')
-
-    @metaType.setter
-    def metaType(self, value):
-        return self.setV(value, 'attrib', 'MetaType')
-
-    @property
-    def timeStampedName(self):
-        return self.getV('attrib', 'TimeStampedName')
-
-    @timeStampedName.setter
-    def timeStampedName(self, value):
-        return self.setV(value, 'attrib', 'TimeStampedName')
+    metaType = accs('MetaType')
+    timeStampedName = accs('TimeStampedName')
+    tags = accs('Tags')
 
     @property
     def resourceId(self):
@@ -1053,14 +1108,6 @@ class ExternalResource(RecordWrapper):
         dsuuid = getDataSetUuid(value)
         if dsuuid:
             self.uniqueId = dsuuid
-
-    @property
-    def tags(self):
-        return self.getV('attrib', 'Tags')
-
-    @tags.setter
-    def tags(self, value):
-        self.setV(value, 'attrib', 'Tags')
 
     @property
     def bam(self):
@@ -1216,6 +1263,7 @@ class FileIndices(RecordWrapper):
 
 class FileIndex(RecordWrapper):
 
+    KEEP_WITH_PARENT = True
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1223,35 +1271,14 @@ class FileIndex(RecordWrapper):
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
 
-    @property
-    def resourceId(self):
-        return self.getV('attrib', 'ResourceId')
-
-    @resourceId.setter
-    def resourceId(self, value):
-        self.setV(value, 'attrib', 'ResourceId')
-
-    @property
-    def metaType(self):
-        return self.getV('attrib', 'MetaType')
-
-    @metaType.setter
-    def metaType(self, value):
-        return self.setV(value, 'attrib', 'MetaType')
-
-    @property
-    def timeStampedName(self):
-        return self.getV('attrib', 'TimeStampedName')
-
-    @timeStampedName.setter
-    def timeStampedName(self, value):
-        return self.setV(value, 'attrib', 'TimeStampedName')
+    resourceId = accs('ResourceId')
+    metaType = accs('MetaType')
+    timeStampedName = accs('TimeStampedName')
 
 
 class DataSetMetadata(RecordWrapper):
     """The root of the DataSetMetadata element tree, used as base for subtype
     specific DataSet or for generic "DataSet" records."""
-
 
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
@@ -1347,7 +1374,8 @@ class SubreadSetMetadata(DataSetMetadata):
         """Return a list of wrappers around Collections elements of the
         Metadata Record"""
         return CollectionsMetadata(self.getV(tag='Collections',
-                                             container='children'))
+                                             container='children'),
+                                   parent=self)
 
     @collections.setter
     def collections(self, value):
@@ -1366,7 +1394,6 @@ class SubreadSetMetadata(DataSetMetadata):
 class ContigSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to ContigSets."""
 
-
     def __init__(self, record=None):
         if record:
             if (not isinstance(record, dict) and
@@ -1383,21 +1410,8 @@ class ContigSetMetadata(DataSetMetadata):
         else:
             self.contigs = other.contigs
 
-    @property
-    def organism(self):
-        return self.getMemberV('Organism')
-
-    @organism.setter
-    def organism(self, value):
-        self.setMemberV('Organism', value)
-
-    @property
-    def ploidy(self):
-        return self.getMemberV('Ploidy')
-
-    @ploidy.setter
-    def ploidy(self, value):
-        self.setMemberV('Ploidy', value)
+    organism = subaccs('Organism')
+    ploidy = subaccs('Ploidy')
 
     @property
     def contigs(self):
@@ -1428,7 +1442,6 @@ class ContigSetMetadata(DataSetMetadata):
 class BarcodeSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to BarcodeSets."""
 
-
     def __init__(self, record=None):
         if record:
             if (not isinstance(record, dict) and
@@ -1438,20 +1451,16 @@ class BarcodeSetMetadata(DataSetMetadata):
                                 "{t}".format(t=type(record).__name__))
         super(BarcodeSetMetadata, self).__init__(record)
 
-    @property
-    def barcodeConstruction(self):
-        return self.getMemberV('BarcodeConstruction')
-
-    @barcodeConstruction.setter
-    def barcodeConstruction(self, value):
-        self.setMemberV('BarcodeConstruction', value)
+    barcodeConstruction = subaccs('BarcodeConstruction')
 
 
 class ContigsMetadata(RecordWrapper):
 
+    TAG = 'Contigs'
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
-        self.record['tag'] = 'Contigs'
+        self.record['tag'] = self.TAG
 
     def __getitem__(self, index):
         return ContigMetadata(self.record['children'][index])
@@ -1466,9 +1475,11 @@ class ContigsMetadata(RecordWrapper):
 
 class ContigMetadata(RecordWrapper):
 
+    TAG = 'Contig'
+
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
-        self.record['tag'] = 'Contig'
+        self.record['tag'] = self.TAG
 
     @property
     def digest(self):
@@ -1491,6 +1502,7 @@ class CollectionsMetadata(RecordWrapper):
     """The Element should just have children: a list of
     CollectionMetadataTags"""
 
+    TAG = 'Collections'
 
     def __getitem__(self, index):
         return CollectionMetadata(self.record['children'][index])
@@ -1503,65 +1515,12 @@ class CollectionsMetadata(RecordWrapper):
         self.extend([child for child in other])
 
 
-class CollectionMetadata(RecordWrapper):
-    """The metadata for a single collection. It contains Context,
-    InstrumentName etc. as attribs, InstCtrlVer etc. for children"""
+class AutomationParameter(RecordWrapper):
 
+    def __init__(self, record=None):
+        super(self.__class__, self).__init__(record)
+        self.record['tag'] = self.__class__.__name__
 
-    @property
-    def context(self):
-        return self.getV('attrib', 'Context')
-
-    @property
-    def instrumentName(self):
-        return self.getV('attrib', 'InstrumentName')
-
-    @property
-    def instrumentId(self):
-        return self.getV('attrib', 'InstrumentId')
-
-    @property
-    def instCtrlVer(self):
-        return self.getMemberV('InstCtrlVer')
-
-    @property
-    def sigProcVer(self):
-        return self.getMemberV('SigProcVer')
-
-    @property
-    def automation(self):
-        return Automation(self.getMemberV('Automation'))
-
-    @property
-    def collectionNumber(self):
-        return self.getMemberV('collectionNumber')
-
-    @property
-    def cellIndex(self):
-        return self.getMemberV('cellIndex')
-
-    @property
-    def cellPac(self):
-        return self.getMemberV('cellPac', 'attrib')
-
-    @property
-    def runDetails(self):
-        return RunDetailsMetadata(self.getV('children', 'RunDetails'))
-
-    @property
-    def wellSample(self):
-        return WellSampleMetadata(self.getV('children', 'WellSample'))
-
-    @property
-    def primary(self):
-        return PrimaryMetadata(self.getV('children', 'Primary'))
-
-class Automation(RecordWrapper):
-
-    @property
-    def automationParameters(self):
-        return AutomationParameters(self.getV('children',
-                                              'AutomationParameters'))
 
 class AutomationParameters(RecordWrapper):
 
@@ -1569,10 +1528,8 @@ class AutomationParameters(RecordWrapper):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
 
-    @property
-    def automationParameter(self):
-        return AutomationParameter(self.getV('children',
-                                             'AutomationParameter'))
+    automationParameter = accs('AutomationParameter', container='children',
+                               asType=AutomationParameter)
 
     def addParameter(self, key, value):
         temp = AutomationParameter()
@@ -1582,25 +1539,22 @@ class AutomationParameters(RecordWrapper):
             temp.value = value
         self.append(temp)
 
-class AutomationParameter(RecordWrapper):
 
-    def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
-        self.record['tag'] = self.__class__.__name__
+class Automation(RecordWrapper):
+
+    automationParameters = accs('AutomationParameters', container='children',
+                                asType=AutomationParameters)
+
+
+class ParentTool(RecordWrapper):
+    pass
+
 
 class Provenance(RecordWrapper):
     """The metadata concerning this dataset's provenance"""
 
-    @property
-    def createdBy(self):
-        return self.getV(container='attrib', tag='CreatedBy')
-
-    @property
-    def parentTool(self):
-        return ParentTool(self.getV('children', 'ParentTool'))
-
-class ParentTool(RecordWrapper):
-    pass
+    createdBy = accs('CreatedBy')
+    parentTool = accs('ParentTool', container='children', asType=ParentTool)
 
 
 class StatsMetadata(RecordWrapper):
@@ -1608,9 +1562,9 @@ class StatsMetadata(RecordWrapper):
 
     # merged dists:
     MERGED_DISTS = ["ProdDist", "ReadTypeDist", "ReadLenDist", "ReadQualDist",
-                "MedianInsertDist", "InsertReadQualDist",
-                "InsertReadLenDist", "ControlReadQualDist",
-                "ControlReadLenDist"]
+                    "MedianInsertDist", "InsertReadQualDist",
+                    "InsertReadLenDist", "ControlReadQualDist",
+                    "ControlReadLenDist"]
 
     # continuous channel dists:
     CHANNEL_DISTS = ['BaselineLevelDist', 'BaselineStdDist', 'SnrDist',
@@ -1619,8 +1573,8 @@ class StatsMetadata(RecordWrapper):
 
     # continuous misc. dists:
     OTHER_DISTS = ['PausinessDist', 'PulseRateDist', 'PulseWidthDist',
-                   'BaseRateDist', 'BaseWidthDist', 'BaseIpdDist', 'LocalBaseRateDist',
-                   'NumUnfilteredBasecallsDist']
+                   'BaseRateDist', 'BaseWidthDist', 'BaseIpdDist',
+                   'LocalBaseRateDist', 'NumUnfilteredBasecallsDist']
 
     UNMERGED_DISTS = CHANNEL_DISTS + OTHER_DISTS
 
@@ -1978,66 +1932,42 @@ class DiscreteDistribution(RecordWrapper):
 
 class RunDetailsMetadata(RecordWrapper):
 
-
-    @property
-    def timeStampedName(self):
-        return self.getMemberV('TimeStampedName')
-
-    @property
-    def name(self):
-        return self.getMemberV('Name')
-
-    @name.setter
-    def name(self, value):
-        return self.setMemberV('Name', value)
-
-
-class WellSampleMetadata(RecordWrapper):
-
-
-    @property
-    def uniqueId(self):
-        return self.getV('attrib', 'UniqueId')
-
-    @property
-    def wellName(self):
-        return self.getMemberV('WellName')
-
-    @property
-    def concentration(self):
-        return self.getMemberV('Concentration')
-
-    @property
-    def sampleReuseEnabled(self):
-        return self.getMemberV('SampleReuseEnabled')
-
-    @property
-    def stageHotstartEnabled(self):
-        return self.getMemberV('StageHotstartEnabled')
-
-    @property
-    def sizeSelectionEnabled(self):
-        return self.getMemberV('SizeSelectionEnabled')
-
-    @property
-    def useCount(self):
-        return self.getMemberV('UseCount')
-
-    @property
-    def comments(self):
-        return self.getMemberV('Comments')
-
-    @property
-    def bioSamplePointers(self):
-        return BioSamplePointersMetadata(
-            self.getV('children', 'BioSamplePointers'))
+    TAG = 'RunDetails'
+    timeStampedName = subgetter('TimeStampedName')
+    name = subaccs('Name')
 
 
 class BioSamplePointersMetadata(RecordWrapper):
     """The BioSamplePointer members don't seem complex enough to justify
     class representation, instead rely on base class methods to provide
     iterators and accessors"""
-    pass
+
+
+class WellSampleMetadata(RecordWrapper):
+
+    TAG = 'WellSample'
+    wellName = subaccs('WellName')
+    concentration = subaccs('Concentration')
+    sampleReuseEnabled = subgetter('SampleReuseEnabled')
+    stageHotstartEnabled = subgetter('StageHotstartEnabled')
+    sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
+    useCount = subaccs('UseCount')
+    comments = subaccs('Comments')
+    bioSamplePointers = accs('BioSamplePointers', container='children',
+                             asType=BioSamplePointersMetadata)
+
+
+class CopyFilesMetadata(RecordWrapper):
+    """The CopyFile members don't seem complex enough to justify
+    class representation, instead rely on base class methods"""
+
+
+class OutputOptions(RecordWrapper):
+
+    resultsFolder = subaccs('ResultsFolder')
+    collectionPathUri = subaccs('CollectionPathUri')
+    copyFiles = accs('CopyFiles', container='children',
+                     asType=CopyFilesMetadata)
 
 
 class PrimaryMetadata(RecordWrapper):
@@ -2062,45 +1992,11 @@ class PrimaryMetadata(RecordWrapper):
         'BetterAnalysis_Results'
     """
 
-    @property
-    def automationName(self):
-        return self.getMemberV('AutomationName')
-
-    @property
-    def configFileName(self):
-        return self.getMemberV('ConfigFileName')
-
-    @property
-    def sequencingCondition(self):
-        return self.getMemberV('SequencingCondition')
-
-    @property
-    def outputOptions(self):
-        return OutputOptions(self.getV('children', 'OutputOptions'))
-
-
-class OutputOptions(RecordWrapper):
-    @property
-    def resultsFolder(self):
-        return self.getMemberV('ResultsFolder')
-
-    @resultsFolder.setter
-    def resultsFolder(self, value):
-        self.setMemberV('ResultsFolder', value)
-
-    @property
-    def collectionPathUri(self):
-        return self.getMemberV('CollectionPathUri')
-
-    @property
-    def copyFiles(self):
-        return CopyFilesMetadata(self.getV('children', 'CopyFiles'))
-
-
-class CopyFilesMetadata(RecordWrapper):
-    """The CopyFile members don't seem complex enough to justify
-    class representation, instead rely on base class methods"""
-    pass
+    automationName = subaccs('AutomationName')
+    configFileName = subaccs('ConfigFileName')
+    sequencingCondition = subaccs('SequencingCondition')
+    outputOptions = accs('OutputOptions', container='children',
+                         asType=OutputOptions)
 
 
 class BioSamplesMetadata(RecordWrapper):
@@ -2122,7 +2018,6 @@ class BioSamplesMetadata(RecordWrapper):
             'great biosample'
         """
 
-
     def __getitem__(self, index):
         """Get a biosample"""
         return BioSampleMetadata(self.record['children'][index])
@@ -2139,14 +2034,33 @@ class BioSamplesMetadata(RecordWrapper):
 class BioSampleMetadata(RecordWrapper):
     """The metadata for a single BioSample"""
 
+class CollectionMetadata(RecordWrapper):
+    """The metadata for a single collection. It contains Context,
+    InstrumentName etc. as attribs, InstCtrlVer etc. for children"""
+
+    TAG = 'CollectionMetadata'
+
+    context = subgetter('Context')
+    instrumentName = subgetter('InstrumentName')
+    instrumentId = subgetter('InstrumentId')
+    instCtrlVer = subgetter('InstCtrlVer')
+    sigProcVer = subgetter('SigProcVer')
+    collectionNumber = subgetter('CollectionNumber')
+    cellIndex = subgetter('CellIndex')
+    cellPac = getter('CellPac')
+    automation = getter('Automation', 'children', Automation)
+    primary = getter('Primary', 'children', PrimaryMetadata)
 
     @property
-    def uniqueId(self):
-        return self.getV('attrib', 'UniqueId')
+    def runDetails(self):
+        return RunDetailsMetadata(self.getV('children', 'RunDetails'),
+                                  parent=self)
 
     @property
-    def createdAt(self):
-        return self.getV('attrib', 'CreatedAt')
+    def wellSample(self):
+        return WellSampleMetadata(self.getV('children', 'WellSample'),
+                                  parent=self)
+
 
 
 def _emptyMember(tag=None, text=None, attrib=None, children=None,

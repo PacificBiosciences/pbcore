@@ -1047,7 +1047,6 @@ class TestDataSet(unittest.TestCase):
         ds2.filters = ds1.filters
         self.assertEquals(str(ds2.filters), '( rq > 0.85 )')
 
-
     def test_add_double_bound_filters(self):
         ds1 = AlignmentSet(data.getXml(8))
         ds1.filters.addRequirement(rq=[('>', '0.85'),
@@ -1079,47 +1078,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds2._metadata.totalLength, 100000)
         ds2._metadata.totalLength += 100000
         self.assertEquals(ds2._metadata.totalLength, 200000)
-
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
-    def test_loadMetadata(self):
-        aln = AlignmentSet(data.getXml(no=8))
-        self.assertFalse(aln.metadata.collections)
-        aln.loadMetadata('/pbi/dept/secondary/siv/testdata/'
-                         'SA3-Sequel/lambda/roche_SAT/'
-                         'm54013_151205_032353.run.metadata.xml')
-        self.assertTrue(aln.metadata.collections)
-        sset_fn = ('/pbi/dept/secondary/siv/testdata/'
-                'SA3-Sequel/lambda/roche_SAT/'
-                'm54013_151205_032353.subreadset.xml')
-        sset = SubreadSet(sset_fn)
-        orig_metadata = copy.deepcopy(sset.metadata)
-        sset.metadata.collections = None
-        self.assertFalse(sset.metadata.collections)
-        sset.loadMetadata('/pbi/dept/secondary/siv/testdata/'
-                          'SA3-Sequel/lambda/roche_SAT/'
-                          'm54013_151205_032353.run.metadata.xml')
-        stack = zip(sset.metadata, orig_metadata)
-        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
-        sset.write(fn)
-        validateFile(fn)
-        validateFile(sset_fn)
-        self.assertEqual(sset.metadata, orig_metadata)
-
-
-        # load the wrong thing...
-        sset_fn = ('/pbi/dept/secondary/siv/testdata/'
-                'SA3-Sequel/lambda/roche_SAT/'
-                'm54013_151205_032353.subreadset.xml')
-        sset = SubreadSet(sset_fn)
-        orig_metadata = copy.deepcopy(sset.metadata)
-        sset.metadata.collections = None
-        self.assertFalse(sset.metadata.collections)
-        with self.assertRaises(InvalidDataSetIOError):
-            sset.loadMetadata('/pbi/dept/secondary/siv/testdata/'
-                              'SA3-Sequel/lambda/roche_SAT/'
-                              'm54013_151205_032353.sts.xml')
-
 
     def test_copyTo(self):
         aln = AlignmentSet(data.getXml(no=8), strict=True)

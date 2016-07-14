@@ -50,7 +50,6 @@ class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 
-
     def test_subread_build(self):
         ds1 = SubreadSet(data.getXml(no=5), skipMissing=True)
         ds2 = SubreadSet(data.getXml(no=5), skipMissing=True)
@@ -429,6 +428,57 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(aln)), 177)
         aln.filters.addRequirement(accuracy=[('>', '.85')])
         self.assertEqual(len(list(aln)), 174)
+
+    def test_membership_filter(self):
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        aln.filters.addRequirement(zm=[('in', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)
+        aln.filters.addRequirement(zm=[('in', hns)])
+        self.assertEqual(len(list(aln)), 177)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)
+        hns = [n for _ in range(10000) for n in hns]
+        hns = np.array(hns)
+        aln.filters.addRequirement(zm=[('in', hns)])
+        self.assertEqual(len(list(aln)), 177)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        hns = list(hns)
+        aln.filters.addRequirement(zm=[('in', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        hns = set(hns)
+        aln.filters.addRequirement(zm=[('in', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        qnames = [r.qName for r in aln[:10]]
+        aln.filters.addRequirement(qname=[('in', qnames)])
+        self.assertEqual(len(list(aln)), 10)
+
+        fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        aln.filters.addRequirement(zm=[('in', hns)])
+        aln.write(fn)
+        aln.close()
+        aln2 = AlignmentSet(fn)
+        self.assertEqual(len(list(aln2)), 5)
 
     def test_contigset_filter(self):
         ref = ReferenceSet(data.getXml(9))
@@ -983,13 +1033,13 @@ class TestDataSet(unittest.TestCase):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
               '.tiny.subreadset.xml')
-        sset = SubreadSet(fn)
+        sset = SubreadSet(fn, skipMissing=True)
         ssets = sset.split(chunks=3, barcodes=True)
         self.assertEqual([str(ss.filters) for ss in ssets],
                          ["( bc = [0, 0] )",
                           "( bc = [1, 1] )",
                           "( bc = [2, 2] )"])
-        sset = SubreadSet(fn)
+        sset = SubreadSet(fn, skipMissing=True)
         self.assertEqual(len(sset), 15133)
         sset.filters = None
         self.assertEqual(str(sset.filters), "")

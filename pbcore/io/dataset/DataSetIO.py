@@ -248,21 +248,17 @@ def _pathChanger(osPathFunc, metaTypeFunc, resource):
         metaTypeFunc(resource)
 
 def _copier(dest, resource, subfolder=None):
-    """Apply these two functions to the resource or ResourceId"""
     if subfolder is None:
         subfolder = [uuid.uuid4()]
     resId = resource.resourceId
     currentPath = urlparse(resId)
     if currentPath.scheme == 'file' or not currentPath.scheme:
         currentPath = currentPath.path
-        try:
+        if resource.KEEP_WITH_PARENT:
+            currentPath = _fileCopy(dest, currentPath, uuid=subfolder[0])
+        else:
             currentPath = _fileCopy(dest, currentPath, uuid=resource.uniqueId)
             subfolder[0] = resource.uniqueId
-        except AttributeError:
-            if subfolder:
-                currentPath = _fileCopy(dest, currentPath, uuid=subfolder[0])
-            else:
-                raise
         resource.resourceId = currentPath
 
 
