@@ -68,28 +68,22 @@ class TestDataSet(unittest.TestCase):
         ss = SubreadSet(data.getXml(10))
         col = CollectionMetadata()
         self.assertFalse(ss.metadata.collections)
-        ss.write(ofn, validate=False)
 
         ss.metadata.collections.append(col)
         self.assertTrue(ss.metadata.collections)
-        ss.write(ofn, validate=False)
 
         ss.metadata.collections[0].runDetails.name = 'foo'
         self.assertEqual('foo', ss.metadata.collections[0].runDetails.name)
-        ss.write(ofn, validate=False)
 
         ss.metadata.collections[0].wellSample.name = 'bar'
         self.assertEqual('bar', ss.metadata.collections[0].wellSample.name)
-        ss.write(ofn, validate=False)
 
         ss.metadata.collections[0].wellSample.wellName = 'baz'
         self.assertEqual('baz', ss.metadata.collections[0].wellSample.wellName)
-        ss.write(ofn, validate=False)
 
         ss.metadata.collections[0].wellSample.concentration = 'baz'
         self.assertEqual('baz',
                          ss.metadata.collections[0].wellSample.concentration)
-        print ofn
         ss.write(ofn, validate=False)
 
     @unittest.skipIf(not _internal_data(),
