@@ -181,6 +181,10 @@ def runonce(func):
     runner.hasrun = False
     return runner
 
+def updateTag(ele, tag):
+    if ele.metaname == '':
+        ele.metaname = tag
+
 class RecordWrapper(object):
     """The base functionality of a metadata element.
 
@@ -212,7 +216,7 @@ class RecordWrapper(object):
             # class's TAG member if it has one, with the class name as a
             # fallback
             self.registerCallback(runonce(
-                P(setattr, self, 'metaname',
+                P(updateTag, self,
                   getattr(self, 'TAG', self.__class__.__name__))))
             if not parent is None:
                 # register a callback to append this object to the parent, so
@@ -1282,10 +1286,12 @@ class DataSetMetadata(RecordWrapper):
     """The root of the DataSetMetadata element tree, used as base for subtype
     specific DataSet or for generic "DataSet" records."""
 
+    TAG = 'DataSetMetadata'
+
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
         super(DataSetMetadata, self).__init__(record)
-        self.record['tag'] = 'DataSetMetadata'
+        self.record['tag'] = self.TAG
 
     def merge(self, other):
         self.numRecords += other.numRecords
@@ -1348,6 +1354,8 @@ class SubreadSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to SubreadSets. Deals explicitly
     with the merging of Collections and BioSamples metadata hierarchies."""
 
+    TAG = 'DataSetMetadata'
+
     def __init__(self, record=None):
         # This doesn't really need to happen unless there are contextual
         # differences in the meanings of subtypes (e.g. BioSamples mean
@@ -1396,6 +1404,8 @@ class SubreadSetMetadata(DataSetMetadata):
 class ContigSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to ContigSets."""
 
+    TAG = 'DataSetMetadata'
+
     def __init__(self, record=None):
         if record:
             if (not isinstance(record, dict) and
@@ -1443,6 +1453,8 @@ class ContigSetMetadata(DataSetMetadata):
 
 class BarcodeSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to BarcodeSets."""
+
+    TAG = 'DataSetMetadata'
 
     def __init__(self, record=None):
         if record:
@@ -1935,6 +1947,7 @@ class DiscreteDistribution(RecordWrapper):
 class RunDetailsMetadata(RecordWrapper):
 
     TAG = 'RunDetails'
+
     timeStampedName = subgetter('TimeStampedName')
     name = subaccs('Name')
 
@@ -1944,10 +1957,13 @@ class BioSamplePointersMetadata(RecordWrapper):
     class representation, instead rely on base class methods to provide
     iterators and accessors"""
 
+    TAG = 'BioSamplePointers'
+
 
 class WellSampleMetadata(RecordWrapper):
 
     TAG = 'WellSample'
+
     wellName = subaccs('WellName')
     concentration = subaccs('Concentration')
     sampleReuseEnabled = subgetter('SampleReuseEnabled')
@@ -1962,6 +1978,8 @@ class WellSampleMetadata(RecordWrapper):
 class CopyFilesMetadata(RecordWrapper):
     """The CopyFile members don't seem complex enough to justify
     class representation, instead rely on base class methods"""
+
+    TAG = 'CopyFiles'
 
 
 class OutputOptions(RecordWrapper):
@@ -1994,6 +2012,8 @@ class PrimaryMetadata(RecordWrapper):
         'BetterAnalysis_Results'
     """
 
+    TAG = 'Primary'
+
     automationName = subaccs('AutomationName')
     configFileName = subaccs('ConfigFileName')
     sequencingCondition = subaccs('SequencingCondition')
@@ -2020,6 +2040,8 @@ class BioSamplesMetadata(RecordWrapper):
             'great biosample'
         """
 
+    TAG = 'BioSamples'
+
     def __getitem__(self, index):
         """Get a biosample"""
         return BioSampleMetadata(self.record['children'][index])
@@ -2035,6 +2057,8 @@ class BioSamplesMetadata(RecordWrapper):
 
 class BioSampleMetadata(RecordWrapper):
     """The metadata for a single BioSample"""
+
+    TAG = 'BioSample'
 
 class CollectionMetadata(RecordWrapper):
     """The metadata for a single collection. It contains Context,
@@ -2062,7 +2086,6 @@ class CollectionMetadata(RecordWrapper):
     def wellSample(self):
         return WellSampleMetadata(self.getV('children', 'WellSample'),
                                   parent=self)
-
 
 
 def _emptyMember(tag=None, text=None, attrib=None, children=None,

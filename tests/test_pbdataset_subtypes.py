@@ -67,6 +67,50 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
         self.assertEquals(len(ds4.metadata.collections), 1)
 
+    def test_subreadset_metadata_element_name(self):
+        # without touching the element:
+        sset = SubreadSet(data.getXml(10))
+        log.debug(data.getXml(10))
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        log.debug(fn)
+        sset.write(fn)
+        f = ET.parse(fn)
+        self.assertEqual(len(f.getroot().findall(
+            '{http://pacificbiosciences.com/PacBioDatasets.xsd}'
+            'SubreadSetMetadata')),
+            0)
+        self.assertEqual(len(f.getroot().findall(
+            '{http://pacificbiosciences.com/PacBioDatasets.xsd}'
+            'DataSetMetadata')),
+            1)
+
+        # with touching the element:
+        sset = SubreadSet(data.getXml(10))
+        sset.metadata.description = 'foo'
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        sset.write(fn, validate=False)
+        f = ET.parse(fn)
+        self.assertEqual(len(f.getroot().findall(
+            '{http://pacificbiosciences.com/PacBioDatasets.xsd}'
+            'SubreadSetMetadata')),
+            0)
+        self.assertEqual(len(f.getroot().findall(
+            '{http://pacificbiosciences.com/PacBioDatasets.xsd}'
+            'DataSetMetadata')),
+            1)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_subreadset_split_metadata_element_name(self):
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        log.debug(fn)
+        sset = SubreadSet("/pbi/dept/secondary/siv/testdata/"
+                          "SA3-Sequel/phi29/315/3150101/"
+                          "r54008_20160219_002905/1_A01/"
+                          "m54008_160219_003234.subreadset.xml")
+        chunks = sset.split(chunks=5, zmws=False, ignoreSubDatasets=True)
+        chunks[0].write(fn)
+
     def test_valid_referencesets(self):
         validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
