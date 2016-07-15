@@ -8,6 +8,7 @@ import json
 import shutil
 import datetime
 import pysam
+import numpy as np
 from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ def which(exe):
             return this_path
     return None
 
-def consolidateXml(indset, outbam, useTmp=True):
+def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
     tmpout = tempfile.mkdtemp(suffix="consolidate-xml")
     tmp_xml = os.path.join(tmpout,
                            "orig.{t}.xml".format(
@@ -60,8 +61,9 @@ def consolidateXml(indset, outbam, useTmp=True):
     _pbmergeXML(tmp_xml, outbam)
     if useTmp:
         shutil.copy(outbam, origOutBam)
-        # cleanup:
-        shutil.rmtree(tmpout)
+        shutil.copy(outbam + ".pbi", origOutBam + ".pbi")
+        if cleanup:
+            shutil.rmtree(tmpout)
     return outbam
 
 def consolidateBams(inFiles, outFile, filterDset=None, useTmp=True):
@@ -281,4 +283,74 @@ def _emitFilterScript(filterDset, filtScriptName):
         script = {"filters":[{"name": name} for name in names]}
     with open(filtScriptName, 'w') as scriptFile:
         scriptFile.write(json.dumps(script))
+
+RS = 65536
+
+def xy_to_hn(x, y):
+    return x * RS + y
+
+def hn_to_xy(hn):
+    x = hn/RS
+    y = hn - (x * RS)
+    return x, y
+
+def shift(cx, cy, d):
+    # 0 is up, 1 is right, 2 is down, 3 is left
+    if d == 0:
+        cy += 1
+    elif d == 1:
+        cx += 1
+    elif d == 2:
+        cy -= 1
+    elif d == 3:
+        cx -= 1
+    return cx, cy, d
+
+def change_d(d):
+    d += 1
+    d %= 4
+    return d
+
+def move(cx, cy, x, y, d):
+    if cx == x and cy == y:
+        return cx - 1, y, 0
+    if abs(x - cx) == abs(y - cy):
+        d = change_d(d)
+        # expand the search
+        if d == 0:
+            cx -= 1
+        return shift(cx, cy, d)
+    else:
+        return shift(cx, cy, d)
+
+def find_closest(x, y, pos, limit=81):
+    found = False
+    cx = x
+    cy = y
+    d = None
+    fails = 0
+    while not found:
+        hn = xy_to_hn(cx, cy)
+        if hn in pos:
+            return hn
+        else:
+            fails += 1
+            cx, cy, d = move(cx, cy, x, y, d)
+        if fails >= limit:
+            return None
+
+def sampleHolesUniformly(nsamples, samplefrom, faillimit=25, rowstart=64, colstart=64, nrows=1144, ncols=1024):
+    per_axis = int(np.ceil(np.sqrt(nsamples)))
+    xstride = (ncols - colstart) / per_axis
+    xpoints = np.arange(colstart + xstride/2, ncols, xstride)
+    ystride = (nrows - rowstart) / per_axis
+    ypoints = np.arange(rowstart + ystride/2, nrows, ystride)
+    hns = []
+    for x in xpoints:
+        for y in ypoints:
+            hn = find_closest(x, y, samplefrom, limit=faillimit)
+            if not hn is None:
+                hns.append(hn)
+    return hns
+
 

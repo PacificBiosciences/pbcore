@@ -188,7 +188,9 @@ class RecordWrapper(object):
     RecordWrapper (e.g. append, extend). Methods in child classes often provide
     similar functionality for more raw inputs (e.g. resourceIds as strings)"""
 
-    KEEP_WITH_PARENT = True
+    # only things that should be kept with their parents (indices) should be
+    # True
+    KEEP_WITH_PARENT = False
 
     def __init__(self, record=None, parent=None):
         """Here, record is any element in the Metadata Element tree and a

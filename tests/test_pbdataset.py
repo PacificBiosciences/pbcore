@@ -14,7 +14,8 @@ from unittest.case import SkipTest
 
 from pbcore.io import PacBioBamIndex, IndexedBamReader
 from pbcore.io import openIndexedAlignmentFile
-from pbcore.io.dataset.utils import BamtoolsVersion
+from pbcore.io.dataset.utils import (BamtoolsVersion, xy_to_hn, hn_to_xy,
+                                     consolidateXml)
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, DataSetMetaTypes, HdfSubreadSet,
                        ConsensusReadSet, ConsensusAlignmentSet, openDataFile,
@@ -29,6 +30,14 @@ import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
 log = logging.getLogger(__name__)
+
+def _pbtestdata():
+    try:
+        import pbtestdata
+        return True
+    except ImportError:
+        return False
+
 
 def _check_constools():
     if not BamtoolsVersion().good:
@@ -1116,6 +1125,24 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(explen, len(aln2))
         self.assertNotEqual(sorted(aln.toExternalFiles()),
                             sorted(aln2.toExternalFiles()))
+
+    @unittest.skipIf(not _pbtestdata(),
+                     "Internal data not available")
+    def test_copyTo_same_base_names(self):
+        import pbtestdata
+        # see bug 33778
+        tmp_bam = tempfile.NamedTemporaryFile(suffix=".bam").name
+        log.debug(tmp_bam)
+        ds = AlignmentSet(pbtestdata.get_file("aligned-ds-2"))
+        log.debug(pbtestdata.get_file("aligned-ds-2"))
+        consolidateXml(ds, tmp_bam, cleanup=True)
+        with AlignmentSet(tmp_bam) as f:
+            qnames = set()
+            for rec in f:
+                qnames.add(rec.qName)
+            assert len(qnames) == len([rec for rec in f])
+            assert len(qnames) == len(f)
+
 
     def test_addExternalResources(self):
         ds = DataSet()
@@ -2888,3 +2915,12 @@ class TestDataSet(unittest.TestCase):
         ds.write(ds_file)
         meta_type = getDataSetMetaType(ds_file)
         self.assertEqual(meta_type, "PacBio.DataSet.SubreadSet")
+
+    def test_hn_xy_converters(self):
+        for x in range(64, 1024, 10):
+            for y in range(64, 1144, 10):
+                hn = xy_to_hn(x, y)
+                ox, oy = hn_to_xy(hn)
+                self.assertEqual(x, ox)
+                self.assertEqual(y, oy)
+
