@@ -314,6 +314,7 @@ def merge_gffs_sorted(gff_files, output_file_name):
     first_records.sort(lambda a,b: cmp(a.record, b.record))
     gff_files = [f.file_name for f in first_records]
     headers, header_keys = _merge_gff_headers(gff_files)
+    nrec = 0
     with GffWriter(output_file_name) as out:
         for key in header_keys:
             for value in headers[key]:
@@ -323,3 +324,5 @@ def merge_gffs_sorted(gff_files, output_file_name):
             with GffReader(file_name) as gff:
                 for rec in gff:
                     out.writeRecord(rec)
+                    nrec += 1
+    return nrec
