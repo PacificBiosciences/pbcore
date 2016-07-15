@@ -42,8 +42,9 @@ __all__ = [ "Gff3Record",
             "GffWriter" ]
 
 from .base import ReaderBase, WriterBase
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
+import logging
 import tempfile
 import os.path
 
@@ -295,52 +296,30 @@ def _merge_gff_headers(gff_files):
     return headers, header_keys
 
 
-def _merge_gffs_sorted(gff1, gff2, out_file):
-    import logging
-    logging.info("Merging %s and %s" % (gff1, gff2))
-    with GffWriter(out_file) as out:
-        n_rec = 0
-        headers, header_keys = _merge_gff_headers([gff1, gff2])
-        with GffReader(gff1) as f1:
-            for key in header_keys:
-                for value in headers[key]:
-                    out.writeHeader("##%s %s" % (key, value))
-            with GffReader(gff2) as f2:
-                rec1 = [ rec for rec in f1 ]
-                rec2 = [ rec for rec in f2 ]
-                i = j = 0
-                while i < len(rec1) and j < len(rec2):
-                    if (rec1[i] > rec2[j]):
-                        out.writeRecord(rec2[j])
-                        j += 1
-                    else:
-                        out.writeRecord(rec1[i])
-                        i += 1
-                for rec in rec1[i:]:
-                    out.writeRecord(rec)
-                    i += 1
-                for rec in rec2[j:]:
-                    out.writeRecord(rec)
-                    j += 2
-        return i + j
-
+GffHead = namedtuple("GffHead", ("file_name", "record", "headers"))
 
 def merge_gffs_sorted(gff_files, output_file_name):
     """
     Utility function to combine a set of N (>= 2) GFF files, with records
-    ordered by genomic location.  (Assuming each input file is already sorted.)
+    ordered by genomic location.  This assumes that each input file is already
+    sorted, and forms a contiguous set of records.
     """
-    if len(gff_files) == 1: return gff_files[0]
-    tmpfiles = []
-    try:
-        while len(gff_files) > 2:
-            tmpout = tempfile.NamedTemporaryFile(suffix=".gff").name
-            _merge_gffs_sorted(gff_files[0], gff_files[1], tmpout)
-            gff_files = [tmpout] + gff_files[2:]
-            tmpfiles.append(tmpout)
-        with open(output_file_name, "w") as f:
-            _merge_gffs_sorted(gff_files[0], gff_files[1], f)
-        return output_file_name
-    finally:
-        for tmp_file_name in tmpfiles:
-            os.remove(tmp_file_name)
+    # collect the very first record of each GFF and use that to sort the files
+    first_records = []
+    for file_name in gff_files:
+        with GffReader(file_name) as f:
+            for rec in f:
+                first_records.append(GffHead(file_name, rec, f.headers))
+                break
+    first_records.sort(lambda a,b: cmp(a.record, b.record))
+    gff_files = [f.file_name for f in first_records]
+    headers, header_keys = _merge_gff_headers(gff_files)
+    with GffWriter(output_file_name) as out:
+        for key in header_keys:
+            for value in headers[key]:
+                out.writeHeader("##%s %s" % (key, value))
+        for file_name in gff_files:
+            logging.info("Merging {f}".format(f=file_name))
+            with GffReader(file_name) as gff:
+                for rec in gff:
+                    out.writeRecord(rec)
