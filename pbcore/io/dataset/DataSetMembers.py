@@ -2066,14 +2066,14 @@ class CollectionMetadata(RecordWrapper):
 
     TAG = 'CollectionMetadata'
 
-    context = subaccs('Context')
-    instrumentName = subaccs('InstrumentName')
-    instrumentId = subaccs('InstrumentId')
+    context = accs('Context')
+    instrumentName = accs('InstrumentName')
+    instrumentId = accs('InstrumentId')
     instCtrlVer = subaccs('InstCtrlVer')
     sigProcVer = subaccs('SigProcVer')
     collectionNumber = subaccs('CollectionNumber')
     cellIndex = subaccs('CellIndex')
-    cellPac = accs('CellPac')
+    cellPac = subaccs('CellPac')
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
 

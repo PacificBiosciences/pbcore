@@ -72,6 +72,15 @@ class TestDataSet(unittest.TestCase):
         ss.metadata.collections.append(col)
         self.assertTrue(ss.metadata.collections)
 
+        col.cellIndex = 1
+        self.assertTrue(ss.metadata.collections[0].cellIndex, 1)
+
+        col.instrumentName = "foo"
+        self.assertTrue(ss.metadata.collections[0].instrumentName, "foo")
+
+        col.context = 'bar'
+        self.assertTrue(ss.metadata.collections[0].context, "bar")
+
         ss.metadata.collections[0].runDetails.name = 'foo'
         self.assertEqual('foo', ss.metadata.collections[0].runDetails.name)
 

@@ -226,7 +226,8 @@ def _addDataSetMetadataElement(dataSet, root):
         if dataSet.metadata.summaryStats:
             stats = dataSet.metadata.summaryStats
             dataSet.metadata.summaryStats = None
-        root.append(_eleFromDictList(dataSet.metadata.record))
+        root.append(_eleFromDictList(dataSet.metadata.record,
+                                     defaultNS=namespaces()['pbmeta']))
         if stats:
             dataSet.metadata.summaryStats = stats
         # Metadata order matters....
@@ -241,7 +242,7 @@ def _guessNs(tag):
             return namespaces()[nsprefix]
     return ''
 
-def _eleFromDictList(eleAsDict, core=False):
+def _eleFromDictList(eleAsDict, core=False, defaultNS=None):
     """A last ditch capture method for uknown Elements"""
     if eleAsDict['tag'] == 'DataSets':
         print eleAsDict['namespace']
@@ -252,6 +253,9 @@ def _eleFromDictList(eleAsDict, core=False):
         newNamespace = _guessNs(eleAsDict['tag'])
         if newNamespace != '':
             eleAsDict['namespace'] = newNamespace
+    if eleAsDict['namespace'] == '' and not defaultNS is None:
+            eleAsDict['namespace'] = defaultNS
+
     if core:
         ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
                                              t=eleAsDict['tag']),
