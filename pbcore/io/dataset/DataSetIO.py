@@ -51,8 +51,10 @@ log = logging.getLogger(__name__)
 
 def openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
-    tbrType = _typeDataSet(files[0])
-    return tbrType(*files, **kwargs)
+    if files[0].endswith('xml'):
+        tbrType = _typeDataSet(files[0])
+        return tbrType(*files, **kwargs)
+    return openDataFile(*files, **kwargs)
 
 def _dsIdToName(dsId):
     """Translate a MetaType/ID into a class name"""

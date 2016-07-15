@@ -899,6 +899,9 @@ class TestDataSet(unittest.TestCase):
             aln_ref = aln.reference()
             break
         self.assertTrue(aln_ref is not None)
+        self.assertEqual(ds1.externalResources[0].reference, fasta_file)
+        self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
+                         fasta_file)
 
         ds1 = AlignmentSet(data.getXml(8),
                            referenceFastaFname=fasta_file)
@@ -907,6 +910,9 @@ class TestDataSet(unittest.TestCase):
             aln_ref = aln.reference()
             break
         self.assertTrue(aln_ref is not None)
+        self.assertEqual(ds1.externalResources[0].reference, fasta_file)
+        self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
+                         fasta_file)
 
         ds1 = AlignmentSet(data.getXml(8))
         ds1.addReference(fasta_file)
@@ -915,6 +921,27 @@ class TestDataSet(unittest.TestCase):
             aln_ref = aln.reference()
             break
         self.assertTrue(aln_ref is not None)
+        self.assertEqual(ds1.externalResources[0].reference, fasta_file)
+        self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
+                         fasta_file)
+
+        fofn_out = tempfile.NamedTemporaryFile(suffix=".fofn").name
+        log.debug(fofn_out)
+        with open(fofn_out, 'w') as f:
+            f.write(data.getXml(8))
+            f.write('\n')
+            f.write(data.getXml(11))
+            f.write('\n')
+        ds1 = AlignmentSet(fofn_out,
+                           referenceFastaFname=fasta_file)
+        aln_ref = None
+        for aln in ds1:
+            aln_ref = aln.reference()
+            break
+        self.assertTrue(aln_ref is not None)
+        self.assertEqual(ds1.externalResources[0].reference, fasta_file)
+        self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
+                         fasta_file)
 
         # Re-enable when referenceset is acceptable reference
         #ds1 = AlignmentSet(data.getXml(8),

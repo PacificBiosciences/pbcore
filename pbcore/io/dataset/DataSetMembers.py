@@ -2042,16 +2042,16 @@ class CollectionMetadata(RecordWrapper):
 
     TAG = 'CollectionMetadata'
 
-    context = subgetter('Context')
-    instrumentName = subgetter('InstrumentName')
-    instrumentId = subgetter('InstrumentId')
-    instCtrlVer = subgetter('InstCtrlVer')
-    sigProcVer = subgetter('SigProcVer')
-    collectionNumber = subgetter('CollectionNumber')
-    cellIndex = subgetter('CellIndex')
-    cellPac = getter('CellPac')
-    automation = getter('Automation', 'children', Automation)
-    primary = getter('Primary', 'children', PrimaryMetadata)
+    context = subaccs('Context')
+    instrumentName = subaccs('InstrumentName')
+    instrumentId = subaccs('InstrumentId')
+    instCtrlVer = subaccs('InstCtrlVer')
+    sigProcVer = subaccs('SigProcVer')
+    collectionNumber = subaccs('CollectionNumber')
+    cellIndex = subaccs('CellIndex')
+    cellPac = accs('CellPac')
+    automation = accs('Automation', 'children', Automation)
+    primary = accs('Primary', 'children', PrimaryMetadata)
 
     @property
     def runDetails(self):
