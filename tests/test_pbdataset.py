@@ -53,6 +53,11 @@ def _check_constools():
     o, r, m = backticks(cmd)
     if r != 1:
         return False
+
+    cmd = "pbmerge"
+    o, r, m = backticks(cmd)
+    if r != 1:
+        return False
     return True
 
 def _internal_data():
@@ -1126,7 +1131,7 @@ class TestDataSet(unittest.TestCase):
         self.assertNotEqual(sorted(aln.toExternalFiles()),
                             sorted(aln2.toExternalFiles()))
 
-    @unittest.skipIf(not _pbtestdata(),
+    @unittest.skipIf((not _pbtestdata() or not _check_constools()),
                      "Internal data not available")
     def test_copyTo_same_base_names(self):
         import pbtestdata
