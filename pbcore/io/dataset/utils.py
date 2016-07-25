@@ -339,18 +339,60 @@ def find_closest(x, y, pos, limit=81):
         if fails >= limit:
             return None
 
-def sampleHolesUniformly(nsamples, samplefrom, faillimit=25, rowstart=64, colstart=64, nrows=1144, ncols=1024):
-    per_axis = int(np.ceil(np.sqrt(nsamples)))
-    xstride = (ncols - colstart) / per_axis
-    xpoints = np.arange(colstart + xstride/2, ncols, xstride)
-    ystride = (nrows - rowstart) / per_axis
-    ypoints = np.arange(rowstart + ystride/2, nrows, ystride)
-    hns = []
-    for x in xpoints:
-        for y in ypoints:
-            hn = find_closest(x, y, samplefrom, limit=faillimit)
-            if not hn is None:
-                hns.append(hn)
-    return hns
+def quadratic_expand(lol):
+    samples = [[p] for p in lol[0]]
+    for ps in lol[1:]:
+        newsamples = []
+        for p in ps:
+            for s in samples:
+                newsamples.append(s[:] + [p])
+        samples = newsamples
+    return samples
+
+def prodround(values, target):
+    opts = [[np.floor(v), round(v), np.ceil(v)] for v in values]
+    combos = quadratic_expand(opts)
+    best = combos[0]
+    for combo in combos[1:]:
+        p = np.prod(combo)
+        err = abs(target - p)
+        berr = abs(target - np.prod(best))
+        rnd = np.sum([abs(v-c) for v, c in zip(values, combo)])
+        brnd = np.sum([abs(v-c) for v, c in zip(values, best)])
+        if (err < berr) or ((err == berr) and (rnd < brnd)):
+            best = combo
+    return best
+
+def sampleUniformly(nsamples, dimbounds):
+    """dimbounds is list of tuples of range, inclusive"""
+    volume = 1
+    for dmin, dmax in dimbounds:
+        volume *= dmax - dmin
+    volume_per_sample = np.true_divide(volume, nsamples)
+    sample_side_length = np.power(volume_per_sample,
+                                  np.true_divide(1.0, len(dimbounds)))
+    per_axis = [max(1.0, np.true_divide((dmax - dmin), sample_side_length))
+                for dmin, dmax in dimbounds]
+    per_axis = prodround(per_axis, nsamples)
+    # Shrink the stride to account for end margins
+    strides = [np.true_divide(dmax - dmin, nsam + 1)
+               for (dmin, dmax), nsam in zip(dimbounds, per_axis)]
+    # introduce a margin
+    points = [np.linspace(dmin + dstride,
+                          dmax - dstride,
+                          round(nsamp))
+              for (dmin, dmax), nsamp, dstride in zip(dimbounds, per_axis,
+                                                      strides)]
+    points = [map(round, ps) for ps in points]
+    points = [map(int, ps) for ps in points]
+    samples = quadratic_expand(points)
+    return samples
+
+
+def sampleHolesUniformly(nsamples, samplefrom, faillimit=25, rowstart=64,
+                         colstart=64, nrows=1024, ncols=1144):
+    xys = sampleUniformly(nsamples, [(colstart, ncols), (rowstart, nrows)])
+    hns = [find_closest(x, y, samplefrom, limit=faillimit) for x, y in xys]
+    return [hn for hn in hns if not hn is None]
 
 

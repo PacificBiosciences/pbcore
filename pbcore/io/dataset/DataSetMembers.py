@@ -1535,6 +1535,8 @@ class AutomationParameter(RecordWrapper):
         super(self.__class__, self).__init__(record)
         self.record['tag'] = self.__class__.__name__
 
+    value = accs('SimpleValue')
+
 
 class AutomationParameters(RecordWrapper):
 
@@ -1552,6 +1554,21 @@ class AutomationParameters(RecordWrapper):
         if value:
             temp.value = value
         self.append(temp)
+
+    def __getitem__(self, tag):
+        """Override to use tag as Name instead of strictly tag"""
+        if isinstance(tag, str):
+            for child in self:
+                child = AutomationParameter(child)
+                if child.name == tag:
+                    return child
+            return RecordWrapper(self.getV('children', tag))
+        elif isinstance(tag, int):
+            return RecordWrapper(self.record['children'][tag])
+
+    @property
+    def parameterNames(self):
+        return [c.name for c in self]
 
 
 class Automation(RecordWrapper):
@@ -1990,6 +2007,13 @@ class OutputOptions(RecordWrapper):
                      asType=CopyFilesMetadata)
 
 
+class SecondaryMetadata(RecordWrapper):
+
+    TAG = 'Secondary'
+
+    cellCountInJob = subaccs('CellCountInJob')
+
+
 class PrimaryMetadata(RecordWrapper):
     """
 
@@ -2060,6 +2084,13 @@ class BioSampleMetadata(RecordWrapper):
 
     TAG = 'BioSample'
 
+class CellPac(RecordWrapper):
+    """CellPac metadata"""
+    partNumber = accs('PartNumber')
+    lotNumber = accs('LotNumber')
+    barcode = accs('Barcode')
+    expirationDate = accs('ExpirationDate')
+
 class CollectionMetadata(RecordWrapper):
     """The metadata for a single collection. It contains Context,
     InstrumentName etc. as attribs, InstCtrlVer etc. for children"""
@@ -2073,9 +2104,10 @@ class CollectionMetadata(RecordWrapper):
     sigProcVer = subaccs('SigProcVer')
     collectionNumber = subaccs('CollectionNumber')
     cellIndex = subaccs('CellIndex')
-    cellPac = subaccs('CellPac')
+    cellPac = accs('CellPac', 'children', CellPac)
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
+    secondary = accs('Secondary', 'children', SecondaryMetadata)
 
     @property
     def runDetails(self):
@@ -2091,15 +2123,15 @@ class CollectionMetadata(RecordWrapper):
 def _emptyMember(tag=None, text=None, attrib=None, children=None,
                  namespace=None):
     """Return an empty stock Element representation"""
-    if not tag:
+    if tag is None:
         tag = ''
-    if not namespace:
+    if namespace is None:
         namespace = ''
-    if not text:
+    if text is None:
         text = ''
-    if not attrib:
+    if attrib is None:
         attrib = {}
-    if not children:
+    if children is None:
         children = []
     return {'tag': tag, 'text': text, 'attrib': attrib, 'children': children,
             'namespace': namespace}

@@ -1,52 +1,18 @@
 
 import logging
-from urlparse import urlparse
 import unittest
 import tempfile
-import os
-import itertools
-import numpy as np
 import copy
-import pysam
 
-from pbcore.util.Process import backticks
-from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
-                                    BamtoolsVersion)
-from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
-                       ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
-                       FastaReader, FastaWriter, IndexedFastaReader,
-                       HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile, FastaWriter, FastqReader, openDataSet,
-                       GmapReferenceSet)
+from pbcore.io import SubreadSet, AlignmentSet
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import CollectionMetadata
-import pbcore.data as upstreamData
 import pbcore.data.datasets as data
-from pbcore.io.dataset.DataSetValidator import validateXml, validateFile
-import xml.etree.ElementTree as ET
+from pbcore.io.dataset.DataSetValidator import validateFile
+
+from utils import _pbtestdata, _check_constools, _internal_data
 
 log = logging.getLogger(__name__)
-
-def _check_constools():
-    if not BamtoolsVersion().good:
-        log.warn("Bamtools not found or out of date")
-        return False
-
-    cmd = "pbindex"
-    o, r, m = backticks(cmd)
-    if r != 1:
-        return False
-
-    cmd = "samtools"
-    o, r, m = backticks(cmd)
-    if r != 1:
-        return False
-    return True
-
-def _internal_data():
-    if os.path.exists("/pbi/dept/secondary/siv/testdata"):
-        return True
-    return False
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -60,6 +26,16 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(ds.metadata.collections[0].getV('children',
                                                         'Automation'))
         self.assertTrue(ds.metadata.collections[0].automation)
+        ds.metadata.collections[
+            0].automation.automationParameters.addParameter('foo', 'bar')
+        self.assertEqual(
+            ds.metadata.collections[
+                0].automation.automationParameters['foo'].value,
+            'bar')
+        self.assertEqual(
+            ds.metadata.collections[
+                0].automation.automationParameters.parameterNames,
+            [None, 'foo'])
 
 
     def test_de_novo(self):

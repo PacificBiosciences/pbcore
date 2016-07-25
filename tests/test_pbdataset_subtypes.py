@@ -5,23 +5,20 @@ import unittest
 import tempfile
 import os
 import itertools
-import numpy as np
-
-import pysam
+import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
-                                    BamtoolsVersion)
-from pbcore.io import (DataSet, SubreadSet, ConsensusReadSet,
+                                     BamtoolsVersion)
+from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
-                       openDataFile, FastaWriter, FastqReader, openDataSet,
+                       openDataFile, FastqReader,
                        GmapReferenceSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
-import xml.etree.ElementTree as ET
 
 log = logging.getLogger(__name__)
 
@@ -99,18 +96,6 @@ class TestDataSet(unittest.TestCase):
             'DataSetMetadata')),
             1)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
-    def test_subreadset_split_metadata_element_name(self):
-        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
-        log.debug(fn)
-        sset = SubreadSet("/pbi/dept/secondary/siv/testdata/"
-                          "SA3-Sequel/phi29/315/3150101/"
-                          "r54008_20160219_002905/1_A01/"
-                          "m54008_160219_003234.subreadset.xml")
-        chunks = sset.split(chunks=5, zmws=False, ignoreSubDatasets=True)
-        chunks[0].write(fn)
-
     def test_valid_referencesets(self):
         validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
 
@@ -177,17 +162,6 @@ class TestDataSet(unittest.TestCase):
 
         for name in names:
             self.assertTrue(ds[name].id == name)
-
-    def test_contigset_split(self):
-        ref = ReferenceSet(data.getXml(9))
-        exp_n_contigs = len(ref)
-        refs = ref.split(10)
-        self.assertEqual(len(refs), 10)
-        obs_n_contigs = 0
-        for r in refs:
-            obs_n_contigs += sum(1 for _ in r)
-        self.assertEqual(obs_n_contigs, exp_n_contigs)
-
 
     def test_contigset_len(self):
         ref = ReferenceSet(data.getXml(9))
@@ -467,69 +441,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.externalResources[0].reference, reference)
 
 
-    def test_accuracy_filter(self):
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        aln.filters.addRequirement(accuracy=[('>', '.85')])
-        self.assertEqual(len(list(aln)), 174)
-
-    def test_membership_filter(self):
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)[:1]
-        aln.filters.addRequirement(zm=[('in', hns)])
-        self.assertEqual(len(list(aln)), 5)
-
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)
-        aln.filters.addRequirement(zm=[('in', hns)])
-        self.assertEqual(len(list(aln)), 177)
-
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)
-        hns = [n for _ in range(10000) for n in hns]
-        hns = np.array(hns)
-        aln.filters.addRequirement(zm=[('in', hns)])
-        self.assertEqual(len(list(aln)), 177)
-
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)[:1]
-        hns = list(hns)
-        aln.filters.addRequirement(zm=[('in', hns)])
-        self.assertEqual(len(list(aln)), 5)
-
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)[:1]
-        hns = set(hns)
-        aln.filters.addRequirement(zm=[('in', hns)])
-        self.assertEqual(len(list(aln)), 5)
-
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        qnames = [r.qName for r in aln[:10]]
-        aln.filters.addRequirement(qname=[('in', qnames)])
-        self.assertEqual(len(list(aln)), 10)
-
-        fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(list(aln)), 177)
-        hns = np.unique(aln.index.holeNumber)[:1]
-        aln.filters.addRequirement(zm=[('in', hns)])
-        aln.write(fn)
-        aln.close()
-        aln2 = AlignmentSet(fn)
-        self.assertEqual(len(list(aln2)), 5)
-
-    def test_contigset_filter(self):
-        ref = ReferenceSet(data.getXml(9))
-        self.assertEqual(len(list(ref)), 59)
-        ref.filters.addRequirement(length=[('>', '1450')])
-        self.assertEqual(len(list(ref)), 34)
-
     @unittest.skipIf(not _check_constools() or not _internal_data(),
                      "bamtools, pbindex or data not found, skipping")
     def test_alignmentset_partial_consolidate(self):
@@ -703,14 +614,6 @@ class TestDataSet(unittest.TestCase):
             with ContigSet(out1) as ds_new:
                 self.assertEqual(len([rec for rec in ds_new]), 1,
                                  "failed on %d" % i)
-
-    def test_split_hdfsubreadset(self):
-        hdfds = HdfSubreadSet(*upstreamData.getBaxH5_v23())
-        self.assertEqual(len(hdfds.toExternalFiles()), 3)
-        hdfdss = hdfds.split(chunks=2, ignoreSubDatasets=True)
-        self.assertEqual(len(hdfdss), 2)
-        self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
-        self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not found, skipping")
@@ -1082,12 +985,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(aln)), 112)
         self.assertEqual(len(aln.index), 112)
 
-    def test_cmp_alignmentset_filters(self):
-        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
-        self.assertEqual(len(aln), 112)
-        aln.filters.addRequirement(length=[('>=', 1000)])
-        self.assertEqual(len(aln), 12)
-
     def test_barcodeset(self):
         fa_out = tempfile.NamedTemporaryFile(suffix=".fasta").name
         with open(fa_out, "w") as f:
@@ -1097,40 +994,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual([r.id for r in ds], ["bc1","bc2"])
         ds_out = tempfile.NamedTemporaryFile(suffix=".barcodeset.xml").name
         ds.write(ds_out)
-
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
-    def test_barcode_split_cornercases(self):
-        fn = ('/pbi/dept/secondary/siv/testdata/'
-              'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
-              '.tiny.subreadset.xml')
-        sset = SubreadSet(fn, skipMissing=True)
-        ssets = sset.split(chunks=3, barcodes=True)
-        self.assertEqual([str(ss.filters) for ss in ssets],
-                         ["( bc = [0, 0] )",
-                          "( bc = [1, 1] )",
-                          "( bc = [2, 2] )"])
-        sset = SubreadSet(fn, skipMissing=True)
-        self.assertEqual(len(sset), 15133)
-        sset.filters = None
-        self.assertEqual(str(sset.filters), "")
-        sset.updateCounts()
-        self.assertEqual(len(sset), 2667562)
-
-        sset.filters.addRequirement(bc=[('=', '[2, 2]')])
-        self.assertEqual(str(sset.filters), "( bc = [2, 2] )")
-        sset.updateCounts()
-        self.assertEqual(len(sset), 4710)
-
-        sset.filters = None
-        self.assertEqual(str(sset.filters), "")
-        sset.updateCounts()
-        self.assertEqual(len(sset), 2667562)
-
-        sset.filters.addRequirement(bc=[('=', '[2,2]')])
-        self.assertEqual(str(sset.filters), "( bc = [2,2] )")
-        sset.updateCounts()
-        self.assertEqual(len(sset), 4710)
 
     def test_merged_contigset(self):
         fn = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
