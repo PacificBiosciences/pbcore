@@ -2084,12 +2084,26 @@ class BioSampleMetadata(RecordWrapper):
 
     TAG = 'BioSample'
 
-class CellPac(RecordWrapper):
-    """CellPac metadata"""
+class Kit(RecordWrapper):
     partNumber = accs('PartNumber')
     lotNumber = accs('LotNumber')
     barcode = accs('Barcode')
     expirationDate = accs('ExpirationDate')
+
+class CellPac(Kit):
+    """CellPac metadata"""
+
+class TemplatePrepKit(Kit):
+    """TemplatePrepKit metadata"""
+
+    rightAdaptorSequence = subaccs('RightAdaptorSequence')
+    leftAdaptorSequence = subaccs('LeftAdaptorSequence')
+
+class BindingKit(Kit):
+    pass
+
+class SequencingKitPlate(Kit):
+    pass
 
 class CollectionMetadata(RecordWrapper):
     """The metadata for a single collection. It contains Context,
@@ -2105,6 +2119,10 @@ class CollectionMetadata(RecordWrapper):
     collectionNumber = subaccs('CollectionNumber')
     cellIndex = subaccs('CellIndex')
     cellPac = accs('CellPac', 'children', CellPac)
+    templatePrepKit = accs('TemplatePrepKit', 'children', TemplatePrepKit)
+    bindingKit = accs('BindingKit', 'children', BindingKit)
+    sequencingKitPlate = accs('SequencingKitPlate', 'children',
+                              SequencingKitPlate)
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
     secondary = accs('Secondary', 'children', SecondaryMetadata)
