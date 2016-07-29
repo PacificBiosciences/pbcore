@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
-                                     BamtoolsVersion)
+                                     BamtoolsVersion, consolidateXml)
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
@@ -294,6 +294,31 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
         for contigmd in ds2.metadata.contigs:
             self.assertEquals(type(contigmd).__name__, 'ContigMetadata')
+
+    @unittest.skipIf(not _check_constools(),
+                     "bamtools or pbindex not found, skipping")
+    def test_pbmerge_indexing(self):
+        log.debug("Test through API")
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(aln.toExternalFiles()), 2)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        outfn = os.path.join(outdir, 'merged.bam')
+        log.info(outfn)
+        consolidateXml(aln, outfn, cleanup=False)
+        self.assertTrue(os.path.exists(outfn))
+        self.assertTrue(os.path.exists(outfn + '.pbi'))
+        cons = AlignmentSet(outfn)
+        self.assertEqual(len(aln), len(cons))
+        orig_stats = os.stat(outfn + '.pbi')
+        cons.externalResources[0].pbi = None
+        self.assertEqual(None, cons.externalResources[0].pbi)
+        cons.induceIndices()
+        self.assertEqual(outfn + '.pbi', cons.externalResources[0].pbi)
+        self.assertEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
+        cons.externalResources[0].pbi = None
+        self.assertEqual(None, cons.externalResources[0].pbi)
+        cons.induceIndices(force=True)
+        self.assertNotEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
     @unittest.skipIf(not _check_constools(),
                      "bamtools or pbindex not found, skipping")

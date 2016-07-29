@@ -2002,8 +2002,10 @@ class TestDataSet(unittest.TestCase):
         ss3 = ss + ss2
         self.assertEqual(ss3.metadata.summaryStats.readLenDist.bins,
                          [b1 + b2 for b1, b2 in
-                          zip(ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins)])
+                          itertools.izip_longest(
+                              ss.metadata.summaryStats.readLenDist.bins,
+                              ss2.metadata.summaryStats.readLenDist.bins,
+                              fillvalue=0)])
         ss4 = SubreadSet(outXml, outXml2)
 
         # one full one partial
@@ -2020,8 +2022,10 @@ class TestDataSet(unittest.TestCase):
         ss3 = ss + ss2
         self.assertEqual(ss3.metadata.summaryStats.readLenDist.bins,
                          [b1 + b2 for b1, b2 in
-                          zip(ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins)])
+                          itertools.izip_longest(
+                              ss.metadata.summaryStats.readLenDist.bins,
+                              ss2.metadata.summaryStats.readLenDist.bins,
+                              fillvalue=0)])
         ss4 = SubreadSet(outXml, outXml2)
 
         # two full

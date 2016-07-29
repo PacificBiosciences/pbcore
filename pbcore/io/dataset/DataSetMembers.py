@@ -1,3 +1,43 @@
+###############################################################################
+# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+#
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+# * Neither the name of Pacific Biosciences nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED
+# BY
+# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES
+# OR
+# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+# PROFITS; OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE
+# POSSIBILITY OF SUCH DAMAGE.
+###############################################################################
+
+# Author: Martin D. Smith
+
+
 """DataSetMetadata (also the tag of the Element in the DataSet XML
 representation) is somewhat challening to store, access, and (de)serialize
 efficiently. Here, we maintain a bulk representation of all of the dataset
@@ -1126,6 +1166,10 @@ class ExternalResource(RecordWrapper):
             if index.metaType == 'PacBio.Index.PacBioIndex':
                 return index.resourceId
 
+    @pbi.setter
+    def pbi(self, value):
+        self._setIndResByMetaType('PacBio.Index.PacBioIndex', value)
+
     @property
     def bai(self):
         indices = self.indices
@@ -1185,6 +1229,60 @@ class ExternalResource(RecordWrapper):
         self._setSubResByMetaType('PacBio.ReferenceFile.ReferenceFastaFile',
                                   value)
 
+    def _deleteIndByMetaType(self, mType):
+        rm = []
+        for i, res in enumerate(self.indices):
+            if res.metaType == mType:
+                rm.append(i)
+        for i in sorted(rm, reverse=True):
+            self.indices.pop(i)
+
+    def _getIndByMetaType(self, mType):
+        resources = self.indices
+        for res in resources:
+            if res.metaType == mType:
+                return res
+
+    def _getIndResByMetaType(self, mType):
+        res = self._getIndByMetaType(mType)
+        if not res is None:
+            return res.resourceId
+
+    def _setIndResByMetaType(self, mType, value):
+        if not isinstance(value, FileIndex):
+            tmp = FileIndex()
+            tmp.resourceId = value
+        else:
+            tmp = value
+        extant = self._getIndByMetaType(mType)
+        if extant:
+            if value is None:
+                self._deleteIndByMetaType(mType)
+            else:
+                extant.resourceId = value
+        else:
+            tmp.metaType = mType
+            tmp.timeStampedName = getTimeStampedName(mType)
+            resources = self.indices
+            # externalresources objects have a tag by default, which means their
+            # truthiness is true. Perhaps a truthiness change is in order
+            # TODO: (mdsmith 20160728) this can be updated now that the
+            # retention and tag system has been refactored
+            if len(resources) == 0:
+                resources = FileIndices()
+                resources.append(tmp)
+                self.append(resources)
+            else:
+                resources.append(tmp)
+
+    def _deleteExtResByMetaType(self, mType):
+        rm = []
+        for i, res in enumerate(self.externalResources):
+            if res.metaType == mType:
+                rm.append(i)
+        for i in sorted(rm, reverse=True):
+            self.externalResources.pop(i)
+
     def _getSubExtResByMetaType(self, mType):
         resources = self.externalResources
         for res in resources:
@@ -1202,17 +1300,26 @@ class ExternalResource(RecordWrapper):
             tmp.resourceId = value
         else:
             tmp = value
-        tmp.metaType = mType
-        tmp.timeStampedName = getTimeStampedName(mType)
-        resources = self.externalResources
-        # externalresources objects have a tag by default, which means their
-        # truthiness is true. Perhaps a truthiness change is in order
-        if len(resources) == 0:
-            resources = ExternalResources()
-            resources.append(tmp)
-            self.append(resources)
+        extant = self._getSubExtResByMetaType(mType)
+        if extant:
+            if value is None:
+                self._deleteExtResByMetaType(mType)
+            else:
+                extant.resourceId = value
         else:
-            resources.append(tmp)
+            tmp.metaType = mType
+            tmp.timeStampedName = getTimeStampedName(mType)
+            resources = self.externalResources
+            # externalresources objects have a tag by default, which means their
+            # truthiness is true. Perhaps a truthiness change is in order
+            # TODO: (mdsmith 20160728) this can be updated now that the
+            # retention and tag system has been refactored
+            if len(resources) == 0:
+                resources = ExternalResources()
+                resources.append(tmp)
+                self.append(resources)
+            else:
+                resources.append(tmp)
 
     @property
     def externalResources(self):
@@ -1628,20 +1735,28 @@ class StatsMetadata(RecordWrapper):
         return tbr
 
     def merge(self, other):
-        if other.shortInsertFraction and other.prodDist:
+        if (other.shortInsertFraction and other.prodDist and
+                self.shortInsertFraction and self.prodDist):
             self.shortInsertFraction = (self.shortInsertFraction *
                                         self.prodDist.bins[1] +
                                         other.shortInsertFraction *
                                         other.prodDist.bins[1])/(
                                             self.prodDist.bins[1]
                                             + other.prodDist.bins[1])
-        if other.adapterDimerFraction and other.prodDist:
+        if (other.adapterDimerFraction and other.prodDist and
+                self.shortInsertFraction and self.prodDist):
             self.adapterDimerFraction = (self.adapterDimerFraction *
                                          self.prodDist.bins[1] +
                                          other.adapterDimerFraction *
                                          other.prodDist.bins[1])/(
                                              self.prodDist.bins[1]
                                              + other.prodDist.bins[1])
+        if other.shortInsertFraction and not self.shortInsertFraction:
+            self.shortInsertFraction = other.shortInsertFraction
+        if other.adapterDimerFraction and not self.adapterDimerFraction:
+            self.adapterDimerFraction = other.adapterDimerFraction
+        if other.prodDist and not self.prodDist:
+            self.append(other.prodDist)
         self.numSequencingZmws += other.numSequencingZmws
         for dist in self.MERGED_DISTS:
             selfDist = getattr(self, dist[0].lower() + dist[1:])

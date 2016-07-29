@@ -1,3 +1,38 @@
+###############################################################################
+# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+#
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+# * Neither the name of Pacific Biosciences nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
+# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+# NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
+# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR
+# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+###############################################################################
+
+# Author: Martin D. Smith
+
+
 """
 Classes representing DataSets of various types.
 """
@@ -442,7 +477,7 @@ class DataSet(object):
         if _induceIndices:
             self.induceIndices()
 
-    def induceIndices(self):
+    def induceIndices(self, force=False):
         """Generate indices for ExternalResources.
 
         Not compatible with DataSet base type"""
@@ -1846,20 +1881,27 @@ class ReadSet(DataSet):
         super(ReadSet, self).__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
-    def induceIndices(self):
+    def induceIndices(self, force=False):
         for res in self.externalResources:
             fname = res.resourceId
             newInds = []
             if not res.pbi:
-                newInds.append(_pbindexBam(fname))
+                iname = fname + '.pbi'
+                if not os.path.isfile(iname) or force:
+                    iname = _pbindexBam(fname)
+                newInds.append(iname)
                 self.close()
             if not res.bai:
-                newInds.append(_indexBam(fname))
+                iname = fname + '.bai'
+                if not os.path.isfile(iname) or force:
+                    iname = _indexBam(fname)
+                newInds.append(iname)
                 self.close()
             if newInds:
                 res.addIndices(newInds)
         self._populateMetaTypes()
         self.updateCounts()
+        return newInds
 
     @property
     def isMapped(self):
@@ -2380,8 +2422,8 @@ class HdfSubreadSet(ReadSet):
         self.objMetadata["TimeStampedName"] = getTimeStampedName(
             self.objMetadata["MetaType"])
 
-    def induceIndices(self):
-        log.debug("Bax files already indexed")
+    def induceIndices(self, force=False):
+        log.debug("Bax files don't have external indices")
 
     @property
     def isIndexed(self):
@@ -2549,11 +2591,11 @@ class AlignmentSet(ReadSet):
         else:
             return super(AlignmentSet, self).consolidate(*args, **kwargs)
 
-    def induceIndices(self):
+    def induceIndices(self, force=False):
         if self.isCmpH5:
             log.debug("Cmp.h5 files already indexed")
         else:
-            return super(AlignmentSet, self).induceIndices()
+            return super(AlignmentSet, self).induceIndices(force=force)
 
     @property
     def isIndexed(self):
@@ -3775,10 +3817,13 @@ class ContigSet(DataSet):
             return '_'.join(name.split('_')[:-2]) + suff
         return name
 
-    def induceIndices(self):
+    def induceIndices(self, force=False):
         if not self.isIndexed:
             for extRes in self.externalResources:
-                extRes.addIndices([_indexFasta(extRes.resourceId)])
+                iname = extRes.resourceId + '.fai'
+                if not os.path.isfile(iname) or force:
+                    iname = _indexFasta(extRes.resourceId)
+                extRes.addIndices([iname])
             self.close()
         self._populateMetaTypes()
         self.updateCounts()
