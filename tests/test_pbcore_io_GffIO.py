@@ -1,5 +1,6 @@
 
 from StringIO import StringIO
+import tempfile
 import unittest
 import os.path
 
@@ -190,4 +191,14 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
             self.assertEqual(start, self.sorted_start)
+        rm_out(gff_out)
+
+    def test_empty_file(self):
+        gff_tmp = tempfile.NamedTemporaryFile(suffix=".gff").name
+        with open(gff_tmp, "w") as f:
+            f.write("##gff-version 3\n")
+            f.write("##source ipdSummary\n")
+            f.write("##sequence-region lambda_NEB3011 1 48502")
+        gff_out = tempfile.NamedTemporaryFile(suffix=".gff").name
+        merge_gffs(self.files + [gff_tmp], gff_out)
         rm_out(gff_out)
