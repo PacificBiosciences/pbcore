@@ -306,15 +306,17 @@ def merge_gffs_sorted(gff_files, output_file_name):
     """
     # collect the very first record of each GFF and use that to sort the files
     first_records = []
+    empty_files = []
     for file_name in gff_files:
         with GffReader(file_name) as f:
             for rec in f:
                 first_records.append(GffHead(file_name, rec, f.headers))
                 break
-            else: # no records found
-                first_records.append(GffHead(file_name, None, f.headers))
+            else:
+                empty_files.append(file_name)
     first_records.sort(lambda a,b: cmp(a.record, b.record))
     gff_files = [f.file_name for f in first_records]
+    gff_files.extend(empty_files)
     headers, header_keys = _merge_gff_headers(gff_files)
     nrec = 0
     with GffWriter(output_file_name) as out:
