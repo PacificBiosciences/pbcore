@@ -311,6 +311,8 @@ def merge_gffs_sorted(gff_files, output_file_name):
             for rec in f:
                 first_records.append(GffHead(file_name, rec, f.headers))
                 break
+            else: # no records found
+                first_records.append(GffHead(file_name, None, f.headers))
     first_records.sort(lambda a,b: cmp(a.record, b.record))
     gff_files = [f.file_name for f in first_records]
     headers, header_keys = _merge_gff_headers(gff_files)
