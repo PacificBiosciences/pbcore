@@ -1438,6 +1438,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(readers[1].readGroupTable), 1)
         self.assertEqual(len(readers[2].readGroupTable), 1)
         self.assertEqual(len(aln.readGroupTable), 3)
+        self.assertTrue("BaseFeatures" in aln.readGroupTable.dtype.fields)
 
     def test_missing_file(self):
         with self.assertRaises(IOError):
