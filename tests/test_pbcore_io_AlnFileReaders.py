@@ -320,7 +320,8 @@ class _BasicAlnFileReaderTests(object):
 
     def testReadGroupTable(self):
         rgFwd = self.fwdAln.readGroupInfo
-        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O'), ('FrameRate', '<f8')], rgFwd.dtype)
+        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O'), ('FrameRate', '<f8'), ('BaseFeatures', 'O')], rgFwd.dtype)
+        EQ(True, isinstance(rgFwd.BaseFeatures, frozenset))
         EQ("P6-C4", rgFwd.SequencingChemistry)
         EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0", rgFwd.MovieName)
         #EQ("bar", rgFwd.ReadType)

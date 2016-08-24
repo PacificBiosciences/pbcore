@@ -114,7 +114,6 @@ class _BamReaderBase(ReaderBase):
             rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
             rgFrameRate = ds["FRAMERATEHZ"]
-            readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate))
 
             # Look for the features manifest entries within the DS tag,
             # and build an "indirection layer", i.e. to get from
@@ -130,13 +129,17 @@ class _BamReaderBase(ReaderBase):
             self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
             self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
 
+            readGroupTable_.append((rgID, rgName, rgReadType, rgChem, rgFrameRate,
+                                    frozenset(baseFeatureNameMapping.iterkeys())))
+
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),
                    ("ReadType"           , "O"),
                    ("SequencingChemistry", "O"),
-                   ("FrameRate",           float)])
+                   ("FrameRate",           float),
+                   ("BaseFeatures",        "O")])
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
