@@ -1095,11 +1095,6 @@ class DataSet(object):
         else:
             statsMetadata = filename
         if self.metadata.summaryStats:
-            newSub = self.copy()
-            newSub.metadata.removeChildren('SummaryStats')
-            newSub.loadStats(statsMetadata)
-            self.addDatasets(self.copy())
-            self.addDatasets(newSub)
             self.metadata.summaryStats.merge(statsMetadata)
         else:
             self.metadata.append(statsMetadata)

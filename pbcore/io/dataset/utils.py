@@ -385,6 +385,14 @@ def quadratic_expand(lol):
     return samples
 
 def prodround(values, target):
+    """Round the floats in values (whose product is <target>) to integers in a
+    way that minimizes the absolute change in values
+    Args:
+        values: a list of numbers
+        target: the product of values (perhaps approximate)
+    Returns:
+        The values array, rounded to integers
+    """
     opts = [[np.floor(v), round(v), np.ceil(v)] for v in values]
     combos = quadratic_expand(opts)
     best = combos[0]
