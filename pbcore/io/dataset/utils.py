@@ -68,6 +68,7 @@ def which(exe):
 
 def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
     tmpout = tempfile.mkdtemp(suffix="consolidate-xml")
+    log.debug("Consolidating to {o}".format(o=outbam))
     tmp_xml = os.path.join(tmpout,
                            "orig.{t}.xml".format(
                                t=indset.__class__.__name__.lower()))
@@ -79,7 +80,12 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
     log.debug("In place free space:       {f}".format(f=final_free_space))
     # give it a 5% buffer
     if final_free_space < (projected_size * 1.05):
-        raise RuntimeError("No space available to consolidate")
+        raise RuntimeError("Not enough space available in {o} to consolidate, "
+                           "{p} required, {a} available".format(
+                               o=os.path.split(outbam)[0],
+                               p=projected_size * 1.05,
+                               a=final_free_space
+                               ))
     if useTmp:
         tmp_free_space = disk_free(tmpout)
         log.debug("Tmp free space (need ~2x): {f}".format(f=tmp_free_space))
