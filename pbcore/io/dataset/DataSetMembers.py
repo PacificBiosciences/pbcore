@@ -1707,7 +1707,8 @@ class StatsMetadata(RecordWrapper):
     # continuous channel dists:
     CHANNEL_DISTS = ['BaselineLevelDist', 'BaselineStdDist', 'SnrDist',
                      'HqRegionSnrDist', 'HqBasPkMidDist',
-                     'BaselineLevelSequencingDist']
+                     'BaselineLevelSequencingDist',
+                     'TotalBaseFractionPerChannel']
 
     # continuous misc. dists:
     OTHER_DISTS = ['PausinessDist', 'PulseRateDist', 'PulseWidthDist',
@@ -1722,7 +1723,8 @@ class StatsMetadata(RecordWrapper):
         for dist in self.CHANNEL_DISTS:
             chans = defaultdict(list)
             for chan in self.findChildren(dist):
-                chans[chan.attrib['Channel']].append(ContinuousDistribution(chan))
+                chans[chan.attrib['Channel']].append(
+                    ContinuousDistribution(chan))
             tbr[dist] = chans
         return tbr
 
