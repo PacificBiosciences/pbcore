@@ -1708,7 +1708,7 @@ class StatsMetadata(RecordWrapper):
     CHANNEL_DISTS = ['BaselineLevelDist', 'BaselineStdDist', 'SnrDist',
                      'HqRegionSnrDist', 'HqBasPkMidDist',
                      'BaselineLevelSequencingDist',
-                     'TotalBaseFractionPerChannel']
+                     'TotalBaseFractionPerChannel', 'DmeAngleEstDist']
 
     # continuous misc. dists:
     OTHER_DISTS = ['PausinessDist', 'PulseRateDist', 'PulseWidthDist',
