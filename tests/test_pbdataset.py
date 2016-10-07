@@ -1638,6 +1638,9 @@ class TestDataSet(unittest.TestCase):
                          [0, 124, 78, 72, 58, 74, 38, 58, 74, 64, 64, 80, 90,
                           108, 146, 154, 194, 190, 98, 34, 4, 0, 0, 0, 0, 0,
                           0, 0, 0, 0, 0, 0])
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleSize,
+                         ds1.metadata.summaryStats.readLenDist.sampleSize +
+                         ds2.metadata.summaryStats.readLenDist.sampleSize)
         # Lets check some manual values
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
