@@ -1760,6 +1760,7 @@ class StatsMetadata(RecordWrapper):
         if other.prodDist and not self.prodDist:
             self.append(other.prodDist)
         self.numSequencingZmws += other.numSequencingZmws
+
         for dist in self.MERGED_DISTS:
             selfDist = getattr(self, dist[0].lower() + dist[1:])
             otherDist = getattr(other, dist[0].lower() + dist[1:])
@@ -1774,6 +1775,7 @@ class StatsMetadata(RecordWrapper):
                     self.append(otherDist)
                 except BinMismatchError:
                     self.append(otherDist)
+
         for dist in self.UNMERGED_DISTS:
             otherDists = other.findChildren(dist)
             for otherDist in otherDists:
@@ -1907,66 +1909,30 @@ class ContinuousDistribution(RecordWrapper):
                                        other.minBinValue, self.bins,
                                        other.bins))
         self.minBinValue = min(self.minBinValue, other.minBinValue)
+        self.maxBinValue = max(self.maxBinValue, other.maxBinValue)
+        self.minOutlierValue = min(self.minOutlierValue, other.minOutlierValue)
+        self.maxOutlierValue = max(self.maxOutlierValue, other.maxOutlierValue)
+        self.sampleMean = (((self.sampleMean * self.sampleSize) +
+                            (other.sampleMean * other.sampleSize)) /
+                           (self.sampleSize + other.sampleSize))
+        self.sampleSize = self.sampleSize + other.sampleSize
+        self.sampleMed = np.nan
+        self.sampleStd = np.nan
+        self.sample95thPct = np.nan
 
-    @property
-    def numBins(self):
-        return self.getMemberV('NumBins', asType=int)
 
-    @numBins.setter
-    def numBins(self, value):
-        self.setMemberV('NumBins', str(value))
+    numBins = subaccs('NumBins', asType=int)
+    sampleSize = subaccs('SampleSize', asType=int)
+    sampleMean = subaccs('SampleMean', asType=float)
+    sampleMed = subaccs('SampleMed', asType=float)
+    sampleStd = subaccs('SampleStd', asType=float)
+    sample95thPct = subaccs('Sample95thPct', asType=float)
+    binWidth = subaccs('BinWidth', asType=float)
+    minOutlierValue = subaccs('MinOutlierValue', asType=float)
+    maxOutlierValue = subaccs('MaxOutlierValue', asType=float)
+    minBinValue = subaccs('MinBinValue', asType=float)
+    maxBinValue = subaccs('MaxBinValue', asType=float)
 
-    @property
-    def sampleSize(self):
-        return self.getMemberV('SampleSize', asType=int)
-
-    @property
-    def sampleMean(self):
-        return self.getMemberV('SampleMean', asType=float)
-
-    @property
-    def sampleMed(self):
-        return self.getMemberV('SampleMed', asType=float)
-
-    @property
-    def sampleStd(self):
-        return self.getMemberV('SampleStd', asType=float)
-
-    @property
-    def sample95thPct(self):
-        return self.getMemberV('Sample95thPct', asType=float)
-
-    @property
-    def binWidth(self):
-        return self.getMemberV('BinWidth', asType=float)
-
-    @binWidth.setter
-    def binWidth(self, value):
-        self.setMemberV('BinWidth', str(value))
-
-    @property
-    def minOutlierValue(self):
-        return self.getMemberV('MinOutlierValue', asType=float)
-
-    @property
-    def maxOutlierValue(self):
-        return self.getMemberV('MaxOutlierValue', asType=float)
-
-    @property
-    def minBinValue(self):
-        return self.getMemberV('MinBinValue', asType=float)
-
-    @minBinValue.setter
-    def minBinValue(self, value):
-        self.setMemberV('MinBinValue', str(value))
-
-    @property
-    def maxBinValue(self):
-        return self.getMemberV('MaxBinValue', asType=float)
-
-    @maxBinValue.setter
-    def maxBinValue(self, value):
-        self.setMemberV('MaxBinValue', str(value))
 
     @property
     def description(self):
