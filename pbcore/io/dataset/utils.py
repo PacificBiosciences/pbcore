@@ -67,11 +67,7 @@ def which(exe):
     return None
 
 def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
-    tmpout = tempfile.mkdtemp(suffix="consolidate-xml")
     log.debug("Consolidating to {o}".format(o=outbam))
-    tmp_xml = os.path.join(tmpout,
-                           "orig.{t}.xml".format(
-                               t=indset.__class__.__name__.lower()))
 
     final_free_space = disk_free(os.path.split(outbam)[0])
     projected_size = sum(file_size(infn)
@@ -86,19 +82,27 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
                                p=projected_size * 1.05,
                                a=final_free_space
                                ))
+    # indset is a dataset, not a filename. So we need to write the dataset out
+    # to a file anyway. We'll use tmp for that, but we won't go so far as to
+    # copy the actual resources:
+    tmpout = tempfile.mkdtemp(suffix="consolidate-xml")
+    tmp_xml = os.path.join(tmpout,
+                           "orig.{t}.xml".format(
+                               t=indset.__class__.__name__.lower()))
+    tmp_free_space = disk_free(tmpout)
+
+    # need 2x for tmp in and out, plus 10% buffer
     if useTmp:
-        tmp_free_space = disk_free(tmpout)
         log.debug("Tmp free space (need ~2x): {f}".format(f=tmp_free_space))
-        # need 2x for tmp in and out, plus 10% buffer
-        if tmp_free_space > (projected_size * 2.1):
-            log.debug("Using tmp storage: " + tmpout)
-            indset.copyTo(tmp_xml)
-            origOutBam = outbam
-            outbam = os.path.join(tmpout, "outfile.bam")
-        else:
-            log.debug("Using in place storage")
-            indset.write(tmp_xml)
-            useTmp = False
+    if (tmp_free_space > (projected_size * 2.1)) and useTmp:
+        log.debug("Using tmp storage: " + tmpout)
+        indset.copyTo(tmp_xml)
+        origOutBam = outbam
+        outbam = os.path.join(tmpout, "outfile.bam")
+    else:
+        log.debug("Using in place storage")
+        indset.write(tmp_xml)
+        useTmp = False
     _pbmergeXML(tmp_xml, outbam)
     if useTmp:
         shutil.copy(outbam, origOutBam)
@@ -248,7 +252,8 @@ def _pbmergeXML(indset, outbam):
     log.info(cmd)
     o, r, m = backticks(cmd)
     if r != 0:
-        raise RuntimeError(m)
+        raise RuntimeError("Pbmerge command failed: {c}\n Message: "
+                           "{m}".format(c=cmd, m=m))
     return outbam
 
 def _filterBam(inFile, outFile, filterDset):
@@ -286,7 +291,7 @@ def _fileCopy(dest, infile, uuid=None):
         if not os.path.exists(subdir):
             os.mkdir(subdir)
         fn = _swapPath(subdir, fn)
-    shutil.copy(infile, fn)
+    shutil.copyfile(infile, fn)
     assert os.path.exists(fn)
     return fn
 

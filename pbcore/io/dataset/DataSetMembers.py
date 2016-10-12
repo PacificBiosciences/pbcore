@@ -629,8 +629,7 @@ class Filters(RecordWrapper):
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
                                (x.nMM + x.nIns + x.nDel).astype(np.float)/
-                               (x.aEnd - x.aStart + x.tEnd - x.tStart -
-                                x.nM - x.nMM)))
+                               (x.nM + x.nMM + x.nIns)))
                }
         base = self._pbiVecAccMap()
         base.update(plus)
