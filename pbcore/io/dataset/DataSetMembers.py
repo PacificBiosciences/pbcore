@@ -1893,6 +1893,12 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
     for scrap in bins1 or bins2:
         yield scrap
 
+def expand_histogram(counts, labels):
+    tbr = []
+    for c, l in zip(counts, labels):
+        tbr.extend([l for _ in range(c)])
+    return tbr
+
 class ContinuousDistribution(RecordWrapper):
 
     def merge(self, other):
@@ -1912,14 +1918,38 @@ class ContinuousDistribution(RecordWrapper):
         self.maxBinValue = max(self.maxBinValue, other.maxBinValue)
         self.minOutlierValue = min(self.minOutlierValue, other.minOutlierValue)
         self.maxOutlierValue = max(self.maxOutlierValue, other.maxOutlierValue)
-        self.sampleMean = (((self.sampleMean * self.sampleSize) +
-                            (other.sampleMean * other.sampleSize)) /
-                           (self.sampleSize + other.sampleSize))
-        self.sampleSize = self.sampleSize + other.sampleSize
-        self.sampleMed = np.nan
-        self.sampleStd = np.nan
-        self.sample95thPct = np.nan
 
+        # Std merging is somewhat complicated:
+        selfweight = np.true_divide(self.sampleSize,
+                                    (self.sampleSize + other.sampleSize))
+        otherweight = np.true_divide(other.sampleSize,
+                                     (self.sampleSize + other.sampleSize))
+        selfsum = self.sampleMean * self.sampleSize
+        othersum = other.sampleMean * other.sampleSize
+        selfval = ((self.sampleStd ** 2) * (self.sampleSize - 1) +
+                   ((selfsum) ** 2) / self.sampleSize)
+        otherval = ((other.sampleStd ** 2) * (other.sampleSize - 1) +
+                    ((othersum) ** 2) / other.sampleSize)
+        sums = selfsum + othersum
+        vals = selfval + otherval
+        tots = self.sampleSize + other.sampleSize
+        self.sampleStd = np.sqrt((vals - (sums ** 2) / tots) / (tots - 1))
+
+        # The others are pretty simple:
+        self.sampleMean = ((self.sampleMean * selfweight) +
+                           (other.sampleMean * otherweight))
+        self.sampleSize = self.sampleSize + other.sampleSize
+
+        # These two are approximations:
+        expanded = expand_histogram(self.bins,
+                                    (np.array(self.labels) +
+                                     self.binWidth / 2.0))
+        if expanded:
+            self.sampleMed = np.percentile(expanded, 50)
+            self.sample95thPct = np.percentile(expanded, 95)
+        else:
+            self.sampleMed = 0
+            self.sample95thPct = 0
 
     numBins = subaccs('NumBins', asType=int)
     sampleSize = subaccs('SampleSize', asType=int)

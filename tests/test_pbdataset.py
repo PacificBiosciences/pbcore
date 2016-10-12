@@ -1658,9 +1658,50 @@ class TestDataSet(unittest.TestCase):
                          [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
         ds2.metadata.summaryStats.readLenDist.minBinValue = 20
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.sampleStd,
+                         2322.805559802698)
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.sampleStd,
+                         2322.805559802698)
+        self.assertAlmostEqual(
+            ds1.metadata.summaryStats.readLenDist.sampleMean,
+            4528.69384766)
+        self.assertAlmostEqual(
+            ds2.metadata.summaryStats.readLenDist.sampleMean,
+            4528.69384766)
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.sampleSize,
+                         901)
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.sampleSize,
+                         901)
         ds3 = ds1 + ds2
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
                          [0, 10, 10, 9, 8, 7, 5, 3, 2, 1, 0, 1, 1])
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.sampleSize,
+                         901)
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.sampleSize,
+                         901)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleSize,
+                         ds1.metadata.summaryStats.readLenDist.sampleSize +
+                         ds2.metadata.summaryStats.readLenDist.sampleSize)
+        self.assertAlmostEqual(
+            ds1.metadata.summaryStats.readLenDist.sampleMean,
+            4528.69384766)
+        self.assertAlmostEqual(
+            ds2.metadata.summaryStats.readLenDist.sampleMean,
+            4528.69384766)
+        self.assertAlmostEqual(
+            ds3.metadata.summaryStats.readLenDist.sampleMean,
+            4528.69384766)
+        self.assertEqual(ds1.metadata.summaryStats.readLenDist.sampleStd,
+                         2322.805559802698)
+        self.assertEqual(ds2.metadata.summaryStats.readLenDist.sampleStd,
+                         2322.805559802698)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleStd,
+                         2322.16060475)
+        # uses the bins, not the previous values for mean, std, etc.:
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleMed, 45)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sample95thPct,
+                         97.0)
+
         # now lets swap
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
@@ -1702,6 +1743,9 @@ class TestDataSet(unittest.TestCase):
         ds3 = ds1 + ds2
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.bins,
                          [1, 1, 1, 0, 2, 2, 2])
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleMed, 55)
+        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sample95thPct,
+                         75)
 
         # now lets test the subdataset metadata retention:
         # or not, disabling for performance reasons
