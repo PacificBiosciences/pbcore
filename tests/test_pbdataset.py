@@ -1700,7 +1700,7 @@ class TestDataSet(unittest.TestCase):
         # uses the bins, not the previous values for mean, std, etc.:
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleMed, 45)
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.sample95thPct,
-                         97.0)
+                         105.0)
 
         # now lets swap
         ds1 = DataSet(data.getXml(8))

@@ -1892,11 +1892,14 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
     for scrap in bins1 or bins2:
         yield scrap
 
-def expand_histogram(counts, labels):
-    tbr = []
+def histogram_percentile(counts, labels, percentile):
+    thresh = np.true_divide(percentile * sum(counts), 100.0)
+    passed = 0
     for c, l in zip(counts, labels):
-        tbr.extend([l for _ in range(c)])
-    return tbr
+        passed += c
+        if passed >= thresh:
+            return l
+    return labels[-1]
 
 class ContinuousDistribution(RecordWrapper):
 
@@ -1940,12 +1943,15 @@ class ContinuousDistribution(RecordWrapper):
         self.sampleSize = self.sampleSize + other.sampleSize
 
         # These two are approximations:
-        expanded = expand_histogram(self.bins,
-                                    (np.array(self.labels) +
-                                     self.binWidth / 2.0))
-        if expanded:
-            self.sampleMed = np.percentile(expanded, 50)
-            self.sample95thPct = np.percentile(expanded, 95)
+        if np.sum(self.bins):
+            self.sampleMed = histogram_percentile(
+                self.bins,
+                (np.array(self.labels) + self.binWidth / 2.0),
+                50)
+            self.sample95thPct = histogram_percentile(
+                self.bins,
+                (np.array(self.labels) + self.binWidth / 2.0),
+                95)
         else:
             self.sampleMed = 0
             self.sample95thPct = 0
