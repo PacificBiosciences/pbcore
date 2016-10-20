@@ -205,6 +205,13 @@
     <SoftwareVersion>3.2</SoftwareVersion>
   </Mapping>
 
+  <Mapping>
+    <SequencingChemistry>S/P1-C1.1</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-867-300</SequencingKit>
+    <SoftwareVersion>3.3</SoftwareVersion>
+  </Mapping>
+
   <!-- 3.1.1 ("Flea") chemistry -->
   <Mapping>
     <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
@@ -220,12 +227,26 @@
     <SoftwareVersion>3.2</SoftwareVersion>
   </Mapping>
 
+  <Mapping>
+    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-902-100</SequencingKit>
+    <SoftwareVersion>3.3</SoftwareVersion>
+  </Mapping>
+
   <!---3.2 ("Goat") chemistry -->
   <Mapping>
     <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
     <SequencingKit>100-972-200</SequencingKit>
     <SoftwareVersion>3.2</SoftwareVersion>
+  </Mapping>
+
+  <Mapping>
+    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-972-200</SequencingKit>
+    <SoftwareVersion>3.3</SoftwareVersion>
   </Mapping>
 
 </MappingTable>
