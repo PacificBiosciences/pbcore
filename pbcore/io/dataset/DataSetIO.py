@@ -37,16 +37,17 @@
 Classes representing DataSets of various types.
 """
 
-import hashlib
 import copy
-import os, sys
-import re
 import errno
-import uuid
-import logging
+import hashlib
 import itertools
-import xml.dom.minidom
+import logging
+import os
+import re
+import shutil
 import tempfile
+import uuid
+import xml.dom.minidom
 import numpy as np
 from urlparse import urlparse
 from functools import wraps, partial
@@ -707,7 +708,7 @@ class DataSet(object):
             self.objMetadata['UniqueId'] = newId
         return newId
 
-    def copyTo(self, dest, relative=False):
+    def copyTo(self, dest, relative=False, subdatasets=False):
         """Doesn't resolve resource name collisions"""
         ofn = None
         dest = os.path.abspath(dest)
@@ -719,7 +720,7 @@ class DataSet(object):
         # seen. Good thing we do a depth first traversal!
         state = [self.uuid]
         resFunc = partial(_copier, dest, subfolder=state)
-        self._modResources(resFunc)
+        self._modResources(resFunc, subdatasets=subdatasets)
         if not ofn is None:
             self.write(ofn, relPaths=relative)
 
@@ -1177,7 +1178,7 @@ class DataSet(object):
         else:
             self._changePaths(os.path.relpath)
 
-    def _modResources(self, func):
+    def _modResources(self, func, subdatasets=True):
         """Execute some function 'func' on each external resource in the
         dataset and each subdataset"""
         # check all ExternalResources
@@ -1195,9 +1196,10 @@ class DataSet(object):
                 # Some things just don't have indices
                 pass
 
-        # check all SubDatasets
-        for dataset in self.subdatasets:
-            dataset._modResources(func)
+        if subdatasets:
+            # check all SubDatasets
+            for dataset in self.subdatasets:
+                dataset._modResources(func)
 
     def _changePaths(self, osPathFunc, checkMetaType=True):
         """Change all resourceId paths in this DataSet according to the
@@ -3784,6 +3786,9 @@ class ContigSet(DataSet):
                 log.debug("Replacing metadata")
                 self._metadata.contigs = []
                 self._populateContigMetadata()
+        else:
+            log.warn("No need to write a new resource file, using current "
+                     "resource instead.")
         self._populateMetaTypes()
 
     @property
