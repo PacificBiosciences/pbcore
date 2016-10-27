@@ -75,7 +75,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
 from pbcore.io.dataset.utils import (consolidateBams, _infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
                                      _swapPath, which, consolidateXml,
-                                     getTimeStampedName)
+                                     getTimeStampedName, getCreatedAt)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
@@ -415,7 +415,7 @@ class DataSet(object):
         else:
             dsType = self.objMetadata.setdefault("MetaType",
                                                  toDsId('DataSet'))
-        if not "TimeStampedName" in self.objMetadata:
+        if not self.objMetadata.get('TimeStampedName'):
             self.objMetadata["TimeStampedName"] = getTimeStampedName(
                 self.objMetadata["MetaType"])
         self.objMetadata.setdefault("Name",
@@ -561,9 +561,6 @@ class DataSet(object):
             # block on object metadata?
             result._checkObjMetadata(other.objMetadata)
 
-            # There is probably a cleaner way to do this:
-            result.objMetadata.update(other.objMetadata)
-
             # If this dataset has no subsets representing it, add self as a
             # subdataset to the result
             # TODO: this is a stopgap to prevent spurious subdatasets when
@@ -588,6 +585,36 @@ class DataSet(object):
 
             # DataSets may only be merged if they have identical filters,
             # So there is nothing new to add.
+
+            # objMetadata:
+            if firstIn:
+                result.objMetadata.update(other.objMetadata)
+            else:
+                # schemaLocation, MetaType, Version should be the same
+                # Name:
+                if (result.objMetadata.get('Name') and
+                        other.objMetadata.get('Name')):
+                    result.objMetadata['Name'] = ' AND '.join(
+                        [result.objMetadata['Name'],
+                         other.objMetadata['Name']])
+                elif other.objMetadata.get('Name'):
+                    result.objMetadata['Name'] = other.objMetadata['Name']
+                # Tags:
+                if (result.objMetadata.get('Tags') and
+                        other.objMetadata.get('Tags')):
+                    result.objMetadata['Tags'] = ' '.join(
+                        [result.objMetadata['Tags'],
+                         other.objMetadata['Tags']])
+                elif other.objMetadata.get('Tags'):
+                    result.objMetadata['Tags'] = other.objMetadata['Tags']
+                # TimeStampedName:
+                if result.objMetadata.get("MetaType"):
+                    result.objMetadata["TimeStampedName"] = getTimeStampedName(
+                        result.objMetadata["MetaType"])
+                # CreatedAt:
+                result.objMetadata['CreatedAt'] = getCreatedAt()
+                # UUID:
+                result.newUuid()
 
             return result
         else:
@@ -1725,6 +1752,16 @@ class DataSet(object):
     def name(self, value):
         """The name of this DataSet"""
         self.objMetadata['Name'] = value
+
+    @property
+    def tags(self):
+        """The tags of this DataSet"""
+        return self.objMetadata.get('Tags', '')
+
+    @tags.setter
+    def tags(self, value):
+        """The tags of this DataSet"""
+        self.objMetadata['Tags'] = value
 
     @property
     def description(self):

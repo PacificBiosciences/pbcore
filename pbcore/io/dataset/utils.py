@@ -56,6 +56,10 @@ def getTimeStampedName(mType):
     time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
     return "{m}-{t}".format(m=mType, t=time)
 
+def getCreatedAt():
+    """Generate a CreatedAt string using the current UTC time"""
+    return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S%f")[:-6]
+
 def which(exe):
     if os.path.exists(exe) and os.access(exe, os.X_OK):
         return exe

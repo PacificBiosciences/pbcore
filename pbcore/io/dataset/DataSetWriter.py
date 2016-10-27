@@ -231,6 +231,8 @@ def _coreClean(attribs):
         del attribs['Tags']
     if 'CreatedAt' in attribs:
         del attribs['CreatedAt']
+    if 'TimeStampedName' in attribs:
+        del attribs['TimeStampedName']
     # Whether or not the hash should salt future hashes is up for debate
     #if 'UniqueId' in attribs:
         #del attribs['UniqueId']

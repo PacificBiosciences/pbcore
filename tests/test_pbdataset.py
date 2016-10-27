@@ -87,6 +87,221 @@ class TestDataSet(unittest.TestCase):
             ds.externalResources[-1].indices[0].resourceId ==
             "IdontExist.bam.pbi")
 
+    def test_merge_uuid(self):
+        ds1 = AlignmentSet(data.getBam(0))
+        u1 = ds1.uuid
+        ds2 = AlignmentSet(data.getBam(1))
+        u2 = ds2.uuid
+        self.assertNotEqual(u1, u2)
+        merged = ds1 + ds2
+        u3 = merged.uuid
+        self.assertNotEqual(u1, u3)
+        self.assertNotEqual(u2, u3)
+        self.assertEqual(u1, ds1.uuid)
+        self.assertEqual(u2, ds2.uuid)
+
+        ds1 = AlignmentSet(data.getXml(8))
+        u1 = ds1.uuid
+        ds2 = AlignmentSet(data.getXml(11))
+        u2 = ds2.uuid
+        self.assertNotEqual(u1, u2)
+        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        u3 = merged.uuid
+        self.assertNotEqual(u1, u3)
+        self.assertNotEqual(u2, u3)
+        self.assertEqual(u1, ds1.uuid)
+        self.assertEqual(u2, ds2.uuid)
+
+    def test_merged_CreatedAt(self):
+        ds1 = AlignmentSet(data.getXml(8))
+        u1 = ds1.createdAt
+        self.assertEqual(u1, '2015-08-05T10:25:18')
+        ds2 = AlignmentSet(data.getXml(11))
+        u2 = ds2.createdAt
+        self.assertEqual(u2, '2015-08-05T10:43:42')
+        self.assertNotEqual(u1, u2)
+        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        u3 = merged.createdAt
+        self.assertNotEqual(u1, u3)
+        self.assertNotEqual(u2, u3)
+        self.assertEqual(u1, ds1.createdAt)
+        self.assertEqual(u2, ds2.createdAt)
+
+        ds1 = AlignmentSet(data.getXml(8))
+        u1 = ds1.createdAt
+        self.assertEqual(u1, '2015-08-05T10:25:18')
+        ds2 = AlignmentSet(data.getXml(11))
+        u2 = ds2.createdAt
+        self.assertEqual(u2, '2015-08-05T10:43:42')
+        self.assertNotEqual(u1, u2)
+        merged = ds1 + ds2
+        u3 = merged.createdAt
+        self.assertNotEqual(u1, u3)
+        self.assertNotEqual(u2, u3)
+        self.assertEqual(u1, ds1.createdAt)
+        self.assertEqual(u2, ds2.createdAt)
+
+    def test_merged_Name(self):
+        # First has a name
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = 'Foo'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = ''
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.name, 'Foo')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = 'Foo'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = ''
+        merged = ds1 + ds2
+        self.assertEqual(merged.name, 'Foo')
+
+        # Second has a name
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = 'Foo'
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.name, 'Foo')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = 'Foo'
+        merged = ds1 + ds2
+        self.assertEqual(merged.name, 'Foo')
+
+        # Neither has a name
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = ''
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.name, '')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = ''
+        merged = ds1 + ds2
+        self.assertEqual(merged.name, '')
+
+        # both have a names
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = 'Foo'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = 'Bar'
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        # Just take a peek:
+        ds1 = AlignmentSet(fn1)
+        self.assertEqual(ds1.name, 'Foo')
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.name, 'Foo AND Bar')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = 'Foo'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = 'Bar'
+        merged = ds1 + ds2
+        self.assertEqual(merged.name, 'Foo AND Bar')
+
+    def test_merged_Tags(self):
+        # First has tags
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = ''
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.tags, 'Foo Bar')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = ''
+        merged = ds1 + ds2
+        self.assertEqual(merged.tags, 'Foo Bar')
+
+        # Second has a tags
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Foo Bar'
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.tags, 'Foo Bar')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Foo'
+        merged = ds1 + ds2
+        self.assertEqual(merged.tags, 'Foo')
+
+        # Neither has a tags
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = ''
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.tags, '')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = ''
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = ''
+        merged = ds1 + ds2
+        self.assertEqual(merged.tags, '')
+
+        # both have a tags
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Baz'
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        # Just take a peek:
+        ds1 = AlignmentSet(fn1)
+        self.assertEqual(ds1.tags, 'Foo Bar')
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.tags, 'Foo Bar Baz')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Baz'
+        merged = ds1 + ds2
+        self.assertEqual(merged.tags, 'Foo Bar Baz')
+
+
     def test_merge_subdatasets(self):
         # from data file
         ds1 = AlignmentSet(data.getBam(0))
