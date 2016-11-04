@@ -221,6 +221,14 @@ class TestDataSet(unittest.TestCase):
         merged = ds1 + ds2
         self.assertEqual(merged.name, 'Foo AND Bar')
 
+        # if the names are the same don't append:
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.name = 'Foo'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.name = 'Foo'
+        merged = ds1 + ds2
+        self.assertEqual(merged.name, 'Foo')
+
     def test_merged_Tags(self):
         # First has tags
         ds1 = AlignmentSet(data.getXml(8))
@@ -241,7 +249,7 @@ class TestDataSet(unittest.TestCase):
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo Bar')
 
-        # Second has a tags
+        # Second has tags
         ds1 = AlignmentSet(data.getXml(8))
         ds1.tags = ''
         ds2 = AlignmentSet(data.getXml(11))
@@ -260,7 +268,7 @@ class TestDataSet(unittest.TestCase):
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo')
 
-        # Neither has a tags
+        # Neither has tags
         ds1 = AlignmentSet(data.getXml(8))
         ds1.tags = ''
         ds2 = AlignmentSet(data.getXml(11))
@@ -279,7 +287,7 @@ class TestDataSet(unittest.TestCase):
         merged = ds1 + ds2
         self.assertEqual(merged.tags, '')
 
-        # both have a tags
+        # both have tags
         ds1 = AlignmentSet(data.getXml(8))
         ds1.tags = 'Foo Bar'
         ds2 = AlignmentSet(data.getXml(11))
@@ -300,6 +308,28 @@ class TestDataSet(unittest.TestCase):
         ds2.tags = 'Baz'
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo Bar Baz')
+
+        # both have same tags
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Foo Bar'
+        fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds1.write(fn1)
+        ds2.write(fn2)
+        # Just take a peek:
+        ds1 = AlignmentSet(fn1)
+        self.assertEqual(ds1.tags, 'Foo Bar')
+        merged = AlignmentSet(fn1, fn2)
+        self.assertEqual(merged.tags, 'Foo Bar')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.tags = 'Foo Bar'
+        ds2 = AlignmentSet(data.getXml(11))
+        ds2.tags = 'Foo Bar'
+        merged = ds1 + ds2
+        self.assertEqual(merged.tags, 'Foo Bar')
 
 
     def test_merge_subdatasets(self):

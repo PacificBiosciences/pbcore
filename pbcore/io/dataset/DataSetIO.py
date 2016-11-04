@@ -594,17 +594,19 @@ class DataSet(object):
                 # Name:
                 if (result.objMetadata.get('Name') and
                         other.objMetadata.get('Name')):
-                    result.objMetadata['Name'] = ' AND '.join(
-                        [result.objMetadata['Name'],
-                         other.objMetadata['Name']])
+                    if result.objMetadata['Name'] != other.objMetadata['Name']:
+                        result.objMetadata['Name'] = ' AND '.join(
+                            [result.objMetadata['Name'],
+                             other.objMetadata['Name']])
                 elif other.objMetadata.get('Name'):
                     result.objMetadata['Name'] = other.objMetadata['Name']
                 # Tags:
                 if (result.objMetadata.get('Tags') and
                         other.objMetadata.get('Tags')):
-                    result.objMetadata['Tags'] = ' '.join(
-                        [result.objMetadata['Tags'],
-                         other.objMetadata['Tags']])
+                    if result.objMetadata['Tags'] != other.objMetadata['Tags']:
+                        result.objMetadata['Tags'] = ' '.join(
+                            [result.objMetadata['Tags'],
+                             other.objMetadata['Tags']])
                 elif other.objMetadata.get('Tags'):
                     result.objMetadata['Tags'] = other.objMetadata['Tags']
                 # TimeStampedName:
