@@ -249,4 +249,13 @@
     <SoftwareVersion>3.3</SoftwareVersion>
   </Mapping>
 
+
+  <!-- "Seabiscuit" chemistry, accompanied 4.0 SW -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>100-861-800</SequencingKit>
+    <SoftwareVersion>4.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
