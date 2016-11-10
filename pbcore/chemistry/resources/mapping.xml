@@ -234,7 +234,15 @@
     <SoftwareVersion>3.3</SoftwareVersion>
   </Mapping>
 
-  <!---3.2 ("Goat") chemistry -->
+  <Mapping>
+    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-902-100</SequencingKit>
+    <SoftwareVersion>4.0</SoftwareVersion>
+  </Mapping>
+
+
+  <!---3.2 ("Goat") chemistry (a.k.a "Mimosa") -->
   <Mapping>
     <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
     <BindingKit>100-619-300</BindingKit>
@@ -249,6 +257,12 @@
     <SoftwareVersion>3.3</SoftwareVersion>
   </Mapping>
 
+  <Mapping>
+    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
+    <BindingKit>100-619-300</BindingKit>
+    <SequencingKit>100-972-200</SequencingKit>
+    <SoftwareVersion>4.0</SoftwareVersion>
+  </Mapping>
 
   <!-- "Seabiscuit" chemistry, accompanied 4.0 SW -->
   <Mapping>
