@@ -72,7 +72,7 @@ class FastqRecord(object):
             # Only one of quality, qualityString should be provided
             assert (quality is None) != (qualityString is None)
             if quality is not None:
-                self._quality = quality
+                self._quality = np.array(quality).astype(np.uint8)
             else:
                 self._quality = qvsFromAscii(qualityString)
             assert len(self.sequence) == len(self.quality)
