@@ -24,8 +24,9 @@ def copy_xsds(xsd, dest):
     for fn in files:
         shutil.copy(fn, dest)
 
-def generate_pyxb(xsd, module):
-    cmd = "pyxbgen -u {x} -m {m}".format(x=xsd, m=module)
+def generate_pyxb(xsd, outdir, modname):
+    cmd = "pyxbgen -u {x} -m {m} --binding-root {p}".format(x=xsd, m=modname,
+                                                            p=outdir)
     print cmd
     subprocess.call(shlex.split(cmd))
 
@@ -33,14 +34,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("xsd", type=str,
                         help="the XSD of interest")
-    parser.add_argument("--mod_dest", type=str,
-                        help=("the path to (and name of) the python module to "
-                              "be generated"),
-                        default='.')
+    parser.add_argument("outdir", type=str)
+    parser.add_argument("--mod-name", type=str,
+                        default='DataSetXsd')
     args = parser.parse_args()
     tempd = tempfile.mkdtemp(suffix='xsds')
     copy_xsds(args.xsd, tempd)
     xsd_name = os.path.basename(args.xsd)
-    generate_pyxb(os.path.join(tempd, xsd_name), args.mod_dest)
+    generate_pyxb(os.path.join(tempd, xsd_name), args.outdir, args.mod_name)
     shutil.rmtree(tempd)
 
