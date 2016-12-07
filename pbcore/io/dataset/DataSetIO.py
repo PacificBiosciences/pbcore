@@ -2994,7 +2994,7 @@ class AlignmentSet(ReadSet):
         log.debug("{i} contigs found".format(i=len(atoms)))
 
         # By providing maxChunks and not chunks, this combination will set
-        # chunks down to < len(atoms) < maxChunks
+        # chunks down to <= len(atoms) <= maxChunks
         if not chunks:
             log.debug("Chunks not set, splitting to len(atoms): {i}"
                       .format(i=len(atoms)))
