@@ -8,8 +8,7 @@ import itertools
 import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks
-from pbcore.io.dataset.utils import (consolidateBams, _infixFname,
-                                     BamtoolsVersion, consolidateXml)
+from pbcore.io.dataset.utils import _infixFname, consolidateXml
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
@@ -19,29 +18,9 @@ from pbcore.io import (SubreadSet, ConsensusReadSet,
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
+from utils import _check_constools, _internal_data
 
 log = logging.getLogger(__name__)
-
-def _check_constools():
-    if not BamtoolsVersion().good:
-        log.warn("Bamtools not found or out of date")
-        return False
-
-    cmd = "pbindex"
-    o, r, m = backticks(cmd)
-    if r != 1:
-        return False
-
-    cmd = "samtools"
-    o, r, m = backticks(cmd)
-    if r != 1:
-        return False
-    return True
-
-def _internal_data():
-    if os.path.exists("/pbi/dept/secondary/siv/testdata"):
-        return True
-    return False
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -364,34 +343,6 @@ class TestDataSet(unittest.TestCase):
     @unittest.skipIf(not _check_constools(),
                      "bamtools or pbindex not found, skipping")
     def test_alignmentset_consolidate(self):
-        log.debug("Test methods directly")
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(aln.toExternalFiles()), 2)
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outfn = os.path.join(outdir, 'merged.bam')
-        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln,
-                        useTmp=False)
-        self.assertTrue(os.path.exists(outfn))
-        consAln = AlignmentSet(outfn)
-        self.assertEqual(len(consAln.toExternalFiles()), 1)
-        for read1, read2 in zip(sorted(list(aln)), sorted(list(consAln))):
-            self.assertEqual(read1, read2)
-        self.assertEqual(len(aln), len(consAln))
-
-        log.debug("Test methods directly in tmp")
-        aln = AlignmentSet(data.getXml(12))
-        self.assertEqual(len(aln.toExternalFiles()), 2)
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outfn = os.path.join(outdir, 'merged.bam')
-        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln,
-                        useTmp=True)
-        self.assertTrue(os.path.exists(outfn))
-        consAln = AlignmentSet(outfn)
-        self.assertEqual(len(consAln.toExternalFiles()), 1)
-        for read1, read2 in zip(sorted(list(aln)), sorted(list(consAln))):
-            self.assertEqual(read1, read2)
-        self.assertEqual(len(aln), len(consAln))
-
         log.debug("Test through API")
         aln = AlignmentSet(data.getXml(12))
         self.assertEqual(len(aln.toExternalFiles()), 2)
@@ -534,19 +485,6 @@ class TestDataSet(unittest.TestCase):
     @unittest.skipIf(not _check_constools(),
                      "bamtools or pbindex not found, skipping")
     def test_subreadset_consolidate(self):
-        log.debug("Test methods directly")
-        aln = SubreadSet(data.getXml(10), data.getXml(13))
-        self.assertEqual(len(aln.toExternalFiles()), 2)
-        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
-        outfn = os.path.join(outdir, 'merged.bam')
-        consolidateBams(aln.toExternalFiles(), outfn, filterDset=aln)
-        self.assertTrue(os.path.exists(outfn))
-        consAln = SubreadSet(outfn)
-        self.assertEqual(len(consAln.toExternalFiles()), 1)
-        for read1, read2 in zip(sorted(list(aln)), sorted(list(consAln))):
-            self.assertEqual(read1, read2)
-        self.assertEqual(len(aln), len(consAln))
-
         log.debug("Test through API")
         aln = SubreadSet(data.getXml(10), data.getXml(13))
         self.assertEqual(len(aln.toExternalFiles()), 2)
