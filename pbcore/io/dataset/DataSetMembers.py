@@ -1196,15 +1196,37 @@ class ExternalResource(RecordWrapper):
 
     @property
     def scraps(self):
-        return self._getSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile')
+        return self._getSubResByMetaType(
+            'PacBio.SubreadFile.ScrapsBamFile')
+        if self.metaType == 'PacBio.SubreadFile.SubreadBamFile':
+            return self._getSubResByMetaType(
+                'PacBio.SubreadFile.ScrapsBamFile')
+        elif self.metaType == 'PacBio.SubreadFile.ZmwBamFile':
+            return self._getSubResByMetaType(
+                'PacBio.SubreadFile.ZmwScrapsBamFile')
 
     @scraps.setter
     def scraps(self, value):
-        self._setSubResByMetaType('PacBio.SubreadFile.ScrapsBamFile', value)
+        # metaType isn't populated right off the bat. We'll provide an option
+        # to check against the filename for now, but this should change in
+        # DataSetReader eventually
+        if (self.metaType == 'PacBio.SubreadFile.Control.SubreadBamFile' or
+                self.resourceId.endswith('control.subreads.bam')):
+            self._setSubResByMetaType(
+                'PacBio.SubreadFile.Control.ScrapsBamFile', value)
+        elif (self.metaType == 'PacBio.SubreadFile.SubreadBamFile' or
+              self.resourceId.endswith('subreads.bam')):
+            self._setSubResByMetaType(
+                'PacBio.SubreadFile.ScrapsBamFile', value)
+        elif (self.metaType == 'PacBio.SubreadFile.ZmwBamFile' or
+              self.resourceId.endswith('zmws.bam')):
+            self._setSubResByMetaType(
+                'PacBio.SubreadFile.ZmwScrapsBamFile', value)
 
     @property
     def control(self):
-        return self._getSubResByMetaType('PacBio.SubreadFile.Control.SubreadBamFile')
+        return self._getSubResByMetaType(
+            'PacBio.SubreadFile.Control.SubreadBamFile')
 
     @control.setter
     def control(self, value):
