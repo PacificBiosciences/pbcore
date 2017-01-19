@@ -178,6 +178,125 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127814, 163468)])
 
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_movie_split(self):
+        N_RECORDS = 1745161
+        N_RECORDS_1 = 959539
+        N_RECORDS_2 = 785622
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        dss = ds1.split_movies(1)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        self.assertFalse(ds1.filters)
+
+        dss = ds1.split_movies(12)
+        self.assertEqual(len(dss), 2)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(len(set(dss[0].index.qId)), 1)
+        self.assertEqual(len(set(dss[-1].index.qId)), 1)
+        self.assertEqual(
+            dss[0].qid2mov[list(set(dss[0].index.qId))[0]],
+            'm150404_101626_42267_c100807920800000001823174110291514_s1_p0')
+        self.assertEqual(len(dss[0]), N_RECORDS_1)
+        self.assertEqual(
+            dss[-1].qid2mov[list(set(dss[-1].index.qId))[0]],
+            'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')
+        self.assertEqual(len(dss[-1]), N_RECORDS_2)
+
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_split_references(self):
+        test_file_1 = ('/pbi/dept/secondary/siv/testdata/SA3-RS/lambda/'
+                       '2372215/0007_tiny/Alignment_Results/m150404_1016'
+                       '26_42267_c100807920800000001823174110291514_s1_p'
+                       '0.1.aligned.bam')
+        test_file_2 = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/'
+                       '315/3150204/r54049_20160508_152025/1_A01/Alignment'
+                       '_Results/m54049_160508_155917.alignmentset.xml')
+        test_file_3 = ('/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/'
+                       'tiny-multimovie/Alignment_Results/'
+                       'combined.alignmentset.xml')
+        NREC1 = len(AlignmentSet(test_file_1))
+        NREC2 = len(AlignmentSet(test_file_2))
+        NREC3 = len(AlignmentSet(test_file_3))
+        NREC = NREC1 + NREC2 + NREC3
+        self.assertNotEqual(NREC1, 0)
+        self.assertNotEqual(NREC2, 0)
+        self.assertNotEqual(NREC3, 0)
+        self.assertNotEqual(NREC, 0)
+        ds1 = AlignmentSet(test_file_1, test_file_2, test_file_3)
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), NREC)
+        dss = ds1.split_references(1)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]), NREC)
+        self.assertEqual(len(ds1), NREC)
+        self.assertFalse(ds1.filters)
+
+        dss = ds1.split_references(12)
+        self.assertEqual(len(dss), 2)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         NREC)
+        self.assertEqual(len(set(dss[0].index.tId)), 1)
+        self.assertEqual(len(set(dss[-1].index.tId)), 1)
+        self.assertEqual(
+            dss[0].tid2rname[list(set(dss[0].index.tId))[0]],
+            'ecoliK12_pbi_March2013')
+        self.assertEqual(len(dss[0]), NREC2 + NREC3)
+        self.assertEqual(
+            dss[-1].tid2rname[list(set(dss[-1].index.tId))[0]],
+            'lambda_NEB3011')
+        self.assertEqual(len(dss[-1]), NREC1)
+
+    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                         "Missing testadata directory")
+    def test_multi_movie_split_zmws_with_existing_movie_filter(self):
+        # TODO: test with three movies and two chunks
+        N_RECORDS = 959539
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        dss = ds1.split_movies(2)
+        self.assertEqual(len(dss), 2)
+        ds1 = dss[0]
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        dss = ds1.split(chunks=1, zmws=True)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+
+        dss = ds1.split(chunks=12, zmws=True)
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        for ds in dss:
+            self.assertEqual(
+                ds.zmwRanges[0][0],
+                'm150404_101626_42267_c100807920800000001823174110291514_s1_p0')
 
     @SkipTest
     def test_split_by_contigs_presplit(self):

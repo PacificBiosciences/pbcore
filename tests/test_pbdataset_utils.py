@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from pbcore.io.dataset.DataSetMetaTypes import dsIdToSuffix
-from pbcore.io import (DataSetMetaTypes, divideKeys, keysToRanges,
+from pbcore.io import (DataSetMetaTypes, divideKeys,
                        SubreadSet, getDataSetUuid, getDataSetMetaType)
 
 import pbcore.data as upstreamdata
@@ -12,6 +12,10 @@ import pbcore.data as upstreamdata
 from utils import _pbtestdata, _check_constools, _internal_data
 
 log = logging.getLogger(__name__)
+
+def keysToRanges(keys):
+    key_ranges = [[min(k), max(k)] for k in keys]
+    return key_ranges
 
 class TestDataSetUtils(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \

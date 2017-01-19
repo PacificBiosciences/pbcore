@@ -611,7 +611,11 @@ class Filters(RecordWrapper):
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
-                'qname': (lambda x: x.qId),
+                'qname': (lambda x: np.array(
+                    ['_'.join(parts)
+                     for parts in zip(x['qId', 'qStart', 'qEnd'])],
+                    dtype=object)),
+                'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
                 'readstart': (lambda x: int(x.aStart)),
@@ -639,7 +643,11 @@ class Filters(RecordWrapper):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
-                'qname': (lambda x: x.qId),
+                'qname': (lambda x: np.array(
+                    ['_'.join(parts)
+                     for parts in zip(x['qId', 'qStart', 'qEnd'])],
+                    dtype=object)),
+                'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
                 'rq': (lambda x: x.readQual),
@@ -661,6 +669,7 @@ class Filters(RecordWrapper):
                 'qstart': int,
                 'qend': int,
                 'qname': str,
+                'qid': int,
                 'movie': str,
                 'zm': int,
                 'bc': str,
@@ -801,7 +810,6 @@ class Filters(RecordWrapper):
                             tempRes &= operator(
                                 accMap[param](indexRecords), value)
                             reqResultsForRecords |= tempRes
-
                     else:
                         operator = mapOp(req.operator)
                         reqResultsForRecords = operator(

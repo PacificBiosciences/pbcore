@@ -221,7 +221,7 @@ def _renameField(recArray, current, new):
     recArray.dtype.names = names
 
 def _flatten(lol, times=1):
-    """ This wont do well with mixed nesting"""
+    """This wont do well with mixed nesting"""
     for _ in range(times):
         lol = np.concatenate(lol)
     return lol
@@ -233,6 +233,8 @@ def _ranges_in_list(alist):
     return {u: (i, i + c) for u, i, c in zip(unique, indices, counts)}
 
 def divideKeys(keys, chunks):
+    """Returns all of the keys in a list of lists, corresponding to evenly
+    sized chunks of the original keys"""
     if chunks < 1:
         return []
     if chunks > len(keys):
@@ -244,6 +246,7 @@ def divideKeys(keys, chunks):
     return key_chunks
 
 def splitKeys(keys, chunks):
+    """Returns key pairs for each chunk defining the bounds of each chunk"""
     if chunks < 1:
         return []
     if chunks > len(keys):
@@ -253,11 +256,6 @@ def splitKeys(keys, chunks):
                   range(chunks-1)]
     key_chunks.append((keys[(chunks - 1) * chunksize], keys[-1]))
     return key_chunks
-
-def keysToRanges(keys):
-    key_ranges = [[min(k), max(k)] for k in keys]
-    return key_ranges
-
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
@@ -2114,26 +2112,70 @@ class ReadSet(DataSet):
         # TODO
         return results
 
+    def split_movies(self, chunks):
+        """Chunks requested:
+           0 or >= num_movies: One chunk per movie
+           1 to (num_movies - 1): Grouped somewhat evenly by num_records
+        """
+        # File must have pbi index to be splittable:
+        if len(self) == 0:
+            return [self.copy()]
+
+        atoms = self.index.qId
+        movs = zip(*np.unique(atoms, return_counts=True))
+
+        # Zero chunks requested == 1 chunk per movie.
+        if chunks == 0 or chunks > len(movs):
+            chunks = len(movs)
+
+        if chunks == 1:
+            return [self.copy()]
+
+        balanceKey = lambda x: x[1]
+        log.debug("Starting chunking")
+        if chunks < len(movs):
+            groups = self._chunkList(movs, chunks, balanceKey)
+        else:
+            groups = [[mov] for mov in movs]
+
+        log.debug("Duplicating")
+        results = [self.copy() for _ in groups]
+
+        q2m = self.qid2mov
+
+        log.debug("Modifying filters or resources")
+        for result, group in zip(results, groups):
+            result.filters.addRequirement(movie=[('=', q2m[mov[0]])
+                                                 for mov in group])
+
+        log.debug("Generating new UUID, updating counts")
+        for result in results:
+            result.updateCounts()
+            result.newUuid()
+
+        return results
+
     def _split_zmws(self, chunks, targetSize=None):
-        """Holenumbers must be unique within each movie"""
+        """The combination of <movie>_<holenumber> is assumed to refer to a
+        unique ZMW"""
 
         if chunks == 1:
             return [self.copy()]
         # make sure we can pull out the movie name:
         rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
 
-        # find atoms:
         active_holenumbers = self.index
+
+        # lower limit on the  number of chunks
         n_chunks = min(len(active_holenumbers), chunks)
 
         # if we have a target size and can have two or more chunks:
         if (not targetSize is None and len(active_holenumbers) > 1 and
                 chunks > 1):
-            n_chunks = min(n_chunks, len(active_holenumbers)/targetSize)
-            # we want at least two if we can swing it:
-            n_chunks = max(n_chunks, 2)
+            # we want at least two if we can swing it
+            desired = max(2, len(active_holenumbers)/targetSize)
+            n_chunks = min(n_chunks, desired)
 
-        # make sure there aren't too few atoms
         if n_chunks != chunks:
             log.info("Adjusted number of chunks to %d" % n_chunks)
 
@@ -2141,26 +2183,34 @@ class ReadSet(DataSet):
         active_holenumbers.sort(order=['qId', 'holeNumber'])
         view = _fieldsView(self.index, ['qId', 'holeNumber'])
         keys = np.unique(view)
+        # Find the beginning and end keys of each chunk
         ranges = splitKeys(keys, n_chunks)
 
         # The above ranges can include hidden, unrepresented movienames that
-        # are sandwiched between those in the range. In order to capture those,
-        # we need to find the indices of the range bounds, then pull out the
-        # chunks.
+        # are sandwiched between those identified by the range bounds. In
+        # order to capture those, we need to find the indices of the range
+        # bounds, then pull out the chunks.
         hn_chunks = []
         for zmw_range in ranges:
             if zmw_range[0][0] == zmw_range[1][0]:
+                # The start and end movienames match, grab the appropriate
+                # record indices in one query:
                 hn_chunks.append(active_holenumbers[
                     (active_holenumbers['qId'] == zmw_range[0][0]) &
                     (active_holenumbers['holeNumber'] >= zmw_range[0][1]) &
                     (active_holenumbers['holeNumber'] <= zmw_range[1][1])])
             else:
+                # The start and end movienames don't match, grab the first
+                # record matching the start of the range:
                 start = np.flatnonzero(
                     (active_holenumbers['qId'] == zmw_range[0][0]) &
                     (active_holenumbers['holeNumber'] == zmw_range[0][1]))[0]
+                # and grab the last record matching the end of the range:
                 end = np.flatnonzero(
                     (active_holenumbers['qId'] == zmw_range[1][0]) &
                     (active_holenumbers['holeNumber'] == zmw_range[1][1]))[-1]
+                # and add all indices between these two (with an exclusive
+                # right bound):
                 hn_chunks.append(active_holenumbers[start:(end + 1)])
 
         results = []
@@ -2227,8 +2277,19 @@ class ReadSet(DataSet):
 
     @property
     def movieIds(self):
-        """A dict of movieName: movieId for the joined readGroupTable"""
+        """A dict of movieName: movieId for the joined readGroupTable
+        TODO: depricate this for more descriptive mov2qid"""
+        return self.mov2qid
+
+    @property
+    def mov2qid(self):
+        """A dict of movieId: movieName for the joined readGroupTable"""
         return {rg.MovieName: rg.ID for rg in self.readGroupTable}
+
+    @property
+    def qid2mov(self):
+        """A dict of movieId: movieName for the joined readGroupTable"""
+        return {rg.ID: rg.MovieName for rg in self.readGroupTable}
 
     def assertIndexed(self):
         self._assertIndexed((IndexedBamReader, CmpH5Reader))
@@ -2634,13 +2695,17 @@ class AlignmentSet(ReadSet):
         if not self.isCmpH5:
             tId_acc = lambda x: x.tId
             rName = lambda x: x['Name']
+
         if correctIds and self._stackedReferenceInfoTable:
             log.debug("Must correct index tId's")
             tIdMap = dict(zip(rr.referenceInfoTable['ID'],
                               rName(rr.referenceInfoTable)))
-            nameMap = self.refIds
+            unfilteredRefTable = self._buildRefInfoTable(filterMissing=False)
+            rname2tid = dict(zip(unfilteredRefTable['Name'],
+                            unfilteredRefTable['ID']))
+            #nameMap = self.refIds
             for tId in tIdMap.keys():
-                tId_acc(indices)[tId_acc(indices) == tId] = nameMap[
+                tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
                     tIdMap[tId]]
 
     def _indexRecords(self, correctIds=True):
@@ -2743,6 +2808,50 @@ class AlignmentSet(ReadSet):
     def refNames(self):
         """A list of reference names (id)."""
         return np.sort(self.referenceInfoTable["Name"])
+
+    def split_references(self, chunks):
+        """Chunks requested:
+           0 or >= num_refs: One chunk per reference
+           1 to (num_refs - 1): Grouped somewhat evenly by num_records
+        """
+        # File must have pbi index to be splittable:
+        if len(self) == 0:
+            return [self.copy()]
+
+        atoms = self.index.tId
+        refs = zip(*np.unique(atoms, return_counts=True))
+
+        # Zero chunks requested == 1 chunk per reference.
+        if chunks == 0 or chunks > len(refs):
+            chunks = len(refs)
+
+        if chunks == 1:
+            return [self.copy()]
+
+        balanceKey = lambda x: x[1]
+        log.debug("Starting chunking")
+        if chunks < len(refs):
+            groups = self._chunkList(refs, chunks, balanceKey)
+        else:
+            groups = [[ref] for ref in refs]
+
+        log.debug("Duplicating")
+        results = [self.copy() for _ in groups]
+
+        i2n = self.tid2rname
+
+        log.debug("Modifying filters or resources")
+        for result, group in zip(results, groups):
+            result.filters.addRequirement(rname=[('=', i2n[ref[0]])
+                                                 for ref in group])
+
+        log.debug("Generating new UUID, updating counts")
+        for result in results:
+            result.updateCounts()
+            result.newUuid()
+
+        return results
+
 
     def _indexReadsInReference(self, refName):
         # This can probably be deprecated for all but the official reads in
@@ -3481,6 +3590,56 @@ class AlignmentSet(ReadSet):
         else:
             log.debug("No reference found by that Name or ID")
 
+    def _buildRefInfoTable(self, filterMissing=True):
+        self._referenceInfoTableIsStacked = False
+        responses = []
+
+        # allow for merge here:
+        for res in self._pollResources(lambda x: x.referenceInfoTable):
+            if not res is None:
+                if self.isCmpH5:
+                    for rec in res:
+                        rec.StartRow = 0
+                        rec.EndRow = 0
+                responses.append(res)
+        table = []
+        if len(responses) > 1:
+            # perhaps this can be removed someday so that cmpH5 references
+            # are 0-indexed even if only one exists
+            try:
+                # this works even for cmp's, because we overwrite the
+                # highly variable fields above
+                table = self._unifyResponses(
+                    responses,
+                    eqFunc=np.array_equal)
+            except ResourceMismatchError:
+                table = np.concatenate(responses)
+                table = np.unique(table)
+                for i, rec in enumerate(table):
+                    rec.ID = i
+                    rec.RefInfoID = i
+                self._referenceInfoTableIsStacked = True
+        elif len(responses) == 1:
+            table = responses[0]
+        else:
+            raise InvalidDataSetIOError("No reference tables found, "
+                                        "are these input files aligned?")
+        if self.isCmpH5:
+            for rec in table:
+                rec.Name = self._cleanCmpName(rec.FullName)
+
+        # Not sure if this is necessary or a good idea, looking back on it
+        # a year later. It complicates fixTids
+        if filterMissing:
+            log.debug("Filtering reference entries")
+            if not self.noFiltering and self._filters:
+                passes = self._filters.testField('rname', table['Name'])
+                table = table[passes]
+        #TODO: Turn on when needed (expensive)
+        #self._referenceDict.update(zip(self.refIds.values(),
+        #                               self._referenceInfoTable))
+        return table
+
     @property
     def referenceInfoTable(self):
         """The merged reference info tables from the external resources.
@@ -3492,50 +3651,8 @@ class AlignmentSet(ReadSet):
 
         """
         if self._referenceInfoTable is None:
-            self._referenceInfoTableIsStacked = False
-            responses = []
-
-            # allow for merge here:
-            for res in self._pollResources(lambda x: x.referenceInfoTable):
-                if not res is None:
-                    if self.isCmpH5:
-                        for rec in res:
-                            rec.StartRow = 0
-                            rec.EndRow = 0
-                    responses.append(res)
-            table = []
-            if len(responses) > 1:
-                # perhaps this can be removed someday so that cmpH5 references
-                # are 0-indexed even if only one exists
-                try:
-                    # this works even for cmp's, because we overwrite the
-                    # highly variable fields above
-                    table = self._unifyResponses(
-                        responses,
-                        eqFunc=np.array_equal)
-                except ResourceMismatchError:
-                    table = np.concatenate(responses)
-                    table = np.unique(table)
-                    for i, rec in enumerate(table):
-                        rec.ID = i
-                        rec.RefInfoID = i
-                    self._referenceInfoTableIsStacked = True
-            elif len(responses) == 1:
-                table = responses[0]
-            else:
-                raise InvalidDataSetIOError("No reference tables found, "
-                                            "are these input files aligned?")
-            if self.isCmpH5:
-                for rec in table:
-                    rec.Name = self._cleanCmpName(rec.FullName)
-            log.debug("Filtering reference entries")
-            if not self.noFiltering and self._filters:
-                passes = self._filters.testField('rname', table['Name'])
-                table = table[passes]
-            self._referenceInfoTable = table
-            #TODO: Turn on when needed (expensive)
-            #self._referenceDict.update(zip(self.refIds.values(),
-            #                               self._referenceInfoTable))
+            self._referenceInfoTable = self._buildRefInfoTable(
+                filterMissing=True)
         return self._referenceInfoTable
 
     @property
@@ -3565,8 +3682,19 @@ class AlignmentSet(ReadSet):
 
     @property
     def refIds(self):
+        """A dict of refName: refId for the joined referenceInfoTable
+        TODO: depricate in favor of more descriptive rname2tid"""
+        return self.rname2tid
+
+    @property
+    def rname2tid(self):
         """A dict of refName: refId for the joined referenceInfoTable"""
         return {name: rId for name, rId in self.refInfo('ID')}
+
+    @property
+    def tid2rname(self):
+        """A dict of refName: refId for the joined referenceInfoTable"""
+        return {rId: name for name, rId in self.refInfo('ID')}
 
     def refLength(self, rname):
         """The length of reference 'rname'. This is expensive, so if you're
