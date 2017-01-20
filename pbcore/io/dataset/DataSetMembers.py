@@ -102,6 +102,7 @@ import copy
 import logging
 import operator as OP
 import numpy as np
+import re
 from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
@@ -147,9 +148,7 @@ OPMAP = {'==': OP.eq,
 def mapOp(op):
     return OPMAP[op]
 
-def setify(value):
-    # This is a string of a python or numpy list, needs to be made into a
-    # python set:
+def str2list(value):
     value = value.strip('set')
     value = value.strip('()')
     value = value.strip('[]')
@@ -159,8 +158,17 @@ def setify(value):
         value = value.split()
     value = [v.strip() for v in value]
     value = [v.strip("'") for v in value]
-    return set(value)
+    return value
 
+def setify(value):
+    return set(str2list(value))
+
+def isListString(string):
+    """Detect if string is actually a representation a stringified list"""
+
+    listver = str2list(string)
+    if len(listver) > 1 or re.search('[\[\(\{].+[\}\)\]]', string):
+        return True
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -611,10 +619,9 @@ class Filters(RecordWrapper):
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
-                'qname': (lambda x: np.array(
-                    ['_'.join(parts)
-                     for parts in zip(x['qId', 'qStart', 'qEnd'])],
-                    dtype=object)),
+                # This is never used as such, is modified below
+                # TODO make this more elegant
+                'qname': (lambda x: x.qId),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
@@ -643,10 +650,9 @@ class Filters(RecordWrapper):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
-                'qname': (lambda x: np.array(
-                    ['_'.join(parts)
-                     for parts in zip(x['qId', 'qStart', 'qEnd'])],
-                    dtype=object)),
+                # This is never used as such, is modified below
+                # TODO make this more elegant
+                'qname': (lambda x: x.qId),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -749,8 +755,17 @@ class Filters(RecordWrapper):
             for req in filt:
                 param = req.name
                 if param in accMap.keys():
-                    if req.operator == 'in':
+                    # Treat "value" as a string of a list of potential values
+                    # if operator is 'in', or 'in' masquerading as '=='.
+                    # Have to be careful with bc and other values that are
+                    # natively lists, but still single values
+                    opstr = req.operator
+                    if opstr == 'in':
                         value = map(typeMap[param], setify(req.value))
+                    elif (opstr in ('=', '==') and isListString(req.value) and
+                            not param in ('cx', 'bc')):
+                        value = map(typeMap[param], setify(req.value))
+                        opstr = 'in'
                     else:
                         value = typeMap[param](req.value)
                     if param == 'rname':
@@ -762,12 +777,12 @@ class Filters(RecordWrapper):
                         values = ast.literal_eval(value)
                         param = 'bcf'
                         value = values[0]
-                        operator = mapOp(req.operator)
+                        operator = mapOp(opstr)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
                         param = 'bcr'
                         value = values[1]
-                        operator = mapOp(req.operator)
+                        operator = mapOp(opstr)
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
                     elif param == 'qname':
@@ -776,11 +791,12 @@ class Filters(RecordWrapper):
                             values = [value]
                         else:
                             values = value
-                        reqResultsForRecords = np.zeros(len(indexRecords), dtype=np.bool_)
+                        reqResultsForRecords = np.zeros(len(indexRecords),
+                                                        dtype=np.bool_)
                         #tempRes = np.ones(len(indexRecords), dtype=np.bool_)
                         for value in values:
                             movie, hole, span = value.split('/')
-                            operator = mapOp(req.operator)
+                            operator = mapOp(opstr)
 
                             param = 'movie'
                             value = movieMap[movie]
@@ -811,7 +827,7 @@ class Filters(RecordWrapper):
                                 accMap[param](indexRecords), value)
                             reqResultsForRecords |= tempRes
                     else:
-                        operator = mapOp(req.operator)
+                        operator = mapOp(opstr)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
                     lastResult &= reqResultsForRecords
