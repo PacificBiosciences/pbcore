@@ -350,11 +350,74 @@ class TestDataSetFilters(unittest.TestCase):
         aln.filters.addRequirement(qname=[('in', qnames)])
         self.assertEqual(len(list(aln)), 10)
 
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        qnames = [r.qName for r in aln[:1]]
+        aln.filters.addRequirement(qname=[('in', qnames)])
+        self.assertEqual(len(list(aln)), 1)
+
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
         aln = AlignmentSet(data.getXml(12))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         aln.filters.addRequirement(zm=[('in', hns)])
+        aln.write(fn)
+        aln.close()
+        aln2 = AlignmentSet(fn)
+        self.assertEqual(len(list(aln2)), 5)
+
+    def test_membership_filter_with_equal_operator(self):
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        aln.filters.addRequirement(zm=[('=', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)
+        aln.filters.addRequirement(zm=[('==', hns)])
+        self.assertEqual(len(list(aln)), 177)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)
+        hns = [n for _ in range(10000) for n in hns]
+        hns = np.array(hns)
+        aln.filters.addRequirement(zm=[('==', hns)])
+        self.assertEqual(len(list(aln)), 177)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        hns = list(hns)
+        aln.filters.addRequirement(zm=[('==', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        hns = set(hns)
+        aln.filters.addRequirement(zm=[('==', hns)])
+        self.assertEqual(len(list(aln)), 5)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        qnames = [r.qName for r in aln[:10]]
+        aln.filters.addRequirement(qname=[('==', qnames)])
+        self.assertEqual(len(list(aln)), 10)
+
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        qnames = [r.qName for r in aln[:1]]
+        aln.filters.addRequirement(qname=[('==', qnames)])
+        self.assertEqual(len(list(aln)), 1)
+
+        fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        hns = np.unique(aln.index.holeNumber)[:1]
+        aln.filters.addRequirement(zm=[('==', hns)])
         aln.write(fn)
         aln.close()
         aln2 = AlignmentSet(fn)
