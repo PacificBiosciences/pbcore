@@ -3599,8 +3599,8 @@ class AlignmentSet(ReadSet):
             if not res is None:
                 if self.isCmpH5:
                     for rec in res:
-                        rec.StartRow = 0
-                        rec.EndRow = 0
+                        rec.StartRow = 0L
+                        rec.EndRow = 0L
                 responses.append(res)
         table = []
         if len(responses) > 1:
