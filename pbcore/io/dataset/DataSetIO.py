@@ -252,9 +252,17 @@ def splitKeys(keys, chunks):
     if chunks > len(keys):
         chunks = len(keys)
     chunksize = len(keys)/chunks
-    key_chunks = [(keys[i * chunksize], keys[(i + 1) * chunksize - 1]) for i in
-                  range(chunks-1)]
-    key_chunks.append((keys[(chunks - 1) * chunksize], keys[-1]))
+    chunksizes = [chunksize] * chunks
+    i = 0
+    while sum(chunksizes) < len(keys):
+        chunksizes[i] += 1
+        i += 1
+        i %= chunks
+    key_chunks = []
+    start = 0
+    for cs in chunksizes:
+        key_chunks.append((keys[start], keys[start + cs - 1]))
+        start += cs
     return key_chunks
 
 def _fileExists(fname):
@@ -561,7 +569,7 @@ class DataSet(object):
 
             # If this dataset has no subsets representing it, add self as a
             # subdataset to the result
-            # TODO: this is a stopgap to prevent spurious subdatasets when
+            # TODO: firstIn is a stopgap to prevent spurious subdatasets when
             # creating datasets from dataset xml files...
             if not self.subdatasets and not firstIn:
                 result.addDatasets(self.copy())
@@ -929,7 +937,13 @@ class DataSet(object):
                                        updateCounts=updateCounts)
         elif zmws:
             if chunks == 0:
-                chunks = maxChunks
+                if maxChunks:
+                    chunks = maxChunks
+                elif targetSize:
+                    chunks = max(1,
+                                 int(round(np.true_divide(
+                                     len(set(self.index.holeNumber)),
+                                     targetSize))))
             return self._split_zmws(chunks, targetSize=targetSize)
         elif barcodes:
             return self._split_barcodes(chunks)
@@ -1919,13 +1933,13 @@ class ReadSet(DataSet):
         for res in self.externalResources:
             fname = res.resourceId
             newInds = []
-            if not res.pbi:
+            if not res.pbi or force:
                 iname = fname + '.pbi'
                 if not os.path.isfile(iname) or force:
                     iname = _pbindexBam(fname)
                 newInds.append(iname)
                 self.close()
-            if not res.bai:
+            if not res.bai or force:
                 iname = fname + '.bai'
                 if not os.path.isfile(iname) or force:
                     iname = _indexBam(fname)
