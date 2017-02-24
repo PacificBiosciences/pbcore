@@ -633,6 +633,18 @@ class TestDataSetSplit(unittest.TestCase):
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not found, skipping")
+    def test_isBarcoded(self):
+        empty = upstreamdata.getEmptyBam()
+        notempty = ('/pbi/dept/secondary/siv/testdata/'
+                    'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
+                    '.tiny.subreadset.xml')
+        sset = SubreadSet(notempty, empty, skipMissing=True)
+        self.assertEqual(len(SubreadSet(notempty, skipMissing=True)), 15133)
+        self.assertEqual(len(SubreadSet(empty)), 0)
+        self.assertTrue(sset.isBarcoded)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
     def test_barcode_split_cornercases(self):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
