@@ -103,6 +103,48 @@ class TestDataSetSplit(unittest.TestCase):
                 ds1.index.holeNumber < rg[1],
                 ds1.index.holeNumber > rg[0]))[0]), 0)
 
+    def test_split_zmws_targetsize(self):
+        N_RECORDS = 117
+        N_ZMWS = 48
+        test_file = upstreamdata.getUnalignedBam()
+        ds1 = openDataFile(test_file)
+        self.assertEqual(len([r for r in ds1]), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        self.assertEqual(len(set(ds1.index.holeNumber)), N_ZMWS)
+
+        # with no split
+        dss = ds1.split(targetSize=1000, zmws=True)
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        exp = [48]
+        obs = sorted([len(set(ds.index.holeNumber)) for ds in dss])
+        self.assertListEqual(exp, obs)
+
+        # with a split
+        dss = ds1.split(targetSize=25, zmws=True)
+        self.assertEqual(len(dss), 2)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        exp = [24, 24]
+        obs = sorted([len(set(ds.index.holeNumber)) for ds in dss])
+        self.assertListEqual(exp, obs)
+
+        # with a split
+        dss = ds1.split(targetSize=5, zmws=True)
+        self.assertEqual(len(dss), 10)
+        self.assertEqual(sum([len([r for r in ds_]) for ds_ in dss]),
+                         N_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         N_RECORDS)
+        exp = [4, 4, 5, 5, 5, 5, 5, 5, 5, 5]
+        obs = sorted([len(set(ds.index.holeNumber)) for ds in dss])
+        self.assertListEqual(exp, obs)
+
     #@unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
     #                     "Missing testadata directory")
     @unittest.skip("Too expensive")
@@ -125,11 +167,11 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(
             dss[0].zmwRanges,
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-              7, 14007)])
+              7, 14009)])
         self.assertEqual(
             dss[-1].zmwRanges,
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-              149876, 163475)])
+              149881, 163475)])
         ranges = sorted([c.zmwRanges[0][1:] for c in dss])
         interspans = []
         last = None
@@ -172,11 +214,11 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(
             dss[0].zmwRanges,
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-              7, 22098)])
+              7, 22099)])
         self.assertEqual(
             dss[-1].zmwRanges,
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
-              127814, 163468)])
+              127819, 163468)])
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")

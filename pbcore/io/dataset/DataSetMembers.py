@@ -658,7 +658,7 @@ class Filters(RecordWrapper):
                 'zm': (lambda x: x.holeNumber),
                 'rq': (lambda x: x.readQual),
                 'bcf': (lambda x: x.bcForward),
-                'bcr': (lambda x: x.bcForward),
+                'bcr': (lambda x: x.bcReverse),
                 'bcq': (lambda x: x.bcQual),
                 'bq': (lambda x: x.bcQual),
                 'bc': (lambda x: x['bcForward', 'bcReverse']),
