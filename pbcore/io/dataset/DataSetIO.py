@@ -1967,6 +1967,9 @@ class ReadSet(DataSet):
         """Determine whether all resources are barcoded files"""
         res = self._pollResources(
             lambda x: x.index.pbiFlags & PBI_FLAGS_BARCODE)
+        # ignore empty bam files, which don't have barcoding information:
+        res = [r for r, reader in zip(res, self.resourceReaders()) if
+                len(reader)]
         return self._unifyResponses(res)
 
     def assertBarcoded(self):
