@@ -176,4 +176,4 @@ def getEmptyAlignedBam():
     return _getAbsPath("empty.aligned_subreads.bam")
 
 def getMappingXml():
-    return _getAbsPath("mapping.xml")
+    return _getAbsPath("chemistry.xml")
