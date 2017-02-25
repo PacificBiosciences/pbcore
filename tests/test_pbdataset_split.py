@@ -631,7 +631,7 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
         self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
-    @unittest.skipIf((not _internal_data() or not _check_constools),
+    @unittest.skipIf((not _internal_data() or not _check_constools()),
                      "Internal data or binaries not found, skipping")
     def test_isBarcoded(self):
         empty = upstreamdata.getEmptyBam()
