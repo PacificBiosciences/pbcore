@@ -517,12 +517,12 @@ class TestUpdatedChemistryMapping(object):
     """
 
     def test_load_updated_mapping(self):
-        from os import putenv, unsetenv
+        import os
         from os.path import dirname
         from pbcore.chemistry.chemistry import _loadBarcodeMappings
-        putenv("PB_CHEMISTRY_BUNDLE_DIR", dirname(data.getMappingXml()))
+        os.environ["PB_CHEMISTRY_BUNDLE_DIR"] = dirname(data.getMappingXml())
         mappings = _loadBarcodeMappings()
         EQ(mappings.get(("1", "2", "3.4"), None), "FOUND")
-        unsetenv("PB_CHEMISTRY_BUNDLE_DIR")
+        del os.environ["PB_CHEMISTRY_BUNDLE_DIR"]
         mappings = _loadBarcodeMappings()
         EQ(mappings.get(("1", "2", "3.4"), None), None)
