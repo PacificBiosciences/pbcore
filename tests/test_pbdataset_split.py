@@ -631,17 +631,35 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
         self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @unittest.skipIf((not _internal_data() or not _check_constools),
+                     "Internal data or binaries not found, skipping")
     def test_isBarcoded(self):
         empty = upstreamdata.getEmptyBam()
-        notempty = ('/pbi/dept/secondary/siv/testdata/'
+        nonempty = ('/pbi/dept/secondary/siv/testdata/'
                     'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
                     '.tiny.subreadset.xml')
-        sset = SubreadSet(notempty, empty, skipMissing=True)
-        self.assertEqual(len(SubreadSet(notempty, skipMissing=True)), 15133)
-        self.assertEqual(len(SubreadSet(empty)), 0)
+
+        # One empty one non empty
+        sset = SubreadSet(nonempty, empty, skipMissing=True)
         self.assertTrue(sset.isBarcoded)
+
+        # Just nonempty
+        sset = SubreadSet(nonempty, skipMissing=True)
+        self.assertEqual(len(sset), 15133)
+        self.assertTrue(sset.isBarcoded)
+
+        # Just empty
+        #   This is crazy, the pbi must be out of date:
+        sset = SubreadSet(empty)
+        self.assertEqual(len(sset), 0)
+        self.assertTrue(sset.isBarcoded)
+        #   To confirm current behavior, I will regenerate the pbi with a
+        #   current pbindex:
+        efn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        log.info("Copying to {}".format(efn))
+        sset.copyTo(efn)
+        sset.induceIndices(force=True)
+        self.assertFalse(sset.isBarcoded)
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not found, skipping")
