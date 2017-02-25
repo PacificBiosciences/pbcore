@@ -513,16 +513,16 @@ m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK
 class TestUpdatedChemistryMapping(object):
     """
     Verify we load the mapping from the updated chemistry mapping.xml
-    from PACBIO_CHEMISTRY_UPDATE_PATH
+    from PB_CHEMISTRY_BUNDLE_DIR
     """
 
     def test_load_updated_mapping(self):
         from os import putenv, unsetenv
         from os.path import dirname
         from pbcore.chemistry.chemistry import _loadBarcodeMappings
-        putenv("PACBIO_CHEMISTRY_UPDATE_PATH", dirname(data.getMappingXml()))
+        putenv("PB_CHEMISTRY_BUNDLE_DIR", dirname(data.getMappingXml()))
         mappings = _loadBarcodeMappings()
         EQ(mappings.get(("1", "2", "3.4"), None), "FOUND")
-        unsetenv("PACBIO_CHEMISTRY_UPDATE_PATH")
+        unsetenv("PB_CHEMISTRY_BUNDLE_DIR")
         mappings = _loadBarcodeMappings()
         EQ(mappings.get(("1", "2", "3.4"), None), None)
