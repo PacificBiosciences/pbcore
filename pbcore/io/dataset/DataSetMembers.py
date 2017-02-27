@@ -1763,7 +1763,7 @@ class StatsMetadata(RecordWrapper):
 
     UNMERGED_DISTS = CHANNEL_DISTS + OTHER_DISTS
 
-    def getDist(self, key, flattenUnmerged=True):
+    def getDist(self, key, unwrap=True):
         tbr = list(self.findChildren(key))
 
         dtype = ContinuousDistribution
@@ -1772,14 +1772,14 @@ class StatsMetadata(RecordWrapper):
 
         if len(tbr) == 0:
             return None
-        elif len(tbr) == 1 and flattenUnmerged:
+        elif len(tbr) == 1 and unwrap:
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
             for chan in tbr:
                 chans[chan.attrib['Channel']].append(
                     dtype(chan))
-            if flattenUnmerged:
+            if unwrap:
                 for key, val in chans.iteritems():
                     if len(val) == 1:
                         chans[key] = val[0]

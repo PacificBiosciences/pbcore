@@ -1927,7 +1927,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(isinstance(dist['A'], ContinuousDistribution))
 
         dist = ds.metadata.summaryStats.getDist('BaselineLevelDist',
-                                                flattenUnmerged=False)
+                                                unwrap=False)
         self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
 
         # merge two
@@ -1950,7 +1950,7 @@ class TestDataSet(unittest.TestCase):
 
         # should be same as above (unmerged channel)
         dist = ds3.metadata.summaryStats.getDist('BaselineLevelDist',
-                                                flattenUnmerged=False)
+                                                 unwrap=False)
         self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
 
 
