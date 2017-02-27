@@ -1758,12 +1758,45 @@ class StatsMetadata(RecordWrapper):
     # continuous misc. dists:
     OTHER_DISTS = ['PausinessDist', 'PulseRateDist', 'PulseWidthDist',
                    'BaseRateDist', 'BaseWidthDist', 'BaseIpdDist',
-                   'LocalBaseRateDist', 'NumUnfilteredBasecallsDist']
+                   'LocalBaseRateDist', 'NumUnfilteredBasecallsDist',
+                   'HqBaseFractionDist', 'NumUnfilteredBasecallsDist']
 
     UNMERGED_DISTS = CHANNEL_DISTS + OTHER_DISTS
 
+    def getDist(self, key, unwrap=True):
+        tbr = list(self.findChildren(key))
+
+        dtype = ContinuousDistribution
+        if tbr[0].getV('children', 'BinLabels') is not None:
+            dtype = DiscreteDistribution
+
+        if len(tbr) == 0:
+            return None
+        elif len(tbr) == 1 and unwrap:
+            return dtype(tbr[0])
+        elif 'Channel' in tbr[0].attrib:
+            chans = defaultdict(list)
+            for chan in tbr:
+                chans[chan.attrib['Channel']].append(
+                    dtype(chan))
+            if unwrap:
+                for key, val in chans.iteritems():
+                    if len(val) == 1:
+                        chans[key] = val[0]
+            return chans
+        else:
+            return map(dtype, tbr)
+
+    def availableDists(self):
+        return [c.metaname for c in self]
+
+    def __getitem__(self, key):
+        return self.getDist(key)
+
     @property
     def channelDists(self):
+        """This can be modified to use the new accessors above instead of the
+        brittle list of channel dists above"""
         tbr = {}
         for dist in self.CHANNEL_DISTS:
             chans = defaultdict(list)
@@ -1775,6 +1808,8 @@ class StatsMetadata(RecordWrapper):
 
     @property
     def otherDists(self):
+        """This can be modified to use the new accessors above instead of the
+        brittle list of dists above"""
         tbr = defaultdict(list)
         for disttype in self.OTHER_DISTS:
             for dist in self.findChildren(disttype):
@@ -1782,6 +1817,8 @@ class StatsMetadata(RecordWrapper):
         return tbr
 
     def merge(self, other):
+        """This can be modified to use the new accessors above instead of the
+        brittle list of dists above"""
         if (other.shortInsertFraction and other.prodDist and
                 self.shortInsertFraction and self.prodDist):
             self.shortInsertFraction = (self.shortInsertFraction *

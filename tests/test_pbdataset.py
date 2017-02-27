@@ -17,7 +17,9 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        openDataSet, HdfSubreadSet,
                        ConsensusReadSet, ConsensusAlignmentSet)
 from pbcore.io.dataset.DataSetMetaTypes import InvalidDataSetIOError
-from pbcore.io.dataset.DataSetMembers import ExternalResource, Filters
+from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
+                                              ContinuousDistribution,
+                                              DiscreteDistribution)
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
@@ -1853,6 +1855,111 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(
             len(ds3.metadata.summaryStats.readLenDist),
             len(ds.metadata.summaryStats.readLenDist))
+
+    def test_distribution_name_accessor(self):
+        exp = ['MovieName', 'MovieLength', 'NumFramesDropped',
+               'NumSequencingZmws', 'TraceFileSize', 'PulseFileSize',
+               'BaseFileSize', 'AdapterDimerFraction', 'ShortInsertFraction',
+               'IsReadsFraction', 'FailedZmwClippedLowFraction',
+               'FailedZmwClippedHighFraction', 'ProdDist', 'ReadTypeDist',
+               'TotalBaseFractionPerChannel', 'TotalBaseFractionPerChannel',
+               'TotalBaseFractionPerChannel', 'TotalBaseFractionPerChannel',
+               'PkMidCVPerChannel', 'PkMidCVPerChannel', 'PkMidCVPerChannel',
+               'PkMidCVPerChannel', 'BaselineLevelDist', 'BaselineLevelDist',
+               'BaselineLevelDist', 'BaselineLevelDist', 'BaselineStdDist',
+               'BaselineStdDist', 'BaselineStdDist', 'BaselineStdDist',
+               'MovieReadQualDist', 'PulseRateDist', 'PulseWidthDist',
+               'BaseRateDist', 'BaseWidthDist', 'BaseIpdDist',
+               'LocalBaseRateDist', 'NumUnfilteredBasecallsDist', 'ReadLenDist',
+               'ReadQualDist', 'HqBaseFractionDist', 'RmBasQvDist',
+               'InsertReadLenDist', 'InsertReadQualDist', 'LocalYieldDist',
+               'LocalSnrDist', 'LocalSnrDist', 'LocalSnrDist', 'LocalSnrDist',
+               'TraceClippedFractionDist', 'TraceClippedFractionDist',
+               'TraceClippedFractionDist', 'TraceClippedFractionDist',
+               'TraceLowClippedFractionDist', 'TraceLowClippedFractionDist',
+               'TraceLowClippedFractionDist', 'TraceLowClippedFractionDist',
+               'TraceHighClippedFractionDist', 'TraceHighClippedFractionDist',
+               'TraceHighClippedFractionDist', 'TraceHighClippedFractionDist',
+               'PausinessDist', 'MedianInsertDist', 'SnrDist', 'SnrDist',
+               'SnrDist', 'SnrDist', 'HqRegionSnrDist', 'HqRegionSnrDist',
+               'HqRegionSnrDist', 'HqRegionSnrDist', 'HqBasPkMidDist',
+               'HqBasPkMidDist', 'HqBasPkMidDist', 'HqBasPkMidDist',
+               'BaselineLevelSequencingDist', 'BaselineLevelSequencingDist',
+               'BaselineLevelSequencingDist', 'BaselineLevelSequencingDist',
+               'BaselineLevelAntiholeDist', 'BaselineLevelAntiholeDist',
+               'BaselineLevelAntiholeDist', 'BaselineLevelAntiholeDist',
+               'BaselineLevelAntimirrorDist', 'BaselineLevelAntimirrorDist',
+               'BaselineLevelAntimirrorDist', 'BaselineLevelAntimirrorDist',
+               'BaselineLevelFiducialDist', 'BaselineLevelFiducialDist',
+               'BaselineLevelFiducialDist', 'BaselineLevelFiducialDist',
+               'SpectralDiagRRDist', 'SpectralDiagRRDist', 'SpectralDiagRRDist',
+               'SpectralDiagRRDist', 'MaxPauseFractionVsT', 'TMaxPauseFraction',
+               'MaxSlopePauseFractionVsT', 'TMaxSlopePauseFraction',
+               'MaxBaseRateRatioVsT', 'TMaxBaseRateRatio',
+               'MaxSlopeBaseRateRatioVsT', 'TMaxSlopeBaseRateRatio',
+               'SgnMaxSlopeBaseRateRatio', 'BaseRateChngStrtToEnd',
+               'YieldCvOverRegions', 'YieldChngCntrToEdge',
+               'SnrRatioEdgeToCntr_0', 'SnrRatioEdgeToCntr_2', 'PauseFractionVsT',
+               'BaseRateRatioVsT']
+        ds = DataSet(data.getBam())
+        ds.loadStats(data.getStats())
+        self.assertEqual(ds.metadata.summaryStats.availableDists(),
+                         exp)
+
+    def test_distribution_accessors(self):
+        ds = DataSet(data.getBam())
+        ds.loadStats(data.getStats())
+
+        dist = ds.metadata.summaryStats.getDist('HqBaseFractionDist')
+        self.assertAlmostEqual(dist.sampleMean, 0.8369355201721191, places=3)
+        self.assertTrue(isinstance(dist, ContinuousDistribution))
+
+        dist = ds.metadata.summaryStats.getDist('NumUnfilteredBasecallsDist')
+        self.assertAlmostEqual(dist.sampleMean, 5481.8447265625, places=3)
+
+        dist = ds.metadata.summaryStats.getDist('NumUnfilteredBasecallsDist')
+        self.assertAlmostEqual(dist.sampleMean, 5481.8447265625, places=3)
+
+        dist = ds.metadata.summaryStats.getDist('ProdDist')
+        self.assertTrue(isinstance(dist, DiscreteDistribution))
+
+        dist = ds.metadata.summaryStats.getDist('BaselineLevelDist')
+        self.assertTrue(isinstance(dist['A'], ContinuousDistribution))
+
+        dist = ds.metadata.summaryStats.getDist('BaselineLevelDist',
+                                                unwrap=False)
+        self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
+
+        # merge two
+        ds2 = DataSet(data.getBam())
+        ds2.loadStats(data.getStats())
+        ds3 = ds + ds2
+
+        # should be unmerged
+        dist = ds3.metadata.summaryStats.getDist('HqBaseFractionDist')
+        self.assertAlmostEqual(dist[0].sampleMean, 0.8369355201721191, places=3)
+        self.assertTrue(isinstance(dist[0], ContinuousDistribution))
+
+        # should be merged
+        dist = ds3.metadata.summaryStats.getDist('ProdDist')
+        self.assertTrue(isinstance(dist, DiscreteDistribution))
+
+        # should be unmerged channel
+        dist = ds3.metadata.summaryStats.getDist('BaselineLevelDist')
+        self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
+
+        # should be same as above (unmerged channel)
+        dist = ds3.metadata.summaryStats.getDist('BaselineLevelDist',
+                                                 unwrap=False)
+        self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
+
+
+    def test_new_distribution(self):
+        ds = DataSet(data.getBam())
+        ds.loadStats(data.getStats())
+        dist = ds.metadata.summaryStats['HqBaseFractionDist']
+        self.assertTrue(isinstance(dist, ContinuousDistribution))
+        self.assertAlmostEqual(dist.sampleMean, 0.8369355201721191, places=3)
 
     def test_stats_metadata(self):
         ds = DataSet(data.getBam())
