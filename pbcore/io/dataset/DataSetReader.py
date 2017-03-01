@@ -282,7 +282,7 @@ def _parseXmlExtResources(element):
 def _parseXmlDataSetMetadata(element):
     """Parse the DataSetMetadata field of XML inputs. This data can be
     extremely extensive."""
-    return DataSetMetadata(_eleToDictList(element))
+    return _eleToDictList(element)
 
 def _eleToDictList(element):
     """A last ditch capture method for uknown Elements"""
