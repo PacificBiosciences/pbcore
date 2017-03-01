@@ -44,6 +44,7 @@ setup(
                                'data/*.fasta.fai', 'data/*.fofn', 'data/*.m4',
                                'data/*.fa', 'data/*.fa.fai',
                                'data/*.m5', 'data/*.bam', 'data/*.bam.bai', "data/*.bam.pbi",
+                               'data/chemistry.xml',
                                'chemistry/resources/*.xml',
                                'data/datasets/*.*',
                                'data/datasets/yieldtest/*.*']
