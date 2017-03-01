@@ -19,7 +19,8 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
 from pbcore.io.dataset.DataSetMetaTypes import InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               ContinuousDistribution,
-                                              DiscreteDistribution)
+                                              DiscreteDistribution,
+                                              SubreadSetMetadata)
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
@@ -1960,17 +1961,23 @@ class TestDataSet(unittest.TestCase):
         ds4.externalResources[0].sts = data.getStats()
         ds5.externalResources[0].sts = data.getStats()
         ds6 = ds4 + ds5
+        # but what happens when we write it out and read it again?
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds6.write(fn)
-
         ds6re = SubreadSet(fn)
         dist = ds6re.metadata.summaryStats.getDist('ProdDist')
         self.assertTrue(isinstance(dist, DiscreteDistribution))
         dist = ds6re.subdatasets[0].metadata.summaryStats.getDist('ProdDist')
+        # it is empty?! Yeah, we don't want to populate those automatically
         self.assertEqual(dist, None)
+        # load them manually:
         ds6re.loadStats()
+        # yaaay, summaryStats.
         dist = ds6re.subdatasets[0].metadata.summaryStats.getDist('ProdDist')
         self.assertTrue(isinstance(dist, DiscreteDistribution))
+        # lets just make sure the metadata object is the correct type:
+        self.assertTrue(isinstance(ds6re.subdatasets[0].metadata,
+                                   SubreadSetMetadata))
 
 
     def test_new_distribution(self):
