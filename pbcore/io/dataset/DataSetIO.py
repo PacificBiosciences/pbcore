@@ -63,7 +63,7 @@ from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
                                              wrapNewResource, openFofnFile,
-                                             parseMetadata)
+                                             parseMetadata, checksts)
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
@@ -1107,14 +1107,16 @@ class DataSet(object):
             log.error("Invalid file produced: {f}".format(f=fileName))
             raise e
 
-    def loadStats(self, filename):
+    def loadStats(self, filename=None):
         """Load pipeline statistics from a <moviename>.sts.xml file. The subset
         of these data that are defined in the DataSet XSD become available
         through via DataSet.metadata.summaryStats.<...> and will be written out
         to the DataSet XML format according to the DataSet XML XSD.
 
         Args:
-            :filename: the filename of a <moviename>.sts.xml file
+            :filename: the filename of a <moviename>.sts.xml file. If None:
+                       load all stats from sts.xml files, including for
+                       subdatasets.
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -1132,14 +1134,17 @@ class DataSet(object):
             [3152, 1802, 798, 0]
 
         """
-        if isinstance(filename, basestring):
-            statsMetadata = parseStats(str(filename))
+        if filename is None:
+            checksts(self, subdatasets=True)
         else:
-            statsMetadata = filename
-        if self.metadata.summaryStats:
-            self.metadata.summaryStats.merge(statsMetadata)
-        else:
-            self.metadata.append(statsMetadata)
+            if isinstance(filename, basestring):
+                statsMetadata = parseStats(str(filename))
+            else:
+                statsMetadata = filename
+            if self.metadata.summaryStats:
+                self.metadata.summaryStats.merge(statsMetadata)
+            else:
+                self.metadata.append(statsMetadata)
 
     def readsByName(self, query):
         reads = _flatten([rr.readsByName(query)

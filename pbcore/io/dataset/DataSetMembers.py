@@ -1765,14 +1765,14 @@ class StatsMetadata(RecordWrapper):
 
     def getDist(self, key, unwrap=True):
         tbr = list(self.findChildren(key))
+        if len(tbr) == 0:
+            return None
 
         dtype = ContinuousDistribution
         if tbr[0].getV('children', 'BinLabels') is not None:
             dtype = DiscreteDistribution
 
-        if len(tbr) == 0:
-            return None
-        elif len(tbr) == 1 and unwrap:
+        if len(tbr) == 1 and unwrap:
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)

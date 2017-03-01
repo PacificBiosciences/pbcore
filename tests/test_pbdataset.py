@@ -1937,7 +1937,8 @@ class TestDataSet(unittest.TestCase):
 
         # should be unmerged
         dist = ds3.metadata.summaryStats.getDist('HqBaseFractionDist')
-        self.assertAlmostEqual(dist[0].sampleMean, 0.8369355201721191, places=3)
+        self.assertAlmostEqual(dist[0].sampleMean, 0.8369355201721191,
+                               places=3)
         self.assertTrue(isinstance(dist[0], ContinuousDistribution))
 
         # should be merged
@@ -1953,10 +1954,32 @@ class TestDataSet(unittest.TestCase):
                                                  unwrap=False)
         self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
 
+        # what about subdatasets?
+        ds4 = SubreadSet(data.getBam())
+        ds5 = SubreadSet(data.getBam())
+        ds4.externalResources[0].sts = data.getStats()
+        ds5.externalResources[0].sts = data.getStats()
+        ds6 = ds4 + ds5
+        fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds6.write(fn)
+
+        ds6re = SubreadSet(fn)
+        dist = ds6re.metadata.summaryStats.getDist('ProdDist')
+        self.assertTrue(isinstance(dist, DiscreteDistribution))
+        dist = ds6re.subdatasets[0].metadata.summaryStats.getDist('ProdDist')
+        self.assertEqual(dist, None)
+        ds6re.loadStats()
+        dist = ds6re.subdatasets[0].metadata.summaryStats.getDist('ProdDist')
+        self.assertTrue(isinstance(dist, DiscreteDistribution))
+
 
     def test_new_distribution(self):
         ds = DataSet(data.getBam())
         ds.loadStats(data.getStats())
+        dist = ds.metadata.summaryStats.getDist('ReadLenDist')
+        self.assertTrue(isinstance(dist, ContinuousDistribution))
+        self.assertAlmostEqual(dist.sampleMean, 4528.69384765625, places=3)
+
         dist = ds.metadata.summaryStats['HqBaseFractionDist']
         self.assertTrue(isinstance(dist, ContinuousDistribution))
         self.assertAlmostEqual(dist.sampleMean, 0.8369355201721191, places=3)
