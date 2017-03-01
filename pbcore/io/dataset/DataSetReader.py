@@ -88,21 +88,26 @@ def _addFile(dset, filename):
         fileLocation = os.path.abspath(fileLocation)
     handledTypes[fileType](dset, fileLocation)
 
+def checksts(dset, subdatasets=False):
+    if not dset.metadata.summaryStats:
+        for extres in dset.externalResources:
+            if extres.sts:
+                try:
+                    dset.loadStats(extres.sts)
+                except IOError as e:
+                    log.info("Sts.xml file {f} "
+                              "unopenable".format(f=extres.sts))
+    if subdatasets:
+        for sds in dset.subdatasets:
+            checksts(sds)
+
 def _addXmlFile(dset, path):
     with open(path, 'rb') as xml_file:
         tree = ET.parse(xml_file)
     root = tree.getroot()
     tmp = _parseXml(type(dset), root)
     tmp.makePathsAbsolute(curStart=os.path.dirname(path))
-    if not tmp.metadata.summaryStats:
-        for extres in tmp.externalResources:
-            if extres.sts:
-                try:
-                    tmp.loadStats(extres.sts)
-                except IOError as e:
-                    log.info("Sts.xml file {f} "
-                              "unopenable".format(f=extres.sts))
-    # copyOnMerge must be false, you're merging in a tmp and maintaining dset
+    checksts(tmp)
     dset.merge(tmp, copyOnMerge=False)
 
 def openFofnFile(path):
