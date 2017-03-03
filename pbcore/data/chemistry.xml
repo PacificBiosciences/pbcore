@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MappingTable>
+  <Mapping>
+    <SequencingChemistry>FOUND</SequencingChemistry>
+    <BindingKit>1</BindingKit>
+    <SequencingKit>2</SequencingKit>
+    <SoftwareVersion>3.4</SoftwareVersion>
+  </Mapping>
+</MappingTable>
