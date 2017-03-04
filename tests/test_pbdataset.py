@@ -1912,20 +1912,23 @@ class TestDataSet(unittest.TestCase):
         ds.loadStats(data.getStats())
 
         dist = ds.metadata.summaryStats.getDist('HqBaseFractionDist')
-        self.assertAlmostEqual(dist.sampleMean, 0.8369355201721191, places=3)
-        self.assertTrue(isinstance(dist, ContinuousDistribution))
+        self.assertAlmostEqual(dist[0].sampleMean, 0.8369355201721191, places=3)
+        self.assertTrue(isinstance(dist[0], ContinuousDistribution))
 
         dist = ds.metadata.summaryStats.getDist('NumUnfilteredBasecallsDist')
-        self.assertAlmostEqual(dist.sampleMean, 5481.8447265625, places=3)
+        self.assertAlmostEqual(dist[0].sampleMean, 5481.8447265625, places=3)
 
         dist = ds.metadata.summaryStats.getDist('NumUnfilteredBasecallsDist')
-        self.assertAlmostEqual(dist.sampleMean, 5481.8447265625, places=3)
+        self.assertAlmostEqual(dist[0].sampleMean, 5481.8447265625, places=3)
 
         dist = ds.metadata.summaryStats.getDist('ProdDist')
         self.assertTrue(isinstance(dist, DiscreteDistribution))
 
+        dist = ds.metadata.summaryStats.getDist('ProdDist', unwrap=False)
+        self.assertTrue(isinstance(dist[0], DiscreteDistribution))
+
         dist = ds.metadata.summaryStats.getDist('BaselineLevelDist')
-        self.assertTrue(isinstance(dist['A'], ContinuousDistribution))
+        self.assertTrue(isinstance(dist['A'][0], ContinuousDistribution))
 
         dist = ds.metadata.summaryStats.getDist('BaselineLevelDist',
                                                 unwrap=False)
@@ -1988,8 +1991,8 @@ class TestDataSet(unittest.TestCase):
         self.assertAlmostEqual(dist.sampleMean, 4528.69384765625, places=3)
 
         dist = ds.metadata.summaryStats['HqBaseFractionDist']
-        self.assertTrue(isinstance(dist, ContinuousDistribution))
-        self.assertAlmostEqual(dist.sampleMean, 0.8369355201721191, places=3)
+        self.assertTrue(isinstance(dist[0], ContinuousDistribution))
+        self.assertAlmostEqual(dist[0].sampleMean, 0.8369355201721191, places=3)
 
     def test_stats_metadata(self):
         ds = DataSet(data.getBam())

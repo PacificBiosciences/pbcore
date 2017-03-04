@@ -444,6 +444,14 @@ class RecordWrapper(object):
         self.record['tag'] = value
 
     @property
+    def text(self):
+        return self.metavalue
+
+    @text.setter
+    def text(self, value):
+        self.metavalue = value
+
+    @property
     def metavalue(self):
         """Cleaner accessor for this node's text"""
         return self.record['text']
@@ -1772,17 +1780,15 @@ class StatsMetadata(RecordWrapper):
         if tbr[0].getV('children', 'BinLabels') is not None:
             dtype = DiscreteDistribution
 
-        if len(tbr) == 1 and unwrap:
+        if unwrap and key in self.MERGED_DISTS:
+            if len(tbr) > 1:
+                log.warn("Merging a distribution failed!")
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
             for chan in tbr:
                 chans[chan.attrib['Channel']].append(
                     dtype(chan))
-            if unwrap:
-                for key, val in chans.iteritems():
-                    if len(val) == 1:
-                        chans[key] = val[0]
             return chans
         else:
             return map(dtype, tbr)
