@@ -26,7 +26,7 @@ doctest:
 	cd doc && make doctest
 
 unit-test:
-	nosetests --with-coverage --with-xunit tests -v
+	nosetests --with-coverage --cover-xml-file=coverage.xml --cover-package=pbcore --with-xunit -v tests
 
 test: doctest unit-test
 
