@@ -27,6 +27,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
+try:
+    import h5py
+except ImportError:
+    from pbcore.util import h5py_dummy
+    h5py = h5py_dummy()
+
 import numpy as n
 
 from pbcore.io.FofnIO import readFofn
@@ -98,7 +104,6 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
     """Write a barcode file from a list of labeled ZMWs. In addition
     to labeledZmws, this function takes a
     pbbarcode.BarcodeLabeler."""
-    import h5py
     bestScores = map(lambda z: z.toBestRecord(), labeledZmws)
     outDta = n.vstack(bestScores)
     outH5 = h5py.File(outFile, 'a')
@@ -150,7 +155,6 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
 
 class BarcodeH5Reader(object):
     def __init__(self, fname):
-        import h5py
         try:
             self.h5File = h5py.File(fname, "r")
         except IOError:
