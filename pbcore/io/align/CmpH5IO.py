@@ -33,6 +33,12 @@ __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
             "EmptyCmpH5Error" ]
 
+try:
+    import h5py
+except ImportError:
+    from pbcore.util import h5py_dummy
+    h5py = h5py_dummy()
+
 import numpy as np
 import warnings
 from bisect import bisect_left, bisect_right
@@ -714,7 +720,6 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
 
         # It is an unchecked runtime error to supply a sharedIndex
         # that is not identical to the AlnIndex in the filenameOrH5File
-        import h5py
         if isinstance(filenameOrH5File, h5py.File):
             if filenameOrH5File.mode != "r":
                 raise ValueError("HDF5 files used by CmpH5Reader must be opened read-only!")
