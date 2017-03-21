@@ -34,7 +34,8 @@ __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,
             "BasH5Collection" ]
 
-import h5py, numpy as np, os.path as op
+import numpy as np
+import os.path as op
 from bisect import bisect_left, bisect_right
 from operator import getitem
 from itertools import groupby
@@ -315,6 +316,7 @@ class BaxH5Reader(object):
     single-part bas.h5 files.
     """
     def __init__(self, filename, regionH5Filename=None):
+        import h5py
         try:
             self.filename = op.abspath(op.expanduser(filename))
             self.file = h5py.File(self.filename, "r")
@@ -413,6 +415,7 @@ class BaxH5Reader(object):
         Loads regions defined in the given file, overriding those found in the
         bas/bax file.
         """
+        import h5py
         try:
             fh = h5py.File(op.abspath(op.expanduser(regionH5Filename)), "r")
         except IOError:
@@ -659,6 +662,7 @@ class BasH5Reader(object):
     the `Zmw` objects providing usable sequence.
     """
     def __init__(self, *args):
+        import h5py
         assert len(args) > 0
 
         if len(args) == 1:

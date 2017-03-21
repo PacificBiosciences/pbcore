@@ -29,7 +29,7 @@
 #################################################################################
 
 from __future__ import absolute_import
-import h5py, numpy as np
+import numpy as np
 from cStringIO import StringIO
 
 
@@ -37,6 +37,7 @@ def arrayFromDataset(ds, offsetBegin, offsetEnd):
     """
     Extract a one-dimensional array from an HDF5 dataset.
     """
+    import h5py
     shape = (offsetEnd - offsetBegin,)
     a = np.ndarray(shape=shape, dtype=ds.dtype)
     mspace = h5py.h5s.create_simple(shape)
