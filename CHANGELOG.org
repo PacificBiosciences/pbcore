@@ -1,3 +1,11 @@
+* Version 1.4.0
+  - Support for Vcf4Records and merging VCF files
+
+* Version 1.3.0
+  - Better handling of h5py
+  - Support 4.0 basecaller and chemistry
+  - Misc fixes
+
 * Version 1.2.11
   - Support for 3.2 basecaller and chemistry
   - GFF bug fixes

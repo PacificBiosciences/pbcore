@@ -28,8 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
-import h5py as h
-import numpy as n
+import numpy as np
 import bisect
 
 def rightmostBinSearch(vec, val):
@@ -95,12 +94,12 @@ def getOverlappingRanges(tStart, tEnd, nBack, nOverlap, rangeStart, rangeEnd):
     assert(rM >= lM and rM >= 0 and lM >= 0)
 
     if (lM == rM):
-        return(n.array([], dtype = "uint32"))
+        return(np.array([], dtype = "uint32"))
     else:
         # We only keep the reads in the range lM .. rM that
         # actually overlap the range, as determined by
         # tEnd > rangeStart
-        idxs   = n.arange(lM, rM, dtype = "uint32")   # lM .. rM
+        idxs   = np.arange(lM, rM, dtype = "uint32")   # lM .. rM
         toKeep = tEnd[idxs] > rangeStart
         return(idxs[toKeep])
 
@@ -113,11 +112,11 @@ def projectIntoRange(tStart, tEnd, winStart, winEnd):
     or smaller range
     """
     assert(len(tStart) == len(tEnd))
-    res = n.zeros(shape=winEnd-winStart, dtype=n.uint)
+    res = np.zeros(shape=winEnd-winStart, dtype=np.uint)
     # Clip to window and translate.
     # Be careful to avoid underflow!
-    tStart_ = n.clip(tStart, winStart, winEnd) - winStart
-    tEnd_   = n.clip(tEnd,   winStart, winEnd) - winStart
+    tStart_ = np.clip(tStart, winStart, winEnd) - winStart
+    tEnd_   = np.clip(tEnd,   winStart, winEnd) - winStart
     for (s, e) in zip(tStart_, tEnd_):
         res[s:e] += 1
     return res
@@ -144,7 +143,7 @@ def makeReadLocator(cmpH5, refSeq):
             ## still has columns and these are what I want to preserve --
             ## h5py objects cannot be subset by a vector of length 0,
             ## however, numpy allows this.
-            idxs = n.array([], dtype = 'uint32')
+            idxs = np.array([], dtype = 'uint32')
         else:
             idxs = getOverlappingRanges(refAlignIdx.tStart, refAlignIdx.tEnd,
                                         refAlignIdx.nBackRead, refAlignIdx.nReadOverlap,
@@ -176,7 +175,7 @@ def getCoverageInRange(cmpH5, coords, rowNumbers=None):
     if rowNumbers==None:
         rowNumbers  = getReadsInRange(cmpH5, coords, justIndices=True)
     if (len(rowNumbers))==0:
-        return n.array([0]*(coords[2] - coords[1]))
+        return np.array([0]*(coords[2] - coords[1]))
     else:
         return(projectIntoRange(cmpH5.tStart[rowNumbers], cmpH5.tEnd[rowNumbers], coords[1], coords[2]))
 

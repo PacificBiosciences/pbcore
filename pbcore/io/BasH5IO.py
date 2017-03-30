@@ -34,7 +34,14 @@ __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,
             "BasH5Collection" ]
 
-import h5py, numpy as np, os.path as op
+try:
+    import h5py
+except ImportError:
+    from pbcore.util import h5py_dummy
+    h5py = h5py_dummy()
+
+import numpy as np
+import os.path as op
 from bisect import bisect_left, bisect_right
 from operator import getitem
 from itertools import groupby

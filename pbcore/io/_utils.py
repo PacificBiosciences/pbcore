@@ -29,7 +29,14 @@
 #################################################################################
 
 from __future__ import absolute_import
-import h5py, numpy as np
+
+try:
+    import h5py
+except ImportError:
+    from pbcore.util import h5py_dummy
+    h5py = h5py_dummy()
+
+import numpy as np
 from cStringIO import StringIO
 
 

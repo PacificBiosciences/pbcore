@@ -27,7 +27,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
-import h5py as h5
+try:
+    import h5py
+except ImportError:
+    from pbcore.util import h5py_dummy
+    h5py = h5py_dummy()
+
 import numpy as n
 
 from pbcore.io.FofnIO import readFofn
@@ -101,17 +106,17 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
     pbbarcode.BarcodeLabeler."""
     bestScores = map(lambda z: z.toBestRecord(), labeledZmws)
     outDta = n.vstack(bestScores)
-    outH5 = h5.File(outFile, 'a')
+    outH5 = h5py.File(outFile, 'a')
 
     if BC_DS_PATH in outH5:
         del outH5[BC_DS_PATH]
 
     bestDS = outH5.create_dataset(BC_DS_PATH, data = outDta, dtype = "int32")
     bestDS.attrs['movieName'] = labeler.movieName
-    bestDS.attrs['barcodes'] = n.array(labeler.barcodeLabels, dtype = h5.new_vlen(str))
+    bestDS.attrs['barcodes'] = n.array(labeler.barcodeLabels, dtype = h5py.new_vlen(str))
     bestDS.attrs['columnNames'] = n.array(['holeNumber', 'nAdapters', 'barcodeIdx1',
                                            'barcodeScore1', 'barcodeIdx2', 'barcodeScore2'],
-                                          dtype = h5.new_vlen(str))
+                                          dtype = h5py.new_vlen(str))
     bestDS.attrs['scoreMode'] = labeler.scoreMode
 
     if writeExtendedInfo:
@@ -141,18 +146,17 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
         allDS = outH5.create_dataset(BC_DS_ALL_PATH, data = records, dtype = 'int32')
         allDS.attrs['movieName'] = labeler.movieName
         # note names versus labels.
-        allDS.attrs['barcodes'] = n.array(labeler.barcodeNames, dtype = h5.new_vlen(str))
+        allDS.attrs['barcodes'] = n.array(labeler.barcodeNames, dtype = h5py.new_vlen(str))
         allDS.attrs['columnNames'] = n.array(['holeNumber', 'adapter', 'barcodeIdx', 'score'],
-                                             dtype = h5.new_vlen(str))
+                                             dtype = h5py.new_vlen(str))
     # close the file at the very end.
     outH5.close()
 
 
 class BarcodeH5Reader(object):
     def __init__(self, fname):
-
         try:
-            self.h5File = h5.File(fname, "r")
+            self.h5File = h5py.File(fname, "r")
         except IOError:
             raise IOError("Invalid or nonexistent bc file %s" % fname)
 
