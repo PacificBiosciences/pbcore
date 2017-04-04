@@ -59,7 +59,7 @@ def _loadBarcodeMappingsFromFile(mapFile):
 def _loadBarcodeMappings():
     mappingFname = resource_filename(Requirement.parse('pbcore'),'pbcore/chemistry/resources/mapping.xml')
     mappings = _loadBarcodeMappingsFromFile(mappingFname)
-    updMappingDir = os.getenv("PB_CHEMISTRY_BUNDLE_DIR")
+    updMappingDir = os.getenv("SMRT_CHEMISTRY_BUNDLE_DIR")
     if updMappingDir:
         import logging
         from os.path import join
