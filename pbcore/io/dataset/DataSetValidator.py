@@ -95,7 +95,7 @@ def validateXml(xmlroot, skipResources=False, relTo='.'):
     # would for some odd reason be considered invalid. Let all illegal
     # characters fall through to the validator.
     try:
-        from pbcore.io.dataset import DataSetXsd
+        from pbcore.io.dataset.pyxb import DataSetXsd
         log.debug('Validating with PyXb')
         fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
                              ET.tostring(xmlroot))

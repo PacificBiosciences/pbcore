@@ -946,6 +946,8 @@ class DataSet(object):
                                      targetSize))))
             return self._split_zmws(chunks, targetSize=targetSize)
         elif barcodes:
+            if maxChunks and not chunks:
+                chunks = maxChunks
             return self._split_barcodes(chunks)
 
         # Lets only split on datasets if actual splitting will occur,
