@@ -105,7 +105,7 @@ def validateXml(xmlroot, skipResources=False, relTo='.'):
                              fixedString)
         DataSetXsd.CreateFromDocument(fixedString)
     except ImportError:
-        log.debug('PyXb not found, validation disabled')
+        log.info('PyXb not found, validation disabled')
 
 def validateFile(xmlfn, skipResources=False):
     if ':' in xmlfn:
