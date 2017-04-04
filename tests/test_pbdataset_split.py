@@ -695,3 +695,38 @@ class TestDataSetSplit(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(len(sset), 4710)
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not found, skipping")
+    def test_barcode_split_maxChunks(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/'
+              'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
+              '.tiny.subreadset.xml')
+        sset = SubreadSet(fn, skipMissing=True)
+        ssets = sset.split(maxChunks=2, barcodes=True)
+        self.assertEqual([str(ss.filters) for ss in ssets],
+                         ["( bc = [0, 0] )",
+                          "( bc = [1, 1] ) OR ( bc = [2, 2] )"])
+        sset = SubreadSet(fn, skipMissing=True)
+        self.assertEqual(len(sset), 15133)
+        sset.filters = None
+        self.assertEqual(str(sset.filters), "")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 2667562)
+
+
+        sset.filters = ssets[0].filters
+        self.assertEqual(str(sset.filters), "( bc = [0, 0] )")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 5370)
+
+        sset.filters = None
+        self.assertEqual(str(sset.filters), "")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 2667562)
+
+        sset.filters = ssets[1].filters
+        self.assertEqual(str(sset.filters),
+                         "( bc = [1, 1] ) OR ( bc = [2, 2] )")
+        sset.updateCounts()
+        self.assertEqual(len(sset), 9763)
+
