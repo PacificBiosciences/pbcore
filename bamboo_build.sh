@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-NX3PBASEURL=http://nexus.pacificbiosciences.com/repository/maven-thirdparty/gcc-4.9.2
+NX3PBASEURL=http://nexus/repository/unsupported/pitchfork/gcc-4.9.2
 export PATH=$PWD/build/bin:/mnt/software/a/anaconda2/4.2.0/bin:$PATH
 export PYTHONUSERBASE=$PWD/build
 export CFLAGS="-I/mnt/software/a/anaconda2/4.2.0/include"
