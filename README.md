@@ -1,4 +1,4 @@
-# pbcore [![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcore.svg?style=svg)](https://circleci.com/gh/PacificBiosciences/pbcore)
+# pbcore [![Circle CI](https://circleci.com/gh/PacificBiosciences/pbcore.svg)](https://circleci.com/gh/PacificBiosciences/pbcore)
 
 The `pbcore` package provides Python APIs for interacting with PacBio
 data files and writing bioinformatics applications.
