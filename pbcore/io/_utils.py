@@ -84,7 +84,7 @@ def is_string_like(obj):
     'Return True if *obj* looks like a string'
     if isinstance(obj, (str, unicode)): return True
     # numpy strings are subclass of str, ma strings are not
-    if ma.isMaskedArray(obj):
+    if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':
             return True
         else:
@@ -187,6 +187,7 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
     if defaults is not None:
         for thiskey in defaults:
             if thiskey not in newdtype.names:
+                import warnings
                 warnings.warn('rec_join defaults key="%s" not in new dtype names "%s"'%(
                     thiskey, newdtype.names))
 

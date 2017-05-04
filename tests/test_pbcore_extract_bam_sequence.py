@@ -6,6 +6,7 @@ transcript from a BAM alignment file, specifically when the reverse complement
 is needed.
 """
 
+from pbcore.io.align.BamIO import AlignmentFile
 import pbcore.io
 import pysam
 import tempfile
@@ -31,8 +32,8 @@ class TestCase (unittest.TestCase):
         f.write(sam_str_)
         f.close()
         # convert to bam using pysam
-        sam_in = pysam.AlignmentFile("tst_pbcore.sam", "r")
-        bam_out = pysam.AlignmentFile("tst_pbcore.bam", "wb",
+        sam_in = AlignmentFile("tst_pbcore.sam", "r")
+        bam_out = AlignmentFile("tst_pbcore.bam", "wb",
             template=sam_in)
         for s in sam_in:
             bam_out.write(s)

@@ -10,6 +10,9 @@ bdist:
 install:
 	python setup.py install
 
+pylint:
+	pylint --errors-only pbcore/
+
 clean: doc-clean
 	rm -rf build/;\
 	find . -name "*.egg-info" | xargs rm -rf;\
