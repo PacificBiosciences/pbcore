@@ -787,9 +787,6 @@ class BasH5Reader(object):
     def sequencingChemistry(self):
         return self._parts[0].sequencingChemistry
 
-    def __len__(self):
-        return len(self.sequencingZmws)
-
     def close(self):
         if hasattr(self, "file") and self.file is not None:
             self.file.close()
@@ -802,10 +799,6 @@ class BasH5Reader(object):
 
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
-
-    def __iter__(self):
-        for holeNumber in self.sequencingZmws:
-            yield self[holeNumber]
 
     def __repr__(self):
         return "<BasH5Reader: %s>" % self.movieName

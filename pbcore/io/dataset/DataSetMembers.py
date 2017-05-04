@@ -1578,7 +1578,7 @@ class ContigSetMetadata(DataSetMetadata):
     def merge(self, other):
         super(self.__class__, self).merge(other)
         if self.contigs:
-            self.contigs.merge(other.contigs)
+            self.contigs.merge(other.contigs) # pylint: disable=no-member
         else:
             self.contigs = other.contigs
 
