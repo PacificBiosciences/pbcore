@@ -615,6 +615,7 @@ class Filters(RecordWrapper):
                                   x.bam.pbi[x.rowNumber]['bcReverse'])),
                 'qs': (lambda x: int(x.qStart)),
                 'rq': (lambda x: int(x.MapQV)),
+                'mapqv': (lambda x: int(x.MapQV)),
                 'pos': (lambda x: int(x.tStart)),
                 'accuracy': (lambda x: float(x.identity)),
                 'readstart': (lambda x: int(x.aStart)),
@@ -645,6 +646,7 @@ class Filters(RecordWrapper):
                 'readstart': (lambda x: x.aStart),
                 'tstart': (lambda x: x.tStart),
                 'tend': (lambda x: x.tEnd),
+                'mapqv': (lambda x: x.mapQV),
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
                                (x.nMM + x.nIns + x.nDel).astype(np.float)/
@@ -700,6 +702,7 @@ class Filters(RecordWrapper):
                 'readstart': int,
                 'cx': PbiFlags.flagMap,
                 'n_subreads': int,
+                'mapqv': int,
                }
 
     def tests(self, readType="bam", tIdMap=None):
@@ -783,13 +786,17 @@ class Filters(RecordWrapper):
                     if param == 'bc':
                         # convert string to list:
                         values = ast.literal_eval(value)
+                        assert isinstance(values, list), (
+                            'Barcode filter value must be of form [<bcf>, <bcr>]')
+                        assert len(values) == 2, (
+                            'Barcode filter value must be of form [<bcf>, <bcr>]')
                         param = 'bcf'
-                        value = values[0]
+                        value = int(values[0])
                         operator = mapOp(opstr)
                         reqResultsForRecords = operator(
                             accMap[param](indexRecords), value)
                         param = 'bcr'
-                        value = values[1]
+                        value = int(values[1])
                         operator = mapOp(opstr)
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
@@ -905,6 +912,40 @@ class Filters(RecordWrapper):
             for oper, val in options:
                 newFilt.addRequirement(name, oper, val)
         self.append(newFilt)
+        log.debug("Current filters: {s}".format(s=str(self)))
+        self._runCallbacks()
+
+    def addFilterList(self, filters):
+        """
+        filters is a list of options, with a list of reqs for each option. Each
+        req is a tuple (name, oper, val)
+        """
+        if not filters:
+            return
+        for opt in filters:
+            newFilt = Filter()
+            for name, oper, val in opt:
+                newFilt.addRequirement(name, oper, val)
+            self.append(newFilt)
+        log.debug("Current filters: {s}".format(s=str(self)))
+        self._runCallbacks()
+
+    def broadcastFilters(self, filts):
+        """
+        Filt is a list of Filter objects or lists of reqs.
+        """
+        existing = list(self)
+        if len(filts) > 1:
+            origFilts = copy.deepcopy(list(self))
+            existing = [copy.deepcopy(origFilts) for _ in len(filts)]
+
+        for filt, efilts in zip(filts, existing):
+            if isinstance(filt, Filter):
+                filt = [(p.name, p.operator, p.value) for p in filt]
+            for efilt in efilts:
+                for name, oper, val in filt:
+                    efilt.addRequirement(name, oper, val)
+
         log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
 
