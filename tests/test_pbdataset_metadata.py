@@ -3,6 +3,7 @@ import logging
 import unittest
 import tempfile
 import copy
+import os
 
 from pbcore.io import SubreadSet, AlignmentSet
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
@@ -111,4 +112,18 @@ class TestDataSet(unittest.TestCase):
                               'SA3-Sequel/lambda/roche_SAT/'
                               'm54013_151205_032353.sts.xml')
 
+
+    def test_uuid(self):
+        ds = AlignmentSet()
+        old = ds.uuid
+        _ = ds.newUuid()
+        self.assertNotEqual(old, ds.uuid)
+
+        aln = AlignmentSet(data.getXml(no=8))
+        oldUuid = aln.uuid
+        outdir = tempfile.mkdtemp(suffix="dataset-doctest")
+        outXml = os.path.join(outdir, 'tempfile.xml')
+        aln.write(outXml)
+        aln = AlignmentSet(outXml)
+        self.assertEqual(aln.uuid, oldUuid)
 

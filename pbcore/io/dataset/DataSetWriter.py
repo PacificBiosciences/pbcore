@@ -61,8 +61,13 @@ def toXml(dataset, core=False):
     Returns:
         The XML representation as a string.
     """
+    log.debug('Making elementtree...')
     root = _toElementTree(dataset, root=None, core=core)
-    return ET.tostring(root, encoding="UTF-8")
+    log.debug('Done making ElementTree...')
+    log.debug('Converting ElementTree to string...')
+    xmlstring = ET.tostring(root, encoding="UTF-8")
+    log.debug('Done converting ElementTree to string')
+    return xmlstring
 
 def namespaces():
     return {
