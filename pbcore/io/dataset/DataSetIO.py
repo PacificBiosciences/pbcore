@@ -578,10 +578,7 @@ class DataSet(object):
 
             # add subdatasets
             if other.subdatasets or not firstIn:
-                if copyOnMerge:
-                    result.addDatasets(other.copy())
-                else:
-                    result.addDatasets(other)
+                result.addDatasets(other.copy())
 
             # add in the metadata (not to be confused with obj metadata)
             if firstIn:
