@@ -1092,7 +1092,7 @@ class DataSet(object):
 
         # minidom has trouble with ContigSets with more than a few
         # contigs:
-        if pretty and not (isinstance(self, ContigSet) and len(self) > 10):
+        if pretty and not isinstance(self, ContigSet):
             log.debug('Making pretty...')
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
