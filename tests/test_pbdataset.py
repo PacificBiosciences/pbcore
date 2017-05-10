@@ -2533,3 +2533,19 @@ class TestDataSet(unittest.TestCase):
             sset.write(resXml, validate=False)
             with self.assertRaises(InvalidDataSetIOError):
                 sset = SubreadSet(resXml)
+
+    def test_opening(self):
+        """ Test whether relativizing paths is working. If your subdataset
+        objects contain the same external resource objects as your dataset, and
+        you make everything relative, paths will be relativized twice, making
+        them invalid. """
+        ifn1 = data.getXml(8)
+        ifn2 = data.getXml(11)
+        outdir = tempfile.mkdtemp(suffix="dataset-unittest")
+        ofn = os.path.join(outdir, 'test.alignmentset.xml')
+        log.info(ofn)
+        aset = AlignmentSet(ifn1, ifn2)
+        aset.write(ofn, validate=True,
+                   relPaths=True)
+        naset = AlignmentSet(ofn)
+
