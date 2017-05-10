@@ -649,6 +649,7 @@ class TestDataSet(unittest.TestCase):
               '823139203261572_s1_p0.1.subreads.fastq')
         fq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
         cfq_out = tempfile.NamedTemporaryFile(suffix=".fastq").name
+        cset_out = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
         with open(fq_out, 'w') as fqh:
             with open(fn, 'r') as fih:
                 for line in itertools.islice(fih, 240):
@@ -664,7 +665,7 @@ class TestDataSet(unittest.TestCase):
         cfq = FastqReader(cfq_out)
         self.assertEqual(cset_l, 23)
         self.assertEqual(cset_l, sum(1 for _ in cfq))
-
+        cset.write(cset_out)
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not found, skipping")
