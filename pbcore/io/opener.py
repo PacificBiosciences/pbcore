@@ -101,7 +101,7 @@ def _openAny(fname, *extraArgs):
             lastException = e
     else:
         assert lastException is not None
-        raise lastException
+        raise lastException # pylint: disable=raising-bad-type
 
 def entryPoint():
     """

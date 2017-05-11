@@ -14,6 +14,7 @@ os.environ["PBCORE_BAM_LOSSLESS_KINETICS"] = "1"
 import pysam
 
 import pbcore.io.align.BamAlignment
+from pbcore.io.align.BamIO import AlignmentFile
 pbcore.io.align.BamAlignment.PBCORE_BAM_LOSSLESS_KINETICS = "1"
 
 class TestCase (unittest.TestCase):
@@ -29,8 +30,8 @@ movie1/54130/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10M\t*
         sam_file = "tmp_pbcore_io_subreads.sam"
         with open(sam_file, "w") as f:
             f.write(self.sam_str_)
-        sam_in = pysam.AlignmentFile(sam_file, "r")
-        bam_out = pysam.AlignmentFile(sam_file[:-3]+"bam", "wb",
+        sam_in = AlignmentFile(sam_file, "r")
+        bam_out = AlignmentFile(sam_file[:-3]+"bam", "wb",
             template=sam_in)
         for s in sam_in:
             bam_out.write(s)

@@ -19,6 +19,7 @@ from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
+from pbcore.io.align.BamIO import AlignmentFile
 
 
 class _BasicAlnFileReaderTests(object):
@@ -498,8 +499,8 @@ m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK
         f2 = tempfile.NamedTemporaryFile(suffix=".bam").name
         with open(f1, "w") as f:
             f.write(self.SAM_IN)
-        with pysam.AlignmentFile(f1) as sam_in:
-            with pysam.AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
+        with AlignmentFile(f1) as sam_in:
+            with AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
                 for aln in sam_in:
                     bam_out.write(aln)
         movie_names = []

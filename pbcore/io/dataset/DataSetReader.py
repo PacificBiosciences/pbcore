@@ -65,7 +65,8 @@ def resolveLocation(fname, possibleRelStart=None):
 def populateDataSet(dset, filenames):
     for filename in filenames:
         _addFile(dset, filename)
-    dset._populateMetaTypes()
+    if filenames:
+        dset._populateMetaTypes()
 
 def xmlRootType(fname):
     with open(fname, 'rb') as xml_file:

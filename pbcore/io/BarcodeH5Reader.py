@@ -259,7 +259,7 @@ class MPBarcodeH5Reader(object):
         elif isinstance(item, str):
             return self.labeledZmwsFromBarcodeLabel(item)
         elif isinstance(item, slice):
-            return [ self.labeledZmwFromHoleNumber(self, item)
+            return [ self.labeledZmwFromHoleNumber(item)
                     for r in xrange(*item.indices(len(self)))]
         elif isinstance(item, list) or isinstance(item, n.ndarray):
             if len(item) == 0:

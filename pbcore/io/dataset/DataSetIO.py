@@ -399,8 +399,10 @@ class DataSet(object):
         # parse files
         populateDataSet(self, files)
 
-        if not skipMissing:
+        if not skipMissing and len(files):
+            log.debug("Checking that the files exist...")
             self._modResources(_fileExists)
+            log.debug("Done checking that the files exist")
 
         # DataSet base class shouldn't really be used. It is ok-ish for just
         # basic xml mainpulation. May start warning at some point, but
@@ -536,7 +538,7 @@ class DataSet(object):
         """
         return self.merge(otherDataset)
 
-    def merge(self, other, copyOnMerge=True):
+    def merge(self, other, copyOnMerge=True, newuuid=True):
         """Merge an 'other' dataset with this dataset, same as add operator,
         but can take argumens
         """
@@ -622,7 +624,8 @@ class DataSet(object):
                 # CreatedAt:
                 result.objMetadata['CreatedAt'] = getCreatedAt()
                 # UUID:
-                result.newUuid()
+                if newuuid:
+                    result.newUuid()
 
             return result
         else:
@@ -1067,6 +1070,7 @@ class DataSet(object):
             >>> ds1 == ds2
             True
         """
+        log.debug("Writing DataSet...")
         if not modPaths is None:
             log.info("modPaths as a write argument is deprecated. Paths "
                      "aren't modified unless relPaths is explicitly set "
@@ -1082,18 +1086,27 @@ class DataSet(object):
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
                 self.makePathsAbsolute()
+        log.debug('Serializing XML...')
         xml_string = toXml(self)
-        if pretty:
+        log.debug('Done serializing XML')
+
+        # minidom has trouble with ContigSets with more than a few
+        # contigs:
+        if pretty and not isinstance(self, ContigSet):
+            log.debug('Making pretty...')
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
+            log.debug('Done making pretty...')
 
         # not useful yet as a list, but nice to keep the options open:
         validation_errors = []
         if validate:
+            log.debug('Validating...')
             try:
                 validateString(xml_string, relTo=os.path.dirname(outFile))
             except Exception as e:
                 validation_errors.append(e)
+            log.debug('Done validating')
         fileName = urlparse(outFile).path.strip()
         if self._strict and not isinstance(self.datasetType, tuple):
             if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1103,11 +1116,14 @@ class DataSet(object):
                                   s=dsIdToSuffix(self.datasetType)),
                               fileName)
         with open(fileName, 'w') as outFile:
+            log.debug('Writing...')
             outFile.writelines(xml_string)
+            log.debug('Done writing')
 
         for e in validation_errors:
             log.error("Invalid file produced: {f}".format(f=fileName))
             raise e
+        log.debug("Done writing DataSet")
 
     def loadStats(self, filename=None):
         """Load pipeline statistics from a <moviename>.sts.xml file. The subset
@@ -1207,9 +1223,10 @@ class DataSet(object):
         Args:
             :curStart: The location from which relative paths should emanate.
         """
-        log.debug("Making paths absolute")
+        log.debug("Making paths absolute...")
         self._changePaths(
             lambda x, s=curStart: checkAndResolve(x, s))
+        log.debug("Done making paths absolute")
 
     def makePathsRelative(self, outDir=False):
         """Make things easier for writing test cases: make all
@@ -1239,9 +1256,13 @@ class DataSet(object):
             func(item)
             try:
                 stack.extend(list(item.indices))
+            except AttributeError:
+                # some members have no indices
+                pass
+            try:
                 stack.extend(list(item.externalResources))
             except AttributeError:
-                # Some things just don't have indices
+                # some members have no externalResources
                 pass
 
         if subdatasets:
@@ -1264,7 +1285,9 @@ class DataSet(object):
     def _populateMetaTypes(self):
         """Add metatypes to those ExternalResources that currently are
         without"""
+        log.debug("Updating metatypes...")
         self._modResources(self._updateMetaType)
+        log.debug("Done updating metatypes")
 
     def _updateMetaType(self, resource):
         """Infer and set the metatype of 'resource' if it doesn't already have
@@ -3818,7 +3841,9 @@ class ContigSet(DataSet):
         # Metadata type
         try:
             self._metadata = ContigSetMetadata(self._metadata)
-            self._updateMetadata()
+            if len(files) > 0:
+                log.debug("Updating metadata for {}".format(str(files)))
+                self._updateMetadata()
         except TypeError:
             pass
 

@@ -69,6 +69,12 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 87)
         self.assertEqual(len(ds2), 87)
 
+    def test_mapqv_filter(self):
+        ds2 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(list(ds2.records)), 92)
+        ds2.filters.addRequirement(mapqv=[('>', '128')])
+        self.assertEqual(len(list(ds2.records)), 16)
+
     def test_filter(self):
         ds2 = AlignmentSet(data.getXml(8))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
