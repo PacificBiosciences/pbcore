@@ -10,6 +10,7 @@ import shlex
 
 
 def get_files(xsd_dir):
+    print "Searching ", xsd_dir
     files = []
     for path, subdirs, fns in os.walk(xsd_dir):
         for fn in fns:
@@ -21,6 +22,9 @@ def copy_xsds(xsd, dest):
     """Go ahead and copy all xsds, there will likely be many dependencies. If
     not, xsds are small"""
     files = get_files(os.path.dirname(xsd))
+    print "Copying:"
+    for f in files:
+        print f
     for fn in files:
         shutil.copy(fn, dest)
 
