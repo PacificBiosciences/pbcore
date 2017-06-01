@@ -837,7 +837,7 @@ class TestDataSet(unittest.TestCase):
                      "Internal data not available")
     def test_scraps_detection(self):
         path = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/'
-                'lambda/315/3150128/r54008_20160308_001811/'
+                'lambda/3150128/r54008_20160308_001811/'
                 '2_B01/m54008_160308_053311.')
         subreads = path + 'subreads.bam'
         control = path + 'control.subreads.bam'
