@@ -220,6 +220,105 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127819, 163468)])
 
+    def test_multi_movie_split_zmws_existing_simple_filters(self):
+        N_RECORDS = 1745161
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        ds1.filters.addRequirement(rq=[('>', '0.7'), ('<', '0.5')])
+        FILT_RECORDS = 1732613
+        self.assertEqual(len(ds1), FILT_RECORDS)
+        ds1._index = None
+        ds1.updateCounts()
+        self.assertEqual(len(ds1), FILT_RECORDS)
+
+        dss = ds1.split(chunks=1, zmws=True)
+        dss[0]._index = None
+        dss[0].updateCounts()
+
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(len(dss[0]), FILT_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         FILT_RECORDS)
+
+        dss = ds1.split(chunks=12, zmws=True)
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         FILT_RECORDS)
+        self.assertEqual(
+            dss[0].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              7, 22073)])
+        self.assertEqual(
+            dss[-1].zmwRanges,
+            [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+              127695, 163468)])
+
+    def test_multi_movie_split_zmws_existing_filters(self):
+        N_RECORDS = 1745161
+        test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2372215/0007/Analysis_Results/m150404_101626_42"
+                       "267_c100807920800000001823174110291514_s1_p0.al"
+                       "l.subreadset.xml")
+        test_file_2 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
+                       "2590980/0008/Analysis_Results/m141115_075238_et"
+                       "han_c100699872550000001823139203261572_s1_p0.al"
+                       "l.subreadset.xml")
+        ds1 = SubreadSet(test_file_1, test_file_2)
+        # used to get total:
+        #self.assertEqual(sum(1 for _ in ds1), N_RECORDS)
+        self.assertEqual(len(ds1), N_RECORDS)
+        ds1.filters.addRequirement(
+            movie=[('=',
+                'm150404_101626_42267_c100807920800000001823174110291514_s1_p0'),
+                   ('=',
+                'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')],
+            zm=[('>', 10), ('>', 127900)])
+        print ''
+        print ds1.filters
+        ds1.filters.mapRequirement(
+            zm=[('<', 10000), ('<', 140000)])
+        FILT_RECORDS = 117776
+        self.assertEqual(len(ds1), FILT_RECORDS)
+        ds1._index = None
+        ds1.updateCounts()
+        self.assertEqual(len(ds1), FILT_RECORDS)
+
+        dss = ds1.split(chunks=1, zmws=True)
+        dss[0]._index = None
+        dss[0].updateCounts()
+
+        self.assertEqual(len(dss), 1)
+        self.assertEqual(len(dss[0]), FILT_RECORDS)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         FILT_RECORDS)
+
+        dss = ds1.split(chunks=12, zmws=True)
+        for ds_ in dss:
+            print ''
+            print ds_.filters
+            print ds_.zmwRanges
+        self.assertEqual(len(dss), 12)
+        self.assertEqual(sum([len(ds_) for ds_ in dss]),
+                         FILT_RECORDS)
+        self.assertEqual(
+            dss[0].zmwRanges,
+            [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+              7, 22099)])
+        self.assertEqual(
+            dss[-1].zmwRanges,
+            [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+              127819, 163468)])
+
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_movie_split(self):

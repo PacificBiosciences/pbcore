@@ -84,6 +84,70 @@ class TestDataSetFilters(unittest.TestCase):
         ds2.enableFilters()
         self.assertEqual(len(list(ds2.records)), 20)
 
+    def test_broadcastFilters(self):
+        # test the broadcastFilters function with different numbers of existing
+        # and new filters
+        filt1 = [[('zm', '<', 1000),
+                  ('zm', '>', 0)]]
+        filt2 = [[('zm', '<', 1000),
+                  ('zm', '>', 0)],
+                 [('zm', '<', 2000),
+                  ('zm', '>', '1000')]]
+
+        # no filters:
+        ds0 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(list(ds0.records)), 92)
+
+        ds0.filters.broadcastFilters(filt1)
+        self.assertEqual(str(ds0.filters), '( zm < 1000 AND zm > 0 )')
+
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds0.filters),
+            '( zm < 1000 AND zm > 0 ) OR ( zm < 2000 AND zm > 1000 )')
+
+        # one filter:
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        self.assertEqual(len(list(ds1.records)), 20)
+
+        ds1.filters.broadcastFilters(filt1)
+        self.assertEqual(
+            str(ds1.filters),
+            '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 )')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        ds1.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds1.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 )'))
+
+        # two filters:
+        ds2 = AlignmentSet(data.getXml(8))
+        ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
+                                          ('=', 'E.faecalis.2')])
+        self.assertEqual(len(list(ds2.records)), 23)
+
+        ds2.filters.broadcastFilters(filt1)
+        self.assertEqual(
+            str(ds2.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 )'))
+
+        ds2 = AlignmentSet(data.getXml(8))
+        ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
+                                          ('=', 'E.faecalis.2')])
+        ds2.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds2.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 ) OR '
+             '( rname = E.faecalis.2 AND zm < 2000 AND zm > 1000 )'))
+
     def test_context_filters(self):
         ss = SubreadSet(upstreamdata.getUnalignedBam())
         self.assertEqual(set(ss.index.contextFlag), {0, 1, 2, 3})
