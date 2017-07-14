@@ -114,32 +114,23 @@ from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 log = logging.getLogger(__name__)
 
 def uri2fn(fn):
-    url = urlparse(fn)
-    fn = url.path
-    if url.netloc:
-        fn = url.netloc
-    fn = unquote(fn.strip())
-    if os.path.exists(fn):
-        fn = os.path.abspath(fn)
-    return fn
+    return unquote(urlparse(fn).path.strip())
 
 def uri2scheme(fn):
     return urlparse(fn).scheme
-
 
 def resolveLocation(fname, possibleRelStart=None):
     """Find the absolute path of a file that exists relative to
     possibleRelStart."""
     fname = uri2fn(fname)
-    if possibleRelStart != None:
-        if os.path.exists(possibleRelStart):
-            if os.path.exists(os.path.join(possibleRelStart, fname)):
-                return os.path.abspath(os.path.join(possibleRelStart, fname))
+    if (possibleRelStart is not None and
+            os.path.exists(possibleRelStart) and
+            os.path.exists(os.path.join(possibleRelStart, fname))):
+        return os.path.abspath(os.path.join(possibleRelStart, fname))
     if os.path.exists(fname):
         return os.path.abspath(fname)
     log.error("Including unresolved file: {f}".format(f=fname))
     return fname
-
 
 def newUuid(record):
     # At some point the uuid may need to be a digest
