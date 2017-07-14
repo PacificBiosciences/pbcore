@@ -5,6 +5,8 @@ import logging
 import itertools
 import tempfile
 import unittest
+from urllib import quote
+from functools import partial
 from unittest.case import SkipTest
 
 import shutil
@@ -21,6 +23,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               ContinuousDistribution,
                                               DiscreteDistribution,
                                               SubreadSetMetadata)
+from pbcore.io.dataset.DataSetIO import _pathChanger
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
@@ -607,6 +610,27 @@ class TestDataSet(unittest.TestCase):
 
         # The DataSet API
         self.assertTrue(len(sset.index.qId) != 0)
+
+    def test_space_in_filename(self):
+        outdir = tempfile.mkdtemp(suffix="dataset unittest")
+        ofn = os.path.join(outdir, 'spaced.subreadset.xml')
+        ss = SubreadSet(data.getXml(10), strict=True)
+        ss.copyTo(ofn)
+        ss = SubreadSet(ofn, strict=True)
+        for fn in ss.toExternalFiles():
+            assert ' ' in fn
+        ss._modResources(partial(_pathChanger,
+                                 lambda x: ('file://' + quote(x)),
+                                 lambda x: x))
+        # have to dig deep to not get a processed version:
+        for er in ss.externalResources:
+            assert '%20' in er.attrib['ResourceId']
+        # this should have been cleaned for actual use:
+        for fn in ss.toExternalFiles():
+            assert ' ' in fn
+        ss.write(ofn)
+        ss = SubreadSet(ofn, strict=True)
+        shutil.rmtree(outdir)
 
     def test_empty_aligned_bam_index_dtype(self):
         # Make sure the BAM and DataSet APIs are consistent

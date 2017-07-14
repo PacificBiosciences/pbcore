@@ -38,6 +38,7 @@
 import os
 import re
 from urlparse import urlparse
+from urllib import unquote
 import xml.etree.ElementTree as ET
 import logging
 
@@ -61,7 +62,7 @@ def validateResources(xmlroot, relTo='.'):
         resId = element.get('ResourceId')
         if resId:
             parsedId = urlparse(resId)
-            rfn = urlparse(resId).path.strip()
+            rfn = unquote(urlparse(resId).path.strip())
             if not os.path.exists(rfn):
                 if (not os.path.exists(os.path.join(relTo,
                                                     rfn)) and

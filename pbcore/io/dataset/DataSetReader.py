@@ -39,28 +39,16 @@ import os.path
 import functools
 import xml.etree.ElementTree as ET
 import logging
-from urlparse import urlparse
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata,
                                               Filters, AutomationParameters,
-                                              StatsMetadata)
+                                              StatsMetadata, uri2fn,
+                                              resolveLocation, uri2scheme)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 
 log = logging.getLogger(__name__)
-
-def resolveLocation(fname, possibleRelStart=None):
-    """Find the absolute path of a file that exists relative to
-    possibleRelStart."""
-    if possibleRelStart != None:
-        if os.path.exists(possibleRelStart):
-            if os.path.exists(os.path.join(possibleRelStart, fname)):
-                return os.path.abspath(os.path.join(possibleRelStart, fname))
-    if os.path.exists(fname):
-        return os.path.abspath(fname)
-    log.error("Including unresolved file: {f}".format(f=fname))
-    return fname
 
 def populateDataSet(dset, filenames):
     for filename in filenames:
@@ -80,13 +68,8 @@ def _addFile(dset, filename):
                     'fofn': _addFofnFile,
                     '': _addUnknownFile,
                     'file': _addUnknownFile}
-    url = urlparse(filename)
-    fileType = url.scheme
-    fileLocation = url.path.strip()
-    if url.netloc:
-        fileLocation = url.netloc
-    elif os.path.exists(fileLocation):
-        fileLocation = os.path.abspath(fileLocation)
+    fileType = uri2scheme(filename)
+    fileLocation = uri2fn(filename)
     handledTypes[fileType](dset, fileLocation)
 
 def checksts(dset, subdatasets=False):
@@ -306,10 +289,7 @@ def _parseXmlFilters(element):
     return Filters(_eleToDictList(element))
 
 def parseStats(filename):
-    url = urlparse(filename)
-    fileLocation = url.path.strip()
-    if url.netloc:
-        fileLocation = url.netloc
+    fileLocation = uri2fn(filename)
     tree = ET.parse(fileLocation)
     root = tree.getroot()
     root = _updateStats(root)
@@ -318,10 +298,7 @@ def parseStats(filename):
     return stats
 
 def parseMetadata(filename):
-    url = urlparse(filename)
-    fileLocation = url.path.strip()
-    if url.netloc:
-        fileLocation = url.netloc
+    fileLocation = uri2fn(filename)
     tree = ET.parse(fileLocation)
     dsm_tag = (".//{http://pacificbiosciences.com/PacBioDatasets.xsd}"
                "DataSetMetadata")
