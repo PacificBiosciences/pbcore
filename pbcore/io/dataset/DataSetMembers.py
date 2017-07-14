@@ -933,19 +933,29 @@ class Filters(RecordWrapper):
     def broadcastFilters(self, filts):
         """
         Filt is a list of Filter objects or lists of reqs.
+        Take all existing filters, duplicate and combine with each new filter
         """
-        existing = list(self)
-        if len(filts) > 1:
-            origFilts = copy.deepcopy(list(self))
-            existing = [copy.deepcopy(origFilts) for _ in len(filts)]
+        if not len(filts):
+            # nothing to do
+            return
+        existing = [Filter()]
+        if len(self):
+            existing = copy.deepcopy(list(self))
+        existing = [copy.deepcopy(existing) for _ in filts]
 
+        new = []
         for filt, efilts in zip(filts, existing):
             if isinstance(filt, Filter):
                 filt = [(p.name, p.operator, p.value) for p in filt]
             for efilt in efilts:
                 for name, oper, val in filt:
                     efilt.addRequirement(name, oper, val)
+                new.append(efilt)
 
+        while len(self):
+            self.pop(0)
+        for filt in new:
+            self.append(filt)
         log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
 
@@ -969,6 +979,7 @@ class Filters(RecordWrapper):
         for req, opvals in kwargs.items():
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, opval[0], opval[1])
+        self._runCallbacks()
 
     def removeRequirement(self, req):
         log.debug("Removing requirement {r}".format(r=req))
@@ -1035,7 +1046,6 @@ class Filter(RecordWrapper):
 
     def merge(self, other):
         pass
-
 
 class Properties(RecordWrapper):
 

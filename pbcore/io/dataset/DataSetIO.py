@@ -1597,19 +1597,31 @@ class DataSet(object):
         """
         ranges = []
         for filt in self._filters:
-            movie, start, end = None, 0, 0
-            values = []
+            movies = []
+            starts = []
+            ends = []
+            # it is possible, e.g. if splitting a previously split dataset, to
+            # get filters with overlapping ranges, one of which is more
+            # restrictive than the other. We need to collapse these.
             for param in filt:
                 if param.name == "movie":
-                    movie = param.value
+                    movies.append(param.value)
                 elif param.name == "zm":
                     ival = int(param.value)
                     if param.operator == '>':
                         ival += 1
+                        starts.append(ival)
                     elif param.operator == '<':
                         ival -= 1
-                    values.append(ival)
-            ranges.append((movie, min(values), max(values)))
+                        ends.append(ival)
+            # this is a single filter, all parameters are AND'd. Therefore
+            # multiple movies cannot be satisfied. Ignore in those cases. Where
+            # we have multiple params for the same movie, we assume that one
+            # range is a subset of the other, and pick the most restrictive.
+            # This depends on dataset.split respecting the existing filters.
+            if len(set(movies)) == 1:
+                ranges.append((movies[0], max(starts), min(ends)))
+        ranges = list(set(ranges))
         return ranges
 
     # FIXME this is a workaround for the lack of support for barcode chunking
@@ -2273,11 +2285,10 @@ class ReadSet(DataSet):
                 zmwStart = chunk[0]['holeNumber']
                 zmwEnd = chunk[-1]['holeNumber']
                 res._filters.clearCallbacks()
-                res._filters.addRequirement(
-                    movie=[('=', movieName)],
-                    zm=[('<', zmwEnd+1)])
-                res._filters.addRequirement(
-                    zm=[('>', zmwStart-1)])
+                newfilt = [[('movie', '=', movieName),
+                             ('zm', '<', zmwEnd + 1),
+                             ('zm', '>', zmwStart - 1)]]
+                res._filters.broadcastFilters(newfilt)
             else:
                 movieNames = []
                 zmwStarts = []
@@ -2288,11 +2299,12 @@ class ReadSet(DataSet):
                     zmwStarts.append(chunk[inds[0]]['holeNumber'])
                     zmwEnds.append(chunk[inds[-1]]['holeNumber'])
                 res._filters.clearCallbacks()
-                res._filters.addRequirement(
-                    movie=[('=', mn) for mn in movieNames],
-                    zm=[('<', ze + 1) for ze in zmwEnds])
-                res._filters.mapRequirement(
-                    zm=[('>', zs - 1) for zs in zmwStarts])
+                newfilts = []
+                for mn, ze, zs in zip(movieNames, zmwEnds, zmwStarts):
+                    newfilts.append([('movie', '=', mn),
+                                     ('zm', '<', ze + 1),
+                                     ('zm', '>', zs - 1)])
+                res._filters.broadcastFilters(newfilts)
             res.numRecords = len(chunk)
             res.totalLength = sum(chunk['qEnd'] - chunk['qStart'])
             res.newUuid()
@@ -2319,7 +2331,7 @@ class ReadSet(DataSet):
             if len(set(tbr['ID'])) < len(tbr):
                 self._readGroupTableIsRemapped = True
                 tbr['ID'] = range(len(tbr))
-            return tbr
+            return tbr.view(np.recarray)
         else:
             return responses[0]
 
