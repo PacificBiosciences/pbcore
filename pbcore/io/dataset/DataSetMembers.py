@@ -933,8 +933,11 @@ class Filters(RecordWrapper):
     def broadcastFilters(self, filts):
         """
         Filt is a list of Filter objects or lists of reqs.
+        Take all existing filters, duplicate and combine with each new filter
         """
-        # TODO: fix this to work with one filt in filts and no existing. Add tests
+        if not len(filts):
+            # nothing to do
+            return
         existing = [Filter()]
         if len(self):
             existing = copy.deepcopy(list(self))
@@ -1043,7 +1046,6 @@ class Filter(RecordWrapper):
 
     def merge(self, other):
         pass
-
 
 class Properties(RecordWrapper):
 

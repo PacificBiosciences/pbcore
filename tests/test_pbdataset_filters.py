@@ -94,7 +94,22 @@ class TestDataSetFilters(unittest.TestCase):
                  [('zm', '<', 2000),
                   ('zm', '>', '1000')]]
 
-        # no filters:
+        # no new filters, no existing:
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.broadcastFilters([])
+        self.assertEqual(str(ds0.filters), '')
+        self.assertEqual(len(list(ds0.records)), 92)
+
+        # no new filters, one existing:
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        self.assertEqual(str(ds0.filters), '( rname = E.faecalis.1 )')
+        self.assertEqual(len(list(ds0.records)), 20)
+        ds0.filters.broadcastFilters([])
+        self.assertEqual(str(ds0.filters), '( rname = E.faecalis.1 )')
+        self.assertEqual(len(list(ds0.records)), 20)
+
+        # no existing filters:
         ds0 = AlignmentSet(data.getXml(8))
         self.assertEqual(len(list(ds0.records)), 92)
 

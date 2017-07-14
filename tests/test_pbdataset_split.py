@@ -283,8 +283,6 @@ class TestDataSetSplit(unittest.TestCase):
                    ('=',
                 'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')],
             zm=[('>', 10), ('>', 127900)])
-        print ''
-        print ds1.filters
         ds1.filters.mapRequirement(
             zm=[('<', 10000), ('<', 140000)])
         FILT_RECORDS = 117776
@@ -294,8 +292,6 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(len(ds1), FILT_RECORDS)
 
         dss = ds1.split(chunks=1, zmws=True)
-        dss[0]._index = None
-        dss[0].updateCounts()
 
         self.assertEqual(len(dss), 1)
         self.assertEqual(len(dss[0]), FILT_RECORDS)
@@ -303,21 +299,17 @@ class TestDataSetSplit(unittest.TestCase):
                          FILT_RECORDS)
 
         dss = ds1.split(chunks=12, zmws=True)
-        for ds_ in dss:
-            print ''
-            print ds_.filters
-            print ds_.zmwRanges
         self.assertEqual(len(dss), 12)
         self.assertEqual(sum([len(ds_) for ds_ in dss]),
                          FILT_RECORDS)
         self.assertEqual(
             dss[0].zmwRanges,
             [('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-              7, 22099)])
+              11, 1515)])
         self.assertEqual(
             dss[-1].zmwRanges,
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
-              127819, 163468)])
+              137634, 139999)])
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
