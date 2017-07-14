@@ -100,15 +100,46 @@ import ast
 import uuid
 import copy
 import logging
+import os
 import operator as OP
 import numpy as np
 import re
+from urlparse import urlparse
+from urllib import unquote
 from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 
 log = logging.getLogger(__name__)
+
+def uri2fn(fn):
+    url = urlparse(fn)
+    fn = url.path
+    if url.netloc:
+        fn = url.netloc
+    fn = unquote(fn.strip())
+    if os.path.exists(fn):
+        fn = os.path.abspath(fn)
+    return fn
+
+def uri2scheme(fn):
+    return urlparse(fn).scheme
+
+
+def resolveLocation(fname, possibleRelStart=None):
+    """Find the absolute path of a file that exists relative to
+    possibleRelStart."""
+    fname = uri2fn(fname)
+    if possibleRelStart != None:
+        if os.path.exists(possibleRelStart):
+            if os.path.exists(os.path.join(possibleRelStart, fname)):
+                return os.path.abspath(os.path.join(possibleRelStart, fname))
+    if os.path.exists(fname):
+        return os.path.abspath(fname)
+    log.error("Including unresolved file: {f}".format(f=fname))
+    return fname
+
 
 def newUuid(record):
     # At some point the uuid may need to be a digest
@@ -1228,7 +1259,7 @@ class ExternalResource(RecordWrapper):
 
     @property
     def resourceId(self):
-        return self.getV('attrib', 'ResourceId')
+        return resolveLocation(self.getV('attrib', 'ResourceId'))
 
     @resourceId.setter
     def resourceId(self, value):
