@@ -119,19 +119,6 @@ def uri2fn(fn):
 def uri2scheme(fn):
     return urlparse(fn).scheme
 
-def resolveLocation(fname, possibleRelStart=None):
-    """Find the absolute path of a file that exists relative to
-    possibleRelStart."""
-    fname = uri2fn(fname)
-    if (possibleRelStart is not None and
-            os.path.exists(possibleRelStart) and
-            os.path.exists(os.path.join(possibleRelStart, fname))):
-        return os.path.abspath(os.path.join(possibleRelStart, fname))
-    if os.path.exists(fname):
-        return os.path.abspath(fname)
-    log.error("Including unresolved file: {f}".format(f=fname))
-    return fname
-
 def newUuid(record):
     # At some point the uuid may need to be a digest
     #import hashlib
@@ -1250,7 +1237,7 @@ class ExternalResource(RecordWrapper):
 
     @property
     def resourceId(self):
-        return resolveLocation(self.getV('attrib', 'ResourceId'))
+        return uri2fn(self.getV('attrib', 'ResourceId'))
 
     @resourceId.setter
     def resourceId(self, value):

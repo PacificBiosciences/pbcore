@@ -44,11 +44,24 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               DataSetMetadata,
                                               Filters, AutomationParameters,
                                               StatsMetadata, uri2fn,
-                                              resolveLocation, uri2scheme)
+                                              uri2scheme)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 
 log = logging.getLogger(__name__)
+
+def resolveLocation(fname, possibleRelStart=None):
+    """Find the absolute path of a file that exists relative to
+    possibleRelStart."""
+    fname = uri2fn(fname)
+    if (possibleRelStart is not None and
+            os.path.exists(possibleRelStart) and
+            os.path.exists(os.path.join(possibleRelStart, fname))):
+        return os.path.abspath(os.path.join(possibleRelStart, fname))
+    if os.path.exists(fname):
+        return os.path.abspath(fname)
+    log.error("Including unresolved file: {f}".format(f=fname))
+    return fname
 
 def populateDataSet(dset, filenames):
     for filename in filenames:
