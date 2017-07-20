@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2017, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -14,25 +14,18 @@
 #   contributors may be used to endorse or promote products derived from
 #   this software without specific prior written permission.
 #
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED
-# BY
+# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
 # THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-# BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES
-# OR
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
+# NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
 # ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-# PROFITS; OR
-# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
-# THE
-# POSSIBILITY OF SUCH DAMAGE.
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
 # Author: Martin D. Smith
@@ -132,6 +125,23 @@ def newUuid(record):
     # Today is not that day
     return str(uuid.uuid4())
 
+def map_val_or_vec(func, target):
+    if isinstance(target, (list, tuple, np.ndarray)):
+        return map(func, target)
+    else:
+        return func(target)
+
+def inNd(arrs1, arrs2):
+    if isinstance(arrs1, tuple):
+        # a tuple of numpy columns to check:
+        res = np.ones(len(arrs1[0]), dtype=np.bool_)
+        for a1, a2 in zip(arrs1, arrs2):
+            res &= np.in1d(a1, a2)
+        return res
+    else:
+        # just two numpy columns:
+        return np.in1d(arrs1, arrs2)
+
 OPMAP = {'==': OP.eq,
          '=': OP.eq,
          'eq': OP.eq,
@@ -149,7 +159,8 @@ OPMAP = {'==': OP.eq,
          '<': OP.lt,
          '&lt;': OP.lt,
          'lt': OP.lt,
-         'in': np.in1d,
+         'in': inNd,
+         'not_in': lambda x, y: ~inNd(x, y),
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
         }
@@ -170,7 +181,11 @@ def str2list(value):
     return value
 
 def setify(value):
-    return set(str2list(value))
+    return np.unique(str2list(value))
+
+def fromFile(value):
+    with open(value, 'rU') as ifh:
+        return np.unique([val.strip() for val in ifh])
 
 def isListString(string):
     """Detect if string is actually a representation a stringified list"""
@@ -178,6 +193,32 @@ def isListString(string):
     listver = str2list(string)
     if len(listver) > 1 or re.search('[\[\(\{].+[\}\)\]]', string):
         return True
+
+def isFile(string):
+    if isinstance(string, str) and os.path.exists(string):
+        return True
+    return False
+
+def qnamer(qid2mov, qId, hn, qs, qe):
+    movs = np.empty_like(qId, dtype='S{}'.format(
+        max(map(len, qid2mov.values()))))
+    for k, v in qid2mov.items():
+        movs[qId == k] = v
+    return (movs, hn, qs, qe)
+
+def breakqname(qname):
+    mov, hn, span = qname.split('/')
+    if '_' in span:
+        qs, qe = span.split('_')
+        return mov, int(hn), int(qs), int(qe)
+    else:
+        # The default values in pbi if CCS:
+        return mov, int(hn), -1, -1
+
+def qname2vec(qnames):
+    if isinstance(qnames, str):
+        qnames = [qnames]
+    return zip(*[breakqname(q) for q in qnames])
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -637,9 +678,8 @@ class Filters(RecordWrapper):
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
-                # This is never used as such, is modified below
-                # TODO make this more elegant
-                'qname': (lambda x: x.qId),
+                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
+                                              x.qEnd)),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
@@ -669,9 +709,8 @@ class Filters(RecordWrapper):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
-                # This is never used as such, is modified below
-                # TODO make this more elegant
-                'qname': (lambda x: x.qId),
+                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
+                                              x.qEnd)),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -750,10 +789,14 @@ class Filters(RecordWrapper):
         if readType == 'bam':
             typeMap = self._bamTypeMap
             accMap = self._pbiVecAccMap()
+            # check for mappings:
             if 'tStart' in indexRecords.dtype.names:
                 accMap = self._pbiMappedVecAccMap()
                 if 'RefGroupID' in indexRecords.dtype.names:
                     accMap['rname'] = (lambda x: x.RefGroupID)
+            accMap['qname'] = P(accMap['qname'],
+                                {v:k for k, v in movieMap.items()})
+            # check for hdf resources:
             if 'MovieID' in indexRecords.dtype.names:
                 # TODO(mdsmith)(2016-01-29) remove these once the fields are
                 # renamed:
@@ -780,18 +823,28 @@ class Filters(RecordWrapper):
                     # Have to be careful with bc and other values that are
                     # natively lists, but still single values
                     opstr = req.operator
-                    if opstr == 'in':
-                        value = map(typeMap[param], setify(req.value))
-                    elif (opstr in ('=', '==') and isListString(req.value) and
-                            not param in ('cx', 'bc')):
-                        value = map(typeMap[param], setify(req.value))
-                        opstr = 'in'
-                    else:
-                        value = typeMap[param](req.value)
+                    value = req.value
+                    if ((isListString(value) or isFile(value)) and
+                            not param in ('cx', 'bc')) or param == 'qname':
+                        if mapOp(opstr) == OP.eq:
+                            opstr = 'in'
+                        elif mapOp(opstr) == OP.ne:
+                            opstr = 'not_in'
+
+                    if opstr in ('in', 'not_in'):
+                        if isFile(value):
+                            value = fromFile(value)
+                        elif isListString(value):
+                            value = setify(value)
+                    value = map_val_or_vec(typeMap[param], value)
+
                     if param == 'rname':
-                        value = nameMap[value]
-                    if param == 'movie':
-                        value = movieMap[value]
+                        value = map_val_or_vec(nameMap.get, value)
+                    elif param == 'movie':
+                        value = map_val_or_vec(movieMap.get, value)
+                    elif param == 'qname':
+                        value = qname2vec(value)
+
                     if param == 'bc':
                         # convert string to list:
                         values = ast.literal_eval(value)
@@ -809,47 +862,6 @@ class Filters(RecordWrapper):
                         operator = mapOp(opstr)
                         reqResultsForRecords &= operator(
                             accMap[param](indexRecords), value)
-                    elif param == 'qname':
-                        # TODO: optimize "in" version...
-                        if not isinstance(value, list):
-                            values = [value]
-                        else:
-                            values = value
-                        reqResultsForRecords = np.zeros(len(indexRecords),
-                                                        dtype=np.bool_)
-                        #tempRes = np.ones(len(indexRecords), dtype=np.bool_)
-                        for value in values:
-                            movie, hole, span = value.split('/')
-                            operator = mapOp(opstr)
-
-                            param = 'movie'
-                            value = movieMap[movie]
-                            #reqResultsForRecords = operator(
-                            #    accMap[param](indexRecords), value)
-                            tempRes = operator(
-                                accMap[param](indexRecords), value)
-
-                            param = 'zm'
-                            value = typeMap[param](hole)
-                            #reqResultsForRecords &= operator(
-                            #    accMap[param](indexRecords), value)
-                            tempRes &= operator(
-                                accMap[param](indexRecords), value)
-
-                            param = 'qstart'
-                            value = typeMap[param](span.split('_')[0])
-                            #reqResultsForRecords &= operator(
-                            #    accMap[param](indexRecords), value)
-                            tempRes &= operator(
-                                accMap[param](indexRecords), value)
-
-                            param = 'qend'
-                            value = typeMap[param](span.split('_')[1])
-                            #reqResultsForRecords &= operator(
-                            #    accMap[param](indexRecords), value)
-                            tempRes &= operator(
-                                accMap[param](indexRecords), value)
-                            reqResultsForRecords |= tempRes
                     else:
                         operator = mapOp(opstr)
                         reqResultsForRecords = operator(
