@@ -313,4 +313,20 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- Sequel® Sequencing Plate Silwet -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>101-309-500</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® Sequencing Plate Silwet (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>101-309-400</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
