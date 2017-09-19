@@ -21,8 +21,14 @@ class TestDataSet(unittest.TestCase):
 
     def test_existing(self):
         ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
-        self.assertEqual(ds.metadata.bioSamples[0].name,
-                         'consectetur purus')
+        self.assertEqual(
+            ds.metadata.collections[0].wellSample.bioSamples[0].name,
+            'consectetur purus')
+
+        self.assertEqual(
+            ds.metadata.collections[
+                0].wellSample.bioSamples[0].DNABarcodes[0].name,
+            'F1--R1')
 
         self.assertTrue(ds.metadata.collections[0].getV('children',
                                                         'Automation'))
@@ -70,6 +76,18 @@ class TestDataSet(unittest.TestCase):
         ss.metadata.collections[0].wellSample.concentration = 'baz'
         self.assertEqual('baz',
                          ss.metadata.collections[0].wellSample.concentration)
+
+        ss.metadata.collections[0].wellSample.bioSamples.addSample('Clown')
+        self.assertEqual(
+            'Clown',
+            ss.metadata.collections[0].wellSample.bioSamples[0].name)
+
+        ss.metadata.collections[
+                0].wellSample.bioSamples[0].DNABarcodes.addBarcode('Dentist')
+        self.assertEqual(
+            'Dentist',
+            ss.metadata.collections[
+                0].wellSample.bioSamples[0].DNABarcodes[0].name)
         ss.write(ofn, validate=False)
 
     @unittest.skipIf(not _internal_data(),
@@ -91,7 +109,6 @@ class TestDataSet(unittest.TestCase):
         sset.loadMetadata('/pbi/dept/secondary/siv/testdata/'
                           'SA3-Sequel/lambda/roche_SAT/'
                           'm54013_151205_032353.run.metadata.xml')
-        stack = zip(sset.metadata, orig_metadata)
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         sset.write(fn)
         validateFile(fn)

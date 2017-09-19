@@ -691,16 +691,13 @@ class TestDataSetSplit(unittest.TestCase):
         sset = SubreadSet(human)
         ssets = sset.split(zmws=True, maxChunks=5)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
     def test_subreadset_split_metadata_element_name(self):
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         log.debug(fn)
-        sset = SubreadSet("/pbi/dept/secondary/siv/testdata/"
-                          "SA3-Sequel/phi29/315/3150101/"
-                          "r54008_20160219_002905/1_A01/"
-                          "m54008_160219_003234.subreadset.xml")
+        sset = SubreadSet(data.getXml(10),
+                          data.getXml(13))
         chunks = sset.split(chunks=5, zmws=False, ignoreSubDatasets=True)
+        self.assertEqual(len(chunks), 2)
         chunks[0].write(fn)
 
     def test_contigset_split(self):

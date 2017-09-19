@@ -236,26 +236,32 @@ class PbiFlags(object):
         return reduce(OP.or_,
                       (getattr(cls, fl.strip()) for fl in flag.split('|')))
 
-def subgetter(key, container='text', default=None, asType=(lambda x: x)):
+def subgetter(key, container='text', default=None, asType=(lambda x: x),
+              attrib=None):
     def get(self):
         return self.getMemberV(key, container=container, default=default,
-                               asType=asType)
+                               asType=asType, attrib=attrib)
     return property(get)
 
-def subsetter(key, container='text'):
+def subsetter(key, container='text', attrib=None):
     def set(self, value):
         self._runCallbacks()
-        self.setMemberV(key, str(value), container=container)
+        self.setMemberV(key, str(value), container=container, attrib=attrib)
     return set
 
-def subaccs(key, container='text', default=None, asType=(lambda x: x)):
-    get = subgetter(key, container=container, default=default, asType=asType)
-    get = get.setter(subsetter(key, container=container))
+def subaccs(key, container='text', default=None, asType=(lambda x: x),
+            attrib=None):
+    get = subgetter(key, container=container, default=default, asType=asType,
+                    attrib=attrib)
+    get = get.setter(subsetter(key, container=container, attrib=attrib))
     return get
 
-def getter(key, container='attrib', asType=(lambda x: x)):
+def getter(key, container='attrib', asType=(lambda x: x), parent=False):
     def get(self):
-        return asType(self.getV(container, key))
+        if parent:
+            return asType(self.getV(container, key), parent=self)
+        else:
+            return asType(self.getV(container, key))
     return property(get)
 
 def setter(key, container='attrib'):
@@ -264,8 +270,8 @@ def setter(key, container='attrib'):
         self.setV(str(value), container, key)
     return set
 
-def accs(key, container='attrib', asType=(lambda x: x)):
-    get = getter(key, container, asType)
+def accs(key, container='attrib', asType=(lambda x: x), parent=False):
+    get = getter(key, container, asType, parent=parent)
     get = get.setter(setter(key, container))
     return get
 
@@ -402,21 +408,29 @@ class RecordWrapper(object):
     def merge(self, other):
         pass
 
-    def getMemberV(self, tag, container='text', default=None, asType=str):
+    def getMemberV(self, tag, container='text', default=None, asType=str,
+                   attrib=None):
         """Generic accessor for the contents of the children of this element,
         without having to interface with them directly"""
         try:
-            return asType(self.record['children'][self.index(str(tag))][
+            tbr = asType(self.record['children'][self.index(str(tag))][
                 str(container)])
+            if container == 'attrib':
+                return tbr[attrib]
+            return tbr
         except (KeyError, ValueError):
             return default
 
-    def setMemberV(self, tag, value, container='text'):
+    def setMemberV(self, tag, value, container='text', attrib=None):
         """Generic accessor for the contents of the children of this element,
         without having to interface with them directly"""
         try:
-            self.record['children'][self.index(str(tag))][str(container)] = (
-                str(value))
+            if container == 'attrib':
+                self.record['children'][self.index(str(tag))][str(container)][attrib] = (
+                    str(value))
+            else:
+                self.record['children'][self.index(str(tag))][str(container)] = (
+                    str(value))
         except ValueError:
             if container == 'text':
                 newMember = _emptyMember(tag=tag, text=value)
@@ -1584,13 +1598,13 @@ class DataSetMetadata(RecordWrapper):
 
 class SubreadSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to SubreadSets. Deals explicitly
-    with the merging of Collections and BioSamples metadata hierarchies."""
+    with the merging of Collections metadata hierarchies."""
 
     TAG = 'DataSetMetadata'
 
     def __init__(self, record=None):
         # This doesn't really need to happen unless there are contextual
-        # differences in the meanings of subtypes (e.g. BioSamples mean
+        # differences in the meanings of subtypes (e.g. Collections mean
         # something different in SubreadSetMetadata vs ReferenceSetMetadata)
         if record:
             if (not isinstance(record, dict) and
@@ -1606,10 +1620,6 @@ class SubreadSetMetadata(DataSetMetadata):
             self.append(other.collections)
         else:
             self.collections.merge(other.collections)
-        if other.bioSamples and not self.bioSamples:
-            self.append(other.bioSamples)
-        else:
-            self.bioSamples.merge(other.bioSamples)
 
     @property
     def collections(self):
@@ -1624,13 +1634,6 @@ class SubreadSetMetadata(DataSetMetadata):
         self.removeChildren('Collections')
         if value:
             self.append(value)
-
-    @property
-    def bioSamples(self):
-        """Return a list of wrappers around BioSamples elements of the Metadata
-        Record"""
-        return BioSamplesMetadata(self.getV(tag='BioSamples',
-                                            container='children'))
 
 
 class ContigSetMetadata(DataSetMetadata):
@@ -2248,18 +2251,76 @@ class RunDetailsMetadata(RecordWrapper):
     name = subaccs('Name')
 
 
-class BioSamplePointersMetadata(RecordWrapper):
-    """The BioSamplePointer members don't seem complex enough to justify
-    class representation, instead rely on base class methods to provide
-    iterators and accessors"""
+class BioSamplesMetadata(RecordWrapper):
+    """The metadata for the list of BioSamples
 
-    TAG = 'BioSamplePointers'
+        Doctest:
+            >>> from pbcore.io import SubreadSet
+            >>> import pbcore.data.datasets as data
+            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
+            >>> ds.metadata.collections[0].wellSample.bioSamples[0].name
+            'consectetur purus'
+            >>> for bs in ds.metadata.collections[0].wellSample.bioSamples:
+            ...     print bs.name
+            consectetur purus
+            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
+            ...       'attrib':{'Name':'great biosample'}}
+            >>> ds.metadata.collections[0].wellSample.bioSamples.append(em)
+            >>> ds.metadata.collections[0].wellSample.bioSamples[1].name
+            'great biosample'
+        """
+
+    TAG = 'BioSamples'
+
+    def __getitem__(self, index):
+        """Get a biosample"""
+        return BioSampleMetadata(self.record['children'][index])
+
+    def __iter__(self):
+        """Iterate over biosamples"""
+        for child in self.record['children']:
+            yield BioSampleMetadata(child)
+
+    def merge(self, other):
+        self.extend([child for child in other])
+
+    def addSample(self, name):
+        new = BioSampleMetadata()
+        new.name = name
+        self.append(new)
+
+
+class DNABarcode(RecordWrapper):
+    TAG = 'DNABarcode'
+
+
+class DNABarcodes(RecordWrapper):
+    TAG = 'DNABarcodes'
+
+    def __getitem__(self, index):
+        """Get a DNABarcode"""
+        return DNABarcode(self.record['children'][index])
+
+    def __iter__(self):
+        """Iterate over DNABarcode"""
+        for child in self.record['children']:
+            yield DNABarcode(child)
+
+    def addBarcode(self, name):
+        new = DNABarcode()
+        new.name = name
+        self.append(new)
+        self._runCallbacks()
+
+
+class BioSampleMetadata(RecordWrapper):
+    """The metadata for a single BioSample"""
+    TAG = 'BioSample'
+    DNABarcodes = accs('DNABarcodes', 'children', DNABarcodes, parent=True)
 
 
 class WellSampleMetadata(RecordWrapper):
-
     TAG = 'WellSample'
-
     wellName = subaccs('WellName')
     concentration = subaccs('Concentration')
     sampleReuseEnabled = subgetter('SampleReuseEnabled')
@@ -2267,19 +2328,19 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-    bioSamplePointers = accs('BioSamplePointers', container='children',
-                             asType=BioSamplePointersMetadata)
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata)
 
+    def __init__(self, *args, **kwargs):
+        super(self.__class__, self).__init__(*args, **kwargs)
+        self.append(BioSamplesMetadata())
 
 class CopyFilesMetadata(RecordWrapper):
     """The CopyFile members don't seem complex enough to justify
     class representation, instead rely on base class methods"""
-
     TAG = 'CopyFiles'
 
 
 class OutputOptions(RecordWrapper):
-
     resultsFolder = subaccs('ResultsFolder')
     collectionPathUri = subaccs('CollectionPathUri')
     copyFiles = accs('CopyFiles', container='children',
@@ -2287,9 +2348,7 @@ class OutputOptions(RecordWrapper):
 
 
 class SecondaryMetadata(RecordWrapper):
-
     TAG = 'Secondary'
-
     cellCountInJob = subaccs('CellCountInJob')
 
 
@@ -2322,46 +2381,6 @@ class PrimaryMetadata(RecordWrapper):
     sequencingCondition = subaccs('SequencingCondition')
     outputOptions = accs('OutputOptions', container='children',
                          asType=OutputOptions)
-
-
-class BioSamplesMetadata(RecordWrapper):
-    """The metadata for the list of BioSamples
-
-        Doctest:
-            >>> from pbcore.io import SubreadSet
-            >>> import pbcore.data.datasets as data
-            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
-            >>> ds.metadata.bioSamples[0].name
-            'consectetur purus'
-            >>> for bs in ds.metadata.bioSamples:
-            ...     print bs.name
-            consectetur purus
-            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
-            ...       'attrib':{'Name':'great biosample'}}
-            >>> ds.metadata.bioSamples.extend([em])
-            >>> ds.metadata.bioSamples[1].name
-            'great biosample'
-        """
-
-    TAG = 'BioSamples'
-
-    def __getitem__(self, index):
-        """Get a biosample"""
-        return BioSampleMetadata(self.record['children'][index])
-
-    def __iter__(self):
-        """Iterate over biosamples"""
-        for child in self.record['children']:
-            yield BioSampleMetadata(child)
-
-    def merge(self, other):
-        self.extend([child for child in other])
-
-
-class BioSampleMetadata(RecordWrapper):
-    """The metadata for a single BioSample"""
-
-    TAG = 'BioSample'
 
 class Kit(RecordWrapper):
     partNumber = accs('PartNumber')
