@@ -2662,6 +2662,29 @@ class SubreadSet(ReadSet):
                 'pbi':'PacBio.Index.PacBioIndex',
                 }
 
+    def getMovieSampleNames(self):
+        """
+        Map the BioSample names in Collection metadata to "context" ID, i.e.
+        movie names.  Used for deconvoluting multi-sample
+        inputs.  This function will raise a KeyError if a movie name is not
+        unique, or a ValueError if there is not a 1-to-1 mapping of sample to
+        to movie.
+        """
+        movie_to_sample = {}
+        for collection in self.metadata.collections:
+            bio_samples = [b.name for b in collection.wellSample.bioSamples]
+            movie_name = collection.context
+            n_bio_samples = len(bio_samples)
+            if n_bio_samples == 1:
+                if movie_to_sample.get(movie_name, None) == bio_samples[0]:
+                    raise KeyError("Collection context {c} occurs more than once".format(c=movie_name))
+                movie_to_sample[movie_name] = bio_samples[0]
+            elif n_bio_samples == 0:
+                raise ValueError("No BioSample records for collection {c}".format(c=movie_name))
+            else:
+                raise ValueError("Collection {c} has multiple BioSample records".format(c=movie_name))
+        return movie_to_sample
+
 
 class AlignmentSet(ReadSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
