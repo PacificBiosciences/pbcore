@@ -45,9 +45,10 @@
                                 false
                             </pbmeta:SizeSelectionEnabled>
                <pbmeta:UseCount>1</pbmeta:UseCount>
-               <pbsample:BioSamplePointers xmlns:pbsample="http://pacificbiosciences.com/PacBioSampleInfo.xsd">
-                  <pbsample:BioSamplePointer>a0ad6e5b-a522-405b-8e50-d622e1ca9858</pbsample:BioSamplePointer>
-               </pbsample:BioSamplePointers>
+               <pbsample:BioSamples xmlns:pbsample="http://pacificbiosciences.com/PacBioSampleInfo.xsd">
+                  <pbsample:BioSample
+                      Name="Inst42268-030715-2kb-P4-0.05nM-2Chips-FAT3" />
+               </pbsample:BioSamples>
             </pbmeta:WellSample>
             <pbmeta:Automation>
                <pbbase:AutomationParameters xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd">
@@ -73,12 +74,5 @@
             </pbmeta:Primary>
          </pbmeta:CollectionMetadata>
       </pbmeta:Collections>
-      <pbsample:BioSamples xmlns:pbsample="http://pacificbiosciences.com/PacBioSampleInfo.xsd">
-         <pbsample:BioSample UniqueId="a0ad6e5b-a522-405b-8e50-d622e1ca9858"
-                             TimeStampedName="biosample_2015-08-04T19:12:20.971-08:00"
-                             MetaType="PacBio.Sample"
-                             Name="Inst42268-030715-2kb-P4-0.05nM-2Chips-FAT3"
-                             Description="Inst42268-030715-2kb-P4-0.05nM-2Chips-FAT3"/>
-      </pbsample:BioSamples>
    </pbds:DataSetMetadata>
 </pbds:HdfSubreadSet>
