@@ -4,6 +4,7 @@ import unittest
 import tempfile
 import copy
 import os
+from collections import Counter
 
 from pbcore.io import SubreadSet, AlignmentSet
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
@@ -21,6 +22,11 @@ class TestDataSet(unittest.TestCase):
 
     def test_existing(self):
         ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
+        # check that we aren't adding any additional biosamples elements:
+        self.assertEqual(
+            Counter(
+                ds.metadata.collections[0].wellSample.tags)['BioSamples'],
+            1)
         self.assertEqual(
             ds.metadata.collections[0].wellSample.bioSamples[0].name,
             'consectetur purus')
@@ -77,6 +83,12 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual('baz',
                          ss.metadata.collections[0].wellSample.concentration)
 
+        # There are no existing biosamples:
+        self.assertFalse(
+            'BioSamples' in ss.metadata.collections[0].wellSample.tags)
+        # Therefore the metadata is falsy
+        self.assertFalse(ss.metadata.collections[0].wellSample.bioSamples)
+
         ss.metadata.collections[0].wellSample.bioSamples.addSample('Clown')
         self.assertEqual(
             'Clown',
@@ -88,7 +100,16 @@ class TestDataSet(unittest.TestCase):
             'Dentist',
             ss.metadata.collections[
                 0].wellSample.bioSamples[0].DNABarcodes[0].name)
+
+        # check that we are adding one additional biosamples element:
+        self.assertEqual(
+            Counter(
+                ss.metadata.collections[0].wellSample.tags)['BioSamples'],
+            1)
+        # Therefore the metadata is truthy
+        self.assertTrue(ss.metadata.collections[0].wellSample.bioSamples)
         ss.write(ofn, validate=False)
+
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")

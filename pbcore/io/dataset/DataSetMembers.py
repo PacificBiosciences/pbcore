@@ -2281,13 +2281,11 @@ class BioSamplesMetadata(RecordWrapper):
         for child in self.record['children']:
             yield BioSampleMetadata(child)
 
-    def merge(self, other):
-        self.extend([child for child in other])
-
     def addSample(self, name):
         new = BioSampleMetadata()
         new.name = name
         self.append(new)
+        self._runCallbacks()
 
 
 class DNABarcode(RecordWrapper):
@@ -2328,11 +2326,12 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata)
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
+                      parent=True)
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)
-        self.append(BioSamplesMetadata())
+
 
 class CopyFilesMetadata(RecordWrapper):
     """The CopyFile members don't seem complex enough to justify
