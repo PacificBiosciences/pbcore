@@ -31,6 +31,14 @@ import pbcore.data as upstreamdata
 
 from utils import _pbtestdata, _check_constools, _internal_data
 
+try:
+    import pbtestdata
+except ImportError:
+    pbtestdata = None
+
+skip_if_no_pbtestdata = unittest.skipUnless(pbtestdata is not None,
+                                            "PacBioTestData not installed")
+
 log = logging.getLogger(__name__)
 
 class TestDataSet(unittest.TestCase):
@@ -2573,3 +2581,13 @@ class TestDataSet(unittest.TestCase):
                    relPaths=True)
         naset = AlignmentSet(ofn)
 
+    @skip_if_no_pbtestdata
+    def test_subreadset_get_movie_sample_names(self):
+        ds_file1 = pbtestdata.get_file("subreads-biosample-1")
+        ds_file2 = pbtestdata.get_file("subreads-biosample-2")
+        ds1 = SubreadSet(ds_file1, strict=True)
+        ds2 = SubreadSet(ds_file2, strict=True)
+        self.assertEqual(ds1.getMovieSampleNames(), {"m1": "Alice"})
+        self.assertEqual(ds2.getMovieSampleNames(), {"m2": "Bob"})
+        ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
+        self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
