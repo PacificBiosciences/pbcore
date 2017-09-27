@@ -1595,6 +1595,23 @@ class DataSetMetadata(RecordWrapper):
         except ValueError:
             return None
 
+    @provenance.setter
+    def provenance(self, value):
+        self.removeChildren('Provenance')
+        if value:
+            self.append(value)
+
+    def addParentDataSet(self, uniqueId, metaType, timeStampedName,
+                         createdBy="AnalysisJob"):
+        """
+        Add a ParentDataSet record in the Provenance section.  Currently only
+        used for SubreadSets.
+        """
+        new = Provenance()
+        new.createdBy = createdBy
+        self.provenance = new
+        return new.addParentDataSet(uniqueId, metaType, timeStampedName)
+
 
 class SubreadSetMetadata(DataSetMetadata):
     """The DataSetMetadata subtype specific to SubreadSets. Deals explicitly
@@ -1816,11 +1833,27 @@ class ParentTool(RecordWrapper):
     pass
 
 
+class ParentDataSet(RecordWrapper):
+
+    metaType = accs("MetaType")
+    timeStampedName = accs('TimeStampedName')
+
+
 class Provenance(RecordWrapper):
     """The metadata concerning this dataset's provenance"""
 
     createdBy = accs('CreatedBy')
     parentTool = accs('ParentTool', container='children', asType=ParentTool)
+    parentDataSet = accs("ParentDataSet", container="children", asType=ParentDataSet)
+
+    def addParentDataSet(self, uniqueId, metaType, timeStampedName):
+        new = ParentDataSet()
+        new.uniqueId = uniqueId
+        new.metaType = metaType
+        new.timeStampedName = timeStampedName
+        self.append(new)
+        self._runCallbacks()
+        return new
 
 
 class StatsMetadata(RecordWrapper):

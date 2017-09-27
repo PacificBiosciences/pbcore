@@ -98,6 +98,12 @@
 <pbds:DataSetMetadata>
     <pbds:TotalLength>500000</pbds:TotalLength>
     <pbds:NumRecords>500</pbds:NumRecords>
+    <pbds:Provenance CreatedBy="AnalysisJob">
+      <pbds:ParentDataSet
+        UniqueId="f81cf391-b3da-41f8-84cb-a0de71f460f4"
+        TimeStampedName="subreadset_150304_231154"
+        MetaType="PacBio.DataSet.SubreadSet"/>
+    </pbds:Provenance>
     <pbmeta:Collections>
         <pbmeta:CollectionMetadata 
             UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5393" 
