@@ -1056,3 +1056,17 @@ class TestDataSet(unittest.TestCase):
             str(cm.exception),
             ( "Companion FASTA index (.fai) file not found or malformatted! "
              "Use 'samtools faidx' to generate FASTA index."))
+
+    def test_subreads_parent_dataset(self):
+        ds1 = SubreadSet(data.getXml(no=5), skipMissing=True)
+        self.assertEqual(ds1.metadata.provenance.parentDataSet.uniqueId,
+                         "f81cf391-b3da-41f8-84cb-a0de71f460f4")
+        ds2 = SubreadSet(ds1.externalResources[0].bam, skipMissing=True)
+        self.assertEqual(ds2.metadata.provenance.parentDataSet.uniqueId, None)
+        ds2.metadata.addParentDataSet("f81cf391-b3da-41f8-84cb-a0de71f460f4",
+                                      "PacBio.DataSet.SubreadSet",
+                                      "timestamped_name")
+        self.assertEqual(ds2.metadata.provenance.parentDataSet.uniqueId,
+                         "f81cf391-b3da-41f8-84cb-a0de71f460f4")
+        ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds2.write(ds_out, validate=False)
