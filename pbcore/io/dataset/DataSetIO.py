@@ -1799,6 +1799,16 @@ class DataSet(object):
         return self.objMetadata.get('UniqueId')
 
     @property
+    def timeStampedName(self):
+        """The timeStampedName of this DataSet"""
+        return self.objMetadata.get('TimeStampedName')
+
+    @timeStampedName.setter
+    def timeStampedName(self, value):
+        """The timeStampedName of this DataSet"""
+        self.objMetadata['TimeStampedName'] = value
+
+    @property
     def name(self):
         """The name of this DataSet"""
         return self.objMetadata.get('Name', '')

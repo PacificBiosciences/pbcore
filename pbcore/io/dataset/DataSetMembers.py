@@ -289,6 +289,11 @@ def updateTag(ele, tag):
     if ele.metaname == '':
         ele.metaname = tag
 
+def updateNamespace(ele, ns):
+    if ele.namespace == '':
+        ele.namespace = ns
+
+
 class RecordWrapper(object):
     """The base functionality of a metadata element.
 
@@ -299,6 +304,7 @@ class RecordWrapper(object):
     # only things that should be kept with their parents (indices) should be
     # True
     KEEP_WITH_PARENT = False
+    NS = ''
 
     def __init__(self, record=None, parent=None):
         """Here, record is any element in the Metadata Element tree and a
@@ -327,6 +333,11 @@ class RecordWrapper(object):
                 # that it will be added to the XML file
                 self.registerCallback(runonce(P(parent.append, self.record)))
         assert 'tag' in self.record.keys()
+
+        # we could do the same with namespace, but it isn't used in nonzero, so
+        # we can just update it:
+        if not self.record.get('namespace', ''):
+            self.record['namespace'] = self.NS
 
 
     def registerCallback(self, func):
@@ -584,6 +595,7 @@ def filter_read(accessor, operator, value, read):
 
 
 class Filters(RecordWrapper):
+    NS = 'pbds'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -639,6 +651,8 @@ class Filters(RecordWrapper):
     def merge(self, other):
         # Just add it to the or list
         self.extend(Filters(other).submetadata)
+        # (mdsmith 28092017) I feel like we should be running callbacks here,
+        # but we've been doing fine without and it adds to the opening cost
 
     def testParam(self, param, value, testType=str, oper='='):
         options = [True] * len(list(self))
@@ -1029,6 +1043,7 @@ class Filters(RecordWrapper):
 
 
 class Filter(RecordWrapper):
+    NS = 'pbds'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1083,6 +1098,7 @@ class Filter(RecordWrapper):
         pass
 
 class Properties(RecordWrapper):
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1100,6 +1116,7 @@ class Properties(RecordWrapper):
 
 
 class Property(RecordWrapper):
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1135,7 +1152,7 @@ class Property(RecordWrapper):
 
 
 class ExternalResources(RecordWrapper):
-
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1236,7 +1253,7 @@ class ExternalResources(RecordWrapper):
 
 
 class ExternalResource(RecordWrapper):
-
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1499,7 +1516,7 @@ class ExternalResource(RecordWrapper):
             fileIndices.append(temp)
 
 class FileIndices(RecordWrapper):
-
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1514,6 +1531,7 @@ class FileIndices(RecordWrapper):
 
 
 class FileIndex(RecordWrapper):
+    NS = 'pbbase'
 
     KEEP_WITH_PARENT = True
 
@@ -1531,8 +1549,8 @@ class FileIndex(RecordWrapper):
 class DataSetMetadata(RecordWrapper):
     """The root of the DataSetMetadata element tree, used as base for subtype
     specific DataSet or for generic "DataSet" records."""
-
     TAG = 'DataSetMetadata'
+    NS = 'pbds'
 
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
@@ -1768,8 +1786,8 @@ class ContigMetadata(RecordWrapper):
 class CollectionsMetadata(RecordWrapper):
     """The Element should just have children: a list of
     CollectionMetadataTags"""
-
     TAG = 'Collections'
+    NS = 'pbmeta'
 
     def __getitem__(self, index):
         return CollectionMetadata(self.record['children'][index])
@@ -1783,6 +1801,7 @@ class CollectionsMetadata(RecordWrapper):
 
 
 class AutomationParameter(RecordWrapper):
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1792,6 +1811,7 @@ class AutomationParameter(RecordWrapper):
 
 
 class AutomationParameters(RecordWrapper):
+    NS = 'pbbase'
 
     def __init__(self, record=None):
         super(self.__class__, self).__init__(record)
@@ -1825,16 +1845,18 @@ class AutomationParameters(RecordWrapper):
 
 
 class Automation(RecordWrapper):
+    NS = 'pbmeta'
 
     automationParameters = accs('AutomationParameters', container='children',
                                 asType=AutomationParameters)
 
 
 class ParentTool(RecordWrapper):
-    pass
+    NS = 'pbds'
 
 
 class ParentDataSet(RecordWrapper):
+    NS = 'pbds'
 
     metaType = accs("MetaType")
     timeStampedName = accs('TimeStampedName')
@@ -1842,6 +1864,7 @@ class ParentDataSet(RecordWrapper):
 
 class Provenance(RecordWrapper):
     """The metadata concerning this dataset's provenance"""
+    NS = 'pbds'
 
     createdBy = accs('CreatedBy')
     parentTool = accs('ParentTool', container='children', asType=ParentTool)
@@ -1851,7 +1874,6 @@ class Provenance(RecordWrapper):
         new = ParentDataSet()
         new.uniqueId = uniqueId
         new.metaType = metaType
-        new.namespace = "pbds"
         new.timeStampedName = timeStampedName
         self.append(new)
         self._runCallbacks()
@@ -2281,6 +2303,7 @@ class DiscreteDistribution(RecordWrapper):
 class RunDetailsMetadata(RecordWrapper):
 
     TAG = 'RunDetails'
+    NS = 'pbmeta'
 
     timeStampedName = subgetter('TimeStampedName')
     name = subaccs('Name')
@@ -2306,6 +2329,7 @@ class BioSamplesMetadata(RecordWrapper):
         """
 
     TAG = 'BioSamples'
+    NS = 'pbsample'
 
     def __getitem__(self, index):
         """Get a biosample"""
@@ -2325,10 +2349,12 @@ class BioSamplesMetadata(RecordWrapper):
 
 class DNABarcode(RecordWrapper):
     TAG = 'DNABarcode'
+    NS = 'pbsample'
 
 
 class DNABarcodes(RecordWrapper):
     TAG = 'DNABarcodes'
+    NS = 'pbsample'
 
     def __getitem__(self, index):
         """Get a DNABarcode"""
@@ -2349,11 +2375,15 @@ class DNABarcodes(RecordWrapper):
 class BioSampleMetadata(RecordWrapper):
     """The metadata for a single BioSample"""
     TAG = 'BioSample'
+    NS = 'pbsample'
+
     DNABarcodes = accs('DNABarcodes', 'children', DNABarcodes, parent=True)
 
 
 class WellSampleMetadata(RecordWrapper):
     TAG = 'WellSample'
+    NS = 'pbmeta'
+
     wellName = subaccs('WellName')
     concentration = subaccs('Concentration')
     sampleReuseEnabled = subgetter('SampleReuseEnabled')
@@ -2375,6 +2405,8 @@ class CopyFilesMetadata(RecordWrapper):
 
 
 class OutputOptions(RecordWrapper):
+    NS = 'pbmeta'
+
     resultsFolder = subaccs('ResultsFolder')
     collectionPathUri = subaccs('CollectionPathUri')
     copyFiles = accs('CopyFiles', container='children',
@@ -2409,6 +2441,7 @@ class PrimaryMetadata(RecordWrapper):
     """
 
     TAG = 'Primary'
+    NS = 'pbmeta'
 
     automationName = subaccs('AutomationName')
     configFileName = subaccs('ConfigFileName')
@@ -2423,7 +2456,7 @@ class Kit(RecordWrapper):
     expirationDate = accs('ExpirationDate')
 
 class CellPac(Kit):
-    """CellPac metadata"""
+    NS = 'pbmeta'
 
 class TemplatePrepKit(Kit):
     """TemplatePrepKit metadata"""
@@ -2442,6 +2475,7 @@ class CollectionMetadata(RecordWrapper):
     InstrumentName etc. as attribs, InstCtrlVer etc. for children"""
 
     TAG = 'CollectionMetadata'
+    NS = 'pbmeta'
 
     context = accs('Context')
     instrumentName = accs('InstrumentName')

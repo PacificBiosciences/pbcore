@@ -76,28 +76,23 @@ def namespaces():
         'pbstats': 'http://pacificbiosciences.com/PipelineStats/PipeStats.xsd',
         'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
         '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
+        'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
         }
 
+# These are either deep in the weeds and don't have their own class, or way up
+# in the hierarchy and aren't part of the DataSetMetadata tree
 TAGS = [
-    "pbbase:AutomationParameter",
-    "pbbase:AutomationParameters",
     "pbbase:BinCount",
     "pbbase:BinCounts",
     "pbbase:BinLabel",
     "pbbase:BinLabels",
     "pbbase:BinWidth",
-    "pbbase:ExternalResource",
-    "pbbase:ExternalResources",
-    "pbbase:FileIndex",
-    "pbbase:FileIndices",
     "pbbase:MaxBinValue",
     "pbbase:MaxOutlierValue",
     "pbbase:MetricDescription",
     "pbbase:MinBinValue",
     "pbbase:MinOutlierValue",
     "pbbase:NumBins",
-    "pbbase:Properties",
-    "pbbase:Property",
     "pbbase:Sample95thPct",
     "pbbase:SampleMean",
     "pbbase:SampleMed",
@@ -107,13 +102,8 @@ TAGS = [
     ":BarcodeConstruction",
     ":ControlReadLenDist",
     ":ControlReadQualDist",
-    ":DataSetMetadata",
     ":DataSet",
     ":DataSets",
-    ":Filter",
-    ":Filters",
-    ":Provenance",
-    ":ParentTool",
     ":InsertReadLenDist",
     ":InsertReadQualDist",
     ":MedianInsertDist",
@@ -128,27 +118,20 @@ TAGS = [
     ":SubreadSet",
     ":SummaryStats",
     ":TotalLength",
-    "pbmeta:Automation",
     "pbmeta:AutomationName",
     "pbmeta:CellIndex",
-    "pbmeta:CellPac",
     "pbmeta:CollectionFileCopy",
-    "pbmeta:CollectionMetadata",
     "pbmeta:CollectionNumber",
     "pbmeta:CollectionPathUri",
-    "pbmeta:Collections",
     "pbmeta:Concentration",
     "pbmeta:ConfigFileName",
     "pbmeta:CopyFiles",
     "pbmeta:InstCtrlVer",
     "pbmeta:MetricsVerbosity",
     "pbmeta:Name",
-    "pbmeta:OutputOptions",
     "pbmeta:PlateId",
-    "pbmeta:Primary",
     "pbmeta:Readout",
     "pbmeta:ResultsFolder",
-    "pbmeta:RunDetails",
     "pbmeta:RunId",
     "pbmeta:SampleReuseEnabled",
     "pbmeta:SequencingCondition",
@@ -157,11 +140,6 @@ TAGS = [
     "pbmeta:StageHotstartEnabled",
     "pbmeta:UseCount",
     "pbmeta:WellName",
-    "pbmeta:WellSample",
-    "pbsample:BioSample",
-    "pbsample:BioSamples",
-    "pbsample:DNABarcode",
-    "pbsample:DNABarcodes",
     ":AlignmentSet",
     ":BarcodeSet",
     ":ConsensusReadSet",
@@ -201,9 +179,9 @@ def _toElementTree(dataSet, root=None, core=False):
         root = ET.Element(rootType, attribs)
 
     _addExternalResourcesElement(dataSet, root, core)
-    _addFiltersElement(dataSet, root)
-    _addDataSetsElement(dataSet, root)
-    _addDataSetMetadataElement(dataSet, root)
+    _addFiltersElement(dataSet, root, core)
+    _addDataSetsElement(dataSet, root, core)
+    _addDataSetMetadataElement(dataSet, root, core)
     xsi = "{http://www.w3.org/2001/XMLSchema-instance}"
     # The ElementTree element dictionary doesn't quite work the same as a
     # regular dictionary, it seems, thus the convoluted get/set business
@@ -255,7 +233,7 @@ def _addExternalResourcesElement(dataSet, root, core=False):
     if dataSet.externalResources:
         root.append(_eleFromDictList(dataSet.externalResources.record, core))
 
-def _addDataSetMetadataElement(dataSet, root):
+def _addDataSetMetadataElement(dataSet, root, core=False):
     """Add DataSetMetadata Elements to the root ElementTree object. Full
     depth serialization will be both difficult and necessary.
 
@@ -269,7 +247,7 @@ def _addDataSetMetadataElement(dataSet, root):
             stats = dataSet.metadata.summaryStats
             dataSet.metadata.summaryStats = None
         root.append(_eleFromDictList(dataSet.metadata.record,
-                                     defaultNS=namespaces()['pbmeta']))
+                                     core=core))
         if stats:
             dataSet.metadata.summaryStats = stats
         # Metadata order matters....
@@ -284,26 +262,30 @@ def _guessNs(tag):
             return namespaces()[nsprefix]
     return ''
 
-def _eleFromDictList(eleAsDict, core=False, defaultNS=None):
-    """A last ditch capture method for uknown Elements"""
-    if eleAsDict['tag'] == 'DataSets':
-        print eleAsDict['namespace']
-    if not eleAsDict['namespace']:
-        eleAsDict['namespace'] = _guessNs(eleAsDict['tag'])
-    elif (eleAsDict['namespace'] ==
-            "http://pacificbiosciences.com/PacBioDataModel.xsd"):
-        newNamespace = _guessNs(eleAsDict['tag'])
-        if newNamespace != '':
-            eleAsDict['namespace'] = newNamespace
-    if eleAsDict['namespace'] == '' and not defaultNS is None:
-            eleAsDict['namespace'] = defaultNS
+def _eleFromDictList(eleAsDict, core=False):
+    """Create an ElementTree Element from a DictList"""
+    # Elements should have namespaces from the XML file. If you add new
+    # elements that have classes in DataSetMembers, associated namespaces
+    # should be handled there. Some elements don't get a class and are covered
+    # by the TAGS map above (I'd like to replace this)
+
+    # use the namespace associated with the object, either from an XML file or
+    # added with the element. Translate from 'short' namespace key if necessary
+    curNS = eleAsDict['namespace']
+    if curNS in namespaces() and curNS:
+        curNS = namespaces()[curNS]
+
+    # if that doesn't work, try guessing from the tag (some tags don't get
+    # classes (too deep/trivial), and instead we use a simple/crude map above)
+    if curNS == '':
+        curNS = _guessNs(eleAsDict['tag'])
 
     if core:
-        ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
+        ele = ET.Element("{{{n}}}{t}".format(n=curNS,
                                              t=eleAsDict['tag']),
                          _coreClean(eleAsDict['attrib']))
     else:
-        ele = ET.Element("{{{n}}}{t}".format(n=eleAsDict['namespace'],
+        ele = ET.Element("{{{n}}}{t}".format(n=curNS,
                                              t=eleAsDict['tag']),
                          eleAsDict['attrib'])
     ele.text = eleAsDict['text']
@@ -322,7 +304,7 @@ def _addFiltersElement(dataset, root, core=False):
     if dataset.filters:
         root.append(_eleFromDictList(dataset.filters.record, core=core))
 
-def _addDataSetsElement(dataset, root):
+def _addDataSetsElement(dataset, root, core=False):
     """Add DataSet Elements to root, which essentially nests ElementTrees.
 
     Args:
@@ -337,7 +319,7 @@ def _addDataSetsElement(dataset, root):
                                            t=subSet.__class__.__name__)
             subSetRoot = ET.SubElement(dse, rootType,
                                        subSet.objMetadata)
-            _toElementTree(subSet, subSetRoot)
+            _toElementTree(subSet, subSetRoot, core=core)
 
 def _extResToXMLAttribs(extRes):
     """Clean the members of the ExternalResource dictionary into XML
