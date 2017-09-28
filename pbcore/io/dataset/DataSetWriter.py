@@ -41,9 +41,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-# TODO add in other namespaces
-XMLNS = 'http://pacificbiosciences.com/PacBioDatasets.xsd'
-
 XML_VERSION = "3.0.1"
 
 __all__ = ['toXml']
@@ -69,15 +66,14 @@ def toXml(dataset, core=False):
     log.debug('Done converting ElementTree to string')
     return xmlstring
 
-def namespaces():
-    return {
-        'pbbase': 'http://pacificbiosciences.com/PacBioBaseDataModel.xsd',
-        'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
-        'pbstats': 'http://pacificbiosciences.com/PipelineStats/PipeStats.xsd',
-        'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
-        '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
-        'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
-        }
+NAMESPACES = {
+    'pbbase': 'http://pacificbiosciences.com/PacBioBaseDataModel.xsd',
+    'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
+    'pbstats': 'http://pacificbiosciences.com/PipelineStats/PipeStats.xsd',
+    'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
+    '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
+    'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
+    }
 
 # These are either deep in the weeds and don't have their own class, or way up
 # in the hierarchy and aren't part of the DataSetMetadata tree
@@ -152,7 +148,7 @@ TAGS = [
 ]
 
 def register_namespaces():
-    for prefix, uri in namespaces().items():
+    for prefix, uri in NAMESPACES.items():
         ET.register_namespace(prefix, uri)
 
 def _toElementTree(dataSet, root=None, core=False):
@@ -171,7 +167,7 @@ def _toElementTree(dataSet, root=None, core=False):
     # 'if not root:' would conflict with testing root for children
     if root is None:
         register_namespaces()
-        rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
+        rootType = '{{{n}}}{t}'.format(n=NAMESPACES[''],
                                        t=type(dataSet).__name__)
         attribs = dataSet.objMetadata
         if core:
@@ -259,7 +255,7 @@ def _guessNs(tag):
     for option in TAGS:
         nsprefix, nstag = option.split(':')
         if nstag == tag:
-            return namespaces()[nsprefix]
+            return NAMESPACES[nsprefix]
     return ''
 
 def _eleFromDictList(eleAsDict, core=False):
@@ -268,15 +264,7 @@ def _eleFromDictList(eleAsDict, core=False):
     # elements that have classes in DataSetMembers, associated namespaces
     # should be handled there. Some elements don't get a class and are covered
     # by the TAGS map above (I'd like to replace this)
-
-    # use the namespace associated with the object, either from an XML file or
-    # added with the element. Translate from 'short' namespace key if necessary
     curNS = eleAsDict['namespace']
-    if curNS in namespaces() and curNS:
-        curNS = namespaces()[curNS]
-
-    # if that doesn't work, try guessing from the tag (some tags don't get
-    # classes (too deep/trivial), and instead we use a simple/crude map above)
     if curNS == '':
         curNS = _guessNs(eleAsDict['tag'])
 
@@ -311,11 +299,11 @@ def _addDataSetsElement(dataset, root, core=False):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataset.subdatasets:
-        rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
+        rootType = '{{{n}}}{t}'.format(n=NAMESPACES[''],
                                    t='DataSets')
         dse = ET.SubElement(root, rootType)
         for subSet in dataset.subdatasets:
-            rootType = '{{{n}}}{t}'.format(n=namespaces()[''],
+            rootType = '{{{n}}}{t}'.format(n=NAMESPACES[''],
                                            t=subSet.__class__.__name__)
             subSetRoot = ET.SubElement(dse, rootType,
                                        subSet.objMetadata)

@@ -103,6 +103,7 @@ from functools import partial as P
 from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
+from pbcore.io.dataset.DataSetWriter import NAMESPACES
 
 log = logging.getLogger(__name__)
 
@@ -337,7 +338,7 @@ class RecordWrapper(object):
         # we could do the same with namespace, but it isn't used in nonzero, so
         # we can just update it:
         if not self.record.get('namespace', ''):
-            self.record['namespace'] = self.NS
+            self.record['namespace'] = NAMESPACES[self.NS]
 
 
     def registerCallback(self, func):
