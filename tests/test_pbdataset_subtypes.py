@@ -1068,3 +1068,5 @@ class TestDataSet(unittest.TestCase):
                                       "timestamped_name")
         self.assertEqual(ds2.metadata.provenance.parentDataSet.uniqueId,
                          "f81cf391-b3da-41f8-84cb-a0de71f460f4")
+        ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds2.write(ds_out, validate=False)

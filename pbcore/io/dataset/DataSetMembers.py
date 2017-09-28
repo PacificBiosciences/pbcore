@@ -1601,7 +1601,7 @@ class DataSetMetadata(RecordWrapper):
         if value:
             self.append(value)
 
-    def addParentDataSet(self, uniqueId, metaType, timeStampedName,
+    def addParentDataSet(self, uniqueId, metaType, timeStampedName="",
                          createdBy="AnalysisJob"):
         """
         Add a ParentDataSet record in the Provenance section.  Currently only
@@ -1609,8 +1609,9 @@ class DataSetMetadata(RecordWrapper):
         """
         new = Provenance()
         new.createdBy = createdBy
+        new.addParentDataSet(uniqueId, metaType, timeStampedName)
         self.provenance = new
-        return new.addParentDataSet(uniqueId, metaType, timeStampedName)
+        self._runCallbacks()
 
 
 class SubreadSetMetadata(DataSetMetadata):
@@ -1850,6 +1851,7 @@ class Provenance(RecordWrapper):
         new = ParentDataSet()
         new.uniqueId = uniqueId
         new.metaType = metaType
+        new.namespace = "pbds"
         new.timeStampedName = timeStampedName
         self.append(new)
         self._runCallbacks()
