@@ -73,6 +73,7 @@ NAMESPACES = {
     'pbmeta': 'http://pacificbiosciences.com/PacBioCollectionMetadata.xsd',
     '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
     'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
+    'pbrk': 'http://pacificbiosciences.com/PacBioReagentKit.xsd'
     }
 
 # These are either deep in the weeds and don't have their own class, or way up
@@ -136,6 +137,7 @@ TAGS = [
     "pbmeta:StageHotstartEnabled",
     "pbmeta:UseCount",
     "pbmeta:WellName",
+    "pbrk:ReagentTubes",
     ":AlignmentSet",
     ":BarcodeSet",
     ":ConsensusReadSet",
