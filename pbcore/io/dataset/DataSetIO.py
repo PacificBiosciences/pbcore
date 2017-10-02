@@ -3940,10 +3940,10 @@ class ContigSet(DataSet):
             writeTemp = True
         if self._filters and not self.noFiltering:
             writeTemp = True
-        writeMatches = {}
-        writeComments = {}
-        writeQualities = {}
-        for name, match_list in matches.items():
+        if not writeTemp:
+            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+        def _get_merged_sequence(name):
+            match_list = matches.pop(name)
             if len(match_list) > 1:
                 log.debug("Multiple matches found for {i}".format(i=name))
                 # look for the quiver window indication scheme from quiver:
@@ -3963,22 +3963,18 @@ class ContigSet(DataSet):
 
                 # collapse matches
                 new_name = self._removeWindow(name)
-                new_seq = ''.join([match.sequence[:] for match in match_list])
+                seq = ''.join([match.sequence[:] for match in match_list])
+                quality = None
                 if self._fastq:
-                    new_qual = ''.join([match.qualityString for match in
-                                        match_list])
-                    writeQualities[new_name] = new_qual
-
-                # set to write
-                writeTemp = True
-                writeMatches[new_name] = new_seq
-                writeComments[new_name] = match_list[0].comment
+                    quality = ''.join([match.qualityString for match in match_list])
+                return (seq, match_list[0].comment, quality)
             else:
                 log.debug("One match found for {i}".format(i=name))
-                writeMatches[name] = match_list[0].sequence[:]
-                writeComments[name] = match_list[0].comment
+                seq = match_list[0].sequence[:]
+                quality = None
                 if self._fastq:
-                    writeQualities[name] = match_list[0].qualityString
+                   quality = match_list[0].qualityString
+                return (seq, match_list[0].comment, quality)
         if writeTemp:
             log.debug("Writing a new file is necessary")
             if not outfn:
@@ -3992,13 +3988,12 @@ class ContigSet(DataSet):
                                          'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
-                for name, seq in writeMatches.items():
-                    name_key = name
-                    if writeComments[name]:
-                        name = ' '.join([name, writeComments[name]])
+                for name in list(matches.keys()):
+                    seq, comments, quality = _get_merged_sequence(name)
+                    if comments:
+                        name = ' '.join([name, comments])
                     if self._fastq:
-                        outfile.writeRecord(
-                            name, seq, qvsFromAscii(writeQualities[name_key]))
+                        outfile.writeRecord(name, seq, qvsFromAscii(quality))
                     else:
                         outfile.writeRecord(name, seq)
             if not self._fastq:
