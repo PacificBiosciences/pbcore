@@ -3942,18 +3942,30 @@ class ContigSet(DataSet):
             writeTemp = True
         if not writeTemp:
             writeTemp = any([len(m) > 1 for n, m in matches.items()])
+
+        def _get_windows(match_list):
+            # look for the quiver window indication scheme from quiver:
+            windows = np.array([self._parseWindow(match.id)
+                                for match in match_list])
+            for win in windows:
+                if win is None:
+                    raise ValueError("Windows not found for all items with a "
+                                     "matching id, consolidation aborted")
+            return windows
+
+        for name, match_list in matches.items():
+            if len(match_list) > 1:
+                try:
+                    windows = _get_windows(match_list)
+                except ValueError as e:
+                    log.error(e)
+                    return
+
         def _get_merged_sequence(name):
             match_list = matches.pop(name)
             if len(match_list) > 1:
                 log.debug("Multiple matches found for {i}".format(i=name))
-                # look for the quiver window indication scheme from quiver:
-                windows = np.array([self._parseWindow(match.id)
-                                    for match in match_list])
-                for win in windows:
-                    if win is None:
-                        log.debug("Windows not found for all items with a "
-                                  "matching id, consolidation aborted")
-                        return
+                windows = _get_windows(match_list)
                 # order windows
                 order = np.argsort([window[0] for window in windows])
                 match_list = match_list[order]
