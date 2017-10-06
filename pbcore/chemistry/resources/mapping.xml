@@ -364,7 +364,7 @@
     <SoftwareVersion>5.1</SoftwareVersion>
   </Mapping>
 
-  <!-- New binding kit with 2.0 sequencing plate -->
+  <!-- 2.1 binding kit with 2.0 sequencing plate -->
   <Mapping>
     <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
     <BindingKit>101-365-900</BindingKit>
@@ -379,7 +379,7 @@
     <SoftwareVersion>5.1</SoftwareVersion>
   </Mapping>
 
-  <!-- New binding kit with 2.1 sequencing plate (silwet) -->
+  <!-- 2.1 binding kit with 2.1 sequencing plate (silwet) -->
   <!-- SG1/1609 Chemsitry update (binding kit only) with 5.1 primary (no new training) -->
   <Mapping>
     <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
