@@ -329,4 +329,71 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!--=====================================-->
+  <!-- Updating PA version from 5.0 -> 5.1 -->
+  <!--=====================================-->
+
+  <!-- PA5.1 backward compatibility with iguana chemistry -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>100-861-800</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>101-093-700</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® Sequencing Plate Silwet -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>101-309-500</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® Sequencing Plate Silwet (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>100-862-200</BindingKit>
+    <SequencingKit>101-309-400</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2.1 binding kit with 2.0 sequencing plate -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-365-900</BindingKit>
+    <SequencingKit>100-861-800</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-365-900</BindingKit>
+    <SequencingKit>101-093-700</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2.1 binding kit with 2.1 sequencing plate (silwet) -->
+  <!-- SG1/16509P Chemistry update (binding kit only) with 5.1 primary (no new training) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-365-900</BindingKit>
+    <SequencingKit>101-309-500</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
+  <!-- SG1/16509P Chemistry update (binding kit only) with 5.1 primary (no new training) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-365-900</BindingKit>
+    <SequencingKit>101-309-400</SequencingKit>
+    <SoftwareVersion>5.1</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
