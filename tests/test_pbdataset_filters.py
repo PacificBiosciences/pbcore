@@ -7,7 +7,8 @@ from unittest.case import SkipTest
 
 import numpy as np
 
-from pbcore.io import DataSet, SubreadSet, ReferenceSet, AlignmentSet
+from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
+                       ConsensusReadSet)
 from pbcore.io.dataset.DataSetMembers import Filters
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
@@ -83,6 +84,85 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 92)
         ds2.enableFilters()
         self.assertEqual(len(list(ds2.records)), 20)
+
+    def test_broadcastFilters(self):
+        # test the broadcastFilters function with different numbers of existing
+        # and new filters
+        filt1 = [[('zm', '<', 1000),
+                  ('zm', '>', 0)]]
+        filt2 = [[('zm', '<', 1000),
+                  ('zm', '>', 0)],
+                 [('zm', '<', 2000),
+                  ('zm', '>', '1000')]]
+
+        # no new filters, no existing:
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.broadcastFilters([])
+        self.assertEqual(str(ds0.filters), '')
+        self.assertEqual(len(list(ds0.records)), 92)
+
+        # no new filters, one existing:
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        self.assertEqual(str(ds0.filters), '( rname = E.faecalis.1 )')
+        self.assertEqual(len(list(ds0.records)), 20)
+        ds0.filters.broadcastFilters([])
+        self.assertEqual(str(ds0.filters), '( rname = E.faecalis.1 )')
+        self.assertEqual(len(list(ds0.records)), 20)
+
+        # no existing filters:
+        ds0 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(list(ds0.records)), 92)
+
+        ds0.filters.broadcastFilters(filt1)
+        self.assertEqual(str(ds0.filters), '( zm < 1000 AND zm > 0 )')
+
+        ds0 = AlignmentSet(data.getXml(8))
+        ds0.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds0.filters),
+            '( zm < 1000 AND zm > 0 ) OR ( zm < 2000 AND zm > 1000 )')
+
+        # one filter:
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        self.assertEqual(len(list(ds1.records)), 20)
+
+        ds1.filters.broadcastFilters(filt1)
+        self.assertEqual(
+            str(ds1.filters),
+            '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 )')
+
+        ds1 = AlignmentSet(data.getXml(8))
+        ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
+        ds1.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds1.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 )'))
+
+        # two filters:
+        ds2 = AlignmentSet(data.getXml(8))
+        ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
+                                          ('=', 'E.faecalis.2')])
+        self.assertEqual(len(list(ds2.records)), 23)
+
+        ds2.filters.broadcastFilters(filt1)
+        self.assertEqual(
+            str(ds2.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 )'))
+
+        ds2 = AlignmentSet(data.getXml(8))
+        ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
+                                          ('=', 'E.faecalis.2')])
+        ds2.filters.broadcastFilters(filt2)
+        self.assertEqual(
+            str(ds2.filters),
+            ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 ) OR '
+             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 ) OR '
+             '( rname = E.faecalis.2 AND zm < 2000 AND zm > 1000 )'))
 
     def test_context_filters(self):
         ss = SubreadSet(upstreamdata.getUnalignedBam())
@@ -210,6 +290,103 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 1)
         self.assertEqual(len(list(ds2.records)), len(ds2.index))
 
+    def test_file_arg(self):
+        fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
+        log.debug(fn)
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), 92)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        with open(fn, 'w') as ofh:
+            for q in qn:
+                ofh.write(q)
+                ofh.write('\n')
+        good_qn = [('=', fn)]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+        og = set(qn)
+        for r in sset:
+            og.discard(r.qName)
+        self.assertEqual(len(og), 0)
+
+        fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
+        log.debug(fn)
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), 92)
+        size = 4
+        hn = [r
+              for r in sorted(list(set(sset.index.holeNumber)))[:size]]
+        with open(fn, 'w') as ofh:
+            for h in hn:
+                ofh.write(str(h))
+                ofh.write('\n')
+        good_hn = [('=', fn)]
+        sset.filters.addRequirement(zm=good_hn)
+        self.assertEqual(size, len(set(sset.index.holeNumber)))
+        og = set(hn)
+        for r in sset:
+            og.discard(r.holeNumber)
+        self.assertEqual(len(og), 0)
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_qname_css(self):
+        fn = ('/pbi/dept/secondary/siv/testdata/ccs-unittest/'
+              'tiny/little.ccs.bam')
+        sset = ConsensusReadSet(fn)
+
+        self.assertEqual(len(sset), 14)
+        size = 4
+        qn = [r.qName for r in sset[:size]]
+        good_qn = [('=', qn)]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+
+
+    def test_not_in_filter(self):
+        nreads = 92
+        fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
+        log.debug(fn)
+        sset = SubreadSet(data.getXml(10))
+        nzmws = len(set(sset.index.holeNumber))
+        self.assertEqual(len(sset), nreads)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        with open(fn, 'w') as ofh:
+            for q in qn:
+                ofh.write(q)
+                ofh.write('\n')
+        good_qn = [('!=', fn)]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(nreads - size, sum(1 for _ in sset))
+        self.assertEqual(nreads - size, len(sset))
+        og = set(qn)
+        for r in sset:
+            og.discard(r.qName)
+        self.assertEqual(len(og), size)
+
+        fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
+        log.debug(fn)
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), nreads)
+        size = 4
+        hn = [r
+              for r in sorted(list(set(sset.index.holeNumber)))[:size]]
+        with open(fn, 'w') as ofh:
+            for h in hn:
+                ofh.write(str(h))
+                ofh.write('\n')
+        good_hn = [('!=', fn)]
+        sset.filters.addRequirement(zm=good_hn)
+        self.assertEqual(nzmws - size, len(set(sset.index.holeNumber)))
+        og = set(hn)
+        for r in sset:
+            og.discard(r.holeNumber)
+        self.assertEqual(len(og), size)
+
+
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
     def test_qname_filter_scaling(self):
@@ -222,15 +399,17 @@ class TestDataSetFilters(unittest.TestCase):
                 "SA3-DS/ecoli/2590953/0001/"
                 "Analysis_Results/m140913_005018_42139_c10071"
                 "3652400000001823152404301534_s1_p0.all.subreadset.xml")
+
+        # separate '==' takes 120 seconds to addReq for 10k qnames:
+        """
         sset = SubreadSet(bam0, bam1)
         self.assertEqual(len(sset), 178570)
-        size = 10
+        size = 100
         qn = [r.qName for r in sset[:size]]
         good_qn = [('=', name) for name in qn]
         sset.filters.addRequirement(qname=good_qn)
-        self.assertEqual(size, sum(1 for _ in sset))
+        #self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
-
 
         sset = SubreadSet(data.getXml(10))
         self.assertEqual(len(sset), 92)
@@ -240,7 +419,27 @@ class TestDataSetFilters(unittest.TestCase):
         sset.filters.addRequirement(qname=good_qn)
         self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
+        """
 
+        # "in" takes 1.2 seconds to addReq for 10k qnames:
+
+        sset = SubreadSet(bam0, bam1)
+        self.assertEqual(len(sset), 178570)
+        size = 100
+        qn = [r.qName for r in sset[:size]]
+        good_qn = [('=', qn)]
+        sset.filters.addRequirement(qname=good_qn)
+        #self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), 92)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        good_qn = [('=', qn)]
+        sset.filters.addRequirement(qname=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")

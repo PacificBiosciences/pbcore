@@ -98,6 +98,12 @@
 <pbds:DataSetMetadata>
     <pbds:TotalLength>500000</pbds:TotalLength>
     <pbds:NumRecords>500</pbds:NumRecords>
+    <pbds:Provenance CreatedBy="AnalysisJob">
+      <pbds:ParentDataSet
+        UniqueId="f81cf391-b3da-41f8-84cb-a0de71f460f4"
+        TimeStampedName="subreadset_150304_231154"
+        MetaType="PacBio.DataSet.SubreadSet"/>
+    </pbds:Provenance>
     <pbmeta:Collections>
         <pbmeta:CollectionMetadata 
             UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5393" 
@@ -120,9 +126,13 @@
                 <pbmeta:StageHotstartEnabled>true</pbmeta:StageHotstartEnabled>
                 <pbmeta:SizeSelectionEnabled>true</pbmeta:SizeSelectionEnabled>
                 <pbmeta:UseCount>0</pbmeta:UseCount>
-                <pbsample:BioSamplePointers>
-                    <pbsample:BioSamplePointer>abc2df90-d44f-4a48-9f35-3b99473c68f5</pbsample:BioSamplePointer>
-                </pbsample:BioSamplePointers>
+                <pbsample:BioSamples>
+                    <pbsample:BioSample Name="consectetur purus">
+                        <pbsample:DNABarcodes>
+                            <pbsample:DNABarcode Name="F1--R1"/>
+                        </pbsample:DNABarcodes>
+                    </pbsample:BioSample>
+                </pbsample:BioSamples>
             </pbmeta:WellSample>
             <pbmeta:Automation>
                 <pbbase:AutomationParameters>
@@ -148,15 +158,6 @@
             </pbmeta:Primary>
         </pbmeta:CollectionMetadata>
     </pbmeta:Collections>
-    <pbsample:BioSamples>
-        <pbsample:BioSample 
-            UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5293" 
-            TimeStampedName="biosample_150304_231155" 
-            MetaType="PacBio.BioSample" 
-            Name="consectetur purus" 
-            Description="Risus sit amet lectus vehicula vulputate quisque porta accumsan venenatis." 
-            CreatedAt="2015-01-20T13:27:23.9271737-08:00"/>
-    </pbsample:BioSamples>
     <pbds:SummaryStats>
         <pbds:AdapterDimerFraction>0.1</pbds:AdapterDimerFraction>
         <pbds:ShortInsertFraction>0.1</pbds:ShortInsertFraction>

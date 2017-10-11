@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2017, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -17,17 +17,15 @@
 # NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
 # THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
-# NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+# NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
 # PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
 # ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 # EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 # PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR
-# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
 # Author: Martin D. Smith
@@ -1597,19 +1595,31 @@ class DataSet(object):
         """
         ranges = []
         for filt in self._filters:
-            movie, start, end = None, 0, 0
-            values = []
+            movies = []
+            starts = []
+            ends = []
+            # it is possible, e.g. if splitting a previously split dataset, to
+            # get filters with overlapping ranges, one of which is more
+            # restrictive than the other. We need to collapse these.
             for param in filt:
                 if param.name == "movie":
-                    movie = param.value
+                    movies.append(param.value)
                 elif param.name == "zm":
                     ival = int(param.value)
                     if param.operator == '>':
                         ival += 1
+                        starts.append(ival)
                     elif param.operator == '<':
                         ival -= 1
-                    values.append(ival)
-            ranges.append((movie, min(values), max(values)))
+                        ends.append(ival)
+            # this is a single filter, all parameters are AND'd. Therefore
+            # multiple movies cannot be satisfied. Ignore in those cases. Where
+            # we have multiple params for the same movie, we assume that one
+            # range is a subset of the other, and pick the most restrictive.
+            # This depends on dataset.split respecting the existing filters.
+            if len(set(movies)) == 1:
+                ranges.append((movies[0], max(starts), min(ends)))
+        ranges = list(set(ranges))
         return ranges
 
     # FIXME this is a workaround for the lack of support for barcode chunking
@@ -1722,6 +1732,7 @@ class DataSet(object):
     def filters(self):
         """Limit setting to ensure cache hygiene and filter compatibility"""
         self._filters.registerCallback(self._wipeCaches)
+        self._filters.registerCallback(self.newUuid)
         return self._filters
 
     @filters.setter
@@ -1786,6 +1797,16 @@ class DataSet(object):
     def uniqueId(self):
         """The UniqueId of this DataSet"""
         return self.objMetadata.get('UniqueId')
+
+    @property
+    def timeStampedName(self):
+        """The timeStampedName of this DataSet"""
+        return self.objMetadata.get('TimeStampedName')
+
+    @timeStampedName.setter
+    def timeStampedName(self, value):
+        """The timeStampedName of this DataSet"""
+        self.objMetadata['TimeStampedName'] = value
 
     @property
     def name(self):
@@ -2273,11 +2294,10 @@ class ReadSet(DataSet):
                 zmwStart = chunk[0]['holeNumber']
                 zmwEnd = chunk[-1]['holeNumber']
                 res._filters.clearCallbacks()
-                res._filters.addRequirement(
-                    movie=[('=', movieName)],
-                    zm=[('<', zmwEnd+1)])
-                res._filters.addRequirement(
-                    zm=[('>', zmwStart-1)])
+                newfilt = [[('movie', '=', movieName),
+                             ('zm', '<', zmwEnd + 1),
+                             ('zm', '>', zmwStart - 1)]]
+                res._filters.broadcastFilters(newfilt)
             else:
                 movieNames = []
                 zmwStarts = []
@@ -2288,11 +2308,12 @@ class ReadSet(DataSet):
                     zmwStarts.append(chunk[inds[0]]['holeNumber'])
                     zmwEnds.append(chunk[inds[-1]]['holeNumber'])
                 res._filters.clearCallbacks()
-                res._filters.addRequirement(
-                    movie=[('=', mn) for mn in movieNames],
-                    zm=[('<', ze + 1) for ze in zmwEnds])
-                res._filters.mapRequirement(
-                    zm=[('>', zs - 1) for zs in zmwStarts])
+                newfilts = []
+                for mn, ze, zs in zip(movieNames, zmwEnds, zmwStarts):
+                    newfilts.append([('movie', '=', mn),
+                                     ('zm', '<', ze + 1),
+                                     ('zm', '>', zs - 1)])
+                res._filters.broadcastFilters(newfilts)
             res.numRecords = len(chunk)
             res.totalLength = sum(chunk['qEnd'] - chunk['qStart'])
             res.newUuid()
@@ -2319,7 +2340,7 @@ class ReadSet(DataSet):
             if len(set(tbr['ID'])) < len(tbr):
                 self._readGroupTableIsRemapped = True
                 tbr['ID'] = range(len(tbr))
-            return tbr
+            return tbr.view(np.recarray)
         else:
             return responses[0]
 
@@ -2650,6 +2671,29 @@ class SubreadSet(ReadSet):
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }
+
+    def getMovieSampleNames(self):
+        """
+        Map the BioSample names in Collection metadata to "context" ID, i.e.
+        movie names.  Used for deconvoluting multi-sample
+        inputs.  This function will raise a KeyError if a movie name is not
+        unique, or a ValueError if there is not a 1-to-1 mapping of sample to
+        to movie.
+        """
+        movie_to_sample = {}
+        for collection in self.metadata.collections:
+            bio_samples = [b.name for b in collection.wellSample.bioSamples]
+            movie_name = collection.context
+            n_bio_samples = len(bio_samples)
+            if n_bio_samples == 1:
+                if movie_to_sample.get(movie_name, None) == bio_samples[0]:
+                    raise KeyError("Collection context {c} occurs more than once".format(c=movie_name))
+                movie_to_sample[movie_name] = bio_samples[0]
+            elif n_bio_samples == 0:
+                raise ValueError("No BioSample records for collection {c}".format(c=movie_name))
+            else:
+                raise ValueError("Collection {c} has multiple BioSample records".format(c=movie_name))
+        return movie_to_sample
 
 
 class AlignmentSet(ReadSet):
@@ -3896,20 +3940,32 @@ class ContigSet(DataSet):
             writeTemp = True
         if self._filters and not self.noFiltering:
             writeTemp = True
-        writeMatches = {}
-        writeComments = {}
-        writeQualities = {}
+        if not writeTemp:
+            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+
+        def _get_windows(match_list):
+            # look for the quiver window indication scheme from quiver:
+            windows = np.array([self._parseWindow(match.id)
+                                for match in match_list])
+            for win in windows:
+                if win is None:
+                    raise ValueError("Windows not found for all items with a "
+                                     "matching id, consolidation aborted")
+            return windows
+
         for name, match_list in matches.items():
             if len(match_list) > 1:
+                try:
+                    windows = _get_windows(match_list)
+                except ValueError as e:
+                    log.error(e)
+                    return
+
+        def _get_merged_sequence(name):
+            match_list = matches.pop(name)
+            if len(match_list) > 1:
                 log.debug("Multiple matches found for {i}".format(i=name))
-                # look for the quiver window indication scheme from quiver:
-                windows = np.array([self._parseWindow(match.id)
-                                    for match in match_list])
-                for win in windows:
-                    if win is None:
-                        log.debug("Windows not found for all items with a "
-                                  "matching id, consolidation aborted")
-                        return
+                windows = _get_windows(match_list)
                 # order windows
                 order = np.argsort([window[0] for window in windows])
                 match_list = match_list[order]
@@ -3919,22 +3975,18 @@ class ContigSet(DataSet):
 
                 # collapse matches
                 new_name = self._removeWindow(name)
-                new_seq = ''.join([match.sequence[:] for match in match_list])
+                seq = ''.join([match.sequence[:] for match in match_list])
+                quality = None
                 if self._fastq:
-                    new_qual = ''.join([match.qualityString for match in
-                                        match_list])
-                    writeQualities[new_name] = new_qual
-
-                # set to write
-                writeTemp = True
-                writeMatches[new_name] = new_seq
-                writeComments[new_name] = match_list[0].comment
+                    quality = ''.join([match.qualityString for match in match_list])
+                return (seq, match_list[0].comment, quality)
             else:
                 log.debug("One match found for {i}".format(i=name))
-                writeMatches[name] = match_list[0].sequence[:]
-                writeComments[name] = match_list[0].comment
+                seq = match_list[0].sequence[:]
+                quality = None
                 if self._fastq:
-                    writeQualities[name] = match_list[0].qualityString
+                   quality = match_list[0].qualityString
+                return (seq, match_list[0].comment, quality)
         if writeTemp:
             log.debug("Writing a new file is necessary")
             if not outfn:
@@ -3948,13 +4000,12 @@ class ContigSet(DataSet):
                                          'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
-                for name, seq in writeMatches.items():
-                    name_key = name
-                    if writeComments[name]:
-                        name = ' '.join([name, writeComments[name]])
+                for name in list(matches.keys()):
+                    seq, comments, quality = _get_merged_sequence(name)
+                    if comments:
+                        name = ' '.join([name, comments])
                     if self._fastq:
-                        outfile.writeRecord(
-                            name, seq, qvsFromAscii(writeQualities[name_key]))
+                        outfile.writeRecord(name, seq, qvsFromAscii(quality))
                     else:
                         outfile.writeRecord(name, seq)
             if not self._fastq:

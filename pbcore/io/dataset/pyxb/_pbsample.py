@@ -1,7 +1,7 @@
 # pbcore/io/dataset/pyxb/_pbsample.py
 # -*- coding: utf-8 -*-
 # PyXB bindings for NM:a7c0866985dba806fe3112e9fbc4707c9f978443
-# Generated 2017-05-19 10:57:24.225169 by PyXB version 1.2.4 using Python 2.7.9.final.0
+# Generated 2017-09-27 15:52:12.388872 by PyXB version 1.2.4 using Python 2.7.9.final.0
 # Namespace http://pacificbiosciences.com/PacBioSampleInfo.xsd [xmlns:pbsample]
 
 from __future__ import unicode_literals
@@ -15,7 +15,7 @@ import sys
 import pyxb.utils.six as _six
 
 # Unique identifier for bindings created at the same time
-_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:9c7f3af4-3cbc-11e7-8190-001a4acb6b14')
+_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:7fa6c9c0-a3d6-11e7-96cb-0026b9fe0a90')
 
 # Version of PyXB used to generate the bindings
 _PyXBVersion = '1.2.4'
@@ -78,52 +78,25 @@ def CreateFromDOM (node, default_namespace=None):
 
 # Complex type [anonymous] with content type ELEMENT_ONLY
 class CTD_ANON (pyxb.binding.basis.complexTypeDefinition):
-    """A list of barcodes associated with the biological sample"""
-    _TypeDefinition = None
-    _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
-    _Abstract = False
-    _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 19, 6)
-    _ElementMap = {}
-    _AttributeMap = {}
-    # Base type is pyxb.binding.datatypes.anyType
-    
-    # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}Barcode uses Python identifier Barcode
-    __Barcode = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Barcode'), 'Barcode', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_httppacificbiosciences_comPacBioSampleInfo_xsdBarcode', True, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 21, 8), )
-
-    
-    Barcode = property(__Barcode.value, __Barcode.set, None, 'A sequence of barcodes associated with the biological sample')
-
-    _ElementMap.update({
-        __Barcode.name() : __Barcode
-    })
-    _AttributeMap.update({
-        
-    })
-
-
-
-# Complex type [anonymous] with content type ELEMENT_ONLY
-class CTD_ANON_ (pyxb.binding.basis.complexTypeDefinition):
     """Back references to other BarcodedSampleType object UniqueIds which utilize this sample"""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 104, 2)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 96, 2)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSamplePointer uses Python identifier BioSamplePointer
-    __BioSamplePointer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer'), 'BioSamplePointer', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON__httppacificbiosciences_comPacBioSampleInfo_xsdBioSamplePointer', False, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 111, 5), )
+    __BioSamplePointer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer'), 'BioSamplePointer', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_httppacificbiosciences_comPacBioSampleInfo_xsdBioSamplePointer', False, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 103, 5), )
 
     
     BioSamplePointer = property(__BioSamplePointer.value, __BioSamplePointer.set, None, 'Pointer to a single biological sample')
 
     
     # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BarcodedSamplePointers uses Python identifier BarcodedSamplePointers
-    __BarcodedSamplePointers = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), 'BarcodedSamplePointers', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON__httppacificbiosciences_comPacBioSampleInfo_xsdBarcodedSamplePointers', False, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 120, 1), )
+    __BarcodedSamplePointers = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), 'BarcodedSamplePointers', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_httppacificbiosciences_comPacBioSampleInfo_xsdBarcodedSamplePointers', False, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 112, 1), )
 
     
     BarcodedSamplePointers = property(__BarcodedSamplePointers.value, __BarcodedSamplePointers.set, None, 'Back references to other BarcodedSampleType object UniqueIds which utilize this sample')
@@ -139,19 +112,19 @@ class CTD_ANON_ (pyxb.binding.basis.complexTypeDefinition):
 
 
 # Complex type [anonymous] with content type ELEMENT_ONLY
-class CTD_ANON_2 (pyxb.binding.basis.complexTypeDefinition):
+class CTD_ANON_ (pyxb.binding.basis.complexTypeDefinition):
     """Back references to other BarcodedSampleType object UniqueIds which utilize this sample"""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 124, 2)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 116, 2)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BarcodedSamplePointer uses Python identifier BarcodedSamplePointer
-    __BarcodedSamplePointer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer'), 'BarcodedSamplePointer', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioSampleInfo_xsdBarcodedSamplePointer', True, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 126, 4), )
+    __BarcodedSamplePointer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer'), 'BarcodedSamplePointer', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON__httppacificbiosciences_comPacBioSampleInfo_xsdBarcodedSamplePointer', True, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 118, 4), )
 
     
     BarcodedSamplePointer = property(__BarcodedSamplePointer.value, __BarcodedSamplePointer.set, None, 'Pointer to a group of barcoded samples')
@@ -166,22 +139,22 @@ class CTD_ANON_2 (pyxb.binding.basis.complexTypeDefinition):
 
 
 # Complex type [anonymous] with content type ELEMENT_ONLY
-class CTD_ANON_3 (pyxb.binding.basis.complexTypeDefinition):
-    """Complex type [anonymous] with content type ELEMENT_ONLY"""
+class CTD_ANON_2 (pyxb.binding.basis.complexTypeDefinition):
+    """List of biological samples."""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 135, 2)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 130, 2)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSample uses Python identifier BioSample
-    __BioSample = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), 'BioSample', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioSampleInfo_xsdBioSample', True, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 141, 1), )
+    __BioSample = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), 'BioSample', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioSampleInfo_xsdBioSample', True, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 136, 1), )
 
     
-    BioSample = property(__BioSample.value, __BioSample.set, None, None)
+    BioSample = property(__BioSample.value, __BioSample.set, None, 'An individual biological sample.')
 
     _ElementMap.update({
         __BioSample.name() : __BioSample
@@ -193,24 +166,24 @@ class CTD_ANON_3 (pyxb.binding.basis.complexTypeDefinition):
 
 
 # Complex type {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType with content type ELEMENT_ONLY
-class BioSampleType (_ImportedBinding__pbbase.StrictEntityType):
+class BioSampleType (_ImportedBinding__pbbase.BaseEntityType):
     """The actual biological sample; this could be prep'd, or in original form; could be bound, or annealed..."""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'BioSampleType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 33, 1)
-    _ElementMap = _ImportedBinding__pbbase.StrictEntityType._ElementMap.copy()
-    _AttributeMap = _ImportedBinding__pbbase.StrictEntityType._AttributeMap.copy()
-    # Base type is _ImportedBinding__pbbase.StrictEntityType
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 8, 1)
+    _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
+    _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
+    # Base type is _ImportedBinding__pbbase.BaseEntityType
     
     # Element Extensions ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Extensions) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
-    # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSamples uses Python identifier BioSamples
-    __BioSamples = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSamples'), 'BioSamples', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_httppacificbiosciences_comPacBioSampleInfo_xsdBioSamples', False, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 134, 1), )
+    # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}DNABarcodes uses Python identifier DNABarcodes
+    __DNABarcodes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DNABarcodes'), 'DNABarcodes', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_httppacificbiosciences_comPacBioSampleInfo_xsdDNABarcodes', False, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 15, 5), )
 
     
-    BioSamples = property(__BioSamples.value, __BioSamples.set, None, None)
+    DNABarcodes = property(__DNABarcodes.value, __DNABarcodes.set, None, 'A list of barcodes associated with the biological sample')
 
     
     # Attribute Name inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
@@ -229,101 +202,95 @@ class BioSampleType (_ImportedBinding__pbbase.StrictEntityType):
     
     # Attribute ModifiedAt inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
-    # Attribute UniqueId inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
-    # Attribute MetaType inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
-    # Attribute TimeStampedName inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
     # Attribute DateReceived uses Python identifier DateReceived
     __DateReceived = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'DateReceived'), 'DateReceived', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_DateReceived', pyxb.binding.datatypes.dateTime)
-    __DateReceived._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 42, 4)
-    __DateReceived._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 42, 4)
+    __DateReceived._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 34, 4)
+    __DateReceived._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 34, 4)
     
     DateReceived = property(__DateReceived.value, __DateReceived.set, None, 'Date the sample was received by the lab')
 
     
     # Attribute Organism uses Python identifier Organism
     __Organism = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Organism'), 'Organism', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_Organism', pyxb.binding.datatypes.string)
-    __Organism._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 47, 4)
-    __Organism._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 47, 4)
+    __Organism._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 39, 4)
+    __Organism._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 39, 4)
     
     Organism = property(__Organism.value, __Organism.set, None, 'e.g. HIV, E.coli')
 
     
     # Attribute Reference uses Python identifier Reference
     __Reference = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Reference'), 'Reference', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_Reference', pyxb.binding.datatypes.string)
-    __Reference._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 52, 4)
-    __Reference._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 52, 4)
+    __Reference._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 44, 4)
+    __Reference._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 44, 4)
     
     Reference = property(__Reference.value, __Reference.set, None, 'Name of reference, or pointer to one at e.g. NCBI RefSeq')
 
     
     # Attribute DNAType uses Python identifier DNAType
     __DNAType = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'DNAType'), 'DNAType', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_DNAType', pyxb.binding.datatypes.string)
-    __DNAType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 57, 4)
-    __DNAType._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 57, 4)
+    __DNAType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 49, 4)
+    __DNAType._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 49, 4)
     
     DNAType = property(__DNAType.value, __DNAType.set, None, 'shotgun library, amplicon, etc.')
 
     
     # Attribute Concentration uses Python identifier Concentration
     __Concentration = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Concentration'), 'Concentration', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_Concentration', pyxb.binding.datatypes.float)
-    __Concentration._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 62, 4)
-    __Concentration._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 62, 4)
+    __Concentration._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 54, 4)
+    __Concentration._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 54, 4)
     
     Concentration = property(__Concentration.value, __Concentration.set, None, 'in ng/uL, e.g. 250')
 
     
     # Attribute QuantificationMethod uses Python identifier QuantificationMethod
     __QuantificationMethod = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'QuantificationMethod'), 'QuantificationMethod', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_QuantificationMethod', pyxb.binding.datatypes.string)
-    __QuantificationMethod._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 67, 4)
-    __QuantificationMethod._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 67, 4)
+    __QuantificationMethod._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 59, 4)
+    __QuantificationMethod._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 59, 4)
     
     QuantificationMethod = property(__QuantificationMethod.value, __QuantificationMethod.set, None, 'e.g. Qubit')
 
     
     # Attribute SMRTBellConcentration uses Python identifier SMRTBellConcentration
     __SMRTBellConcentration = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'SMRTBellConcentration'), 'SMRTBellConcentration', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_SMRTBellConcentration', pyxb.binding.datatypes.float)
-    __SMRTBellConcentration._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 72, 4)
-    __SMRTBellConcentration._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 72, 4)
+    __SMRTBellConcentration._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 64, 4)
+    __SMRTBellConcentration._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 64, 4)
     
     SMRTBellConcentration = property(__SMRTBellConcentration.value, __SMRTBellConcentration.set, None, 'in ng/uL, e.g. 4.5')
 
     
     # Attribute SMRTBellQuantificationMethod uses Python identifier SMRTBellQuantificationMethod
     __SMRTBellQuantificationMethod = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'SMRTBellQuantificationMethod'), 'SMRTBellQuantificationMethod', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_SMRTBellQuantificationMethod', pyxb.binding.datatypes.string)
-    __SMRTBellQuantificationMethod._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 77, 4)
-    __SMRTBellQuantificationMethod._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 77, 4)
+    __SMRTBellQuantificationMethod._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 69, 4)
+    __SMRTBellQuantificationMethod._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 69, 4)
     
     SMRTBellQuantificationMethod = property(__SMRTBellQuantificationMethod.value, __SMRTBellQuantificationMethod.set, None, 'e.g. Qubit')
 
     
     # Attribute BufferName uses Python identifier BufferName
     __BufferName = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'BufferName'), 'BufferName', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_BufferName', pyxb.binding.datatypes.string)
-    __BufferName._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 82, 4)
-    __BufferName._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 82, 4)
+    __BufferName._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 74, 4)
+    __BufferName._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 74, 4)
     
     BufferName = property(__BufferName.value, __BufferName.set, None, 'e.g. Tris HCl')
 
     
     # Attribute SamplePrepKit uses Python identifier SamplePrepKit
     __SamplePrepKit = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'SamplePrepKit'), 'SamplePrepKit', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_SamplePrepKit', pyxb.binding.datatypes.string)
-    __SamplePrepKit._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 87, 4)
-    __SamplePrepKit._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 87, 4)
+    __SamplePrepKit._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 79, 4)
+    __SamplePrepKit._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 79, 4)
     
     SamplePrepKit = property(__SamplePrepKit.value, __SamplePrepKit.set, None, 'e.g. SMRTbell Template Prep Kit')
 
     
     # Attribute TargetLibrarySize uses Python identifier TargetLibrarySize
     __TargetLibrarySize = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'TargetLibrarySize'), 'TargetLibrarySize', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BioSampleType_TargetLibrarySize', pyxb.binding.datatypes.string)
-    __TargetLibrarySize._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 92, 4)
-    __TargetLibrarySize._UseLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 92, 4)
+    __TargetLibrarySize._DeclarationLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 84, 4)
+    __TargetLibrarySize._UseLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 84, 4)
     
     TargetLibrarySize = property(__TargetLibrarySize.value, __TargetLibrarySize.set, None, '2000, 10000, 20000')
 
     _ElementMap.update({
-        __BioSamples.name() : __BioSamples
+        __DNABarcodes.name() : __DNABarcodes
     })
     _AttributeMap.update({
         __DateReceived.name() : __DateReceived,
@@ -341,28 +308,26 @@ class BioSampleType (_ImportedBinding__pbbase.StrictEntityType):
 Namespace.addCategoryObject('typeBinding', 'BioSampleType', BioSampleType)
 
 
-# Complex type {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BarcodedSampleType with content type ELEMENT_ONLY
-class BarcodedSampleType (BioSampleType):
-    """This is a data type to hold a barcoded biological sample, or a raw biological sample - so, barcode is optional."""
+# Complex type [anonymous] with content type ELEMENT_ONLY
+class CTD_ANON_3 (_ImportedBinding__pbbase.BaseEntityType):
+    """A list of barcodes associated with the biological sample"""
     _TypeDefinition = None
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
-    _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'BarcodedSampleType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 8, 1)
-    _ElementMap = BioSampleType._ElementMap.copy()
-    _AttributeMap = BioSampleType._AttributeMap.copy()
-    # Base type is BioSampleType
+    _ExpandedName = None
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 19, 6)
+    _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
+    _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
+    # Base type is _ImportedBinding__pbbase.BaseEntityType
     
     # Element Extensions ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Extensions) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
-    # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}Barcodes uses Python identifier Barcodes
-    __Barcodes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Barcodes'), 'Barcodes', '__httppacificbiosciences_comPacBioSampleInfo_xsd_BarcodedSampleType_httppacificbiosciences_comPacBioSampleInfo_xsdBarcodes', False, pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 15, 5), )
+    # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}DNABarcode uses Python identifier DNABarcode
+    __DNABarcode = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DNABarcode'), 'DNABarcode', '__httppacificbiosciences_comPacBioSampleInfo_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioSampleInfo_xsdDNABarcode', True, pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 23, 10), )
 
     
-    Barcodes = property(__Barcodes.value, __Barcodes.set, None, 'A list of barcodes associated with the biological sample')
+    DNABarcode = property(__DNABarcode.value, __DNABarcode.set, None, 'A sequence of barcodes associated with the biological sample')
 
-    
-    # Element BioSamples ({http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSamples) inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
     
     # Attribute Name inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
@@ -379,58 +344,32 @@ class BarcodedSampleType (BioSampleType):
     # Attribute CreatedAt inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
     # Attribute ModifiedAt inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
-    
-    # Attribute UniqueId inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
-    # Attribute MetaType inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
-    # Attribute TimeStampedName inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}StrictEntityType
-    
-    # Attribute DateReceived inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute Organism inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute Reference inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute DNAType inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute Concentration inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute QuantificationMethod inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute SMRTBellConcentration inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute SMRTBellQuantificationMethod inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute BufferName inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute SamplePrepKit inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
-    
-    # Attribute TargetLibrarySize inherited from {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSampleType
     _ElementMap.update({
-        __Barcodes.name() : __Barcodes
+        __DNABarcode.name() : __DNABarcode
     })
     _AttributeMap.update({
         
     })
-Namespace.addCategoryObject('typeBinding', 'BarcodedSampleType', BarcodedSampleType)
 
 
-BioSamplePointers = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointers'), CTD_ANON_, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 100, 1))
+
+BioSamplePointers = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointers'), CTD_ANON, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 92, 1))
 Namespace.addCategoryObject('elementBinding', BioSamplePointers.name().localName(), BioSamplePointers)
 
-BarcodedSamplePointers = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), CTD_ANON_2, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 120, 1))
+BarcodedSamplePointers = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), CTD_ANON_, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 112, 1))
 Namespace.addCategoryObject('elementBinding', BarcodedSamplePointers.name().localName(), BarcodedSamplePointers)
 
-BioSamples = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamples'), CTD_ANON_3, location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 134, 1))
+BioSamples = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamples'), CTD_ANON_2, documentation='List of biological samples.', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 126, 1))
 Namespace.addCategoryObject('elementBinding', BioSamples.name().localName(), BioSamples)
 
-BioSample = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), BioSampleType, location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 141, 1))
+BioSample = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), BioSampleType, documentation='An individual biological sample.', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 136, 1))
 Namespace.addCategoryObject('elementBinding', BioSample.name().localName(), BioSample)
 
 
 
-CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Barcode'), _ImportedBinding__pbbase.DNABarcode, scope=CTD_ANON, documentation='A sequence of barcodes associated with the biological sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 21, 8)))
+CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer'), pyxb.binding.datatypes.IDREF, scope=CTD_ANON, documentation='Pointer to a single biological sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 103, 5)))
+
+CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), CTD_ANON_, scope=CTD_ANON, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 112, 1)))
 
 def _BuildAutomaton ():
     # Remove this helper function from the namespace after it is invoked
@@ -439,27 +378,26 @@ def _BuildAutomaton ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 21, 8))
-    counters.add(cc_0)
     states = []
     final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Barcode')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 21, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 102, 5))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
+    final_update = set()
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 103, 5))
+    st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
+    states.append(st_1)
     transitions = []
-    transitions.append(fac.Transition(st_0, [
-        fac.UpdateInstruction(cc_0, True) ]))
     st_0._set_transitionSet(transitions)
-    return fac.Automaton(states, counters, True, containing_state=None)
+    transitions = []
+    st_1._set_transitionSet(transitions)
+    return fac.Automaton(states, counters, False, containing_state=None)
 CTD_ANON._Automaton = _BuildAutomaton()
 
 
 
 
-CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer'), pyxb.binding.datatypes.IDREF, scope=CTD_ANON_, documentation='Pointer to a single biological sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 111, 5)))
-
-CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers'), CTD_ANON_2, scope=CTD_ANON_, documentation='Back references to other BarcodedSampleType object UniqueIds which utilize this sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 120, 1)))
+CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer'), pyxb.binding.datatypes.IDREF, scope=CTD_ANON_, documentation='Pointer to a group of barcoded samples', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 118, 4)))
 
 def _BuildAutomaton_ ():
     # Remove this helper function from the namespace after it is invoked
@@ -470,24 +408,20 @@ def _BuildAutomaton_ ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointers')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 110, 5))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 118, 4))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
-    final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamplePointer')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 111, 5))
-    st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_1)
     transitions = []
+    transitions.append(fac.Transition(st_0, [
+         ]))
     st_0._set_transitionSet(transitions)
-    transitions = []
-    st_1._set_transitionSet(transitions)
     return fac.Automaton(states, counters, False, containing_state=None)
 CTD_ANON_._Automaton = _BuildAutomaton_()
 
 
 
 
-CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer'), pyxb.binding.datatypes.IDREF, scope=CTD_ANON_2, documentation='Pointer to a group of barcoded samples', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 126, 4)))
+CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), BioSampleType, scope=CTD_ANON_2, documentation='An individual biological sample.', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 136, 1)))
 
 def _BuildAutomaton_2 ():
     # Remove this helper function from the namespace after it is invoked
@@ -498,7 +432,7 @@ def _BuildAutomaton_2 ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BarcodedSamplePointer')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 126, 4))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSample')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 132, 4))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -511,7 +445,7 @@ CTD_ANON_2._Automaton = _BuildAutomaton_2()
 
 
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSample'), BioSampleType, scope=CTD_ANON_3, location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 141, 1)))
+BioSampleType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DNABarcodes'), CTD_ANON_3, scope=BioSampleType, documentation='A list of barcodes associated with the biological sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 15, 5)))
 
 def _BuildAutomaton_3 ():
     # Remove this helper function from the namespace after it is invoked
@@ -520,25 +454,38 @@ def _BuildAutomaton_3 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 137, 4))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioBaseDataModel.xsd', 88, 3))
     counters.add(cc_0)
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 15, 5))
+    counters.add(cc_1)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSample')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 137, 4))
+    symbol = pyxb.binding.content.ElementUse(BioSampleType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioBaseDataModel.xsd', 88, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
+    final_update = set()
+    final_update.add(fac.UpdateInstruction(cc_1, False))
+    symbol = pyxb.binding.content.ElementUse(BioSampleType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DNABarcodes')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 15, 5))
+    st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
+    states.append(st_1)
     transitions = []
     transitions.append(fac.Transition(st_0, [
         fac.UpdateInstruction(cc_0, True) ]))
+    transitions.append(fac.Transition(st_1, [
+        fac.UpdateInstruction(cc_0, False) ]))
     st_0._set_transitionSet(transitions)
+    transitions = []
+    transitions.append(fac.Transition(st_1, [
+        fac.UpdateInstruction(cc_1, True) ]))
+    st_1._set_transitionSet(transitions)
     return fac.Automaton(states, counters, True, containing_state=None)
-CTD_ANON_3._Automaton = _BuildAutomaton_3()
+BioSampleType._Automaton = _BuildAutomaton_3()
 
 
 
 
-BioSampleType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamples'), CTD_ANON_3, scope=BioSampleType, location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 134, 1)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DNABarcode'), _ImportedBinding__pbbase.DNABarcode, scope=CTD_ANON_3, documentation='A sequence of barcodes associated with the biological sample', location=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 23, 10)))
 
 def _BuildAutomaton_4 ():
     # Remove this helper function from the namespace after it is invoked
@@ -547,86 +494,47 @@ def _BuildAutomaton_4 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioBaseDataModel.xsd', 88, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 19, 6))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 40, 5))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioBaseDataModel.xsd', 88, 3))
     counters.add(cc_1)
-    states = []
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(BioSampleType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioBaseDataModel.xsd', 88, 3))
-    st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_0)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(BioSampleType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamples')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 40, 5))
-    st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_1)
-    transitions = []
-    transitions.append(fac.Transition(st_0, [
-        fac.UpdateInstruction(cc_0, True) ]))
-    transitions.append(fac.Transition(st_1, [
-        fac.UpdateInstruction(cc_0, False) ]))
-    st_0._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_1, [
-        fac.UpdateInstruction(cc_1, True) ]))
-    st_1._set_transitionSet(transitions)
-    return fac.Automaton(states, counters, True, containing_state=None)
-BioSampleType._Automaton = _BuildAutomaton_4()
-
-
-
-
-BarcodedSampleType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Barcodes'), CTD_ANON, scope=BarcodedSampleType, documentation='A list of barcodes associated with the biological sample', location=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 15, 5)))
-
-def _BuildAutomaton_5 ():
-    # Remove this helper function from the namespace after it is invoked
-    global _BuildAutomaton_5
-    del _BuildAutomaton_5
-    import pyxb.utils.fac as fac
-
-    counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioBaseDataModel.xsd', 88, 3))
-    counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 40, 5))
-    counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 15, 5))
+    cc_2 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 23, 10))
     counters.add(cc_2)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(BarcodedSampleType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioBaseDataModel.xsd', 88, 3))
+    final_update.add(fac.UpdateInstruction(cc_1, False))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioBaseDataModel.xsd', 88, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(BarcodedSampleType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamples')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 40, 5))
+    final_update.add(fac.UpdateInstruction(cc_0, False))
+    final_update.add(fac.UpdateInstruction(cc_2, False))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DNABarcode')), pyxb.utils.utility.Location('/tmp/user/71303/tmpykSXGWxsds/PacBioSampleInfo.xsd', 23, 10))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_2, False))
-    symbol = pyxb.binding.content.ElementUse(BarcodedSampleType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Barcodes')), pyxb.utils.utility.Location('/tmp/tmpp6wSiNxsds/PacBioSampleInfo.xsd', 15, 5))
-    st_2 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_2)
     transitions = []
     transitions.append(fac.Transition(st_0, [
-        fac.UpdateInstruction(cc_0, True) ]))
+        fac.UpdateInstruction(cc_0, True),
+        fac.UpdateInstruction(cc_1, False) ]))
+    transitions.append(fac.Transition(st_0, [
+        fac.UpdateInstruction(cc_1, True) ]))
     transitions.append(fac.Transition(st_1, [
-        fac.UpdateInstruction(cc_0, False) ]))
-    transitions.append(fac.Transition(st_2, [
-        fac.UpdateInstruction(cc_0, False) ]))
+        fac.UpdateInstruction(cc_0, True),
+        fac.UpdateInstruction(cc_1, False) ]))
+    transitions.append(fac.Transition(st_1, [
+        fac.UpdateInstruction(cc_1, False) ]))
     st_0._set_transitionSet(transitions)
     transitions = []
+    transitions.append(fac.Transition(st_0, [
+        fac.UpdateInstruction(cc_0, True),
+        fac.UpdateInstruction(cc_2, False) ]))
     transitions.append(fac.Transition(st_1, [
-        fac.UpdateInstruction(cc_1, True) ]))
-    transitions.append(fac.Transition(st_2, [
-        fac.UpdateInstruction(cc_1, False) ]))
-    st_1._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_2, [
+        fac.UpdateInstruction(cc_0, True),
+        fac.UpdateInstruction(cc_2, False) ]))
+    transitions.append(fac.Transition(st_1, [
         fac.UpdateInstruction(cc_2, True) ]))
-    st_2._set_transitionSet(transitions)
+    st_1._set_transitionSet(transitions)
     return fac.Automaton(states, counters, True, containing_state=None)
-BarcodedSampleType._Automaton = _BuildAutomaton_5()
+CTD_ANON_3._Automaton = _BuildAutomaton_4()
 

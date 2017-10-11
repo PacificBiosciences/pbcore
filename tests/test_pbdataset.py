@@ -5,6 +5,8 @@ import logging
 import itertools
 import tempfile
 import unittest
+from urllib import quote
+from functools import partial
 from unittest.case import SkipTest
 
 import shutil
@@ -21,12 +23,21 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               ContinuousDistribution,
                                               DiscreteDistribution,
                                               SubreadSetMetadata)
+from pbcore.io.dataset.DataSetIO import _pathChanger
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
 from utils import _pbtestdata, _check_constools, _internal_data
+
+try:
+    import pbtestdata
+except ImportError:
+    pbtestdata = None
+
+skip_if_no_pbtestdata = unittest.skipUnless(pbtestdata is not None,
+                                            "PacBioTestData not installed")
 
 log = logging.getLogger(__name__)
 
@@ -607,6 +618,27 @@ class TestDataSet(unittest.TestCase):
 
         # The DataSet API
         self.assertTrue(len(sset.index.qId) != 0)
+
+    def test_space_in_filename(self):
+        outdir = tempfile.mkdtemp(suffix="dataset unittest")
+        ofn = os.path.join(outdir, 'spaced.subreadset.xml')
+        ss = SubreadSet(data.getXml(10), strict=True)
+        ss.copyTo(ofn)
+        ss = SubreadSet(ofn, strict=True)
+        for fn in ss.toExternalFiles():
+            assert ' ' in fn
+        ss._modResources(partial(_pathChanger,
+                                 lambda x: ('file://' + quote(x)),
+                                 lambda x: x))
+        # have to dig deep to not get a processed version:
+        for er in ss.externalResources:
+            assert '%20' in er.attrib['ResourceId']
+        # this should have been cleaned for actual use:
+        for fn in ss.toExternalFiles():
+            assert ' ' in fn
+        ss.write(ofn)
+        ss = SubreadSet(ofn, strict=True)
+        shutil.rmtree(outdir)
 
     def test_empty_aligned_bam_index_dtype(self):
         # Make sure the BAM and DataSet APIs are consistent
@@ -2549,3 +2581,13 @@ class TestDataSet(unittest.TestCase):
                    relPaths=True)
         naset = AlignmentSet(ofn)
 
+    @skip_if_no_pbtestdata
+    def test_subreadset_get_movie_sample_names(self):
+        ds_file1 = pbtestdata.get_file("subreads-biosample-1")
+        ds_file2 = pbtestdata.get_file("subreads-biosample-2")
+        ds1 = SubreadSet(ds_file1, strict=True)
+        ds2 = SubreadSet(ds_file2, strict=True)
+        self.assertEqual(ds1.getMovieSampleNames(), {"m1": "Alice"})
+        self.assertEqual(ds2.getMovieSampleNames(), {"m2": "Bob"})
+        ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
+        self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})

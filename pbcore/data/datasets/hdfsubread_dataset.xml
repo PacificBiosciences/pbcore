@@ -44,9 +44,9 @@
 					<SizeSelectionEnabled>true</SizeSelectionEnabled>
 					<UseCount>0</UseCount>
 					<Comments>Lorem ipsum</Comments>
-					<BioSamplePointers>
-						<BioSamplePointer>abc2df90-d44f-4a48-9f35-3b99473c68f5</BioSamplePointer>
-					</BioSamplePointers>
+                    <BioSamples>
+                        <BioSample Name="consectetur purus"/>
+                    </BioSamples>
 				</WellSample>
 				<AutomationName>POC Protocol</AutomationName>
 				<CollectionNumber>0</CollectionNumber>
@@ -64,9 +64,6 @@
 				</Primary>
 			</CollectionMetadata>
 		</Collections>
-		<BioSamples>
-			<BioSample UniqueId="abc2df90-d44f-4a48-9f35-3b99473c68f5" Name="consectetur purus" Description="Risus sit amet lectus vehicula vulputate quisque porta accumsan venenatis." CreatedAt="2015-01-20T13:27:23.9271737-08:00"/>
-		</BioSamples>
 	</DataSetMetadata>
 </HdfSubreadSet>
 <!-- TODO what do internal references look like?-->
