@@ -2182,6 +2182,8 @@ class ContinuousDistribution(RecordWrapper):
     sampleSize = subaccs('SampleSize', asType=int)
     sampleMean = subaccs('SampleMean', asType=float)
     sampleMed = subaccs('SampleMed', asType=float)
+    sampleMedian = subaccs('SampleMed', asType=float)
+    sampleMode = subaccs('SampleMode', asType=float)
     sampleStd = subaccs('SampleStd', asType=float)
     sample95thPct = subaccs('Sample95thPct', asType=float)
     binWidth = subaccs('BinWidth', asType=float)
