@@ -18,6 +18,15 @@ from utils import _pbtestdata, _check_constools, _internal_data
 
 log = logging.getLogger(__name__)
 
+
+def skip_if_not_internal():
+    # this should probably be centralized within utils
+    def wrapper(f):
+        return unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
+                                   "Missing internal testadata directory")(f)
+    return wrapper
+
+
 class TestDataSetSplit(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
@@ -185,9 +194,7 @@ class TestDataSetSplit(unittest.TestCase):
                 ds1.index.holeNumber < rg[1],
                 ds1.index.holeNumber > rg[0]))[0]), 0)
 
-
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_not_internal()
     def test_multi_movie_split_zmws(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -220,6 +227,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127819, 163468)])
 
+    @skip_if_not_internal()
     def test_multi_movie_split_zmws_existing_simple_filters(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -263,6 +271,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127695, 163468)])
 
+    @skip_if_not_internal()
     def test_multi_movie_split_zmws_existing_filters(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -311,8 +320,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               137634, 139999)])
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_not_internal()
     def test_movie_split(self):
         N_RECORDS = 1745161
         N_RECORDS_1 = 959539
@@ -351,8 +359,7 @@ class TestDataSetSplit(unittest.TestCase):
             'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')
         self.assertEqual(len(dss[-1]), N_RECORDS_2)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_not_internal()
     def test_split_references(self):
         test_file_1 = ('/pbi/dept/secondary/siv/testdata/SA3-RS/lambda/'
                        '2372215/0007_tiny/Alignment_Results/m150404_1016'
@@ -397,8 +404,7 @@ class TestDataSetSplit(unittest.TestCase):
             'lambda_NEB3011')
         self.assertEqual(len(dss[-1]), NREC1)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_not_internal()
     def test_multi_movie_split_zmws_with_existing_movie_filter(self):
         # TODO: test with three movies and two chunks
         N_RECORDS = 959539
@@ -749,8 +755,7 @@ class TestDataSetSplit(unittest.TestCase):
         sset.induceIndices(force=True)
         self.assertFalse(sset.isBarcoded)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_not_internal()
     def test_barcode_split_cornercases(self):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
@@ -783,8 +788,7 @@ class TestDataSetSplit(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(len(sset), 4710)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_not_internal()
     def test_barcode_split_maxChunks(self):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'

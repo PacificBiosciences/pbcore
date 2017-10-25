@@ -709,6 +709,10 @@ class DataSet(object):
             self.updateCounts()
         return self.numRecords
 
+    def newRandomUuid(self):
+        """Generate a new random UUID"""
+        return self.newUuid(setter=True, random=False)
+
     def newUuid(self, setter=True, random=False):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
         While user setable fields are stripped out of the Core DataSet object
@@ -719,6 +723,9 @@ class DataSet(object):
             :setter=True: Setting to False allows MD5 hashes to be generated
                          (e.g. for comparison with other objects) without
                          modifying the object's UniqueId
+            :random=False: If true, the new UUID will be generated randomly. Otherwise a hashing algo will be
+                         used from "core" elements of the XML. This will yield a reproducible UUID for
+                         datasets that have the same "core" attributes/metadata.
         Returns:
             The new Id, a properly formatted md5 hash of the Core DataSet
 

@@ -1000,12 +1000,21 @@ class TestDataSet(unittest.TestCase):
         shutil.copy(fn_orig, fn1)
         shutil.copy(fn_orig, fn2)
         ds1 = openDataSet(fn1)
+
+        original_uuid = ds1.uuid
+
         ds2 = openDataSet(fn2)
+        ds3 = openDataSet(fn1)
         self.assertEqual(ds1.uuid, ds2.uuid)
         for _ in range(10):
             ds1.newUuid(random=True)
             ds2.newUuid(random=True)
+            ds3.newRandomUuid()
+            for ds in [ds1, ds2, ds3]:
+                self.assertNotEqual(original_uuid, ds.uuid)
+
             self.assertNotEqual(ds1.uuid, ds2.uuid)
+            self.assertNotEqual(ds1.uuid, ds3.uuid)
 
     def test_bad_xml_extension(self):
         fn = tempfile.NamedTemporaryFile(
