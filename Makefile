@@ -8,7 +8,11 @@ bdist:
 	python setup.py bdist --formats=egg
 
 install:
-	python setup.py install
+	@which pip > /dev/null
+	@pip freeze|grep 'pbcore=='>/dev/null \
+      && pip uninstall -y pbcore \
+      || echo -n ''
+	@pip install ./
 
 pylint:
 	pylint --errors-only pbcore/
