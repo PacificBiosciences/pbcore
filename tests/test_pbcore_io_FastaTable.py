@@ -78,3 +78,11 @@ class TestIndexedFastaReader:
         for (frE, ftE) in zip(frEntries, ftEntries):
             assert_equal(frE.header, ftE.header)
             assert_equal(frE.sequence, ftE.sequence[:])
+
+
+    def test_readWeirdFastaIndex(self):
+        f = IndexedFastaReader(data.getWeird())
+        entries = list(f)
+        assert_equal(1, len(entries))
+        assert_equal("chr1", entries[0].header)
+        assert_equal("acgtacgtacgtact", entries[0].sequence[:])
