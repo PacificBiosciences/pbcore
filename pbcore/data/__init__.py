@@ -177,3 +177,6 @@ def getEmptyAlignedBam():
 
 def getMappingXml():
     return _getAbsPath("chemistry.xml")
+
+def getWeird():
+    return _getAbsPath("weird.fa")
