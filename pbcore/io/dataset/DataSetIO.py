@@ -711,7 +711,7 @@ class DataSet(object):
 
     def newRandomUuid(self):
         """Generate a new random UUID"""
-        return self.newUuid(setter=True, random=False)
+        return self.newUuid(setter=True, random=True)
 
     def newUuid(self, setter=True, random=False):
         """Generate and enforce the uniqueness of an ID for a new DataSet.
