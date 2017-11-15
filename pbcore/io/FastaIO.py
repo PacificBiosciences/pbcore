@@ -293,7 +293,9 @@ def loadFastaIndex(faidxFilename, fastaView):
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
         header_    = fastaView[offsetEnd:offset]
         assert (header_[0] == ">" and header_[-1] == "\n")
-        header     = header_[1:-newlineWidth]
+        # used to use 1:-newlineWidth here, but when DOS encoded
+        # and single-line, single-entry FASTA, sometimes newlineWidth = 0
+        header     = header_[1:].rstrip('\r\n')
         id, comment = splitFastaHeader(header)
         q, r = divmod(length, lineWidth)
         numNewlines = q + (r > 0)
