@@ -63,3 +63,8 @@ pip-install:
 publish-to-pypi:
 	@echo "I'm not going to do this for you, but you can do it by:"
 	@echo "    % python setup.py sdist upload -r pypi"
+
+
+xsd-codegen:
+	rm -f pbcore/io/dataset/pyxb/DataSetXsd.py
+	./bin/updateXSDs.py ../xsd-datamodels/PacBioDataModel.xsd pbcore/io/dataset/pyxb/
