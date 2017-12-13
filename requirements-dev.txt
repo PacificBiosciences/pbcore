@@ -3,3 +3,4 @@ nose
 pyxb==1.2.4
 sphinx
 h5py >= 2.0.1
+pyasm >= 0.13.0
