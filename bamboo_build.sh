@@ -7,7 +7,7 @@ export PATH=$PWD/build/bin:/mnt/software/a/anaconda2/4.2.0/bin:$PATH
 export PYTHONUSERBASE=$PWD/build
 export CFLAGS="-I/mnt/software/a/anaconda2/4.2.0/include"
 PIP="pip --cache-dir=$bamboo_build_working_directory/.pip"
-module load gcc/6.4.0
+module load gcc
 
 rm -rf   build
 mkdir -p build/bin build/lib build/include build/share
