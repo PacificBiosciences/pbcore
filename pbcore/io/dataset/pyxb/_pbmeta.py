@@ -5,6 +5,7 @@
 # Namespace http://pacificbiosciences.com/PacBioCollectionMetadata.xsd [xmlns:pbmeta]
 
 from __future__ import unicode_literals
+from __future__ import absolute_import
 import pyxb
 import pyxb.binding
 import pyxb.binding.saxer
@@ -24,10 +25,10 @@ if pyxb.__version__ != _PyXBVersion:
     raise pyxb.PyXBVersionError(_PyXBVersion)
 
 # Import bindings for namespaces imported into schema
-import _pbrk as _ImportedBinding__pbrk
+from . import _pbrk as _ImportedBinding__pbrk
 import pyxb.binding.datatypes
-import _pbsample as _ImportedBinding__pbsample
-import _pbbase as _ImportedBinding__pbbase
+from . import _pbsample as _ImportedBinding__pbsample
+from . import _pbbase as _ImportedBinding__pbbase
 
 # NOTE: All namespace declarations are reserved within the binding
 Namespace = pyxb.namespace.NamespaceForURI('http://pacificbiosciences.com/PacBioCollectionMetadata.xsd', create_if_missing=True)

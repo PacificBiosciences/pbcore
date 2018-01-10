@@ -104,6 +104,7 @@ from collections import Counter, defaultdict
 from pbcore.io.dataset.utils import getTimeStampedName
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
+from functools import reduce
 
 log = logging.getLogger(__name__)
 

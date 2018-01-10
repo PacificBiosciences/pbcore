@@ -36,6 +36,7 @@ except ImportError:
 import numpy as n
 
 from pbcore.io.FofnIO import readFofn
+from functools import reduce
 
 BARCODE_DELIMITER = "--"
 BC_DS_PATH        = "BarcodeCalls/best"
@@ -270,7 +271,7 @@ class MPBarcodeH5Reader(object):
                     return [ self.labeledZmwFromHoleNumber(r) for r in item ]
                 elif entryType == bool or issubclass(entryType, n.bool_):
                     return [ self.labeledZmwFromHoleNumber(r) for r in n.flatnonzero(item) ]
-        raise TypeError, "Invalid type for BasH5Reader slicing"
+        raise TypeError("Invalid type for BasH5Reader slicing")
 
 
 class BarcodeH5Fofn(object):

@@ -28,6 +28,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+from __future__ import print_function
+
 import argparse, cProfile, logging, pstats
 
 
@@ -98,7 +100,7 @@ class PBToolRunner(object):
             try:
                 import ipdb
             except ImportError:
-                print "--debug requires module 'ipdb'"
+                print("--debug requires module 'ipdb'")
                 return -1
             with ipdb.launch_ipdb_on_exception():
                 self.run()

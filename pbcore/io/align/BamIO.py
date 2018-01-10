@@ -55,7 +55,7 @@ def requiresBai(method):
     @wraps(method)
     def f(bamReader, *args, **kwargs):
         if not bamReader.peer.has_index():
-            raise UnavailableFeature, "this feature requires an standard BAM index file (bam.bai)"
+            raise UnavailableFeature("this feature requires an standard BAM index file (bam.bai)")
         else:
             return method(bamReader, *args, **kwargs)
     return f
@@ -176,7 +176,7 @@ class _BamReaderBase(ReaderBase):
         fastaIdsAndLens = set((c.id, len(c)) for c in ft)
         bamIdsAndLens   = set((c.Name, c.Length) for c in self.referenceInfoTable)
         if not bamIdsAndLens.issubset(fastaIdsAndLens):
-            raise ReferenceMismatch, "FASTA file must contain superset of reference contigs in BAM"
+            raise ReferenceMismatch("FASTA file must contain superset of reference contigs in BAM")
         self.referenceFasta = ft
 
     def _checkFileCompatibility(self):
@@ -205,7 +205,7 @@ class _BamReaderBase(ReaderBase):
         self.referenceFasta = None
         if referenceFastaFname is not None:
             if self.isUnmapped:
-                raise ValueError, "Unmapped BAM file--reference FASTA should not be given as argument to BamReader"
+                raise ValueError("Unmapped BAM file--reference FASTA should not be given as argument to BamReader")
             self._loadReferenceFasta(referenceFastaFname)
 
     @property
@@ -439,13 +439,13 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
                     return ( self.atRowNumber(r) for r in rowNumbers )
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return ( self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) )
-        raise TypeError, "Invalid type for IndexedBamReader slicing"
+        raise TypeError("Invalid type for IndexedBamReader slicing")
 
     def __getattr__(self, key):
         if key in self.pbi.columnNames:
             return getattr(self.pbi, key)
         else:
-            raise AttributeError, "no such column in pbi index"
+            raise AttributeError("no such column in pbi index")
 
     def __dir__(self):
         basicDir = dir(self.__class__)

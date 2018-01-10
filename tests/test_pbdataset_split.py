@@ -15,6 +15,7 @@ import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
 from utils import _pbtestdata, _check_constools, _internal_data
+from functools import reduce
 
 log = logging.getLogger(__name__)
 

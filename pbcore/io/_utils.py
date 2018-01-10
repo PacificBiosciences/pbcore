@@ -29,6 +29,7 @@
 #################################################################################
 
 from __future__ import absolute_import
+from __future__ import print_function
 
 try:
     import h5py
@@ -242,7 +243,7 @@ def print_rec_array(rec):
     """
     Pretty-print a recarray
     """
-    print "foo"
+    print("foo")
 
 
 class CommonEqualityMixin(object):

@@ -112,7 +112,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         """
         movieNames = list(self.movieNames)
         if len(movieNames) != 1:
-            raise ValueError, "readsByHoleNumber expects a single-movie file"
+            raise ValueError("readsByHoleNumber expects a single-movie file")
         else:
             return self.readsByName(movieNames[0] + "/" + str(hn))
 

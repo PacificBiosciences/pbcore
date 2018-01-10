@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import argparse
 import tempfile
 import shutil
@@ -10,7 +11,7 @@ import shlex
 
 
 def get_files(xsd_dir):
-    print "Searching ", xsd_dir
+    print("Searching ", xsd_dir)
     files = []
     for path, subdirs, fns in os.walk(xsd_dir):
         for fn in fns:
@@ -22,16 +23,16 @@ def copy_xsds(xsd, dest):
     """Go ahead and copy all xsds, there will likely be many dependencies. If
     not, xsds are small"""
     files = get_files(os.path.dirname(xsd))
-    print "Copying:"
+    print("Copying:")
     for f in files:
-        print f
+        print(f)
     for fn in files:
         shutil.copy(fn, dest)
 
 def generate_pyxb(xsd, outdir, modname):
     cmd = "pyxbgen -u {x} -m {m} --binding-root {p}".format(x=xsd, m=modname,
                                                             p=outdir)
-    print cmd
+    print(cmd)
     subprocess.call(shlex.split(cmd))
 
 if __name__ == "__main__":

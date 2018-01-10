@@ -62,7 +62,7 @@ def readFofn(f):
         elif fofnRoot is not None:
             yield join(fofnRoot, path)
         else:
-            raise IOError, "Cannot handle relative paths in StringIO FOFN"
+            raise IOError("Cannot handle relative paths in StringIO FOFN")
 
 def readInputXML(fname):
     tree = ET.parse(fname)

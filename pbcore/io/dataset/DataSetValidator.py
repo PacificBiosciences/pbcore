@@ -34,6 +34,7 @@
 
 
 """Validate DataSet XML files"""
+from __future__ import print_function
 
 import os
 import re
@@ -68,7 +69,7 @@ def validateResources(xmlroot, relTo='.'):
                                                     rfn)) and
                         not os.path.exists(os.path.join('.',
                                                         rfn))):
-                    raise IOError, "{f} not found".format(f=rfn)
+                    raise IOError("{f} not found".format(f=rfn))
 
 def validateLxml(xml_fn, xsd_fn):
     try:
@@ -76,7 +77,7 @@ def validateLxml(xml_fn, xsd_fn):
         schema = etree.XMLSchema(etree.parse(xsd_fn))
         xml_file = etree.parse(xml_fn)
         if not schema.validate(xml_file):
-            print schema.error_log
+            print(schema.error_log)
     except ImportError:
         log.debug('lxml not found, validation disabled')
 
