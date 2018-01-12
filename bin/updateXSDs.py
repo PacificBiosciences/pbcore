@@ -48,4 +48,4 @@ if __name__ == "__main__":
     xsd_name = os.path.basename(args.xsd)
     generate_pyxb(os.path.join(tempd, xsd_name), args.outdir, args.mod_name)
     shutil.rmtree(tempd)
-
+    print("please view commit b7ef4238b63 for additional diffs required for python3 support")
