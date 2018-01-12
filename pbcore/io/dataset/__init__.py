@@ -32,8 +32,10 @@
 
 # Author: Martin D. Smith
 
-from DataSetIO import *
-from DataSetUtils import *
+from __future__ import absolute_import
+
+from .DataSetIO import *
+from .DataSetUtils import *
 
 import logging
 

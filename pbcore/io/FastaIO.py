@@ -326,7 +326,7 @@ class MmappedFastaSequence(Sequence):
         if isinstance(spec, slice):
             start, stop, stride = spec.indices(len(self))
             if stride != 1:
-                raise ValueError, "Unsupported stride"
+                raise ValueError("Unsupported stride")
         elif spec < 0:
             start = self.faiRecord.length + spec
             stop = start + 1
@@ -336,7 +336,7 @@ class MmappedFastaSequence(Sequence):
             stop = start + 1
             stride = 1
         if not (0 <= start <= stop <= self.faiRecord.length):
-            raise IndexError, "Out of bounds"
+            raise IndexError("Out of bounds")
         startOffset = fileOffset(self.faiRecord, start)
         endOffset   = fileOffset(self.faiRecord, stop)
         snip = self.view[startOffset:endOffset].translate(None, "\r\n")
@@ -459,7 +459,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
         elif key in self.contigLookup:
             return IndexedFastaRecord(self.view, self.contigLookup[key])
         else:
-            raise IndexError, "Contig not in FastaTable"
+            raise IndexError("Contig not in FastaTable")
 
     def __iter__(self):
         return (self[i] for i in xrange(len(self)))

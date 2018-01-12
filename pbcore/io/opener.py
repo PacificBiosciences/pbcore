@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+from __future__ import print_function
 
 __all__ = [ "openAlignmentFile",
             "openIndexedAlignmentFile",
@@ -53,7 +54,7 @@ def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     elif fname.endswith("bam"):
         return IndexedBamReader(fname, referenceFastaFname=referenceFastaFname, sharedIndex=sharedIndex)
     else:
-        raise ValueError, "Invalid alignment file suffix"
+        raise ValueError("Invalid alignment file suffix")
 
 def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
@@ -80,7 +81,7 @@ def _openersFor(ext):
     elif ext == "pbi":           return (PacBioBamIndex,)
     elif ext == "xml":           return (openDataSet,)
     else:
-        raise ValueError, ("No known opener class for extension %s" % ext)
+        raise ValueError("No known opener class for extension %s" % ext)
 
 def _extension(fname):
     parts = fname.split(".")
@@ -111,7 +112,7 @@ def entryPoint():
     import sys, code, numpy as np
 
     if len(sys.argv) < 2:
-        print "Requires at least one argument!"
+        print("Requires at least one argument!")
         return 1
 
     fname = sys.argv[1]

@@ -170,7 +170,7 @@ def ungappedPulseArray(a):
     elif dtype == np.int8:
         return a[a != ord("-")]
     else:
-        raise Exception, "Invalid pulse array type"
+        raise Exception("Invalid pulse array type")
 
 
 
@@ -288,7 +288,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
-            raise IndexError, "Clipping query does not overlap alignment"
+            raise IndexError("Clipping query does not overlap alignment")
         else:
             return ClippedCmpH5Alignment(self, refStart, refEnd)
 
@@ -449,7 +449,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     @property
     def hqRegionSnr(self):
-        raise Exception, "CmpH5 does not support hqRegionSnr"
+        raise Exception("CmpH5 does not support hqRegionSnr")
 
     def alignmentArray(self, orientation="native"):
         """
@@ -730,7 +730,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 self.filename = abspath(expanduser(filenameOrH5File))
                 self.file = h5py.File(self.filename, "r")
             except IOError:
-                raise IOError, ("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
+                raise IOError("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
 
         self._loadAlignmentInfo(sharedIndex)
         self._loadMovieInfo()
@@ -866,7 +866,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                     recordName[i]     in self._referenceDict or
                     recordFullName[i] in self._referenceDict or
                     recordMD5[i]      in self._referenceDict):
-                    raise ValueError, "Duplicate reference contig sequence or identifier"
+                    raise ValueError("Duplicate reference contig sequence or identifier")
                 else:
                     self._referenceDict[shortName]         = record
                     self._referenceDict[recordID[i]]       = record
@@ -916,7 +916,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 # Old way
                 self._sequencingChemistry = mi["SequencingChemistry"].value
             else:
-                raise ChemistryLookupError, "Chemistry information could not be found in cmp.h5!"
+                raise ChemistryLookupError("Chemistry information could not be found in cmp.h5!")
         return self._sequencingChemistry
 
     @property
@@ -1181,7 +1181,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         """
 
         if not self.isSorted:
-            raise Exception, "CmpH5 is not sorted"
+            raise Exception("CmpH5 is not sorted")
         rowNumbers = self._readLocatorByKey[refKey](refStart, refEnd, justIndices=True)
         if justIndices:
             return rowNumbers
@@ -1278,7 +1278,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                     return [CmpH5Alignment(self, r) for r in rowNumbers]
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return [CmpH5Alignment(self, r) for r in np.flatnonzero(rowNumbers)]
-        raise TypeError, "Invalid type for CmpH5Reader slicing"
+        raise TypeError("Invalid type for CmpH5Reader slicing")
 
     def __iter__(self):
         return (self[i] for i in xrange(len(self)))

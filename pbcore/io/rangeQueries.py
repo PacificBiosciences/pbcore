@@ -126,7 +126,7 @@ def makeReadLocator(cmpH5, refSeq):
     Return a function which can be called iteratively to find reads
     quickly.
     """
-    if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
+    if not cmpH5.isSorted: raise Exception("CmpH5 is not sorted")
     refInfo = cmpH5.referenceInfo(refSeq)
     offStart, offEnd = refInfo.StartRow, refInfo.EndRow
 
@@ -162,7 +162,7 @@ def getReadsInRange(cmpH5, coords, justIndices = False):
     cmpH5 is an hdf5 object representing a pointer to a sorted cmp.h5
     file.
     """
-    if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
+    if not cmpH5.isSorted: raise Exception("CmpH5 is not sorted")
     return makeReadLocator(cmpH5, coords[0])(coords[1], coords[2], justIndices)
 
 def getCoverageInRange(cmpH5, coords, rowNumbers=None):
@@ -171,7 +171,7 @@ def getCoverageInRange(cmpH5, coords, rowNumbers=None):
     element represents the number of reads overlapping that position
     in the cmp.h5 file.
     """
-    if not cmpH5.isSorted: raise Exception, "CmpH5 is not sorted"
+    if not cmpH5.isSorted: raise Exception("CmpH5 is not sorted")
     if rowNumbers==None:
         rowNumbers  = getReadsInRange(cmpH5, coords, justIndices=True)
     if (len(rowNumbers))==0:

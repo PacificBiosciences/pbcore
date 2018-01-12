@@ -79,6 +79,7 @@ from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
+from functools import reduce
 
 
 log = logging.getLogger(__name__)
@@ -3698,8 +3699,8 @@ class AlignmentSet(ReadSet):
             if not res is None:
                 if self.isCmpH5:
                     for rec in res:
-                        rec.StartRow = 0L
-                        rec.EndRow = 0L
+                        rec.StartRow = 0
+                        rec.EndRow = 0
                 responses.append(res)
         table = []
         if len(responses) > 1:

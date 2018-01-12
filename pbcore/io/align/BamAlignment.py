@@ -67,7 +67,7 @@ def requiresReference(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.bam.isReferenceLoaded:
-            raise UnavailableFeature, "this feature requires loaded reference sequence"
+            raise UnavailableFeature("this feature requires loaded reference sequence")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -76,7 +76,7 @@ def requiresPbi(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.hasPbi:
-            raise UnavailableFeature, "this feature requires a PacBio BAM index"
+            raise UnavailableFeature("this feature requires a PacBio BAM index")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -85,7 +85,7 @@ def requiresMapping(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if bamAln.isUnmapped:
-            raise UnavailableFeature, "this feature requires a *mapped* BAM record"
+            raise UnavailableFeature("this feature requires a *mapped* BAM record")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -196,7 +196,7 @@ class BamAlignment(AlignmentRecordMixin):
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
-            raise IndexError, "Clipping query does not overlap alignment"
+            raise IndexError("Clipping query does not overlap alignment")
 
         # The clipping region must intersect the alignment, though it
         # does not have to be contained wholly within it.
@@ -261,7 +261,7 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def scrapType(self):
         if self.readType != "SCRAP":
-            raise ValueError, "scrapType not meaningful for non-scrap reads"
+            raise ValueError("scrapType not meaningful for non-scrap reads")
         else:
             return self.peer.opt("sc")
 
@@ -360,7 +360,7 @@ class BamAlignment(AlignmentRecordMixin):
     @requiresReference
     def reference(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         tSeq = self.bam.referenceFasta[self.referenceName].sequence[self.tStart:self.tEnd]
         shouldRC = orientation == "native" and self.isReverseStrand
         tSeqOriented = reverseComplement(tSeq) if shouldRC else tSeq
@@ -458,10 +458,9 @@ class BamAlignment(AlignmentRecordMixin):
         oriented genomically in the file.
         """
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature, \
-                "Cannot get genome oriented/aligned features from unmapped BAM record"
+            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
 
         # 0. Get the "concrete" feature name.  (Example: Ipd could be
         # Ipd:Frames or Ipd:CodecV1)
@@ -544,10 +543,9 @@ class BamAlignment(AlignmentRecordMixin):
 
     def read(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature, \
-                "Cannot get genome oriented/aligned features from unmapped BAM record"
+            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
         data = np.fromstring(self.peer.seq, dtype=np.int8)
         if self.isCCS:
             s = self.aStart

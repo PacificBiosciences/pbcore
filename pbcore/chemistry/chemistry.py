@@ -54,7 +54,7 @@ def _loadBarcodeMappingsFromFile(mapFile):
             mappings[(bindingKit, sequencingKit, softwareVersion)] = sequencingChemistry
         return mappings
     except:
-        raise ChemistryLookupError, "Error loading chemistry mapping xml"
+        raise ChemistryLookupError("Error loading chemistry mapping xml")
 
 def _loadBarcodeMappings():
     mappingFname = resource_filename(Requirement.parse('pbcore'),'pbcore/chemistry/resources/mapping.xml')
@@ -87,8 +87,7 @@ def tripleFromMetadataXML(metadataXmlPath):
         instrumentControlVersion = ".".join(verComponents)
         return (bindingKit, sequencingKit, instrumentControlVersion)
     except Exception as e:
-        raise ChemistryLookupError, \
-            ("Could not find, or extract chemistry information from, %s" % (metadataXmlPath,))
+        raise ChemistryLookupError("Could not find, or extract chemistry information from, %s" % (metadataXmlPath,))
 
 def decodeTriple(bindingKit, sequencingKit, softwareVersion):
     """
