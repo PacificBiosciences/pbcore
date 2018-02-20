@@ -89,6 +89,8 @@ Notes:
 
 """
 
+from __future__ import division
+
 import ast
 import uuid
 import copy

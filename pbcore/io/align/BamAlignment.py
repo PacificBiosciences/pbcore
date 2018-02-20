@@ -30,6 +30,8 @@
 
 # Author: David Alexander
 
+from __future__ import division
+
 from functools import wraps
 from bisect import bisect_right, bisect_left
 
@@ -307,7 +309,7 @@ class BamAlignment(AlignmentRecordMixin):
             if self.readLength == 0:
                 return 0.
             else:
-                return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+                return 1. - (self.nMM + self.nIns + self.nDel)/self.readLength
         else:
             # Slow (no pbi);
             if self.readLength == 0:
@@ -317,7 +319,7 @@ class BamAlignment(AlignmentRecordMixin):
                 nMM  = x.count("R")
                 nIns = x.count("I")
                 nDel = x.count("D")
-                return 1. - float(nMM + nIns + nDel)/self.readLength
+                return 1. - (nMM + nIns + nDel)/self.readLength
 
     @property
     def mapQV(self):

@@ -30,6 +30,8 @@
 
 # Author: David Alexander
 
+from __future__ import division
+
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
 try:

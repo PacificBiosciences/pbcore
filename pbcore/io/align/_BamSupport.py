@@ -30,6 +30,8 @@
 
 # Author: David Alexander
 
+from __future__ import division
+
 import numpy as np
 
 class UnavailableFeature(Exception): pass
@@ -95,7 +97,7 @@ def _makeFramepoints():
 
     framepoints = []
     next = 0
-    for i in range(256/T):
+    for i in range(256//T):
         grain = B**i
         nextOnes = next + grain * np.arange(0, T)
         next = nextOnes[-1] + grain
@@ -108,7 +110,7 @@ def _makeLookup(framepoints):
     frameToCode = np.empty(shape=max(framepoints)+1, dtype=int)
     for i, (fl, fu) in enumerate(zip(framepoints, framepoints[1:])):
         if (fu > fl + 1):
-            m = (fl + fu)/2
+            m = (fl + fu)//2
             for f in xrange(fl, m):
                 frameToCode[f] = i
             for f in xrange(m, fu):

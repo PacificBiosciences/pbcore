@@ -29,6 +29,9 @@
 #################################################################################
 
 # Author: David Alexander
+
+from __future__ import division
+
 __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
             "EmptyCmpH5Error" ]
@@ -384,7 +387,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if self.readLength == 0:
             return 0.
         else:
-            return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+            return 1. - (self.nMM + self.nIns + self.nDel)/self.readLength
 
     @property
     def accuracy(self):
@@ -408,7 +411,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if meanLength == 0:
             return 0.
         else:
-            return float(self.nM/meanLength)
+            return self.nM/meanLength
 
     @property
     def numPasses(self):
