@@ -35,6 +35,8 @@
 Classes representing DataSets of various types.
 """
 
+from __future__ import division
+
 import copy
 import errno
 import hashlib
@@ -238,7 +240,7 @@ def divideKeys(keys, chunks):
         return []
     if chunks > len(keys):
         chunks = len(keys)
-    chunksize = len(keys)/chunks
+    chunksize = len(keys)//chunks
     key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
                   range(chunks-1)]
     key_chunks.append(keys[((chunks - 1) * chunksize):])
@@ -250,7 +252,7 @@ def splitKeys(keys, chunks):
         return []
     if chunks > len(keys):
         chunks = len(keys)
-    chunksize = len(keys)/chunks
+    chunksize = len(keys)//chunks
     chunksizes = [chunksize] * chunks
     i = 0
     while sum(chunksizes) < len(keys):
@@ -1018,7 +1020,7 @@ class DataSet(object):
         segments)
         """
         for _ in range(num_chunks - len(atoms)):
-            largest = max(atoms, key=lambda x: x[1]/x[2])
+            largest = max(atoms, key=lambda x: x[1]//x[2])
             largest[2] += 1
         return atoms
 
@@ -2250,7 +2252,7 @@ class ReadSet(DataSet):
         if (not targetSize is None and len(active_holenumbers) > 1 and
                 chunks > 1):
             # we want at least two if we can swing it
-            desired = max(2, len(active_holenumbers)/targetSize)
+            desired = max(2, len(active_holenumbers)//targetSize)
             n_chunks = min(n_chunks, desired)
 
         if n_chunks != chunks:
@@ -3098,7 +3100,7 @@ class AlignmentSet(ReadSet):
         coverage mediated split with the first at 0"""
         log.debug("Splitting coverage summary")
         totalCoverage = sum(contour)
-        splitSize = totalCoverage/splits
+        splitSize = totalCoverage//splits
         tbr = [0]
         for _ in range(splits - 1):
             size = 0
@@ -3192,7 +3194,7 @@ class AlignmentSet(ReadSet):
             log.debug("Target numRecords per chunk: {i}".format(i=targetSize))
             dataSize = self.numRecords
             log.debug("numRecords in dataset: {i}".format(i=dataSize))
-            chunks = int(dataSize/targetSize)
+            chunks = int(dataSize//targetSize)
             # Respect bounds:
             chunks = minNum if chunks < minNum else chunks
             chunks = maxNum if chunks > maxNum else chunks
@@ -3215,9 +3217,9 @@ class AlignmentSet(ReadSet):
             # convert back to window format:
             segments = []
             for atom in atoms:
-                segment_size = atom[1]/atom[2]
+                segment_size = atom[1]//atom[2]
                 if byRecords:
-                    segment_size = refLens[atom[0]]/atom[2]
+                    segment_size = refLens[atom[0]]//atom[2]
                 sub_segments = [(atom[0], segment_size * i, segment_size *
                                  (i + 1)) for i in range(atom[2])]
                 # if you can't divide it evenly you may have some messiness
@@ -3236,7 +3238,7 @@ class AlignmentSet(ReadSet):
             # cheap (and quiver is linear in length not coverage)
             dataSize = sum(refLens.values())
             # target size per chunk:
-            target = dataSize/chunks
+            target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
             newAtoms = []
             for i, atom in enumerate(atoms):
@@ -3296,10 +3298,10 @@ class AlignmentSet(ReadSet):
             # to distribute. We'll still round to indicate that it is an
             # abstraction.
             if len(result._filters) > 100:
-                meanNum = self.numRecords/len(chunks)
+                meanNum = self.numRecords//len(chunks)
                 result.numRecords = long(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
-                meanLen = self.totalLength/len(chunks)
+                meanLen = self.totalLength//len(chunks)
                 result.totalLength = long(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:

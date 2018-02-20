@@ -27,6 +27,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
+from __future__ import division
+
 try:
     import h5py
 except ImportError:
@@ -80,11 +82,11 @@ class LabeledZmw(object):
         return self._bestScore
     @property
     def averageScore(self):
-        return 0 if self.nScored <= 0 else self.bestScore/self.nScored
+        return 0 if self.nScored <= 0 else self.bestScore//self.nScored
     @property
     def scoreRatio(self):
         return 1 if self.secondBestScore == 0 or self.bestScore == 0 else \
-            self.bestScore/(1.0 * self.secondBestScore)
+            self.bestScore/self.secondBestScore
     @property
     def secondBestIdx(self):
         return self._secondBestIdx
