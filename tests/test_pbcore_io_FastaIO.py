@@ -3,7 +3,7 @@ from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord
 from StringIO import StringIO
 
-class TestFastaRecord:
+class TestFastaRecord(object):
 
     def setup(self):
         self.header = "chr1|blah|blah\tblah blah"
@@ -76,7 +76,7 @@ class TestFastaRecord:
         assert_false(r1 != r3)
 
 
-class TestFastaReader:
+class TestFastaReader(object):
 
     def test_readFasta(self):
         f = FastaReader(data.getFasta())
@@ -98,7 +98,7 @@ class TestFastaReader:
 
 
 
-class TestFastaWriter:
+class TestFastaWriter(object):
 
     def setup(self):
         self.fasta1 = StringIO(
