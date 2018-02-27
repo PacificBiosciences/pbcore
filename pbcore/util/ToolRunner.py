@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -28,6 +28,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+from __future__ import absolute_import
 from __future__ import print_function
 
 import argparse, cProfile, logging, pstats

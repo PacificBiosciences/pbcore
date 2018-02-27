@@ -1,5 +1,5 @@
 #################################################################################$$
-# Copyright (c) 2011,2012, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -27,6 +27,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #################################################################################$$
 
+from __future__ import absolute_import
 from __future__ import division
 
 try:

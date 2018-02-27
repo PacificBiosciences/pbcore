@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -34,6 +34,7 @@
 
 
 """ Input and output functions for DataSet XML files"""
+from __future__ import absolute_import
 
 import copy, time
 import xml.etree.ElementTree as ET

@@ -28,4 +28,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #################################################################################
 
+from __future__ import absolute_import
+
 __VERSION__ = "1.4.3"

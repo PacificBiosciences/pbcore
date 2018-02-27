@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -32,6 +32,7 @@
 
 # Author: Martin D. Smith
 
+from __future__ import absolute_import
 
 import os
 import logging

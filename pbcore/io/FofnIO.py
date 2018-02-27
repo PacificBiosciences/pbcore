@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -29,6 +29,8 @@
 #################################################################################
 
 # Authors: David Alexander
+
+from __future__ import absolute_import
 
 from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser
