@@ -3,7 +3,7 @@ from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, IndexedFastaReader
 
 
-class TestIndexedFastaReader:
+class TestIndexedFastaReader(object):
 
     def setup(self):
         self.fastaPath = data.getFasta()

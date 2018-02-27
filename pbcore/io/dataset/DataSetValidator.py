@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -34,6 +34,7 @@
 
 
 """Validate DataSet XML files"""
+from __future__ import absolute_import
 from __future__ import print_function
 
 import os

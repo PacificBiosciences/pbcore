@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2017, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -89,6 +89,7 @@ Notes:
 
 """
 
+from __future__ import absolute_import
 from __future__ import division
 
 import ast
@@ -359,7 +360,7 @@ class RecordWrapper(object):
         """Return the number of children in this node"""
         return len(self.record['children'])
 
-    def __nonzero__(self):
+    def __bool__(self):
         if self.record['tag'] != '':
             return True
         if self.record['text'] != '':
@@ -369,6 +370,11 @@ class RecordWrapper(object):
         if self.record['children'] != []:
             return True
         return False
+
+    def __nonzero__(self):
+        # py2 compatibility
+        # https://docs.djangoproject.com/en/1.11/topics/python3/
+        return type(self).__bool__(self)
 
     def __deepcopy__(self, memo):
         tbr = type(self)()
@@ -621,12 +627,17 @@ class Filters(RecordWrapper):
             sorted(list(self), key=lambda x: x.metaname),
             sorted(list(other), key=lambda x: x.metaname))])
 
-    def __nonzero__(self):
+    def __bool__(self):
         for filt in self:
             for req in filt:
                 if req.name:
                     return True
         return False
+
+    def __nonzero__(self):
+        # py2 compatibility
+        # https://docs.djangoproject.com/en/1.11/topics/python3/
+        return type(self).__bool__(self)
 
     def __str__(self):
         buff = []

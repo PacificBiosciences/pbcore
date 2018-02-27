@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -33,6 +33,7 @@
 """
 Streaming I/O support for FASTA files.
 """
+from __future__ import absolute_import
 
 __all__ = [ "FastaRecord",
             "FastaReader",

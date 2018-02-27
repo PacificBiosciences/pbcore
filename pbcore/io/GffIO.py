@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -36,6 +36,7 @@ I/O support for GFF3 files.
 The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
+from __future__ import absolute_import
 
 __all__ = [ "Gff3Record",
             "GffReader",

@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -30,6 +30,7 @@
 
 # Author: David Alexander
 
+from __future__ import absolute_import
 from __future__ import division
 
 import numpy as np

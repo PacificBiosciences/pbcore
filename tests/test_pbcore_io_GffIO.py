@@ -14,7 +14,7 @@ def rm_out(fname):
     if os.path.exists(fname):
         os.remove(fname)
 
-class TestGff3Record:
+class TestGff3Record(object):
 
     def setup(self):
         self.record = Gff3Record("chr1", 10, 11, "insertion",
@@ -61,7 +61,7 @@ class TestGff3Record:
 
 
 
-class TestGffReader:
+class TestGffReader(object):
     def setup(self):
         self.rawFile = open(data.getGff3())
         self.reader = GffReader(data.getGff3())
@@ -88,7 +88,7 @@ class TestGffReader:
             assert_equal(rawLine.strip(), str(record))
 
 
-class TestGffWriter:
+class TestGffWriter(object):
     def setup(self):
         self.outfile = StringIO()
         self.record1 = Gff3Record("chr1", 10, 11, "insertion",

@@ -1,5 +1,5 @@
 #################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -29,6 +29,8 @@
 #################################################################################
 
 # Authors: David Alexander, Jim Bullard
+
+from __future__ import absolute_import
 
 __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,

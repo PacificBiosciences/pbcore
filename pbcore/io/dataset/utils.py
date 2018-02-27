@@ -1,5 +1,5 @@
 ###############################################################################
-# Copyright (c) 2011-2016, Pacific Biosciences of California, Inc.
+# Copyright (c) 2011-2018, Pacific Biosciences of California, Inc.
 #
 # All rights reserved.
 #
@@ -36,6 +36,8 @@
 """
 Utils that support fringe DataSet features.
 """
+from __future__ import absolute_import
+
 import os
 import tempfile
 import logging
