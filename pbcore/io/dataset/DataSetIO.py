@@ -3877,7 +3877,7 @@ class ConsensusAlignmentSet(AlignmentSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
+        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }
@@ -3894,10 +3894,11 @@ class TranscriptSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+        return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }
+
 
 class ContigSet(DataSet):
     """DataSet type specific to Contigs"""
