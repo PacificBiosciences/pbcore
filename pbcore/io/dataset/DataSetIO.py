@@ -3889,7 +3889,7 @@ class TranscriptSet(ReadSet):
     technically "reads", but they share many of the same properties and are
     therefore handled the same way.
     """
-    datasetType = DataSetMetaTypes.Transcript
+    datasetType = DataSetMetaTypes.TRANSCRIPT
 
     @staticmethod
     def _metaTypeMapping():
