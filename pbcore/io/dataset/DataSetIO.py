@@ -1719,7 +1719,9 @@ class DataSet(object):
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
                 'GmapReferenceSet': GmapReferenceSet,
-                'BarcodeSet': BarcodeSet}
+                'BarcodeSet': BarcodeSet,
+                'TranscriptSet': TranscriptSet}
+
     @property
     def metadata(self):
         """Return the DataSet metadata as a DataSetMetadata object. Attributes
