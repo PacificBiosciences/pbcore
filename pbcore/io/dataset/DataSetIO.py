@@ -1689,7 +1689,9 @@ class DataSet(object):
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
                 'GmapReferenceSet': GmapReferenceSet,
-                'BarcodeSet': BarcodeSet}
+                'BarcodeSet': BarcodeSet,
+                'TranscriptSet': TranscriptSet}
+
     @property
     def metadata(self):
         """Return the DataSet metadata as a DataSetMetadata object. Attributes
@@ -3848,6 +3850,23 @@ class ConsensusAlignmentSet(AlignmentSet):
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
+class TranscriptSet(ReadSet):
+    """
+    DataSet type for processed RNA transcripts in BAM format.  These are not
+    technically "reads", but they share many of the same properties and are
+    therefore handled the same way.
+    """
+    datasetType = DataSetMetaTypes.TRANSCRIPT
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }

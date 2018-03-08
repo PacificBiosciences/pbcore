@@ -14,13 +14,16 @@ from pbcore.io import (SubreadSet, ConsensusReadSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        HdfSubreadSet, ConsensusAlignmentSet,
                        openDataFile, FastqReader,
-                       GmapReferenceSet)
+                       GmapReferenceSet, TranscriptSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
 from utils import _check_constools, _internal_data
 
 log = logging.getLogger(__name__)
+skip_if_no_internal_data = unittest.skipIf(not _internal_data(),
+                                           "Internal data not found, skipping")
+
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -152,8 +155,7 @@ class TestDataSet(unittest.TestCase):
             obs_n_contigs += len(r)
         self.assertEqual(obs_n_contigs, exp_n_contigs)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_no_internal_data
     def test_gmapreferenceset_len(self):
         fas = ('/pbi/dept/secondary/siv/testdata/isoseq/'
                'lexigoen-ground-truth/reference/SIRV_150601a.fasta')
@@ -619,8 +621,7 @@ class TestDataSet(unittest.TestCase):
                 self.assertEqual(len([rec for rec in ds_new]), 1,
                                  "failed on %d" % i)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_no_internal_data
     def test_len_fastq(self):
         fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
               'lambda/2590980/0008/Analysis_Results/'
@@ -640,8 +641,7 @@ class TestDataSet(unittest.TestCase):
         # XXX not possible, fastq files can't be indexed:
         #self.assertEqual(len(cset), sum(1 for _ in cset))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_no_internal_data
     def test_fastq_consolidate(self):
         fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
               'lambda/2590980/0008/Analysis_Results/'
@@ -667,8 +667,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(cset_l, sum(1 for _ in cfq))
         cset.write(cset_out)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not found, skipping")
+    @skip_if_no_internal_data
     def test_empty_fastq_consolidate(self):
         fn = ('/pbi/dept/secondary/siv/testdata/SA3-RS/'
               'lambda/2590980/0008/Analysis_Results/'
@@ -1070,3 +1069,9 @@ class TestDataSet(unittest.TestCase):
                          "f81cf391-b3da-41f8-84cb-a0de71f460f4")
         ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds2.write(ds_out, validate=False)
+
+    @skip_if_no_internal_data
+    def test_transcriptset(self):
+        fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/polished_transcripts.transcriptset.xml"
+        ds1 = TranscriptSet(fn, strict=True)
+        self.assertEqual(len(ds1.resourceReaders()), 1)

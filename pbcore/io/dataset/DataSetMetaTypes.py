@@ -25,9 +25,11 @@ class DataSetMetaTypes(object):
     REFERENCE = toDsId("ReferenceSet")
     GMAPREFERENCE = toDsId("GmapReferenceSet")
     CONTIG = toDsId("ContigSet")
+    TRANSCRIPT = toDsId("TranscriptSet")
 
     ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
-           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE)
+           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE,
+           TRANSCRIPT)
 
     @classmethod
     def isValid(cls, dsId):
