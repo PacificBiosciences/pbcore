@@ -1,3 +1,4 @@
+from __future__ import print_function
 import nose.tools
 import numpy
 import numpy.testing
@@ -13,7 +14,7 @@ class TestBarcodeH5Reader(object):
 
     def __init__(self):
         bcFiles = pbcore.data.getBcH5s()
-        print bcFiles
+        print(bcFiles)
         self.bc1, self.bc2, self.bc3 = map(BarcodeH5Reader, bcFiles)
 
     def test_BarcodeH5Reader_basicTest(self):
@@ -66,9 +67,9 @@ class TestBarcodeH5Fofn(object):
 
     def __init__(self):
         bcFofn = pbcore.data.getBcFofn()
-        print bcFofn
+        print(bcFofn)
         self.bcFofn = BarcodeH5Fofn(bcFofn)
-        print self.bcFofn
+        print(self.bcFofn)
 
     def test_BasH5Fofn_basicTest(self):
         """Test that BcH5Fofn correctly sets movie name, barcode labels, and hole numbers

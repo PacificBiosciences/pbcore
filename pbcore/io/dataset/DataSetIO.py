@@ -1,39 +1,11 @@
-###############################################################################
-# Copyright (c) 2011-2017, Pacific Biosciences of California, Inc.
-#
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright
-#   notice, this list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright
-#   notice, this list of conditions and the following disclaimer in the
-#   documentation and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its
-#   contributors may be used to endorse or promote products derived from
-#   this software without specific prior written permission.
-#
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
-# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT
-# NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
-# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-###############################################################################
-
 # Author: Martin D. Smith
 
 
 """
 Classes representing DataSets of various types.
 """
+from __future__ import absolute_import
+from __future__ import division
 
 import copy
 import errno
@@ -79,6 +51,7 @@ from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
+from functools import reduce
 
 
 log = logging.getLogger(__name__)
@@ -237,7 +210,7 @@ def divideKeys(keys, chunks):
         return []
     if chunks > len(keys):
         chunks = len(keys)
-    chunksize = len(keys)/chunks
+    chunksize = len(keys)//chunks
     key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
                   range(chunks-1)]
     key_chunks.append(keys[((chunks - 1) * chunksize):])
@@ -249,7 +222,7 @@ def splitKeys(keys, chunks):
         return []
     if chunks > len(keys):
         chunks = len(keys)
-    chunksize = len(keys)/chunks
+    chunksize = len(keys)//chunks
     chunksizes = [chunksize] * chunks
     i = 0
     while sum(chunksizes) < len(keys):
@@ -1017,7 +990,7 @@ class DataSet(object):
         segments)
         """
         for _ in range(num_chunks - len(atoms)):
-            largest = max(atoms, key=lambda x: x[1]/x[2])
+            largest = max(atoms, key=lambda x: x[1]//x[2])
             largest[2] += 1
         return atoms
 
@@ -1716,7 +1689,9 @@ class DataSet(object):
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
                 'GmapReferenceSet': GmapReferenceSet,
-                'BarcodeSet': BarcodeSet}
+                'BarcodeSet': BarcodeSet,
+                'TranscriptSet': TranscriptSet}
+
     @property
     def metadata(self):
         """Return the DataSet metadata as a DataSetMetadata object. Attributes
@@ -2249,7 +2224,7 @@ class ReadSet(DataSet):
         if (not targetSize is None and len(active_holenumbers) > 1 and
                 chunks > 1):
             # we want at least two if we can swing it
-            desired = max(2, len(active_holenumbers)/targetSize)
+            desired = max(2, len(active_holenumbers)//targetSize)
             n_chunks = min(n_chunks, desired)
 
         if n_chunks != chunks:
@@ -3097,7 +3072,7 @@ class AlignmentSet(ReadSet):
         coverage mediated split with the first at 0"""
         log.debug("Splitting coverage summary")
         totalCoverage = sum(contour)
-        splitSize = totalCoverage/splits
+        splitSize = totalCoverage//splits
         tbr = [0]
         for _ in range(splits - 1):
             size = 0
@@ -3191,7 +3166,7 @@ class AlignmentSet(ReadSet):
             log.debug("Target numRecords per chunk: {i}".format(i=targetSize))
             dataSize = self.numRecords
             log.debug("numRecords in dataset: {i}".format(i=dataSize))
-            chunks = int(dataSize/targetSize)
+            chunks = int(dataSize//targetSize)
             # Respect bounds:
             chunks = minNum if chunks < minNum else chunks
             chunks = maxNum if chunks > maxNum else chunks
@@ -3214,9 +3189,9 @@ class AlignmentSet(ReadSet):
             # convert back to window format:
             segments = []
             for atom in atoms:
-                segment_size = atom[1]/atom[2]
+                segment_size = atom[1]//atom[2]
                 if byRecords:
-                    segment_size = refLens[atom[0]]/atom[2]
+                    segment_size = refLens[atom[0]]//atom[2]
                 sub_segments = [(atom[0], segment_size * i, segment_size *
                                  (i + 1)) for i in range(atom[2])]
                 # if you can't divide it evenly you may have some messiness
@@ -3235,7 +3210,7 @@ class AlignmentSet(ReadSet):
             # cheap (and quiver is linear in length not coverage)
             dataSize = sum(refLens.values())
             # target size per chunk:
-            target = dataSize/chunks
+            target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
             newAtoms = []
             for i, atom in enumerate(atoms):
@@ -3295,10 +3270,10 @@ class AlignmentSet(ReadSet):
             # to distribute. We'll still round to indicate that it is an
             # abstraction.
             if len(result._filters) > 100:
-                meanNum = self.numRecords/len(chunks)
+                meanNum = self.numRecords//len(chunks)
                 result.numRecords = long(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
-                meanLen = self.totalLength/len(chunks)
+                meanLen = self.totalLength//len(chunks)
                 result.totalLength = long(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
@@ -3698,8 +3673,8 @@ class AlignmentSet(ReadSet):
             if not res is None:
                 if self.isCmpH5:
                     for rec in res:
-                        rec.StartRow = 0L
-                        rec.EndRow = 0L
+                        rec.StartRow = 0
+                        rec.EndRow = 0
                 responses.append(res)
         table = []
         if len(responses) > 1:
@@ -3875,6 +3850,23 @@ class ConsensusAlignmentSet(AlignmentSet):
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
+class TranscriptSet(ReadSet):
+    """
+    DataSet type for processed RNA transcripts in BAM format.  These are not
+    technically "reads", but they share many of the same properties and are
+    therefore handled the same way.
+    """
+    datasetType = DataSetMetaTypes.TRANSCRIPT
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }

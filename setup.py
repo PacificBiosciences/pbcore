@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from setuptools import setup, Extension, find_packages
 import sys
 import os
 
 if ("install" in sys.argv) and sys.version_info < (2, 7, 0):
-    print "pbcore requires Python 2.7"
+    print("pbcore requires Python 2.7")
     sys.exit(-1)
 
-globals = {}
-execfile("pbcore/__init__.py", globals)
-__VERSION__ = globals["__VERSION__"]
 
 
 _REQUIREMENTS_FILE = 'requirements.txt'
@@ -33,7 +31,7 @@ def _get_local_requirements(file_name):
 
 setup(
     name = 'pbcore',
-    version=__VERSION__,
+    version='1.4.4', # don't forget to update pbcore/__init__.py and doc/conf.py too
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description="A Python library for reading and writing PacBio® data files",

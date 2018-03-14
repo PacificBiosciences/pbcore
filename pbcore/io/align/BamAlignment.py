@@ -1,34 +1,7 @@
-#################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
-#
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright
-#   notice, this list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright
-#   notice, this list of conditions and the following disclaimer in the
-#   documentation and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its
-#   contributors may be used to endorse or promote products derived from
-#   this software without specific prior written permission.
-#
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
-# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
-# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#################################################################################
-
 # Author: David Alexander
+
+from __future__ import absolute_import
+from __future__ import division
 
 from functools import wraps
 from bisect import bisect_right, bisect_left
@@ -67,7 +40,7 @@ def requiresReference(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.bam.isReferenceLoaded:
-            raise UnavailableFeature, "this feature requires loaded reference sequence"
+            raise UnavailableFeature("this feature requires loaded reference sequence")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -76,7 +49,7 @@ def requiresPbi(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.hasPbi:
-            raise UnavailableFeature, "this feature requires a PacBio BAM index"
+            raise UnavailableFeature("this feature requires a PacBio BAM index")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -85,7 +58,7 @@ def requiresMapping(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if bamAln.isUnmapped:
-            raise UnavailableFeature, "this feature requires a *mapped* BAM record"
+            raise UnavailableFeature("this feature requires a *mapped* BAM record")
         else:
             return method(bamAln, *args, **kwargs)
     return f
@@ -196,7 +169,7 @@ class BamAlignment(AlignmentRecordMixin):
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
-            raise IndexError, "Clipping query does not overlap alignment"
+            raise IndexError("Clipping query does not overlap alignment")
 
         # The clipping region must intersect the alignment, though it
         # does not have to be contained wholly within it.
@@ -261,7 +234,7 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def scrapType(self):
         if self.readType != "SCRAP":
-            raise ValueError, "scrapType not meaningful for non-scrap reads"
+            raise ValueError("scrapType not meaningful for non-scrap reads")
         else:
             return self.peer.opt("sc")
 
@@ -307,7 +280,7 @@ class BamAlignment(AlignmentRecordMixin):
             if self.readLength == 0:
                 return 0.
             else:
-                return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+                return 1. - (self.nMM + self.nIns + self.nDel)/self.readLength
         else:
             # Slow (no pbi);
             if self.readLength == 0:
@@ -317,7 +290,7 @@ class BamAlignment(AlignmentRecordMixin):
                 nMM  = x.count("R")
                 nIns = x.count("I")
                 nDel = x.count("D")
-                return 1. - float(nMM + nIns + nDel)/self.readLength
+                return 1. - (nMM + nIns + nDel)/self.readLength
 
     @property
     def mapQV(self):
@@ -360,7 +333,7 @@ class BamAlignment(AlignmentRecordMixin):
     @requiresReference
     def reference(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         tSeq = self.bam.referenceFasta[self.referenceName].sequence[self.tStart:self.tEnd]
         shouldRC = orientation == "native" and self.isReverseStrand
         tSeqOriented = reverseComplement(tSeq) if shouldRC else tSeq
@@ -458,10 +431,9 @@ class BamAlignment(AlignmentRecordMixin):
         oriented genomically in the file.
         """
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature, \
-                "Cannot get genome oriented/aligned features from unmapped BAM record"
+            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
 
         # 0. Get the "concrete" feature name.  (Example: Ipd could be
         # Ipd:Frames or Ipd:CodecV1)
@@ -544,10 +516,9 @@ class BamAlignment(AlignmentRecordMixin):
 
     def read(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
-            raise ValueError, "Bad `orientation` value"
+            raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature, \
-                "Cannot get genome oriented/aligned features from unmapped BAM record"
+            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
         data = np.fromstring(self.peer.seq, dtype=np.int8)
         if self.isCCS:
             s = self.aStart

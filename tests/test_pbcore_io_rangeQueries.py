@@ -29,7 +29,7 @@ def brute_force_rm_search(vec, val):
     else:
         return(bisect.bisect_right(vec, val) - 1)
 
-class TestProjectIntoRange:
+class TestProjectIntoRange(object):
     def test_project_into_range(self):
         tStart = array([1,1,1,1,1,2,2,2,2,10,20])
         tEnd   = array([2,3,4,5,6,3,4,5,6,15,25])
@@ -41,7 +41,7 @@ def brute_force_reads_in_range(rangeStart, rangeEnd, tStart, tEnd):
             (tStart < rangeEnd))
     return flatnonzero(mask)
 
-class TestGetReadsInRange:
+class TestGetReadsInRange(object):
     def __init__(self):
         self.h5FileName = data.getCmpH5()
         self.cmpH5 = CmpH5Reader(self.h5FileName)

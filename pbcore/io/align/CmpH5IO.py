@@ -1,34 +1,8 @@
-#################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
-#
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright
-#   notice, this list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright
-#   notice, this list of conditions and the following disclaimer in the
-#   documentation and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its
-#   contributors may be used to endorse or promote products derived from
-#   this software without specific prior written permission.
-#
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
-# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
-# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#################################################################################
-
 # Author: David Alexander
+
+from __future__ import absolute_import
+from __future__ import division
+
 __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
             "EmptyCmpH5Error" ]
@@ -170,7 +144,7 @@ def ungappedPulseArray(a):
     elif dtype == np.int8:
         return a[a != ord("-")]
     else:
-        raise Exception, "Invalid pulse array type"
+        raise Exception("Invalid pulse array type")
 
 
 
@@ -288,7 +262,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if (refStart >= refEnd or
             refStart >= self.tEnd or
             refEnd   <= self.tStart):
-            raise IndexError, "Clipping query does not overlap alignment"
+            raise IndexError("Clipping query does not overlap alignment")
         else:
             return ClippedCmpH5Alignment(self, refStart, refEnd)
 
@@ -384,7 +358,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if self.readLength == 0:
             return 0.
         else:
-            return 1. - float(self.nMM + self.nIns + self.nDel)/self.readLength
+            return 1. - (self.nMM + self.nIns + self.nDel)/self.readLength
 
     @property
     def accuracy(self):
@@ -408,7 +382,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         if meanLength == 0:
             return 0.
         else:
-            return float(self.nM/meanLength)
+            return self.nM/meanLength
 
     @property
     def numPasses(self):
@@ -449,7 +423,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     @property
     def hqRegionSnr(self):
-        raise Exception, "CmpH5 does not support hqRegionSnr"
+        raise Exception("CmpH5 does not support hqRegionSnr")
 
     def alignmentArray(self, orientation="native"):
         """
@@ -730,7 +704,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 self.filename = abspath(expanduser(filenameOrH5File))
                 self.file = h5py.File(self.filename, "r")
             except IOError:
-                raise IOError, ("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
+                raise IOError("Invalid or nonexistent cmp.h5 file %s" % filenameOrH5File)
 
         self._loadAlignmentInfo(sharedIndex)
         self._loadMovieInfo()
@@ -866,7 +840,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                     recordName[i]     in self._referenceDict or
                     recordFullName[i] in self._referenceDict or
                     recordMD5[i]      in self._referenceDict):
-                    raise ValueError, "Duplicate reference contig sequence or identifier"
+                    raise ValueError("Duplicate reference contig sequence or identifier")
                 else:
                     self._referenceDict[shortName]         = record
                     self._referenceDict[recordID[i]]       = record
@@ -916,7 +890,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 # Old way
                 self._sequencingChemistry = mi["SequencingChemistry"].value
             else:
-                raise ChemistryLookupError, "Chemistry information could not be found in cmp.h5!"
+                raise ChemistryLookupError("Chemistry information could not be found in cmp.h5!")
         return self._sequencingChemistry
 
     @property
@@ -1181,7 +1155,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         """
 
         if not self.isSorted:
-            raise Exception, "CmpH5 is not sorted"
+            raise Exception("CmpH5 is not sorted")
         rowNumbers = self._readLocatorByKey[refKey](refStart, refEnd, justIndices=True)
         if justIndices:
             return rowNumbers
@@ -1278,7 +1252,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                     return [CmpH5Alignment(self, r) for r in rowNumbers]
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return [CmpH5Alignment(self, r) for r in np.flatnonzero(rowNumbers)]
-        raise TypeError, "Invalid type for CmpH5Reader slicing"
+        raise TypeError("Invalid type for CmpH5Reader slicing")
 
     def __iter__(self):
         return (self[i] for i in xrange(len(self)))

@@ -11,7 +11,7 @@ import pbcore.data
 from pbcore.io.BasH5IO import BasH5Reader, Zmw, ZmwRead, CCSZmwRead
 from pbcore.chemistry import ChemistryLookupError
 
-class TestBasH5Reader_14:
+class TestBasH5Reader_14(object):
     """Tests of BasH5Reader against a 1.4 bas.h5 file, no multipart with
     CCS.
     """

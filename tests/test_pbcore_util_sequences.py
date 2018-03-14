@@ -2,7 +2,7 @@ import nose
 from nose.tools import assert_equal, assert_true, assert_false
 from pbcore import sequence
 
-class TestReverseComplement:
+class TestReverseComplement(object):
 
     def setup(self):
         self.sequence = "GATTACA" * 20
@@ -52,7 +52,7 @@ class TestReverseComplement:
         sequence.reverseComplement(self.bad_sequence)
 
 
-class TestSplitRecordName:
+class TestSplitRecordName(object):
 
     def setup(self):
         pass

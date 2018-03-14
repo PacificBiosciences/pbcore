@@ -1,34 +1,6 @@
-#################################################################################
-# Copyright (c) 2011-2015, Pacific Biosciences of California, Inc.
-#
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-# * Redistributions of source code must retain the above copyright
-#   notice, this list of conditions and the following disclaimer.
-# * Redistributions in binary form must reproduce the above copyright
-#   notice, this list of conditions and the following disclaimer in the
-#   documentation and/or other materials provided with the distribution.
-# * Neither the name of Pacific Biosciences nor the names of its
-#   contributors may be used to endorse or promote products derived from
-#   this software without specific prior written permission.
-#
-# NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY
-# THIS LICENSE.  THIS SOFTWARE IS PROVIDED BY PACIFIC BIOSCIENCES AND ITS
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL PACIFIC BIOSCIENCES OR
-# ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-# BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
-# IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#################################################################################
-
 # Authors: David Alexander, Jim Bullard
+
+from __future__ import absolute_import
 
 __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,
@@ -146,7 +118,7 @@ class Zmw(CommonEqualityMixin, ExtraBaseRegionsMixin):
         insert, used to forming the CCS consensus.
         """
         if not self.baxH5.hasConsensusBasecalls:
-            raise ValueError, "No CCS reads in this file"
+            raise ValueError("No CCS reads in this file")
         return self.baxH5._ccsNumPasses[self.index]
 
     @property
@@ -167,7 +139,7 @@ class Zmw(CommonEqualityMixin, ExtraBaseRegionsMixin):
         specified extent of the polymerase read.
         """
         if not self.baxH5.hasRawBasecalls:
-            raise ValueError, "No raw reads in this file"
+            raise ValueError("No raw reads in this file")
         hqStart, hqEnd = self.hqRegion
         readStart = hqStart if readStart is None else readStart
         readEnd   = hqEnd if readEnd is None else readEnd
@@ -195,7 +167,7 @@ class Zmw(CommonEqualityMixin, ExtraBaseRegionsMixin):
     @property
     def ccsRead(self):
         if not self.baxH5.hasConsensusBasecalls:
-            raise ValueError, "No CCS reads in this file"
+            raise ValueError("No CCS reads in this file")
         baseOffset  = self.baxH5._ccsOffsetsByHole[self.holeNumber]
         if (baseOffset[1] - baseOffset[0]) <= 0:
             return None
@@ -233,7 +205,7 @@ class ZmwRead(CommonEqualityMixin):
                 self.offsetBegin <=
                 self.offsetEnd   <=
                 zmwOffsetEnd):
-            raise IndexError, "Invalid slice of Zmw!"
+            raise IndexError("Invalid slice of Zmw!")
 
     def _getBasecallsGroup(self):
         return self.baxH5._basecallsGroup
@@ -326,7 +298,7 @@ class BaxH5Reader(object):
             self.filename = op.abspath(op.expanduser(filename))
             self.file = h5py.File(self.filename, "r")
         except IOError:
-            raise IOError, ("Invalid or nonexistent bax/bas file %s" % filename)
+            raise IOError("Invalid or nonexistent bax/bas file %s" % filename)
 
         #
         # Raw base calls?
@@ -423,7 +395,7 @@ class BaxH5Reader(object):
         try:
             fh = h5py.File(op.abspath(op.expanduser(regionH5Filename)), "r")
         except IOError:
-            raise IOError, ("Invalid or nonexistent file %s" % regionH5Filename)
+            raise IOError("Invalid or nonexistent file %s" % regionH5Filename)
 
         self._loadRegions(fh)
         fh.close()
@@ -435,7 +407,7 @@ class BaxH5Reader(object):
         if not np.in1d(rgnHoleNumbers, baxHoleNumbers).all():
             msg = "Region file (%s) does not contain the same hole numbers as " \
                   "bas/bax file (%s)"
-            raise IOError, (msg % (regionH5Filename, self.filename))
+            raise IOError(msg % (regionH5Filename, self.filename))
 
     @property
     def sequencingZmws(self):
@@ -540,7 +512,7 @@ class BaxH5Reader(object):
         if triple:
             return triple
         else:
-            raise ChemistryLookupError, "Could not find chemistry barcodes in file or companion metadata.xml"
+            raise ChemistryLookupError("Could not find chemistry barcodes in file or companion metadata.xml")
 
     @property
     def sequencingChemistry(self):
@@ -561,7 +533,7 @@ class BaxH5Reader(object):
                 if tripleFromXML is not None:
                     self._sequencingChemistry = decodeTriple(*tripleFromXML)
                 else:
-                    raise ChemistryLookupError, "Chemistry information could not be found for this file"
+                    raise ChemistryLookupError("Chemistry information could not be found for this file")
         return self._sequencingChemistry
 
     def __len__(self):
@@ -674,7 +646,7 @@ class BasH5Reader(object):
                 self.filename = op.abspath(op.expanduser(filename))
                 self.file = h5py.File(self.filename, "r")
             except IOError:
-                raise IOError, ("Invalid or nonexistent bas/bax file %s" % filename)
+                raise IOError("Invalid or nonexistent bas/bax file %s" % filename)
 
 
             # Is this a multi-part or single-part?
@@ -773,7 +745,7 @@ class BasH5Reader(object):
                     return [ self._getitemScalar(r) for r in holeNumbers ]
                 elif entryType == bool or issubclass(entryType, np.bool_):
                     return [ self._getitemScalar(r) for r in np.flatnonzero(holeNumbers) ]
-        raise TypeError, "Invalid type for BasH5Reader slicing"
+        raise TypeError("Invalid type for BasH5Reader slicing")
 
     @property
     def movieName(self):

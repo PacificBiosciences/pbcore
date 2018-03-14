@@ -1,3 +1,5 @@
+from __future__ import division
+
 from nose.tools import assert_equal, assert_true, assert_false
 import sys, numpy as np
 
@@ -30,7 +32,7 @@ class TestBgzf(object):
             self.roundTripData(10**i)
 
     def test_partial_reads(self):
-        self.roundTripData(10**7, (10**7)/2)
+        self.roundTripData(10**7, (10**7)//2)
 
     # def test_big_data(self):
     #     # This breaks because of recursion depth limit in

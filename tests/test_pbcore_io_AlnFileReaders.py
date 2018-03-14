@@ -1,3 +1,4 @@
+from __future__ import print_function
 from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
 from nose.tools import (nottest,
@@ -136,7 +137,7 @@ class _BasicAlnFileReaderTests(object):
             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17 ] )
 
-        print self.revAln.DeletionQV(aligned=True)
+        print(self.revAln.DeletionQV(aligned=True))
         AEQ(expectedRevNative, self.revAln.DeletionQV(aligned=True))
         AEQ(expectedRevNative, self.revAln.DeletionQV())
         AEQ(expectedRevNative[::-1], self.revAln.DeletionQV(orientation="genomic"))

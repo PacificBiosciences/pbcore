@@ -12,9 +12,9 @@
 # serve to show the default.
 
 import sys, os
-globals = {}
-execfile("../pbcore/__init__.py", globals)
-__VERSION__ = globals["__VERSION__"]
+
+# don't forget to update setup.py and pbcore/__init__.py too
+__VERSION__ = '1.4.4'
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
