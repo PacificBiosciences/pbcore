@@ -85,11 +85,14 @@ class _BamReaderBase(ReaderBase):
             ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
             # spec: we only consider first two components of basecaller version
             # in "chem" lookup
-            basecallerVersion = ".".join(ds["BASECALLERVERSION"].split(".")[0:2])
-            triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
-            rgChem = decodeTriple(*triple)
             rgReadType = ds["READTYPE"]
-            rgFrameRate = ds["FRAMERATEHZ"]
+            rgChem = "unknown"
+            rgFrameRate = 0.0
+            if rgReadType != "TRANSCRIPT":
+                rgFrameRate = ds["FRAMERATEHZ"]
+                basecallerVersion = ".".join(ds["BASECALLERVERSION"].split(".")[0:2])
+                triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
+                rgChem = decodeTriple(*triple)
 
             # Look for the features manifest entries within the DS tag,
             # and build an "indirection layer", i.e. to get from
@@ -237,6 +240,8 @@ class _BamReaderBase(ReaderBase):
             return "standard"
         elif all(readTypes == "CCS"):
             return "CCS"
+        elif all(readTypes == "TRANSCRIPT"):
+            return "TRANSCRIPT"
         elif all((readTypes == "CCS") | (readTypes == "SUBREAD")):
             return "mixed"
         else:
