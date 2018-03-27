@@ -1598,11 +1598,20 @@ class DataSetMetadata(RecordWrapper):
         except ValueError:
             return None
 
+    # Provenance needs to come after NumRecords or xmllint validation fails
+    def _addProvenance(self, value):
+        for i, record in enumerate(self.record['children']):
+            if record['tag'] == "NumRecords":
+                self.record['children'].insert(i + 1, value.record)
+                break
+        else:
+            self.append(value)
+
     @provenance.setter
     def provenance(self, value):
         self.removeChildren('Provenance')
         if value:
-            self.append(value)
+            self._addProvenance(value)
 
     def addParentDataSet(self, uniqueId, metaType, timeStampedName="",
                          createdBy="AnalysisJob"):

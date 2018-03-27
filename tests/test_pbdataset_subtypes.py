@@ -6,6 +6,7 @@ import tempfile
 import os
 import itertools
 import xml.etree.ElementTree as ET
+import uuid
 
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import _infixFname, consolidateXml
@@ -20,10 +21,16 @@ import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
 from utils import _check_constools, _internal_data
 
+try:
+    import pbtestdata
+except ImportError:
+    pbtestdata = None
+
 log = logging.getLogger(__name__)
 skip_if_no_internal_data = unittest.skipIf(not _internal_data(),
                                            "Internal data not found, skipping")
-
+skip_if_no_pbtestdata = unittest.skipIf(pbtestdata is None,
+                                        "PacBioTestData not found, skipping")
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -1069,6 +1076,13 @@ class TestDataSet(unittest.TestCase):
                          "f81cf391-b3da-41f8-84cb-a0de71f460f4")
         ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds2.write(ds_out, validate=False)
+
+    @skip_if_no_pbtestdata
+    def test_provenance_record_ordering(self):
+        ds = SubreadSet(pbtestdata.get_file("subreads-sequel"))
+        ds.metadata.addParentDataSet(uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
+        tags = [r['tag'] for r in ds.metadata.record['children']]
+        self.assertEqual(tags, ['TotalLength', 'NumRecords', 'Provenance', 'Collections', 'SummaryStats'])
 
     @skip_if_no_internal_data
     def test_transcriptset(self):
