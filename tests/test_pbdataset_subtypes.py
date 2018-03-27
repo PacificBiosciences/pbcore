@@ -1079,8 +1079,11 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_pbtestdata
     def test_provenance_record_ordering(self):
-        ds = SubreadSet(pbtestdata.get_file("subreads-sequel"))
+        ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
         ds.metadata.addParentDataSet(uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
+        tmp_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds.write(tmp_out)
+        ds = SubreadSet(tmp_out, strict=True)
         tags = [r['tag'] for r in ds.metadata.record['children']]
         self.assertEqual(tags, ['TotalLength', 'NumRecords', 'Provenance', 'Collections', 'SummaryStats'])
 
