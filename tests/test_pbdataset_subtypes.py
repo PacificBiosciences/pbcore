@@ -1089,6 +1089,6 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_internal_data
     def test_transcriptset(self):
-        fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/polished_transcripts.transcriptset.xml"
+        fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.transcriptset.xml"
         ds1 = TranscriptSet(fn, strict=True)
         self.assertEqual(len(ds1.resourceReaders()), 1)

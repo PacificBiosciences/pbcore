@@ -81,7 +81,7 @@ class BamAlignment(AlignmentRecordMixin):
             clipLeft  = self.peer.qstart
             clipRight = self.peer.rlen - self.peer.qend
         # handle virtual qStart/qEnd for CCS READTYPE
-        if self.isCCS:
+        if self.isCCS or self.isTranscript:
             qs, qe = 0, self.qLen
         else:
             qs, qe = self.qStart, self.qEnd
@@ -109,13 +109,13 @@ class BamAlignment(AlignmentRecordMixin):
 
     @property
     def qStart(self):
-        if self.isCCS:
+        if self.isCCS or self.isTranscript:
             raise UnavailableFeature("No qStart for CCS READTYPE")
         return self.peer.opt("qs")
 
     @property
     def qEnd(self):
-        if self.isCCS:
+        if self.isCCS or self.isTranscript:
             raise UnavailableFeature("No qEnd for CCS READTYPE")
         return self.peer.opt("qe")
 
@@ -130,6 +130,10 @@ class BamAlignment(AlignmentRecordMixin):
     @property
     def isCCS(self):
         return self.readType == "CCS"
+
+    @property
+    def isTranscript(self):
+        return self.readType == "TRANSCRIPT"
 
     @property
     def isMapped(self):
@@ -463,7 +467,7 @@ class BamAlignment(AlignmentRecordMixin):
         # [s, e) delimits the range, within the query, that is in the aligned read.
         # This will be determined by the soft clips actually in the file as well as those
         # imposed by the clipping API here.
-        if self.isCCS:
+        if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd
         else:
@@ -520,7 +524,7 @@ class BamAlignment(AlignmentRecordMixin):
         if self.isUnmapped and (orientation != "native" or aligned == True):
             raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
         data = np.fromstring(self.peer.seq, dtype=np.int8)
-        if self.isCCS:
+        if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd
         else:

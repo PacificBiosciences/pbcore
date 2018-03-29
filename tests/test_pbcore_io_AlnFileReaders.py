@@ -7,6 +7,7 @@ from nose.tools import (nottest,
                         assert_almost_equal as EQISH)
 from nose import SkipTest
 
+import os.path as op
 import tempfile
 import shutil
 import pysam
@@ -21,6 +22,8 @@ from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
 from pbcore.io.align.BamIO import AlignmentFile
+
+from utils import _internal_data
 
 
 class _BasicAlnFileReaderTests(object):
@@ -471,6 +474,17 @@ class TestCCSBam(object):
                 aln.qStart
             with assert_raises(UnavailableFeature):
                 aln.qEnd
+
+
+class TestTranscriptBam(object):
+    BAM_FILE = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.bam"
+    def __init__(self):
+        if not op.isfile(self.BAM_FILE):
+            raise SkipTest("Testdata not present")
+        self.f = IndexedBamReader(self.BAM_FILE)
+
+    def test_transcript_set_support(self):
+        EQ(len(self.f), 12218)
 
 
 class TestEmptyBam(object):
