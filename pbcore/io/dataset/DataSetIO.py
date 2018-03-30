@@ -1068,9 +1068,7 @@ class DataSet(object):
         xml_string = toXml(self)
         log.debug('Done serializing XML')
 
-        # minidom has trouble with ContigSets with more than a few
-        # contigs:
-        if pretty and not isinstance(self, ContigSet):
+        if pretty:
             log.debug('Making pretty...')
             xml_string = xml.dom.minidom.parseString(xml_string).toprettyxml(
                 encoding="UTF-8")
@@ -3884,9 +3882,7 @@ class ContigSet(DataSet):
         # Metadata type
         try:
             self._metadata = ContigSetMetadata(self._metadata)
-            if len(files) > 0:
-                log.debug("Updating metadata for {}".format(str(files)))
-                self._updateMetadata()
+            self._updateMetadata()
         except TypeError:
             pass
 
@@ -4018,12 +4014,6 @@ class ContigSet(DataSet):
             self._openReaders = []
             self._populateMetaTypes()
             self.updateCounts()
-
-            # replace contig info
-            if not self._fastq:
-                log.debug("Replacing metadata")
-                self._metadata.contigs = []
-                self._populateContigMetadata()
         else:
             log.warn("No need to write a new resource file, using current "
                      "resource instead.")
@@ -4084,24 +4074,6 @@ class ContigSet(DataSet):
             self._metadata.organism = ''
         if not self._metadata.ploidy:
             self._metadata.ploidy = ''
-        if not self._metadata.contigs:
-            self._metadata.contigs = []
-            self._populateContigMetadata()
-
-    def _populateContigMetadata(self):
-        log.debug("Adding contig metadata...")
-        numrec = 0
-        totlen = 0
-        for contig in self.contigs:
-            self._metadata.addContig(contig)
-            numrec += 1
-            totlen += len(contig)
-        if not self._countsUpdated:
-            log.debug("Counts updated: numrec={n} totlen={l}".format(n=numrec,
-                                                                     l=totlen))
-            self.numRecords = numrec
-            self.totalLength = totlen
-            self._countsUpdated = True
 
     def updateCounts(self):
         if self._skipCounts:
@@ -4149,11 +4121,6 @@ class ContigSet(DataSet):
 
         # Pull generic values, kwargs, general treatment in super
         super(ContigSet, self).addMetadata(newMetadata, **kwargs)
-
-        # Pull subtype specific values where important
-        if newMetadata:
-            if newMetadata.contigs:
-                self.metadata.contigs.extend(newMetadata.contigs)
 
     @property
     def metadata(self):
