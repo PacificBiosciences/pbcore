@@ -6,6 +6,7 @@ import tempfile
 import os
 import itertools
 import xml.etree.ElementTree as ET
+import uuid
 
 from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import _infixFname, consolidateXml
@@ -20,10 +21,16 @@ import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
 from utils import _check_constools, _internal_data
 
+try:
+    import pbtestdata
+except ImportError:
+    pbtestdata = None
+
 log = logging.getLogger(__name__)
 skip_if_no_internal_data = unittest.skipIf(not _internal_data(),
                                            "Internal data not found, skipping")
-
+skip_if_no_pbtestdata = unittest.skipIf(pbtestdata is None,
+                                        "PacBioTestData not found, skipping")
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -1070,8 +1077,18 @@ class TestDataSet(unittest.TestCase):
         ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds2.write(ds_out, validate=False)
 
+    @skip_if_no_pbtestdata
+    def test_provenance_record_ordering(self):
+        ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
+        ds.metadata.addParentDataSet(uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
+        tmp_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        ds.write(tmp_out)
+        ds = SubreadSet(tmp_out, strict=True)
+        tags = [r['tag'] for r in ds.metadata.record['children']]
+        self.assertEqual(tags, ['TotalLength', 'NumRecords', 'Provenance', 'Collections', 'SummaryStats'])
+
     @skip_if_no_internal_data
     def test_transcriptset(self):
-        fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/polished_transcripts.transcriptset.xml"
+        fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.transcriptset.xml"
         ds1 = TranscriptSet(fn, strict=True)
         self.assertEqual(len(ds1.resourceReaders()), 1)

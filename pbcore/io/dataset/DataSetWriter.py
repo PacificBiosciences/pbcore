@@ -208,6 +208,14 @@ def _addDataSetMetadataElement(dataSet, root, core=False):
         root: The root ElementTree object. Extended here using SubElement
     """
     if dataSet.metadata:
+        provenance = dataSet.metadata.removeChildren("Provenance")
+        for i, record in enumerate(dataSet.metadata.record['children']):
+            if record['tag'] == "NumRecords":
+                for k, value in enumerate(provenance):
+                    dataSet.metadata.record['children'].insert(i + k + 1, value)
+                break
+        else:
+            dataSet.metadata.extend([p.record for p in provenance])
         # hide the stats:
         stats = None
         if dataSet.metadata.summaryStats:
@@ -221,6 +229,7 @@ def _addDataSetMetadataElement(dataSet, root, core=False):
         #tl = dsmd.find('TotalLength')
         #tl = dsmd.remove(tl)
         #dsmd.insert(0, tl)
+
 
 def _guessNs(tag):
     for option in TAGS:
