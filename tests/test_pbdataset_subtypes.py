@@ -569,6 +569,11 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(acc_file), 3)
         self.assertEqual(len(list(acc_file)), 3)
 
+        # test merge:
+        acc1 = ContigSet(outFas1)
+        acc2 = ContigSet(outFas2)
+        acc3 = acc1 + acc2
+
     def test_contigset_consolidate_int_names(self):
         #build set to merge
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
