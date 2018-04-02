@@ -1671,13 +1671,6 @@ class ContigSetMetadata(DataSetMetadata):
                                 "{t}".format(t=type(record).__name__))
         super(ContigSetMetadata, self).__init__(record)
 
-    def merge(self, other):
-        super(self.__class__, self).merge(other)
-        if self.contigs:
-            self.contigs.merge(other.contigs) # pylint: disable=no-member
-        else:
-            self.contigs = other.contigs
-
     organism = subaccs('Organism')
     ploidy = subaccs('Ploidy')
 
