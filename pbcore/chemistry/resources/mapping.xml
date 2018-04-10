@@ -361,4 +361,20 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- SG1/16509P Chemistry update (binding kit only) with 5.0 basecaller (no new training, prototype parts) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-490-800</BindingKit>
+    <SequencingKit>101-490-900</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- SG1/16509P Chemistry update (binding kit only) with 5.0 basecaller (no new training, prototype parts) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-490-800</BindingKit>
+    <SequencingKit>101-491-000</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
