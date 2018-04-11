@@ -5,6 +5,7 @@ import unittest
 import tempfile
 import os
 import itertools
+import time
 import xml.etree.ElementTree as ET
 import uuid
 
@@ -280,8 +281,6 @@ class TestDataSet(unittest.TestCase):
         ds2 = ContigSet(data.getXml(3), skipMissing=True)
         self.assertEquals(type(ds2).__name__, 'ContigSet')
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
-        for contigmd in ds2.metadata.contigs:
-            self.assertEquals(type(contigmd).__name__, 'ContigMetadata')
 
     @unittest.skipIf(not _check_constools(),
                      "bamtools or pbindex not found, skipping")
@@ -302,12 +301,16 @@ class TestDataSet(unittest.TestCase):
 
         cons.externalResources[0].pbi = None
         self.assertEqual(None, cons.externalResources[0].pbi)
+        # test is too quick, stat times might be within the same second
+        time.sleep(1)
         cons.induceIndices()
         self.assertEqual(outfn + '.pbi', cons.externalResources[0].pbi)
         self.assertEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
         cons.externalResources[0].pbi = None
         self.assertEqual(None, cons.externalResources[0].pbi)
+        # test is too quick, stat times might be within the same second
+        time.sleep(1)
         cons.induceIndices(force=True)
         self.assertNotEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
@@ -341,11 +344,15 @@ class TestDataSet(unittest.TestCase):
         orig_stats = os.stat(outfn + '.pbi')
         cons.externalResources[0].pbi = None
         self.assertEqual(None, cons.externalResources[0].pbi)
+        # test is too quick, stat times might be within the same second
+        time.sleep(1)
         cons.induceIndices()
         self.assertEqual(outfn + '.pbi', cons.externalResources[0].pbi)
         self.assertEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
         cons.externalResources[0].pbi = None
         self.assertEqual(None, cons.externalResources[0].pbi)
+        # test is too quick, stat times might be within the same second
+        time.sleep(1)
         cons.induceIndices(force=True)
         self.assertNotEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
@@ -561,6 +568,11 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(acc_file._indexMap), 3)
         self.assertEqual(len(acc_file), 3)
         self.assertEqual(len(list(acc_file)), 3)
+
+        # test merge:
+        acc1 = ContigSet(outFas1)
+        acc2 = ContigSet(outFas2)
+        acc3 = acc1 + acc2
 
     def test_contigset_consolidate_int_names(self):
         #build set to merge

@@ -1671,40 +1671,8 @@ class ContigSetMetadata(DataSetMetadata):
                                 "{t}".format(t=type(record).__name__))
         super(ContigSetMetadata, self).__init__(record)
 
-    def merge(self, other):
-        super(self.__class__, self).merge(other)
-        if self.contigs:
-            self.contigs.merge(other.contigs) # pylint: disable=no-member
-        else:
-            self.contigs = other.contigs
-
     organism = subaccs('Organism')
     ploidy = subaccs('Ploidy')
-
-    @property
-    def contigs(self):
-        # to this so that the absence of contigs is adequately conveyed.
-        if not list(self.findChildren('Contigs')):
-            return None
-        return ContigsMetadata(self.getV('children', 'Contigs'))
-
-    @contigs.setter
-    def contigs(self, value):
-        self.removeChildren('Contigs')
-        if not value:
-            self.append(ContigsMetadata())
-        else:
-            self.append(value)
-
-    def addContig(self, newContig):
-        if not self.contigs:
-            self.contigs = []
-        tmp = ContigMetadata()
-        tmp.name = newContig.id if newContig.id else ''
-        tmp.description = newContig.comment if newContig.comment else ''
-        tmp.digest = 'DEPRECATED'
-        tmp.length = len(newContig)
-        self.contigs.append(tmp)
 
 
 class BarcodeSetMetadata(DataSetMetadata):
@@ -1722,50 +1690,6 @@ class BarcodeSetMetadata(DataSetMetadata):
         super(BarcodeSetMetadata, self).__init__(record)
 
     barcodeConstruction = subaccs('BarcodeConstruction')
-
-
-class ContigsMetadata(RecordWrapper):
-
-    TAG = 'Contigs'
-
-    def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
-        self.record['tag'] = self.TAG
-
-    def __getitem__(self, index):
-        return ContigMetadata(self.record['children'][index])
-
-    def __iter__(self):
-        for child in self.record['children']:
-            yield ContigMetadata(child)
-
-    def merge(self, other):
-        self.extend([child for child in other])
-
-
-class ContigMetadata(RecordWrapper):
-
-    TAG = 'Contig'
-
-    def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
-        self.record['tag'] = self.TAG
-
-    @property
-    def digest(self):
-        return self.getV('attrib', 'Digest')
-
-    @digest.setter
-    def digest(self, value):
-        return self.setV(value, 'attrib', 'Digest')
-
-    @property
-    def length(self):
-        return int(self.getV('attrib', 'Length'))
-
-    @length.setter
-    def length(self, value):
-        return self.setV(str(value), 'attrib', 'Length')
 
 
 class CollectionsMetadata(RecordWrapper):
