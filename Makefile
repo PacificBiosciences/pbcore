@@ -67,4 +67,4 @@ publish-to-pypi:
 
 xsd-codegen:
 	rm -f pbcore/io/dataset/pyxb/DataSetXsd.py
-	./bin/updateXSDs.py ../xsd-datamodels/PacBioDataModel.xsd pbcore/io/dataset/pyxb/
+	./bin/updateXSDs.py ../xsd-datamodels/PacBioDatasets.xsd pbcore/io/dataset/pyxb/
