@@ -927,6 +927,14 @@ class TestDataSet(unittest.TestCase):
         #        'PacBio.ReferenceFile.ReferenceFastaFile').uniqueId,
         #    rs1.uuid)
 
+    @skip_if_no_internal_data
+    def test_adapters_resource(self):
+        ifn = ("/pbi/dept/secondary/siv/testdata/BlasrTestData/ctest/data/"
+               "m54075_161031_164015.subreadset.xml")
+        s = SubreadSet(ifn)
+        self.assertTrue(s.externalResources[0].adapters.endswith(
+             'm54075_161031_164015_adapter.fasta'))
+
     def test_nested_external_resources(self):
         log.debug("Testing nested externalResources in AlignmentSets")
         aln = AlignmentSet(data.getXml(0), skipMissing=True)
@@ -958,6 +966,13 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(
             subs.externalResources[0].externalResources[1].metaType,
             "PacBio.DataSet.BarcodeSet")
+
+        subs.externalResources[0].adapters = 'foo.adapters.fasta'
+        self.assertEqual(subs.externalResources[0].adapters,
+                         'foo.adapters.fasta')
+        self.assertEqual(
+            subs.externalResources[0].externalResources[2].metaType,
+            "PacBio.SubreadFile.AdapterFastaFile")
 
         log.debug("Testing adding nested externalResources to AlignmetnSet "
                   "manually")
