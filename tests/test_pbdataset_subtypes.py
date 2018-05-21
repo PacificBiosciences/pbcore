@@ -934,6 +934,12 @@ class TestDataSet(unittest.TestCase):
         s = SubreadSet(ifn)
         self.assertTrue(s.externalResources[0].adapters.endswith(
              'm54075_161031_164015_adapter.fasta'))
+        ifn = ("/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/315/"
+               "3150319/r54011_20160727_213451/1_A01/"
+               "m54011_160727_213918.subreads.bam")
+        s = SubreadSet(ifn)
+        self.assertTrue(s.externalResources[0].adapters.endswith(
+             'm54011_160727_213918.adapters.fasta'))
 
     def test_nested_external_resources(self):
         log.debug("Testing nested externalResources in AlignmentSets")
