@@ -109,7 +109,7 @@ def _addUnknownFile(dset, path):
         except ET.ParseError:
             return _addGenericFile(dset, path)
 
-SUB_RESOURCES = ['.scraps.bam', '.control.subreads.bam']
+SUB_RESOURCES = ['.scraps.bam', '.control.subreads.bam', '.adapters.fasta']
 FILE_INDICES = ['.fai', '.pbi', '.bai', '.metadata.xml',
                 '.index', '.contig.index', '.sa']
 
