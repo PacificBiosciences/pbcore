@@ -1316,14 +1316,15 @@ class ExternalResource(RecordWrapper):
 
     @property
     def scraps(self):
-        return self._getSubResByMetaType(
-            'PacBio.SubreadFile.ScrapsBamFile')
         if self.metaType == 'PacBio.SubreadFile.SubreadBamFile':
             return self._getSubResByMetaType(
                 'PacBio.SubreadFile.ScrapsBamFile')
         elif self.metaType == 'PacBio.SubreadFile.ZmwBamFile':
             return self._getSubResByMetaType(
                 'PacBio.SubreadFile.ZmwScrapsBamFile')
+        elif self.metaType == 'PacBio.SubreadFile.Control.SubreadBamFile':
+            return self._getSubResByMetaType(
+                'PacBio.SubreadFile.Control.ScrapsBamFile')
 
     @scraps.setter
     def scraps(self, value):
@@ -1368,6 +1369,16 @@ class ExternalResource(RecordWrapper):
     @reference.setter
     def reference(self, value):
         self._setSubResByMetaType('PacBio.ReferenceFile.ReferenceFastaFile',
+                                  value)
+
+    @property
+    def adapters(self):
+        return self._getSubResByMetaType(
+            'PacBio.SubreadFile.AdapterFastaFile')
+
+    @adapters.setter
+    def adapters(self, value):
+        self._setSubResByMetaType('PacBio.SubreadFile.AdapterFastaFile',
                                   value)
 
     def _deleteIndByMetaType(self, mType):
