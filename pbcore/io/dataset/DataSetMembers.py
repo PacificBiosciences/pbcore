@@ -140,8 +140,24 @@ OPMAP = {'==': OP.eq,
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
         }
 
+# These functions should take np.ndarrays that are already a reasonable type
+# (e.g. from dset.index.holeNumber, which is already in 32bit int)
+# Parsing doesn't happen here, so we're not casting from strings... This is
+# probably overkill and lambda x: x is probably always enough.
+HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
+           'IntegerCast': lambda x: x.astype(np.int_),
+           'Int32Cast': lambda x: x.astype(np.int32),
+           'NumericCast': lambda x: x,
+           }
+
 def mapOp(op):
     return OPMAP[op]
+
+def make_mod_hash_acc(accessor, mod, hashname):
+    hashfunc = HASHMAP[hashname]
+    def accNmod(records):
+        return hashfunc(accessor(records)) % mod
+    return accNmod
 
 def str2list(value):
     value = value.strip('set')
@@ -614,7 +630,8 @@ class Filters(RecordWrapper):
         for filt in self:
             temp = ['(']
             for req in filt:
-                temp.append(' '.join([req.name, req.operator, req.value]))
+                # strip off the parens
+                temp.append(str(req)[1:-1])
                 temp.append('AND')
             if temp:
                 temp.pop()
@@ -877,8 +894,12 @@ class Filters(RecordWrapper):
                             accMap[param](indexRecords), value)
                     else:
                         operator = mapOp(opstr)
+                        accessor = accMap[param]
+                        if req.modulo is not None:
+                            accessor = make_mod_hash_acc(accessor, req.modulo,
+                                                          req.hashfunc)
                         reqResultsForRecords = operator(
-                            accMap[param](indexRecords), value)
+                            accessor(indexRecords), value)
                     lastResult &= reqResultsForRecords
                     del reqResultsForRecords
                 else:
@@ -912,20 +933,22 @@ class Filters(RecordWrapper):
             self.record['children'] = []
             newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
             for name, options in kwargs.items():
-                for i, (oper, val) in enumerate(options):
+                for i, option in enumerate(options):
                     for filt in newFilts[i]:
+                        val = option[1]
                         if isinstance(val, np.ndarray):
                             val = list(val)
-                        filt.addRequirement(name, oper, val)
+                        filt.addRequirement(name, *option)
             for filtList in newFilts:
                 self.extend(filtList)
         else:
             newFilts = [Filter() for _ in kwargs.values()[0]]
             for name, options in kwargs.items():
-                for i, (oper, val) in enumerate(options):
+                for i, option in enumerate(options):
+                    val = option[1]
                     if isinstance(val, np.ndarray):
                         val = list(val)
-                    newFilts[i].addRequirement(name, oper, val)
+                    newFilts[i].addRequirement(name, *option)
             self.extend(newFilts)
         #log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
@@ -943,8 +966,8 @@ class Filters(RecordWrapper):
             return
         newFilt = Filter()
         for name, options in kwargs.items():
-            for oper, val in options:
-                newFilt.addRequirement(name, oper, val)
+            for option in options:
+                newFilt.addRequirement(name, *option)
         self.append(newFilt)
         log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
@@ -956,10 +979,10 @@ class Filters(RecordWrapper):
         """
         if not filters:
             return
-        for opt in filters:
+        for filt in filters:
             newFilt = Filter()
-            for name, oper, val in opt:
-                newFilt.addRequirement(name, oper, val)
+            for option in filt:
+                newFilt.addRequirement(*option)
             self.append(newFilt)
         log.debug("Current filters: {s}".format(s=str(self)))
         self._runCallbacks()
@@ -982,8 +1005,8 @@ class Filters(RecordWrapper):
             if isinstance(filt, Filter):
                 filt = [(p.name, p.operator, p.value) for p in filt]
             for efilt in efilts:
-                for name, oper, val in filt:
-                    efilt.addRequirement(name, oper, val)
+                for option in filt:
+                    efilt.addRequirement(*option)
                 new.append(efilt)
 
         while len(self):
@@ -1012,7 +1035,7 @@ class Filters(RecordWrapper):
 
         for req, opvals in kwargs.items():
             for filt, opval in zip(self, opvals):
-                filt.addRequirement(req, opval[0], opval[1])
+                filt.addRequirement(req, *opval)
         self._runCallbacks()
 
     def removeRequirement(self, req):
@@ -1051,11 +1074,14 @@ class Filter(RecordWrapper):
     def pop(self, index):
         self.record['children'][0]['children'].pop(index)
 
-    def addRequirement(self, name, operator, value):
+    def addRequirement(self, name, operator, value, modulo=None):
         param = Property()
         param.name = name
         param.operator = operator
         param.value = value
+        if modulo:
+            param.modulo = modulo
+            param.hashfunc = 'UnsignedLongCast'
         self.plist.append(param)
 
     def removeRequirement(self, req):
@@ -1108,8 +1134,42 @@ class Property(RecordWrapper):
         self.record['tag'] = self.__class__.__name__
 
     def __str__(self):
-        return ''.join(["(", self.name, " ", self.operator, " ", self.value,
+        modstr = ''
+        if self.modulo is not None:
+            modstr = ' % {}'.format(self.modulo)
+        namestr = self.name
+        if self.hashfunc is not None:
+            namestr = '{}({})'.format(self.hashfunc, self.name)
+        return ''.join(["(", namestr, modstr, " ", self.operator, " ", self.value,
                         ")"])
+
+    @property
+    def modulo(self):
+        #optional:
+        if 'Modulo' not in self.metadata:
+            return None
+        value = self.metadata['Modulo']
+        # I kind of want to support both types of modulo, but I want to use int
+        # if possible...
+        dtype = int
+        if '.' in value or 'e' in value:
+            dtype = float
+        return dtype(value)
+
+    @modulo.setter
+    def modulo(self, value):
+        self.metadata['Modulo'] = str(value)
+
+    @property
+    def hashfunc(self):
+        #optional:
+        if 'Hash' not in self.metadata:
+            return None
+        return self.metadata['Hash']
+
+    @hashfunc.setter
+    def hashfunc(self, value):
+        self.metadata['Hash'] = value
 
     @property
     def name(self):
@@ -1133,7 +1193,16 @@ class Property(RecordWrapper):
 
     @value.setter
     def value(self, value):
-        self.metadata['Value'] = str(value)
+        if isinstance(value, np.ndarray):
+            if len(value.shape) > 1:
+                raise RuntimeError(
+                    "Cannot use multidimensional arrays as "
+                    "filter values")
+        if isinstance(value, (set, list, tuple, np.ndarray)):
+            strval = '[{}]'.format(', '.join(map(str, value)))
+        else:
+            strval = str(value)
+        self.metadata['Value'] = strval
 
 
 class ExternalResources(RecordWrapper):
