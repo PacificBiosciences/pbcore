@@ -148,6 +148,7 @@ HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
            'IntegerCast': lambda x: x.astype(np.int_),
            'Int32Cast': lambda x: x.astype(np.int32),
            'NumericCast': lambda x: x,
+           'BoostHashCombine': lambda x: x,
            }
 
 def mapOp(op):
@@ -1081,7 +1082,7 @@ class Filter(RecordWrapper):
         param.value = value
         if modulo:
             param.modulo = modulo
-            param.hashfunc = 'UnsignedLongCast'
+            param.hashfunc = 'BoostHashCombine'
         self.plist.append(param)
 
     def removeRequirement(self, req):

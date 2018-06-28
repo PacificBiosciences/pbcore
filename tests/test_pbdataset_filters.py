@@ -84,11 +84,11 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(ds2), 26)
 
         # written:
-        filtstr = '( UnsignedLongCast(zm) % 8 = 0 )'
+        filtstr = '( BoostHashCombine(zm) % 8 = 0 )'
         self.assertEqual(str(ds2.filters), filtstr)
 
 
-        filtxmlstr = ('<pbbase:Property Hash="UnsignedLongCast" Modulo="8" '
+        filtxmlstr = ('<pbbase:Property Hash="BoostHashCombine" Modulo="8" '
                       'Name="zm" Operator="=" Value="0"/>')
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
         ds2.write(fn)
