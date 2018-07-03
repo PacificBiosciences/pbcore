@@ -145,6 +145,7 @@ OPMAP = {'==': OP.eq,
 # Parsing doesn't happen here, so we're not casting from strings... This is
 # probably overkill and lambda x: x is probably always enough.
 HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
+           'Uint32Cast': lambda x: x.astype(np.uint32),
            'IntegerCast': lambda x: x.astype(np.int_),
            'Int32Cast': lambda x: x.astype(np.int32),
            'NumericCast': lambda x: x,
@@ -1082,7 +1083,7 @@ class Filter(RecordWrapper):
         param.value = value
         if modulo:
             param.modulo = modulo
-            param.hashfunc = 'BoostHashCombine'
+            param.hashfunc = 'Uint32Cast'
         self.plist.append(param)
 
     def removeRequirement(self, req):
