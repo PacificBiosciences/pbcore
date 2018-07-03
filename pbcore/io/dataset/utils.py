@@ -156,3 +156,21 @@ def _fileCopy(dest, infile, uuid=None):
     assert os.path.exists(fn)
     return fn
 
+# FIXME this is *not* numerically identical to the pbbam result!
+# FIXME also it would be better to use numpy array ops, but the code below
+# does not work for ndarray as written.
+def hash_combine_zmw(zmw):
+    """
+    Generate a unique hash for a ZMW, for use in downsampling filter.
+    """
+    mask = 0xFFFF
+    upper = (zmw >> 16) & mask
+    lower = zmw & mask
+    result = 0
+    result ^= upper + 0x9e3779b9 + (result << 6) + (result >> 2)
+    result ^= lower + 0x9e3779b9 + (result << 6) + (result >> 2)
+    return result
+
+
+def hash_combine_zmws(zmws):
+    return [hash_combine_zmw(zmw) for zmw in zmws]
