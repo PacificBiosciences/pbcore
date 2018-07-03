@@ -74,7 +74,7 @@ from urlparse import urlparse
 from urllib import unquote
 from functools import partial as P
 from collections import Counter, defaultdict
-from pbcore.io.dataset.utils import getTimeStampedName
+from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
@@ -148,7 +148,7 @@ HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
            'IntegerCast': lambda x: x.astype(np.int_),
            'Int32Cast': lambda x: x.astype(np.int32),
            'NumericCast': lambda x: x,
-           'BoostHashCombine': lambda x: x,
+           'BoostHashCombine': lambda x: hash_combine_zmws(x),
            }
 
 def mapOp(op):
