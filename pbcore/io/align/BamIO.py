@@ -249,7 +249,10 @@ class _BamReaderBase(ReaderBase):
 
     @property
     def version(self):
-        return self.peer.header["HD"]["pb"]
+        try:
+            return self.peer.header["HD"]["pb"]
+        except KeyError:
+            raise IOError("This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
 
     def versionAtLeast(self, minimalVersion):
         raise Unimplemented()

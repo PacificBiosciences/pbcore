@@ -70,6 +70,35 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 87)
         self.assertEqual(len(ds2), 87)
 
+    def test_subset_filter(self):
+        ds2 = AlignmentSet(data.getXml(8))
+        self.assertEqual(len(ds2), 92)
+        modvalue = 8
+
+        # manually:
+        hns = ds2.index.holeNumber
+        self.assertEqual(np.count_nonzero(hns % modvalue == 0), 26)
+
+        # dset filters:
+        ds2.filters.addRequirement(zm=[('=', '0', modvalue)])
+        self.assertEqual(len(ds2), 26)
+
+        # written:
+        filtstr = '( Uint32Cast(zm) % 8 = 0 )'
+        self.assertEqual(str(ds2.filters), filtstr)
+
+
+        filtxmlstr = ('<pbbase:Property Hash="Uint32Cast" Modulo="8" '
+                      'Name="zm" Operator="=" Value="0"/>')
+        fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
+        ds2.write(fn)
+        with open(fn, 'r') as ifh:
+            found = False
+            for line in ifh:
+                if filtxmlstr in line:
+                    found = True
+        self.assertTrue(found)
+
     def test_mapqv_filter(self):
         ds2 = AlignmentSet(data.getXml(8))
         self.assertEqual(len(list(ds2.records)), 92)

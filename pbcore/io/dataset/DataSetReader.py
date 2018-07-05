@@ -152,6 +152,7 @@ def wrapNewResource(path):
         filen = '.'.join(path.split('.')[:-2]) + ext
         # don't want to add e.g. scraps to scraps:
         if os.path.exists(filen) and path.endswith('subreads.bam'):
+            log.debug("Adding {} as a subresource".format(filen))
             subres = wrapNewResource(filen)
             setattr(extRes, ext.split('.')[1], subres)
     return extRes
