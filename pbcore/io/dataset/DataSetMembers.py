@@ -42,6 +42,7 @@ serve two pruposes:
     - DataSet("test.xml").metadata.numRecords += 1
 
 - Provide an interface for users of the DataSet API, e.g.:
+
     - numRecords = DataSet("test.xml").metadata.numRecords
     - bioSamplePointer = (DataSet("test.xml")\
                           .metadata.collections[0]\
@@ -2306,13 +2307,14 @@ class BioSamplesMetadata(RecordWrapper):
     """The metadata for the list of BioSamples
 
         Doctest:
+            >>> from __future__ import print_function
             >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
             >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
             >>> ds.metadata.collections[0].wellSample.bioSamples[0].name
             'consectetur purus'
             >>> for bs in ds.metadata.collections[0].wellSample.bioSamples:
-            ...     print bs.name
+            ...     print(bs.name)
             consectetur purus
             >>> em = {'tag':'BioSample', 'text':'', 'children':[],
             ...       'attrib':{'Name':'great biosample'}}
