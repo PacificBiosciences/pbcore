@@ -89,6 +89,10 @@ class _BamReaderBase(ReaderBase):
             rgChem = "unknown"
             rgFrameRate = 0.0
             if rgReadType != "TRANSCRIPT":
+                if set(("BASECALLERVERSION", "SEQUENCINGKIT", "BINDINGKIT")) <= set(ds):
+                    pass
+                else:
+                    raise IOError("This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
                 rgFrameRate = ds["FRAMERATEHZ"]
                 basecallerVersion = ".".join(ds["BASECALLERVERSION"].split(".")[0:2])
                 triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion

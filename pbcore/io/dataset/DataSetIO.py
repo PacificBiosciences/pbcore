@@ -1310,6 +1310,7 @@ class DataSet(object):
             :newFilters: a Filters object or properly formatted Filters record
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import SubreadSet
             >>> from pbcore.io.dataset.DataSetMembers import Filters
@@ -1317,11 +1318,11 @@ class DataSet(object):
             >>> filt = Filters()
             >>> filt.addRequirement(rq=[('>', '0.85')])
             >>> ds1.addFilters(filt)
-            >>> print ds1.filters
+            >>> print(ds1.filters)
             ( rq > 0.85 )
             >>> # Or load with a DataSet
             >>> ds2 = DataSet(data.getXml(16))
-            >>> print ds2.filters
+            >>> print(ds2.filters)
             ... # doctest:+ELLIPSIS
             ( rname = E.faecalis...
         """
@@ -1378,12 +1379,13 @@ class DataSet(object):
                      (as an attribute)
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet()
             >>> # it is possible to add new metadata:
             >>> ds.addMetadata(None, Name='LongReadsRock')
-            >>> print ds._metadata.getV(container='attrib', tag='Name')
+            >>> print(ds._metadata.getV(container='attrib', tag='Name'))
             LongReadsRock
             >>> # but most will be loaded and modified:
             >>> ds2 = DataSet(data.getXml(no=8))
@@ -1511,11 +1513,12 @@ class DataSet(object):
             A BamAlignment object
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
             >>> for record in ds.records:
-            ...     print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
+            ...     print('hn: %i' % record.holeNumber) # doctest:+ELLIPSIS
             hn: ...
         """
         for resource in self.resourceReaders():
@@ -2710,11 +2713,12 @@ class AlignmentSet(ReadSet):
             A BamAlignment object
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
             >>> for record in ds.records:
-            ...     print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
+            ...     print('hn: %i' % record.holeNumber) # doctest:+ELLIPSIS
             hn: ...
         """
         if self.isIndexed:
@@ -2852,12 +2856,13 @@ class AlignmentSet(ReadSet):
             An open indexed alignment file
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
             >>> for seqFile in ds.resourceReaders():
             ...     for record in seqFile:
-            ...         print 'hn: %i' % record.holeNumber # doctest:+ELLIPSIS
+            ...         print('hn: %i' % record.holeNumber) # doctest:+ELLIPSIS
             hn: ...
 
         """
@@ -3004,11 +3009,12 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
             >>> for read in ds.readsInReference(ds.refNames[15]):
-            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
+            ...     print('hn: %i' % read.holeNumber) # doctest:+ELLIPSIS
             hn: ...
 
         """
@@ -3459,11 +3465,12 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
+            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
             >>> for read in ds.readsInRange(ds.refNames[15], 100, 150):
-            ...     print 'hn: %i' % read.holeNumber # doctest:+ELLIPSIS
+            ...     print('hn: %i' % read.holeNumber) # doctest:+ELLIPSIS
             hn: ...
 
         """

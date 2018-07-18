@@ -167,12 +167,13 @@ class FastaReader(ReaderBase):
 
     .. doctest::
 
+        >>> from __future__ import print_function
         >>> from pbcore.io import FastaReader
         >>> from pbcore import data
         >>> filename = data.getTinyFasta()
         >>> r = FastaReader(filename)
         >>> for record in r:
-        ...     print record.header, len(record.sequence)
+        ...     print(record.header, len(record.sequence))
         ref000001|EGFR_Exon_2 183
         ref000002|EGFR_Exon_3 203
         ref000003|EGFR_Exon_4 215
@@ -386,11 +387,12 @@ class IndexedFastaReader(ReaderBase, Sequence):
 
     .. doctest::
 
+        >>> from __future__ import print_function
         >>> from pbcore.io import FastaTable
         >>> from pbcore import data
         >>> filename = data.getFasta()
         >>> t = IndexedFastaReader(filename)
-        >>> print t[:4] # doctest: +NORMALIZE_WHITESPACE
+        >>> print(t[:4]) # doctest: +NORMALIZE_WHITESPACE
         [<IndexedFastaRecord: ref000001|EGFR_Exon_2>,
          <IndexedFastaRecord: ref000002|EGFR_Exon_3>,
          <IndexedFastaRecord: ref000003|EGFR_Exon_4>,

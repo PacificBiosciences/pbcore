@@ -185,10 +185,11 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
     .. doctest::
 
+        >>> from __future__ import print_function
         >>> c[26]
         CmpH5 alignment: +    1       7441       7699
 
-        >>> print c[26]
+        >>> print(c[26])
         CmpH5 alignment: +    1       7441       7699
         <BLANKLINE>
         Read:        m110818_075520_42141_c100129202555500000315043109121112_s2_p0/1009/44_322

@@ -596,8 +596,9 @@ class BasH5Reader(object):
          are the subintervals of the raw read corresponding to the
          SMRTbell insert::
 
+           >>> from __future__ import print_function
            >>> subreads = zmw8.subreads
-           >>> print subreads
+           >>> print(subreads)
            [<ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3381_3881>,
            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/3924_4398>,
            <ZmwRead: m110818_075520_42141_c100129202555500000315043109121112_s1_p0/8/4445_4873>,
