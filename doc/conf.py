@@ -14,7 +14,7 @@
 import sys, os
 
 # don't forget to update setup.py and pbcore/__init__.py too
-__VERSION__ = '1.5.1'
+__VERSION__ = '1.5.2'
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

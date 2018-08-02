@@ -31,7 +31,7 @@ def _get_local_requirements(file_name):
 
 setup(
     name = 'pbcore',
-    version='1.5.1', # don't forget to update pbcore/__init__.py and doc/conf.py too
+    version='1.5.2', # don't forget to update pbcore/__init__.py and doc/conf.py too
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description="A Python library for reading and writing PacBio® data files",
