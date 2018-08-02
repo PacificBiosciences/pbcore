@@ -445,5 +445,4 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             return np.array([])
         if not "nMM" in self.pbi.columnNames:
             raise AttributeError("Identities require mapped BAM.")
-        return 1 - ((self.pbi.nMM + self.pbi.nIns + self.pbi.nDel) /
-            (self.pbi.aEnd.astype(float) - self.pbi.aStart.astype(float)))
+        return self.pbi.identity
