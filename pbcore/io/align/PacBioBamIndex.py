@@ -22,13 +22,7 @@ PBI_FLAGS_COORDINATE_SORTED = 2
 PBI_FLAGS_BARCODE           = 4
 
 
-class PacBioBamIndex(object):
-    """
-    The PacBio BAM index is a companion file allowing modest
-    *semantic* queries on PacBio BAM files without iterating over the
-    entire file.  By convention, the PacBio BAM index has extension
-    "bam.pbi".
-    """
+class PbIndexBase(object):
     def _loadHeader(self, f):
         buf = f.read(PBI_HEADER_LEN)
         header = unpack("< 4s BBBx H I 18x", buf)
@@ -40,6 +34,19 @@ class PacBioBamIndex(object):
             raise IncompatibleFile(
                 "This PBI file is incompatible with this API "
                 "(only PacBio PBI files version >= 3.0.1 are supported)")
+
+
+class PacBioBamIndex(PbIndexBase):
+    """
+    The PacBio BAM index is a companion file allowing modest
+    *semantic* queries on PacBio BAM files without iterating over the
+    entire file.  By convention, the PacBio BAM index has extension
+    "bam.pbi".
+    """
+
+    @property
+    def isChunk(self):
+        return self._i_chunk is not None and self._chunk_size is not None
 
     @property
     def hasMappingInfo(self):
@@ -104,21 +111,35 @@ class PacBioBamIndex(object):
             joint_dtype += COMPUTED_COLUMNS_DTYPE
         if self.hasBarcodeInfo:
             joint_dtype += BARCODE_INDEX_DTYPE
-        tbl = np.zeros(shape=(self.nReads,),
+        index_len = self.nReads
+        chunk_start = 0
+        if self.isChunk:
+            chunk_start = self._i_chunk * self._chunk_size
+            index_len = min(index_len - chunk_start, self._chunk_size)
+        tbl = np.zeros(shape=(index_len,),
                        dtype=joint_dtype).view(np.recarray)
 
+        self._array_start = PBI_HEADER_LEN
         def peek(type_, length):
-            flavor, width = type_
-            return np.frombuffer(f.read(length*int(width)), "<" + type_)
+            flavor, width_ = type_
+            width = int(width_)
+            if self.isChunk:
+                f.seek(self._array_start + chunk_start * width)
+                n_remaining = self.nReads - chunk_start
+                length = min(length, n_remaining)
+            data = np.frombuffer(f.read(length*width), "<" + type_)
+            if self.isChunk:
+                self._array_start += self.nReads * width
+            return data
 
         if True:
             # BASIC data always present
             for columnName, columnType in BASIC_INDEX_DTYPE:
-                tbl[columnName] = peek(columnType, self.nReads)
+                tbl[columnName] = peek(columnType, index_len)
 
         if self.hasMappingInfo:
             for columnName, columnType in MAPPING_INDEX_DTYPE:
-                tbl[columnName] = peek(columnType, self.nReads)
+                tbl[columnName] = peek(columnType, index_len)
 
             # Computed columns
             tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
@@ -134,7 +155,7 @@ class PacBioBamIndex(object):
 
         if self.hasBarcodeInfo:
             for columnName, columnType in BARCODE_INDEX_DTYPE:
-                tbl[columnName] = peek(columnType, self.nReads)
+                tbl[columnName] = peek(columnType, index_len)
 
         self._tbl = tbl
         self._checkForBrokenColumns()
@@ -144,7 +165,9 @@ class PacBioBamIndex(object):
             # TODO!
             pass
 
-    def __init__(self, pbiFilename):
+    def __init__(self, pbiFilename, i_chunk=None, chunk_size=None):
+        self._i_chunk = i_chunk
+        self._chunk_size = chunk_size
         pbiFilename = abspath(expanduser(pbiFilename))
         with BgzfReader(pbiFilename) as f:
             try:
@@ -216,3 +239,27 @@ class PacBioBamIndex(object):
         assert (self.pbiFlags & PBI_FLAGS_MAPPED)
         return 1 - ((self.nMM + self.nIns + self.nDel) /
             (self.aEnd.astype(float) - self.aStart.astype(float)))
+
+
+class StreamingBamIndex(PbIndexBase):
+    """
+    Wrapper that iterates over the index in chunks, yielding a
+    PacBioBamIndex object representing the current chunk.
+    """
+    def __init__(self, pbiFilename, chunk_size=1000000):
+        self._chunk_size = chunk_size
+        self._pbiFilename = abspath(expanduser(pbiFilename))
+        with BgzfReader(self._pbiFilename) as f:
+            try:
+                self._loadHeader(f)
+            except Exception as e:
+                raise IOError("Malformed bam.pbi file: " + str(e))
+
+    def __iter__(self):
+        i_chunk = 0
+        while i_chunk * self._chunk_size < self.nReads:
+            yield PacBioBamIndex(self._pbiFilename, i_chunk, self._chunk_size)
+            i_chunk += 1
+
+    def __len__(self):
+        return self.nReads
