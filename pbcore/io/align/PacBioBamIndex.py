@@ -3,12 +3,13 @@
 from __future__ import absolute_import
 
 from os.path import abspath, expanduser
-from ._bgzf import BgzfReader
 from struct import unpack
+import math
 
 import numpy as np
 import numpy.lib.recfunctions as nlr
 
+from ._bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
 from ._BamSupport import IncompatibleFile
 
 __all__ = [ "PacBioBamIndex" ]
@@ -68,7 +69,7 @@ class PacBioBamIndex(PbIndexBase):
     def hasBarcodeInfo(self):
         return (self.pbiFlags & PBI_FLAGS_BARCODE)
 
-    def _loadMainIndex(self, f):
+    def _loadMainIndex(self, f, to_virtual_offset=None):
         # Main index holds basic, mapping, and barcode info
         BASIC_INDEX_DTYPE = [
             ("qId"               , "i4"),
@@ -124,7 +125,9 @@ class PacBioBamIndex(PbIndexBase):
             flavor, width_ = type_
             width = int(width_)
             if self.isChunk:
-                f.seek(self._array_start + chunk_start * width)
+                start_pos = self._array_start + chunk_start * width
+                virtual_offset = to_virtual_offset(start_pos)
+                f.seek(virtual_offset)
                 n_remaining = self.nReads - chunk_start
                 length = min(length, n_remaining)
             data = np.frombuffer(f.read(length*width), "<" + type_)
@@ -165,14 +168,15 @@ class PacBioBamIndex(PbIndexBase):
             # TODO!
             pass
 
-    def __init__(self, pbiFilename, i_chunk=None, chunk_size=None):
+    def __init__(self, pbiFilename, i_chunk=None, chunk_size=None,
+                 to_virtual_offset=None):
         self._i_chunk = i_chunk
         self._chunk_size = chunk_size
         pbiFilename = abspath(expanduser(pbiFilename))
         with BgzfReader(pbiFilename) as f:
             try:
                 self._loadHeader(f)
-                self._loadMainIndex(f)
+                self._loadMainIndex(f, to_virtual_offset)
                 self._loadOffsets(f)
             except Exception as e:
                 raise IOError("Malformed bam.pbi file: " + str(e))
@@ -246,20 +250,39 @@ class StreamingBamIndex(PbIndexBase):
     Wrapper that iterates over the index in chunks, yielding a
     PacBioBamIndex object representing the current chunk.
     """
-    def __init__(self, pbiFilename, chunk_size=1000000):
+    def __init__(self, pbiFilename, chunk_size=10000000):
         self._chunk_size = chunk_size
         self._pbiFilename = abspath(expanduser(pbiFilename))
+        self._get_blocks()
         with BgzfReader(self._pbiFilename) as f:
             try:
                 self._loadHeader(f)
             except Exception as e:
                 raise IOError("Malformed bam.pbi file: " + str(e))
 
+    def _get_blocks(self):
+        # start_offset, block_length, data_start, data_len
+        self._blocks = list(BgzfBlocks(open(self._pbiFilename, "rb")))
+        self._data_start = np.array([b[2] for b in self._blocks])
+
+    def to_virtual_offset(self, offset):
+        isel = np.where(self._data_start <= offset)[0]
+        start_offset, block_length, data_start, data_len = self._blocks[isel[-1]]
+        return make_virtual_offset(start_offset, offset - data_start)
+
+    def get_chunk(self, i_chunk):
+        return PacBioBamIndex(self._pbiFilename, i_chunk, self._chunk_size,
+                              self.to_virtual_offset)
+
     def __iter__(self):
         i_chunk = 0
-        while i_chunk * self._chunk_size < self.nReads:
-            yield PacBioBamIndex(self._pbiFilename, i_chunk, self._chunk_size)
+        while i_chunk < self.nchunks:
+            yield self.get_chunk(i_chunk)
             i_chunk += 1
 
     def __len__(self):
         return self.nReads
+
+    @property
+    def nchunks(self):
+        return int(math.ceil(self.nReads / float(self._chunk_size)))
