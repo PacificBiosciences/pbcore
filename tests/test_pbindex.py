@@ -24,6 +24,7 @@ class TestPbIndex(unittest.TestCase):
     def test_pbindex_streaming(self):
         pbi = PacBioBamIndex(self.BAM_FILE_NAME + ".pbi")
         streamed = StreamingBamIndex(self.BAM_FILE_NAME + ".pbi", 20)
+        self.assertEqual(streamed.nchunks, 6)
         chunks = [chunk for chunk in streamed]
         self.assertTrue(all([len(c)==20 for c in chunks[:-1]]))
         self.assertEqual(len(chunks[-1]), 17)
@@ -31,12 +32,16 @@ class TestPbIndex(unittest.TestCase):
             combined = np.concatenate([getattr(c, attr) for c in chunks])
             self.assertEqual(len(combined), len(pbi))
             self.assertTrue(all(combined == getattr(pbi, attr)))
+        chunk = streamed.get_chunk(1)
+        for attr in ["qId", "holeNumber", "qStart", "qEnd"]:
+            self.assertTrue(all(getattr(chunk, attr) == getattr(chunks[1], attr)))
 
     # with the default chunk size there should be just one chunk identical
     # to the whole index
     def test_pbindex_streaming_entire(self):
         pbi = PacBioBamIndex(self.BAM_FILE_NAME + ".pbi")
         streamed = StreamingBamIndex(self.BAM_FILE_NAME + ".pbi")
+        self.assertEqual(streamed.nchunks, 1)
         chunked = [chunk for chunk in streamed][0]
         self.assertEqual(len(chunked), len(pbi))
         for attr in ["qId", "holeNumber", "qStart", "qEnd"]:
