@@ -277,6 +277,13 @@ class StreamingBamIndex(PacBioBamIndex):
     In practice, for a 6.5GB compressed pbi (indexing a 550GB subreads BAM)
     the memory consumption briefly maxes at slightly over 6GB to initialize,
     and 3.125 for streaming chunks.
+
+    This sacrifices some computational efficiency due to the combination of
+    BGZF format peculiarities and the requirement that we keep ZMW-grouped
+    subreads together, both of which add expensive (and seemingly redundant)
+    file reads.  However the ZMW grouping makes it possible to collect
+    statistics using fast numpy array operations which more than compensates
+    for the initial setup time.
     """
 
     def __init__(self, pbiFilename, chunk_size=10000000):
