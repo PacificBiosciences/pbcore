@@ -138,7 +138,7 @@ class PacBioBamIndex(PbIndexBase):
             # skip creating the combined table and return the extracted array
             # instead
             assert not self.isChunk
-            start_pos = self._array_start + index_len * 12
+            start_pos = self._array_start + index_len * 12 # qId+qStart+qEnd
             virtual_offset = to_virtual_offset(start_pos)
             f.seek(virtual_offset)
             return peek("i4", index_len)
