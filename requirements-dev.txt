@@ -1,7 +1,7 @@
 coverage
-nose
+nose==1.3.4
 pyxb==1.2.4
 sphinx
 h5py >= 2.0.1
 pysam >= 0.13
-pylint
+pylint==1.6.4
