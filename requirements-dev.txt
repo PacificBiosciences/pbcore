@@ -4,3 +4,4 @@ pyxb==1.2.4
 sphinx
 h5py >= 2.0.1
 pysam >= 0.13
+pylint
