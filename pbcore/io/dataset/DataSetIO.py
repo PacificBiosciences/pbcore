@@ -150,6 +150,16 @@ def filtered(generator):
                     yield read
     return wrapper
 
+def _checkFields(fieldNames):
+    """Check for identical PBI field names"""
+    for field in fieldNames:
+        if field != fieldNames[0]:
+            log.error("Mismatched bam.pbi column names:\n{}".format(
+                      '\n'.join(map(str, fieldNames))))
+            raise InvalidDataSetIOError(
+                "Mismatched bam.pbi columns. Mixing mapped/unmapped or "
+                "barcoded/non-barcoded bam files isn't allowed.")
+
 def _stackRecArrays(recArrays):
     """Stack recarrays into a single larger recarray"""
 
@@ -161,11 +171,12 @@ def _stackRecArrays(recArrays):
         else:
             nonempties.append(array)
     if nonempties:
+        _checkFields([arr.dtype.names for arr in nonempties])
         tbr = np.concatenate(nonempties)
         tbr = tbr.view(np.recarray)
         return tbr
     else:
-        # this will check dtypes...
+        _checkFields([arr.dtype.names for arr in empties])
         tbr = np.concatenate(empties)
         tbr = tbr.view(np.recarray)
         return tbr
@@ -1776,10 +1787,20 @@ class DataSet(object):
         """The UniqueId of this DataSet"""
         return self.objMetadata.get('UniqueId')
 
+    @uuid.setter
+    def uuid(self, value):
+        """Set the UniqueId of this DataSet"""
+        self.objMetadata['UniqueId'] = value
+
     @property
     def uniqueId(self):
         """The UniqueId of this DataSet"""
-        return self.objMetadata.get('UniqueId')
+        return self.uuid
+
+    @uniqueId.setter
+    def uniqueId(self, value):
+        """The UniqueId of this DataSet"""
+        self.uuid = value
 
     @property
     def timeStampedName(self):

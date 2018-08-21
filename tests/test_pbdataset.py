@@ -1177,6 +1177,16 @@ class TestDataSet(unittest.TestCase):
 
     @unittest.skipIf((not _pbtestdata() or not _check_constools()),
                      "Internal data not available")
+    def test_mixed_pbi_columns(self):
+        import pbtestdata
+
+        with self.assertRaises(InvalidDataSetIOError):
+            ds = SubreadSet(pbtestdata.get_file("barcoded-subreadset"),
+                            pbtestdata.get_file("subreads-unbarcoded"))
+
+
+    @unittest.skipIf((not _pbtestdata() or not _check_constools()),
+                     "Internal data not available")
     def test_copyTo_same_base_names(self):
         import pbtestdata
         # see bug 33778
