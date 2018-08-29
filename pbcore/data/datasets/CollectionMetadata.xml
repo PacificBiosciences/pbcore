@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pbmeta:Collections xmlns="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbmeta="http://pacificbiosciences.com/PacBioCollectionMetadata.xsd" xmlns:pbsample="http://pacificbiosciences.com/PacBioSampleInfo.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbmeta:CollectionMetadata Context="unknown" InstrumentId="1" InstrumentName="unknown" MetaType="PacBio.Collection" TimeStampedName="unknown" UniqueId="2d72e3db-49b5-4d72-aa3e-0dfa05bf3734">
+		<pbmeta:InstCtrlVer>0.0.0</pbmeta:InstCtrlVer>
+		<pbmeta:SigProcVer>unknown</pbmeta:SigProcVer>
+		<pbmeta:RunDetails>
+			<pbmeta:TimeStampedName>unknown</pbmeta:TimeStampedName>
+			<pbmeta:Name>unknown</pbmeta:Name>
+		</pbmeta:RunDetails>
+		<pbmeta:WellSample Name="unknown">
+			<pbmeta:WellName>unknown</pbmeta:WellName>
+			<pbmeta:Concentration>0.0</pbmeta:Concentration>
+			<pbmeta:InsertSize>2000</pbmeta:InsertSize>
+			<pbmeta:SampleReuseEnabled>false</pbmeta:SampleReuseEnabled>
+			<pbmeta:StageHotstartEnabled>true</pbmeta:StageHotstartEnabled>
+			<pbmeta:SizeSelectionEnabled>false</pbmeta:SizeSelectionEnabled>
+			<pbmeta:UseCount>1</pbmeta:UseCount>
+			<pbsample:BioSamples>
+				<pbsample:BioSample Name="unknown">
+				</pbsample:BioSample>
+			</pbsample:BioSamples>
+		</pbmeta:WellSample>
+		<pbmeta:Automation>
+			<pbbase:AutomationParameters>
+				<pbbase:AutomationParameter/>
+			</pbbase:AutomationParameters>
+		</pbmeta:Automation>
+		<pbmeta:CollectionNumber>1</pbmeta:CollectionNumber>
+		<pbmeta:CellIndex>1</pbmeta:CellIndex>
+		<pbmeta:Primary>
+			<pbmeta:AutomationName>unknown</pbmeta:AutomationName>
+			<pbmeta:ConfigFileName>unknown</pbmeta:ConfigFileName>
+			<pbmeta:SequencingCondition/>
+			<pbmeta:OutputOptions>
+				<pbmeta:ResultsFolder>Analysis_Results</pbmeta:ResultsFolder>
+				<pbmeta:CollectionPathUri>unknown</pbmeta:CollectionPathUri>
+				<pbmeta:Readout>Bases</pbmeta:Readout>
+				<pbmeta:MetricsVerbosity>Minimal</pbmeta:MetricsVerbosity>
+			</pbmeta:OutputOptions>
+		</pbmeta:Primary>
+	</pbmeta:CollectionMetadata>
+</pbmeta:Collections>

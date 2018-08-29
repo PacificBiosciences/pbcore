@@ -25,6 +25,7 @@ XML_FILES = ["alignment.dataset.xml", #0
              "pbalchemysim1.hdfsubreadset.xml",
              "pbalchemysim.hdfsubreadset.xml", #19
              "ccsaligned.dataset.xml",
+             "CollectionMetadata.xml"
             ]
 BAM_FILES = ["pbalchemysim0.pbalign.bam",
              "pbalchemysim1.pbalign.bam",
@@ -68,3 +69,6 @@ def getHdfSubreadSet():
 
 def getBarcodedBam():
     return _getAbsPath(BAM_FILES[3])
+
+def getMockCollectionMetadata():
+    return _getAbsPath(XML_FILES[21])
