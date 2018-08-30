@@ -11,6 +11,7 @@ import logging
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata,
+                                              CollectionMetadata,
                                               Filters, AutomationParameters,
                                               StatsMetadata, uri2fn,
                                               uri2scheme)
@@ -280,16 +281,19 @@ def parseStats(filename):
     stats.record['tag'] = 'SummaryStats'
     return stats
 
-def parseMetadata(filename):
+
+def __parseMetadata(xsd_name, tag_name, return_type, filename):
     fileLocation = uri2fn(filename)
     tree = ET.parse(fileLocation)
-    dsm_tag = (".//{http://pacificbiosciences.com/PacBioDatasets.xsd}"
-               "DataSetMetadata")
+    dsm_tag = (".//{http://pacificbiosciences.com/" + xsd_name + "}" +
+               tag_name)
     try:
-        metadata = _parseXmlDataSetMetadata(tree.getroot().find(dsm_tag))
+        metadata = _eleToDictList(tree.getroot().find(dsm_tag))
     except AttributeError:
         # the tag wasn't found, we're trying to do something with None
         raise InvalidDataSetIOError("Unable to parse metadata from "
                                     "{f}".format(f=filename))
-    return metadata
+    return return_type(metadata)
 
+parseMetadata = functools.partial(__parseMetadata, "PacBioDatasets.xsd", "DataSetMetadata", DataSetMetadata)
+parseCollectionMetadata = functools.partial(__parseMetadata, "PacBioCollectionMetadata.xsd", "CollectionMetadata", CollectionMetadata)

@@ -174,3 +174,12 @@ def hash_combine_zmw(zmw):
 
 def hash_combine_zmws(zmws):
     return [hash_combine_zmw(zmw) for zmw in zmws]
+
+
+def load_mock_collection_metadata():
+    """
+    Load CollectionMetadata template from pbcore.data.datasets
+    """
+    from pbcore.data.datasets import getMockCollectionMetadata
+    from pbcore.io.dataset.DataSetReader import parseCollectionMetadata
+    return parseCollectionMetadata(getMockCollectionMetadata())

@@ -6,6 +6,7 @@ import unittest
 from pbcore.io.dataset.DataSetMetaTypes import dsIdToSuffix
 from pbcore.io import (DataSetMetaTypes, divideKeys,
                        SubreadSet, getDataSetUuid, getDataSetMetaType)
+from pbcore.io.dataset.utils import load_mock_collection_metadata
 
 import pbcore.data as upstreamdata
 
@@ -115,4 +116,6 @@ class TestDataSetUtils(unittest.TestCase):
         self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
                                [5, 5], [8, 8], [50, 50], [50, 50]])
 
-
+    def test_load_mock_collection_metadata(self):
+        md = load_mock_collection_metadata()
+        self.assertEqual(md.wellSample.name, "unknown")
