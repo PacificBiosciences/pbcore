@@ -7,6 +7,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 def fileType(fname):
     """Get the extension of fname (with h5 type)"""
     remainder, ftype = os.path.splitext(fname)
@@ -19,6 +20,7 @@ def fileType(fname):
             ftype = prefix + ftype
     ftype = ftype.strip('.')
     return ftype
+
 
 def getDataSetUuid(xmlfile):
     """
@@ -47,3 +49,11 @@ def getDataSetMetaType(xmlfile):
     except Exception:
         return None
 
+
+def loadMockCollectionMetadata():
+    """
+    Load CollectionMetadata template from pbcore.data.datasets
+    """
+    from pbcore.data.datasets import getMockCollectionMetadata
+    from pbcore.io.dataset.DataSetReader import parseCollectionMetadata
+    return parseCollectionMetadata(getMockCollectionMetadata())

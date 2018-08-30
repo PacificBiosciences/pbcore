@@ -25,6 +25,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               SubreadSetMetadata)
 from pbcore.io.dataset.DataSetIO import _pathChanger
 from pbcore.io.dataset.DataSetValidator import validateFile
+from pbcore.io.dataset.DataSetUtils import loadMockCollectionMetadata
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
@@ -2611,3 +2612,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds2.getMovieSampleNames(), {"m2": "Bob"})
         ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
         self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
+
+    def test_load_mock_collection_metadata(self):
+        md = loadMockCollectionMetadata()
+        self.assertEqual(md.wellSample.name, "unknown")
