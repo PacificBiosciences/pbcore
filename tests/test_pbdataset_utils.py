@@ -114,5 +114,3 @@ class TestDataSetUtils(unittest.TestCase):
         res = keysToRanges(res)
         self.assertEqual(res, [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
                                [5, 5], [8, 8], [50, 50], [50, 50]])
-
-

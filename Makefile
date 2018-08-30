@@ -68,3 +68,6 @@ publish-to-pypi:
 xsd-codegen:
 	rm -f pbcore/io/dataset/pyxb/DataSetXsd.py
 	./bin/updateXSDs.py ../xsd-datamodels/PacBioDatasets.xsd pbcore/io/dataset/pyxb/
+
+validate-metadata:
+	xmllint --schema ../xsd-datamodels/PacBioCollectionMetadata.xsd pbcore/data/datasets/CollectionMetadata.xml
