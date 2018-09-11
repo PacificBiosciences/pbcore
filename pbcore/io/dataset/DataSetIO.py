@@ -1702,7 +1702,8 @@ class DataSet(object):
                 'ReferenceSet': ReferenceSet,
                 'GmapReferenceSet': GmapReferenceSet,
                 'BarcodeSet': BarcodeSet,
-                'TranscriptSet': TranscriptSet}
+                'TranscriptSet': TranscriptSet,
+                'TranscriptAlignmentSet': TranscriptAlignmentSet}
 
     @property
     def metadata(self):
@@ -3893,6 +3894,22 @@ class TranscriptSet(ReadSet):
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
+class TranscriptAlignmentSet(AlignmentSet):
+    """
+    Dataset type for aligned RNA transcripts.  Essentially identical to
+    AlignmentSet aside from the contents of the underlying BAM files.
+    """
+    datasetType = DataSetMetaTypes.TRANSCRIPT_ALIGNMENT
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.AlignmentFile.TranscriptAlignmentBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }
