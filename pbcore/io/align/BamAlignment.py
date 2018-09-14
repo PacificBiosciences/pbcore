@@ -523,7 +523,10 @@ class BamAlignment(AlignmentRecordMixin):
             raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
             raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
-        data = np.fromstring(self.peer.seq, dtype=np.int8)
+        seq = self.peer.seq
+        if seq is None:
+            seq = ''
+        data = np.fromstring(seq, dtype=np.int8)
         if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd
