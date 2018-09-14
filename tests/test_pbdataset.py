@@ -2613,6 +2613,19 @@ class TestDataSet(unittest.TestCase):
         ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
         self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
 
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_length_0_bam_records(self):
+        ds_file1 = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/'
+                    'EmptyRecords/m54043_180414_094215.subreadset.xml')
+        ds1 = SubreadSet(ds_file1, strict=True)
+        scraps = IndexedBamReader(ds1.externalResources[0].scraps)
+        found = False
+        for read in scraps:
+            if len(read.read(aligned=False)) == 0:
+                found = True
+        self.assertTrue(found)
+
     def test_load_mock_collection_metadata(self):
         md = loadMockCollectionMetadata()
         self.assertEqual(md.wellSample.name, "unknown")
