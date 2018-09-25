@@ -201,13 +201,21 @@ def qnamer(qid2mov, qId, hn, qs, qe):
     return (movs, hn, qs, qe)
 
 def breakqname(qname):
-    mov, hn, span = qname.split('/')
-    if '_' in span:
-        qs, qe = span.split('_')
-        return mov, int(hn), int(qs), int(qe)
-    else:
-        # The default values in pbi if CCS:
-        return mov, int(hn), -1, -1
+    tbr = []
+    chunks = qname.split('/')
+    # movie:
+    if len(chunks) > 0:
+        tbr.append(chunks[0])
+    # holenumber:
+    if len(chunks) > 1:
+        tbr.append(int(chunks[1]))
+    # qstart, end
+    if len(chunks) > 2:
+        span = chunks[2].split('_')
+        if len(span) == 2:
+            tbr.append(int(span[0]))
+            tbr.append(int(span[1]))
+    return tbr
 
 def qname2vec(qnames):
     if isinstance(qnames, str):
@@ -723,8 +731,13 @@ class Filters(RecordWrapper):
 
     def _pbiMappedVecAccMap(self):
         plus = {'rname': (lambda x: x.tId),
+                'alignedlength': (lambda x: x.aEnd - x.aStart),
                 'length': (lambda x: x.aEnd - x.aStart),
                 'pos': (lambda x: x.tStart),
+                'as': (lambda x: x.aStart),
+                'ae': (lambda x: x.aEnd),
+                'astart': (lambda x: x.aStart),
+                'aend': (lambda x: x.aEnd),
                 'readstart': (lambda x: x.aStart),
                 'tstart': (lambda x: x.tStart),
                 'tend': (lambda x: x.tEnd),
@@ -850,6 +863,8 @@ class Filters(RecordWrapper):
             lastResult = np.ones(len(indexRecords), dtype=np.bool_)
             for req in filt:
                 param = req.name
+                if param == 'qname_file':
+                    param = 'qname'
                 if param in accMap.keys():
                     # Treat "value" as a string of a list of potential values
                     # if operator is 'in', or 'in' masquerading as '=='.

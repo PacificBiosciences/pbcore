@@ -343,6 +343,25 @@ class TestDataSetFilters(unittest.TestCase):
         log.debug(fn)
         sset = SubreadSet(data.getXml(10))
         self.assertEqual(len(sset), 92)
+        size = 10
+        qn = [r.qName for r in sset[:size]]
+        with open(fn, 'w') as ofh:
+            for q in qn:
+                ofh.write(q)
+                ofh.write('\n')
+        good_qn = [('=', fn)]
+        sset.filters.addRequirement(qname_file=good_qn)
+        self.assertEqual(size, sum(1 for _ in sset))
+        self.assertEqual(size, len(sset))
+        og = set(qn)
+        for r in sset:
+            og.discard(r.qName)
+        self.assertEqual(len(og), 0)
+
+        fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
+        log.debug(fn)
+        sset = SubreadSet(data.getXml(10))
+        self.assertEqual(len(sset), 92)
         size = 4
         hn = [r
               for r in sorted(list(set(sset.index.holeNumber)))[:size]]
@@ -589,6 +608,14 @@ class TestDataSetFilters(unittest.TestCase):
         qnames = [r.qName for r in aln[:1]]
         aln.filters.addRequirement(qname=[('in', qnames)])
         self.assertEqual(len(list(aln)), 1)
+
+        # test partial qnames:
+        aln = AlignmentSet(data.getXml(12))
+        self.assertEqual(len(list(aln)), 177)
+        qnames = ['/'.join(r.qName.split('/')[:2]) for r in aln[:1]]
+        self.assertEqual(qnames, ['pbalchemy1GbRSIIsim0/6'])
+        aln.filters.addRequirement(qname=[('in', qnames)])
+        self.assertEqual(len(list(aln)), 7)
 
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
         aln = AlignmentSet(data.getXml(12))
