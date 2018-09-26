@@ -249,7 +249,7 @@ def splitKeys(keys, chunks):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, str):
+    if not isinstance(fname, basestring):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
@@ -1071,7 +1071,7 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths and not isinstance(outFile, str):
+            if relPaths and not isinstance(outFile, basestring):
                 raise InvalidDataSetIOError("Cannot write relative "
                     "pathnames without a filename")
             elif relPaths:
@@ -1093,14 +1093,14 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                if isinstance(outFile, str):
+                if isinstance(outFile, basestring):
                     validateString(xml_string, relTo=os.path.dirname(outFile))
                 else:
                     validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        if isinstance(outFile, str):
+        if isinstance(outFile, basestring):
             fileName = urlparse(outFile).path.strip()
             if self._strict and not isinstance(self.datasetType, tuple):
                 if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1978,7 +1978,7 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, str):
+        elif isinstance(index, basestring):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
@@ -3685,7 +3685,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, str):
+        if not isinstance(refName, basestring):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:
