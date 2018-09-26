@@ -1032,6 +1032,7 @@ class TestDataSet(unittest.TestCase):
                 self.assertEqual(len(aln), 92)
 
     def test_write_to_stdout(self):
+        # open file:
         fn = tempfile.NamedTemporaryFile(
             suffix=".alignmentset.xml").name
         ofh = open(fn, 'w')
@@ -1039,6 +1040,16 @@ class TestDataSet(unittest.TestCase):
             aln.write(ofh)
         with AlignmentSet(fn) as aln:
             self.assertEqual(len(aln), 92)
+
+        # unicode string:
+        fn = unicode(tempfile.NamedTemporaryFile(
+            suffix=".alignmentset.xml").name)
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(fn)
+        with AlignmentSet(fn) as aln:
+            self.assertEqual(len(aln), 92)
+
+        # stdout:
         # This is just going to be printed into the test output, but it is good
         # to show that this doesn't error out
         with AlignmentSet(data.getXml(8)) as aln:
