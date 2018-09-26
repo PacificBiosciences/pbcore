@@ -1,5 +1,6 @@
 
 import os
+import sys
 import re
 import logging
 import itertools
@@ -1029,6 +1030,19 @@ class TestDataSet(unittest.TestCase):
         with self.assertRaises(IOError):
             with AlignmentSet(fn) as aln:
                 self.assertEqual(len(aln), 92)
+
+    def test_write_to_stdout(self):
+        fn = tempfile.NamedTemporaryFile(
+            suffix=".alignmentset.xml").name
+        ofh = open(fn, 'w')
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(ofh)
+        with AlignmentSet(fn) as aln:
+            self.assertEqual(len(aln), 92)
+        # This is just going to be printed into the test output, but it is good
+        # to show that this doesn't error out
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(sys.stdout)
 
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")

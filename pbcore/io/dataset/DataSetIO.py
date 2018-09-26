@@ -1071,7 +1071,10 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths:
+            if relPaths and not isinstance(outFile, str):
+                raise InvalidDataSetIOError("Cannot write relative "
+                    "pathnames without a filename")
+            elif relPaths:
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
                 self.makePathsAbsolute()
@@ -1090,22 +1093,28 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                validateString(xml_string, relTo=os.path.dirname(outFile))
+                if isinstance(outFile, str):
+                    validateString(xml_string, relTo=os.path.dirname(outFile))
+                else:
+                    validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        fileName = urlparse(outFile).path.strip()
-        if self._strict and not isinstance(self.datasetType, tuple):
-            if not fileName.endswith(dsIdToSuffix(self.datasetType)):
-                raise IOError(errno.EIO,
-                              "Given filename does not meet standards, "
-                              "should end with {s}".format(
-                                  s=dsIdToSuffix(self.datasetType)),
-                              fileName)
-        with open(fileName, 'w') as outFile:
-            log.debug('Writing...')
-            outFile.writelines(xml_string)
-            log.debug('Done writing')
+        if isinstance(outFile, str):
+            fileName = urlparse(outFile).path.strip()
+            if self._strict and not isinstance(self.datasetType, tuple):
+                if not fileName.endswith(dsIdToSuffix(self.datasetType)):
+                    raise IOError(errno.EIO,
+                                  "Given filename does not meet standards, "
+                                  "should end with {s}".format(
+                                      s=dsIdToSuffix(self.datasetType)),
+                                  fileName)
+            outFile = open(fileName, 'w')
+
+        log.debug('Writing...')
+        outFile.write(xml_string)
+        outFile.flush()
+        log.debug('Done writing')
 
         for e in validation_errors:
             log.error("Invalid file produced: {f}".format(f=fileName))
