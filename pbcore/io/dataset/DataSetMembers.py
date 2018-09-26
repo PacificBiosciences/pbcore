@@ -600,6 +600,10 @@ class RecordWrapper(object):
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
 
+def n_subreads(index):
+    _, inverse, counts = np.unique(index.holeNumber, return_inverse=True,
+                                   return_counts=True)
+    return counts[inverse]
 
 class Filters(RecordWrapper):
     NS = 'pbds'
@@ -767,9 +771,7 @@ class Filters(RecordWrapper):
                 'bq': (lambda x: x.bcQual),
                 'bc': (lambda x: x['bcForward', 'bcReverse']),
                 'cx': (lambda x: x.contextFlag),
-                'n_subreads': (lambda x: np.array(
-                    [len(np.flatnonzero(x.holeNumber == hn))
-                     for hn in x.holeNumber])),
+                'n_subreads': n_subreads,
                }
 
     @property
