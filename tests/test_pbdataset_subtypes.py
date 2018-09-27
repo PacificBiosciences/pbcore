@@ -48,7 +48,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(len(ds1.metadata.collections), 1)
         self.assertEquals(len(ds2.metadata.collections), 1)
         ds3 = ds1 + ds2
-        self.assertEquals(len(ds3.metadata.collections), 2)
+        self.assertEquals(len(ds3.metadata.collections), 1)
         ds4 = SubreadSet(data.getSubreadSet(), skipMissing=True)
         self.assertEquals(type(ds4).__name__, 'SubreadSet')
         self.assertEquals(type(ds4._metadata).__name__, 'SubreadSetMetadata')
