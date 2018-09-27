@@ -165,3 +165,12 @@ class TestDataSet(unittest.TestCase):
         aln = AlignmentSet(outXml)
         self.assertEqual(aln.uuid, oldUuid)
 
+    def test_merge(self):
+        sset_fn = ('/pbi/dept/secondary/siv/testdata/'
+                'SA3-Sequel/lambda/roche_SAT/'
+                'm54013_151205_032353.subreadset.xml')
+        sset = SubreadSet(sset_fn)
+        orig_metadata = copy.deepcopy(sset.metadata)
+        self.assertEqual(len(sset.metadata.collections), 1)
+        sset.metadata.collections.merge(orig_metadata.collections)
+        self.assertEqual(len(sset.metadata.collections), 1)
