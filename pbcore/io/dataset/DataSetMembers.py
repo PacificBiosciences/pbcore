@@ -1806,8 +1806,7 @@ class CollectionsMetadata(RecordWrapper):
             yield CollectionMetadata(child)
 
     def merge(self, other):
-        collections = [child for child in self]
-        collectionIds = {child.uniqueId for child in collections}
+        collectionIds = {child.uniqueId for child in self}
         for child in other:
             if not child.uniqueId in collectionIds:
                 self.append(child)
