@@ -2663,7 +2663,7 @@ class SubreadSet(ReadSet):
         1
         >>> ds3 = ds1 + ds2
         >>> len(ds3.metadata.collections)
-        2
+        1
         >>> ds4 = SubreadSet(data.getSubreadSet(), skipMissing=True)
         >>> ds4 # doctest:+ELLIPSIS
         <SubreadSet...
