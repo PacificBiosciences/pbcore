@@ -173,4 +173,7 @@ class TestDataSet(unittest.TestCase):
         orig_metadata = copy.deepcopy(sset.metadata)
         self.assertEqual(len(sset.metadata.collections), 1)
         sset.metadata.collections.merge(orig_metadata.collections)
+        self.assertEqual(len(sset.metadata.collections), 2)
+        sset = SubreadSet(sset_fn)
+        sset.metadata.collections.merge(orig_metadata.collections, forceUnique=True)
         self.assertEqual(len(sset.metadata.collections), 1)

@@ -1805,12 +1805,15 @@ class CollectionsMetadata(RecordWrapper):
         for child in self.record['children']:
             yield CollectionMetadata(child)
 
-    def merge(self, other):
-        collectionIds = {child.uniqueId for child in self}
-        for child in other:
-            if not child.uniqueId in collectionIds:
-                self.append(child)
-                collectionIds.add(child.uniqueId)
+    def merge(self, other, forceUnique=False):
+        if forceUnique:
+            collectionIds = {child.uniqueId for child in self}
+            for child in other:
+                if not child.uniqueId in collectionIds:
+                    self.append(child)
+                    collectionIds.add(child.uniqueId)
+        else:
+            self.extend([child for child in other])
 
 
 class AutomationParameter(RecordWrapper):
