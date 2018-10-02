@@ -1730,14 +1730,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(readers[0].referenceInfoTable), 59)
         obstbl = [readers[0].referenceInfo('E.faecalis.1')]
         exptbl = [(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482,
-                   'a1a59c267ac1341e5a12bce7a7d37bcb', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         # TODO: add a bam with a different referenceInfoTable to check merging
         # and id remapping:
         #self.assertEqual(
             #str(aln.referenceInfo('E.faecalis.1')),
             #"(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482, "
-            #"'a1a59c267ac1341e5a12bce7a7d37bcb', 0L, 0L)")
+            #"0L, 0L)")
 
     # TODO: turn this back on when a bam with a different referenceInfoTable is
     # found
@@ -2319,7 +2319,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len3, 65346)
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0)]
+                   4642522, 0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
@@ -2343,7 +2343,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len1 + len2, len3)
         self.assertEqual(len3, 160264)
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0)]
+                   4642522, 0, 0)]
         obstbl = aln.referenceInfoTable
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0})
@@ -2375,9 +2375,9 @@ class TestDataSet(unittest.TestCase):
         # and endrow fields for bams someday...
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0),
+                   4642522, 0, 0),
                   (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502,
-                   'a1319ff90e994c8190a4fe6569d0822a', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0, 1})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
@@ -2409,9 +2409,9 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len4, 160376)
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0),
+                   4642522, 0, 0),
                   (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502,
-                   'a1319ff90e994c8190a4fe6569d0822a', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0, 1})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
