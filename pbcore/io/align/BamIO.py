@@ -46,7 +46,6 @@ class _BamReaderBase(ReaderBase):
         refRecords = self.peer.header["SQ"]
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
-        refMD5s    = [r["M5"] for r in refRecords]
         refIds = map(self.peer.get_tid, refNames)
         nRefs = len(refRecords)
 
@@ -57,12 +56,11 @@ class _BamReaderBase(ReaderBase):
                 refNames,
                 refNames,
                 refLengths,
-                refMD5s,
                 np.zeros(nRefs, dtype=np.uint32),
                 np.zeros(nRefs, dtype=np.uint32)),
                 dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
                        ('Name', 'O'), ('FullName', 'O'),
-                       ('Length', '<i8'), ('MD5', 'O'),
+                       ('Length', '<i8'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
             self._referenceDict.update(zip(refIds, self._referenceInfoTable))
