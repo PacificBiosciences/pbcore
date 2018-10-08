@@ -86,7 +86,7 @@ class _BamReaderBase(ReaderBase):
             rgReadType = ds["READTYPE"]
             rgChem = "unknown"
             rgFrameRate = 0.0
-            rgSample = rg.get("SM", "unknown")
+            rgSample = rg.get("SM", "UnnamedSample")
             if rgReadType != "TRANSCRIPT":
                 if set(("BASECALLERVERSION", "SEQUENCINGKIT", "BINDINGKIT")) <= set(ds):
                     pass

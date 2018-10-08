@@ -778,7 +778,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
                 [self.readType] * len(self._movieInfoTable.ID),
                 self.sequencingChemistry,
                 self._movieInfoTable.FrameRate,
-                ["unknown"] * len(self._movieInfoTable.ID),
+                ["UnnamedSample"] * len(self._movieInfoTable.ID),
                 [frozenset(self.baseFeaturesAvailable())] * len(self._movieInfoTable.ID)),
             dtype=[("ID"                 , np.int32),
                    ("MovieName"          , "O"),

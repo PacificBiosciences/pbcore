@@ -423,7 +423,7 @@ class TestBasicBam(_BasicAlnFileReaderTests):
         EQISH(0.904, self.fwdAln.readScore, 3)
 
     def test_sample_name_default(self):
-        EQ("unknown", self.f.readGroupTable[0].SampleName)
+        EQ("UnnamedSample", self.f.readGroupTable[0].SampleName)
 
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
