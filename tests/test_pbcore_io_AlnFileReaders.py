@@ -325,7 +325,7 @@ class _BasicAlnFileReaderTests(object):
 
     def testReadGroupTable(self):
         rgFwd = self.fwdAln.readGroupInfo
-        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O'), ('FrameRate', '<f8'), ('BaseFeatures', 'O')], rgFwd.dtype)
+        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O'), ('FrameRate', '<f8'), ('SampleName', 'O'), ('BaseFeatures', 'O')], rgFwd.dtype)
         EQ(True, isinstance(rgFwd.BaseFeatures, frozenset))
         EQ("P6-C4", rgFwd.SequencingChemistry)
         EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0", rgFwd.MovieName)
@@ -422,6 +422,9 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     def testReadScore(self):
         EQISH(0.904, self.fwdAln.readScore, 3)
 
+    def test_sample_name_default(self):
+        EQ("unknown", self.f.readGroupTable[0].SampleName)
+
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = IndexedBamReader
@@ -504,26 +507,38 @@ class TestMultipleReadGroups(object):
     SAM_IN = """\
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0.1
 @SQ\tSN:ecoliK12_pbi_March2013_2955000_to_2980000\tLN:25000\tM5:734d5f3b2859595f4bd87a2fe6b7389b
-@RG\tID:3f58e5b8\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000;BINDINGKIT=100356300;SEQUENCINGKIT=100356200\tPU:movie1
-@RG\tID:b5482b33\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BINDINGKIT=100356300;SEQUENCINGKIT=100356200;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000\tPU:m140906_231018_42161_c100676332550000001823129611271486_s1_p0
+@RG\tID:3f58e5b8\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000;BINDINGKIT=100356300;SEQUENCINGKIT=100356200\tPU:movie1\tSM:test_sample1
+@RG\tID:b5482b33\tPL:PACBIO\tDS:READTYPE=SUBREAD;DeletionQV=dq;DeletionTag=dt;InsertionQV=iq;MergeQV=mq;SubstitutionQV=sq;Ipd:CodecV1=ip;BINDINGKIT=100356300;SEQUENCINGKIT=100356200;BASECALLERVERSION=2.1;FRAMERATEHZ=75.000000\tPU:m140906_231018_42161_c100676332550000001823129611271486_s1_p0\tSM:test_sample2
 movie1/54130/0_10\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t2\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:3f58e5b8\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:10\tqs:i:0\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2
 m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:b5482b33\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:20\tqs:i:10\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2"""
 
-    def test_retrieve_read_group_properties(self):
+    @classmethod
+    def setUpClass(cls):
         f1 = tempfile.NamedTemporaryFile(suffix=".sam").name
         f2 = tempfile.NamedTemporaryFile(suffix=".bam").name
         with open(f1, "w") as f:
-            f.write(self.SAM_IN)
+            f.write(cls.SAM_IN)
         with AlignmentFile(f1) as sam_in:
             with AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
                 for aln in sam_in:
                     bam_out.write(aln)
+        cls._bam_file = f2
+
+    def test_retrieve_read_group_properties(self):
         movie_names = []
-        with BamReader(f2) as bam_in:
+        with BamReader(self._bam_file) as bam_in:
             for aln in bam_in:
                 EQ(aln.sequencingChemistry, "P6-C4")
-                movie_names.append(aln.movieName)
+            movie_names.extend([rg.MovieName for rg in bam_in.readGroupTable])
         EQ(movie_names, ['movie1', 'm140906_231018_42161_c100676332550000001823129611271486_s1_p0'])
+
+    def test_sample_names(self):
+        with BamReader(self._bam_file) as bam:
+            samples = {rg.MovieName:rg.SampleName for rg in bam.readGroupTable}
+            EQ(samples, {
+                "movie1": "test_sample1",
+                "m140906_231018_42161_c100676332550000001823129611271486_s1_p0": "test_sample2"})
+
 
 class TestMissingHeaderM5(object):
     """
