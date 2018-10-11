@@ -150,6 +150,16 @@ def filtered(generator):
                     yield read
     return wrapper
 
+def _checkFields(fieldNames):
+    """Check for identical PBI field names"""
+    for field in fieldNames:
+        if field != fieldNames[0]:
+            log.error("Mismatched bam.pbi column names:\n{}".format(
+                      '\n'.join(map(str, fieldNames))))
+            raise InvalidDataSetIOError(
+                "Mismatched bam.pbi columns. Mixing mapped/unmapped or "
+                "barcoded/non-barcoded bam files isn't allowed.")
+
 def _stackRecArrays(recArrays):
     """Stack recarrays into a single larger recarray"""
 
@@ -161,11 +171,12 @@ def _stackRecArrays(recArrays):
         else:
             nonempties.append(array)
     if nonempties:
+        _checkFields([arr.dtype.names for arr in nonempties])
         tbr = np.concatenate(nonempties)
         tbr = tbr.view(np.recarray)
         return tbr
     else:
-        # this will check dtypes...
+        _checkFields([arr.dtype.names for arr in empties])
         tbr = np.concatenate(empties)
         tbr = tbr.view(np.recarray)
         return tbr
@@ -238,7 +249,7 @@ def splitKeys(keys, chunks):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, str):
+    if not isinstance(fname, basestring):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
@@ -1060,7 +1071,10 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths:
+            if relPaths and not isinstance(outFile, basestring):
+                raise InvalidDataSetIOError("Cannot write relative "
+                    "pathnames without a filename")
+            elif relPaths:
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
                 self.makePathsAbsolute()
@@ -1079,22 +1093,28 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                validateString(xml_string, relTo=os.path.dirname(outFile))
+                if isinstance(outFile, basestring):
+                    validateString(xml_string, relTo=os.path.dirname(outFile))
+                else:
+                    validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        fileName = urlparse(outFile).path.strip()
-        if self._strict and not isinstance(self.datasetType, tuple):
-            if not fileName.endswith(dsIdToSuffix(self.datasetType)):
-                raise IOError(errno.EIO,
-                              "Given filename does not meet standards, "
-                              "should end with {s}".format(
-                                  s=dsIdToSuffix(self.datasetType)),
-                              fileName)
-        with open(fileName, 'w') as outFile:
-            log.debug('Writing...')
-            outFile.writelines(xml_string)
-            log.debug('Done writing')
+        if isinstance(outFile, basestring):
+            fileName = urlparse(outFile).path.strip()
+            if self._strict and not isinstance(self.datasetType, tuple):
+                if not fileName.endswith(dsIdToSuffix(self.datasetType)):
+                    raise IOError(errno.EIO,
+                                  "Given filename does not meet standards, "
+                                  "should end with {s}".format(
+                                      s=dsIdToSuffix(self.datasetType)),
+                                  fileName)
+            outFile = open(fileName, 'w')
+
+        log.debug('Writing...')
+        outFile.write(xml_string)
+        outFile.flush()
+        log.debug('Done writing')
 
         for e in validation_errors:
             log.error("Invalid file produced: {f}".format(f=fileName))
@@ -1691,7 +1711,8 @@ class DataSet(object):
                 'ReferenceSet': ReferenceSet,
                 'GmapReferenceSet': GmapReferenceSet,
                 'BarcodeSet': BarcodeSet,
-                'TranscriptSet': TranscriptSet}
+                'TranscriptSet': TranscriptSet,
+                'TranscriptAlignmentSet': TranscriptAlignmentSet}
 
     @property
     def metadata(self):
@@ -1776,10 +1797,20 @@ class DataSet(object):
         """The UniqueId of this DataSet"""
         return self.objMetadata.get('UniqueId')
 
+    @uuid.setter
+    def uuid(self, value):
+        """Set the UniqueId of this DataSet"""
+        self.objMetadata['UniqueId'] = value
+
     @property
     def uniqueId(self):
         """The UniqueId of this DataSet"""
-        return self.objMetadata.get('UniqueId')
+        return self.uuid
+
+    @uniqueId.setter
+    def uniqueId(self, value):
+        """The UniqueId of this DataSet"""
+        self.uuid = value
 
     @property
     def timeStampedName(self):
@@ -1947,7 +1978,7 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, str):
+        elif isinstance(index, basestring):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
@@ -3654,7 +3685,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, str):
+        if not isinstance(refName, basestring):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:
@@ -3872,6 +3903,22 @@ class TranscriptSet(ReadSet):
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
         return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
+                'bai':'PacBio.Index.BamIndex',
+                'pbi':'PacBio.Index.PacBioIndex',
+                }
+
+
+class TranscriptAlignmentSet(AlignmentSet):
+    """
+    Dataset type for aligned RNA transcripts.  Essentially identical to
+    AlignmentSet aside from the contents of the underlying BAM files.
+    """
+    datasetType = DataSetMetaTypes.TRANSCRIPT_ALIGNMENT
+
+    @staticmethod
+    def _metaTypeMapping():
+        # This doesn't work for scraps.bam, whenever that is implemented
+        return {'bam':'PacBio.AlignmentFile.TranscriptAlignmentBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
                 }

@@ -1,5 +1,6 @@
 
 import os
+import sys
 import re
 import logging
 import itertools
@@ -25,6 +26,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               SubreadSetMetadata)
 from pbcore.io.dataset.DataSetIO import _pathChanger
 from pbcore.io.dataset.DataSetValidator import validateFile
+from pbcore.io.dataset.DataSetUtils import loadMockCollectionMetadata
 from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
@@ -1029,6 +1031,30 @@ class TestDataSet(unittest.TestCase):
             with AlignmentSet(fn) as aln:
                 self.assertEqual(len(aln), 92)
 
+    def test_write_to_stdout(self):
+        # open file:
+        fn = tempfile.NamedTemporaryFile(
+            suffix=".alignmentset.xml").name
+        ofh = open(fn, 'w')
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(ofh)
+        with AlignmentSet(fn) as aln:
+            self.assertEqual(len(aln), 92)
+
+        # unicode string:
+        fn = unicode(tempfile.NamedTemporaryFile(
+            suffix=".alignmentset.xml").name)
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(fn)
+        with AlignmentSet(fn) as aln:
+            self.assertEqual(len(aln), 92)
+
+        # stdout:
+        # This is just going to be printed into the test output, but it is good
+        # to show that this doesn't error out
+        with AlignmentSet(data.getXml(8)) as aln:
+            aln.write(sys.stdout)
+
     @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
                          "Missing testadata directory")
     def test_multi_movie_readsByName(self):
@@ -1174,6 +1200,16 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(explen, len(aln2))
         self.assertNotEqual(sorted(aln.toExternalFiles()),
                             sorted(aln2.toExternalFiles()))
+
+    @unittest.skipIf((not _pbtestdata() or not _check_constools()),
+                     "Internal data not available")
+    def test_mixed_pbi_columns(self):
+        import pbtestdata
+
+        with self.assertRaises(InvalidDataSetIOError):
+            ds = SubreadSet(pbtestdata.get_file("barcoded-subreadset"),
+                            pbtestdata.get_file("subreads-unbarcoded"))
+
 
     @unittest.skipIf((not _pbtestdata() or not _check_constools()),
                      "Internal data not available")
@@ -1694,14 +1730,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(readers[0].referenceInfoTable), 59)
         obstbl = [readers[0].referenceInfo('E.faecalis.1')]
         exptbl = [(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482,
-                   'a1a59c267ac1341e5a12bce7a7d37bcb', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         # TODO: add a bam with a different referenceInfoTable to check merging
         # and id remapping:
         #self.assertEqual(
             #str(aln.referenceInfo('E.faecalis.1')),
             #"(27, 27, 'E.faecalis.1', 'E.faecalis.1', 1482, "
-            #"'a1a59c267ac1341e5a12bce7a7d37bcb', 0L, 0L)")
+            #"0L, 0L)")
 
     # TODO: turn this back on when a bam with a different referenceInfoTable is
     # found
@@ -2283,7 +2319,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len3, 65346)
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0)]
+                   4642522, 0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
@@ -2307,7 +2343,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len1 + len2, len3)
         self.assertEqual(len3, 160264)
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0)]
+                   4642522, 0, 0)]
         obstbl = aln.referenceInfoTable
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0})
@@ -2339,9 +2375,9 @@ class TestDataSet(unittest.TestCase):
         # and endrow fields for bams someday...
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0),
+                   4642522, 0, 0),
                   (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502,
-                   'a1319ff90e994c8190a4fe6569d0822a', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0, 1})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
@@ -2373,9 +2409,9 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len4, 160376)
         obstbl = aln.referenceInfoTable
         exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 0),
+                   4642522, 0, 0),
                   (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502,
-                   'a1319ff90e994c8190a4fe6569d0822a', 0, 0)]
+                   0, 0)]
         self.assertListOfTuplesEqual(obstbl, exptbl)
         self.assertEqual(set(aln.tId), {0, 1})
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
@@ -2601,3 +2637,20 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds2.getMovieSampleNames(), {"m2": "Bob"})
         ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
         self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
+
+    @unittest.skipIf(not _internal_data(),
+                     "Internal data not available")
+    def test_length_0_bam_records(self):
+        ds_file1 = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/'
+                    'EmptyRecords/m54043_180414_094215.subreadset.xml')
+        ds1 = SubreadSet(ds_file1, strict=True)
+        scraps = IndexedBamReader(ds1.externalResources[0].scraps)
+        found = False
+        for read in scraps:
+            if len(read.read(aligned=False)) == 0:
+                found = True
+        self.assertTrue(found)
+
+    def test_load_mock_collection_metadata(self):
+        md = loadMockCollectionMetadata()
+        self.assertEqual(md.wellSample.name, "unknown")

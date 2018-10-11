@@ -1,21 +1,28 @@
 #!/bin/bash
 type module >& /dev/null || . /mnt/software/Modules/current/init/bash
+module load python/2.7.9-mobs-pbcore
 set -ex
 
-NX3PBASEURL=http://nexus/repository/unsupported/pitchfork/gcc-6.4.0
-export PATH=$PWD/build/bin:/mnt/software/a/anaconda2/4.2.0/bin:$PATH
+
+export PATH=$PWD/build/bin:$PATH
 export PYTHONUSERBASE=$PWD/build
-export CFLAGS="-I/mnt/software/a/anaconda2/4.2.0/include"
-PIP="pip --cache-dir=$bamboo_build_working_directory/.pip"
-module load gcc
+
+PIP="pip --cache-dir=${bamboo_build_working_directory:-$PWD}/.pip"
+if [[ -z ${bamboo_repository_branch_name+x} ]]; then
+  WHEELHOUSE=/mnt/software/p/python/wheelhouse/develop
+elif [[ ${bamboo_repository_branch_name} == develop ]]; then
+  WHEELHOUSE=/mnt/software/p/python/wheelhouse/develop
+elif [[ ${bamboo_repository_branch_name} == master ]]; then
+  WHEELHOUSE=/mnt/software/p/python/wheelhouse/master
+else
+  WHEELHOUSE=/mnt/software/p/python/wheelhouse/develop
+fi
 
 rm -rf   build
 mkdir -p build/bin build/lib build/include build/share
-$PIP install --user \
-  $NX3PBASEURL/pythonpkgs/pysam-0.13-cp27-cp27mu-linux_x86_64.whl
-$PIP install --user -r requirements.txt
-$PIP install --user -r requirements-dev.txt
-$PIP install --user -e ./    
+$PIP install --no-compile --find-link $WHEELHOUSE --user -r requirements.txt
+$PIP install --no-compile --find-link $WHEELHOUSE --user -r requirements-dev.txt
+$PIP install --no-compile --find-link $WHEELHOUSE --user -e ./
 
 set +e
 make pylint # way too many errors right now
