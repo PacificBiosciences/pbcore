@@ -2343,6 +2343,26 @@ class ReadSet(DataSet):
         return results
 
 
+    def _split_read_groups(self):
+        """
+        Crude implementation of split-by-read-group.  This isn't currently
+        useful for chunking, but it allows datasets for individual biosamples
+        to be easily extracted.
+        """
+        results = []
+        for rg in self.readGroupTable:
+            res = self.copy()
+            res._filters.clearCallbacks()
+            res._filters.broadcastFilters([[('qId', '=', rg.ID)]])
+            sel = self.index.qId == rg.ID
+            qlengths = self.index.qEnd[sel] - self.index.qStart[sel]
+            res.numRecords = qlengths.size
+            res.totalLength = np.sum(qlengths)
+            res.newUuid()
+            results.append(res)
+        return results
+
+
     @property
     def readGroupTable(self):
         """Combine the readGroupTables of each external resource"""
