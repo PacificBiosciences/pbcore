@@ -1125,3 +1125,9 @@ class TestDataSet(unittest.TestCase):
         fn = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.transcriptset.xml"
         ds1 = TranscriptSet(fn, strict=True)
         self.assertEqual(len(ds1.resourceReaders()), 1)
+
+    @skip_if_no_pbtestdata
+    def test_consensus_read_set_ref(self):
+        ds = ConsensusReadSet(pbtestdata.get_file("ccs-sequel"), strict=True)
+        uuid = ds.metadata.collections[0].consensusReadSetRef.uuid
+        self.assertEqual(uuid, "5416f525-d3c7-496b-ba8c-18d7ec1b4499")
