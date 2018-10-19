@@ -2512,6 +2512,11 @@ class BindingKit(Kit):
 class SequencingKitPlate(Kit):
     pass
 
+
+class ConsensusReadSetRef(RecordWrapper):
+    uuid = accs("UniqueId")
+
+
 class CollectionMetadata(RecordWrapper):
     """The metadata for a single collection. It contains Context,
     InstrumentName etc. as attribs, InstCtrlVer etc. for children"""
@@ -2534,6 +2539,7 @@ class CollectionMetadata(RecordWrapper):
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
     secondary = accs('Secondary', 'children', SecondaryMetadata)
+    consensusReadSetRef = accs("ConsensusReadSetRef", 'children', ConsensusReadSetRef)
 
     @property
     def runDetails(self):
