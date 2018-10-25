@@ -2343,6 +2343,32 @@ class ReadSet(DataSet):
         return results
 
 
+    def _split_read_groups(self):
+        """
+        Crude implementation of split-by-read-group.  This isn't currently
+        useful for chunking, but it allows datasets for individual biosamples
+        to be easily extracted.
+
+        NOTE: while the records in each dataset correspond to a single read
+        group, the readGroupTable propery of the dataset and BAM file(s) will
+        still list all read groups present in the original unsplit dataset.
+        To determine what read group a given dataset corresponds to, use
+        np.unique(ds.index.qId) to extract the numeric ID.
+        """
+        results = []
+        for rg in self.readGroupTable:
+            res = self.copy()
+            res._filters.clearCallbacks()
+            res._filters.broadcastFilters([[('qId', '=', rg.ID)]])
+            sel = self.index.qId == rg.ID
+            qlengths = self.index.qEnd[sel] - self.index.qStart[sel]
+            res.numRecords = qlengths.size
+            res.totalLength = np.sum(qlengths)
+            res.newUuid()
+            results.append(res)
+        return results
+
+
     @property
     def readGroupTable(self):
         """Combine the readGroupTables of each external resource"""
@@ -2694,20 +2720,10 @@ class SubreadSet(ReadSet):
         unique, or a ValueError if there is not a 1-to-1 mapping of sample to
         to movie.
         """
-        movie_to_sample = {}
-        for collection in self.metadata.collections:
-            bio_samples = [b.name for b in collection.wellSample.bioSamples]
-            movie_name = collection.context
-            n_bio_samples = len(bio_samples)
-            if n_bio_samples == 1:
-                if movie_to_sample.get(movie_name, None) == bio_samples[0]:
-                    raise KeyError("Collection context {c} occurs more than once".format(c=movie_name))
-                movie_to_sample[movie_name] = bio_samples[0]
-            elif n_bio_samples == 0:
-                raise ValueError("No BioSample records for collection {c}".format(c=movie_name))
-            else:
-                raise ValueError("Collection {c} has multiple BioSample records".format(c=movie_name))
-        return movie_to_sample
+        import warnings
+        warnings.warn("SubreadSet.getMovieSampleNames is deprecated, " +
+                      "use DataSet.metadata.getMovieSampleNames instead.")
+        return self.metadata.getMovieSampleNames()
 
 
 class AlignmentSet(ReadSet):

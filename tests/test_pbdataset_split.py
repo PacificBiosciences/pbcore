@@ -823,3 +823,10 @@ class TestDataSetSplit(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(len(sset), 9763)
 
+    @skip_if_not_internal()
+    def test_split_read_groups(self):
+        fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/combined.alignmentset.xml"
+        ds = AlignmentSet(fn)
+        self.assertEqual(len(ds), 30)
+        ds_rgs = ds._split_read_groups()
+        self.assertEqual(sorted([len(ds_rg) for ds_rg in ds_rgs]), [9, 10, 11])
