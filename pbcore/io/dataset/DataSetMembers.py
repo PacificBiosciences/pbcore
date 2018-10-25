@@ -2181,21 +2181,33 @@ class ContinuousDistribution(RecordWrapper):
         self.minOutlierValue = min(self.minOutlierValue, other.minOutlierValue)
         self.maxOutlierValue = max(self.maxOutlierValue, other.maxOutlierValue)
 
+        def _true_divide(num, denom):
+            if denom == 0:
+                return 0
+            else:
+                return np.true_divide(num, denom)
+
         # Std merging is somewhat complicated:
-        selfweight = np.true_divide(self.sampleSize,
-                                    (self.sampleSize + other.sampleSize))
-        otherweight = np.true_divide(other.sampleSize,
-                                     (self.sampleSize + other.sampleSize))
+        selfweight = _true_divide(self.sampleSize,
+                                  (self.sampleSize + other.sampleSize))
+        otherweight = _true_divide(other.sampleSize,
+                                   (self.sampleSize + other.sampleSize))
         selfsum = self.sampleMean * self.sampleSize
         othersum = other.sampleMean * other.sampleSize
-        selfval = ((self.sampleStd ** 2) * (self.sampleSize - 1) +
-                   ((selfsum) ** 2) / self.sampleSize)
-        otherval = ((other.sampleStd ** 2) * (other.sampleSize - 1) +
-                    ((othersum) ** 2) / other.sampleSize)
+        selfval = otherval = 0
+        if self.sampleSize > 0:
+            selfval = ((self.sampleStd ** 2) * (self.sampleSize - 1) +
+                       ((selfsum) ** 2) / self.sampleSize)
+        if other.sampleSize > 0:
+            otherval = ((other.sampleStd ** 2) * (other.sampleSize - 1) +
+                        ((othersum) ** 2) / other.sampleSize)
         sums = selfsum + othersum
         vals = selfval + otherval
         tots = self.sampleSize + other.sampleSize
-        self.sampleStd = np.sqrt((vals - (sums ** 2) / tots) / (tots - 1))
+        if tots > 1:
+            self.sampleStd = np.sqrt((vals - (sums ** 2) / tots) / (tots - 1))
+        else:
+            self.sampleStd = 0
 
         # The others are pretty simple:
         self.sampleMean = ((self.sampleMean * selfweight) +
