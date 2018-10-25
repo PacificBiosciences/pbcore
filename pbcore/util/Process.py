@@ -23,17 +23,23 @@ def backticks( cmd, merge_stderr=True ):
 
     p.stdout.close()
     if not merge_stderr:
+        err = [ l[:-1] for l in p.stderr.readlines() ]
         p.stderr.close()
+    else:
+        err = []
 
     # need to allow process to terminate
     p.wait()
 
     errCode = p.returncode and p.returncode or 0
-    if p.returncode>0:
+    if merge_stderr and p.returncode>0:
+        """
+        every msg goes to errorMessage on (error & merge_stderr)
+        """
         errorMessage = os.linesep.join(out)
         output = []
     else:
-        errorMessage = ''
+        errorMessage = os.linesep.join(err)
         output = out
 
     return output, errCode, errorMessage
