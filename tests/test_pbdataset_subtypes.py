@@ -1131,3 +1131,9 @@ class TestDataSet(unittest.TestCase):
         ds = ConsensusReadSet(pbtestdata.get_file("ccs-sequel"), strict=True)
         uuid = ds.metadata.collections[0].consensusReadSetRef.uuid
         self.assertEqual(uuid, "5416f525-d3c7-496b-ba8c-18d7ec1b4499")
+
+    @skip_if_no_internal_data
+    def test_subreads_sts_xml_merge_zero_division(self):
+        fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/merged.dataset.xml"
+        # this just needs to not crash
+        self.assertTrue(SubreadSet(fn) is not None)
