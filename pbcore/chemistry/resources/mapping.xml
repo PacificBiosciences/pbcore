@@ -393,4 +393,20 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+    <!-- 5.0.1 ChemRel; Sequel® Binding Kit 3.0; Sequel® Sequencing Plate 3.1 for Dynamic Loading placeholder (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P3-C3/5.0</SequencingChemistry>
+    <BindingKit>101-500-400</BindingKit>
+    <SequencingKit>101-646-800</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- // 5.0.1 ChemRel; Sequel® Binding Kit 3.0; Sequel® Dev Sequencing Plate (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
+    <BindingKit>101-490-800</BindingKit>
+    <SequencingKit>101-644-500</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
