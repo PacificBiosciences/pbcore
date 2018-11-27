@@ -47,7 +47,6 @@ setup(
                                'data/datasets/*.*',
                                'data/datasets/yieldtest/*.*']
                                },
-    zip_safe = False,
     entry_points = { "console_scripts" : [ ".open = pbcore.io.opener:entryPoint" ] },
     install_requires=_get_local_requirements(_REQUIREMENTS_FILE),
     tests_require=_get_local_requirements(_REQUIREMENTS_TEST_FILE)
