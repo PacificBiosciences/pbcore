@@ -11,3 +11,4 @@ nosetests.xml
 .circleci/hdf5-1.8.12
 
 .vagrant
+.DS_Store
