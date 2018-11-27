@@ -20,9 +20,7 @@ fi
 
 rm -rf   build
 mkdir -p build/bin build/lib build/include build/share
-$PIP install --no-compile --find-link $WHEELHOUSE --user -r requirements.txt
-$PIP install --no-compile --find-link $WHEELHOUSE --user -r requirements-dev.txt
-$PIP install --no-compile --find-link $WHEELHOUSE --user -e ./
+$PIP install --no-compile --find-link $WHEELHOUSE --user -e .[test]
 
 set +e
 make pylint # way too many errors right now
