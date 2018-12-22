@@ -363,7 +363,7 @@
 
   <!-- Sequel II® Sequencing Plate (4 rxn)-->
   <Mapping>
-    <SequencingChemistry>S2/P3-C1/5.0</SequencingChemistry>
+    <SequencingChemistry>S/P3-C1/5.0-8M</SequencingChemistry>
     <BindingKit>101-490-800</BindingKit>
     <SequencingKit>101-490-900</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
@@ -371,7 +371,7 @@
 
   <!-- Sequel II® Sequencing Plate (8 rxn)-->
   <Mapping>
-    <SequencingChemistry>S2/P3-C1/5.0</SequencingChemistry>
+    <SequencingChemistry>S/P3-C1/5.0-8M</SequencingChemistry>
     <BindingKit>101-490-800</BindingKit>
     <SequencingKit>101-491-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
@@ -403,7 +403,7 @@
 
   <!-- // 5.0.1 ChemRel; Sequel® Binding Kit 3.0; Sequel® Dev Sequencing Plate (4 rxn) -->
   <Mapping>
-    <SequencingChemistry>S2/P3-C1/5.0</SequencingChemistry>
+    <SequencingChemistry>S/P3-C1/5.0-8M</SequencingChemistry>
     <BindingKit>101-490-800</BindingKit>
     <SequencingKit>101-644-500</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
