@@ -499,6 +499,8 @@ class TestEmptyBam(object):
             EQ(len(reads), 0)
 
 
+#@pytest.fixture(scope='class')
+
 class TestMultipleReadGroups(object):
     """
     Verify that BAM files with multiple read groups are handled sensibly - see
@@ -522,18 +524,18 @@ m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK
             with AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
                 for aln in sam_in:
                     bam_out.write(aln)
-        cls._bam_file = f2
+        cls.bam_file = f2
 
     def test_retrieve_read_group_properties(self):
         movie_names = []
-        with BamReader(self._bam_file) as bam_in:
+        with BamReader(self.bam_file) as bam_in:
             for aln in bam_in:
                 EQ(aln.sequencingChemistry, "P6-C4")
             movie_names.extend([rg.MovieName for rg in bam_in.readGroupTable])
         EQ(movie_names, ['movie1', 'm140906_231018_42161_c100676332550000001823129611271486_s1_p0'])
 
     def test_sample_names(self):
-        with BamReader(self._bam_file) as bam:
+        with BamReader(self.bam_file) as bam:
             samples = {rg.MovieName:rg.SampleName for rg in bam.readGroupTable}
             EQ(samples, {
                 "movie1": "test_sample1",
