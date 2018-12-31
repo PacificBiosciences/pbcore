@@ -1,4 +1,4 @@
-
+import pytest
 import os
 import sys
 import re
@@ -2420,10 +2420,9 @@ class TestDataSet(unittest.TestCase):
                          aln.referenceInfo(1))
 
     def test_exceptions(self):
-        try:
+        with pytest.raises(InvalidDataSetIOError) as e:
             raise InvalidDataSetIOError("Wrong!")
-        except InvalidDataSetIOError as e:
-            self.assertEqual(e.message, "Wrong!")
+        assert 'Wrong!' in str(e.value)
 
     def test_createdAt(self):
         aln = AlignmentSet(data.getXml(8))
@@ -2633,10 +2632,10 @@ class TestDataSet(unittest.TestCase):
         ds_file2 = pbtestdata.get_file("subreads-biosample-2")
         ds1 = SubreadSet(ds_file1, strict=True)
         ds2 = SubreadSet(ds_file2, strict=True)
-        self.assertEqual(ds1.getMovieSampleNames(), {"m1": "Alice"})
-        self.assertEqual(ds2.getMovieSampleNames(), {"m2": "Bob"})
+        self.assertEqual(ds1.metadata.getMovieSampleNames(), {"m1": "Alice"})
+        self.assertEqual(ds2.metadata.getMovieSampleNames(), {"m2": "Bob"})
         ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
-        self.assertEqual(ds3.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
+        self.assertEqual(ds3.metadata.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
 
     @unittest.skipIf(not _internal_data(),
                      "Internal data not available")
