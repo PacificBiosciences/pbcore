@@ -353,8 +353,8 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
         .. doctest::
 
-            >>> c[26].identity
-            0.87050359712230219
+            >>> round(c[26].identity, 4)
+            0.8705
         """
         if self.readLength == 0:
             return 0.
