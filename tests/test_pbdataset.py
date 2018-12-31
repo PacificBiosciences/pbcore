@@ -2154,11 +2154,11 @@ class TestDataSet(unittest.TestCase):
         self.assertAlmostEqual(
             ds3.metadata.summaryStats.readLenDist.sampleMean,
             4528.69384766)
-        self.assertEqual(ds1.metadata.summaryStats.readLenDist.sampleStd,
+        self.assertAlmostEqual(ds1.metadata.summaryStats.readLenDist.sampleStd,
                          2322.805559802698)
-        self.assertEqual(ds2.metadata.summaryStats.readLenDist.sampleStd,
+        self.assertAlmostEqual(ds2.metadata.summaryStats.readLenDist.sampleStd,
                          2322.805559802698)
-        self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleStd,
+        self.assertAlmostEqual(ds3.metadata.summaryStats.readLenDist.sampleStd,
                          2322.16060475)
         # uses the bins, not the previous values for mean, std, etc.:
         self.assertEqual(ds3.metadata.summaryStats.readLenDist.sampleMed, 45)
