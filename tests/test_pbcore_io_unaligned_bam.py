@@ -18,7 +18,7 @@ from pbcore.sequence import reverseComplement as RC
 
 class TestUnalignedBam(object):
 
-    def __init__(self):
+    def setup_class(self):
         self.bam = BamReader  (data.getUnalignedBam())
         self.bax = BaxH5Reader(data.getBaxForBam())
 

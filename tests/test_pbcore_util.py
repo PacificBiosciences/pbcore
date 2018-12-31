@@ -2,9 +2,6 @@ from nose.tools import assert_equal
 from pbcore.util import Process
 
 class TestBackticks(object):
-    def __init__(self):
-        pass
-
     def test_errCode(self):
         output, errCode, errMsg = Process.backticks("exit 42")
         assert_equal(42, errCode)

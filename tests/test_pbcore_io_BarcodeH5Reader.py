@@ -12,7 +12,7 @@ class TestBarcodeH5Reader(object):
     """Tests of BarcodeH5Reader against a generic BarcodeH5 file
     """
 
-    def __init__(self):
+    def setup_class(self):
         bcFiles = pbcore.data.getBcH5s()
         print(bcFiles)
         self.bc1, self.bc2, self.bc3 = map(BarcodeH5Reader, bcFiles)
@@ -65,7 +65,7 @@ class TestBarcodeH5Fofn(object):
     """Tests of BarcodeH5RFofn against a generic 3 generic BarcodeH5 file
     """
 
-    def __init__(self):
+    def setup_class(self):
         bcFofn = pbcore.data.getBcFofn()
         print(bcFofn)
         self.bcFofn = BarcodeH5Fofn(bcFofn)

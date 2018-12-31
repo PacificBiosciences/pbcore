@@ -28,7 +28,7 @@ class TestVcfSorting(unittest.TestCase):
             Vcf4Record.fromString("ecoliK12_pbi_March2013\t1536\t.\tG\tGC\t47\tPASS\tDP=91")]
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls.files = []
         for i in range(2):
             file_name = "tmp_pbcore_%d.vcf" % i
