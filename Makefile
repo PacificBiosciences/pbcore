@@ -15,7 +15,7 @@ install:
 	@pip install ./
 
 pylint:
-	pylint --errors-only pbcore/
+	pylint --errors-only --ignore=pyxb pbcore/
 
 clean: doc-clean
 	rm -rf build/;\
