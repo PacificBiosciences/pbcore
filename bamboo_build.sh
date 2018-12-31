@@ -21,6 +21,7 @@ fi
 rm -rf   build
 mkdir -p build/bin build/lib build/include build/share
 $PIP install --no-compile --find-link $WHEELHOUSE --user -e .[test]
+$PIP install --no-compile --find-link $WHEELHOUSE --user pbtestdata
 
 set +e
 make pylint # way too many errors right now
