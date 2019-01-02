@@ -16,7 +16,7 @@ class TestBasH5Reader_14(object):
     CCS.
     """
 
-    def __init__(self):
+    def setup_class(self):
         self.cmpH5 = pbcore.io.CmpH5Reader(pbcore.data.getCmpH5())
         basFiles = pbcore.data.getBasH5s()
         self.bas1, self.bas2 = map(pbcore.io.BasH5Reader, basFiles)
@@ -314,7 +314,7 @@ class TestBasH5Reader_20(CommonTests, CommonMultiPartTests, ReadIteratorTests):
     bas.h5 file and three bas.h5 files. The bax.h5 files also contain CCS.
     """
 
-    def __init__(self):
+    def setup_class(self):
         """Get the full paths to the bas and bax.h5 files."""
 
         self.bash5_filename = pbcore.data.getBasH5_v20()
@@ -365,7 +365,7 @@ class TestBasH5Reader_21(CommonTests, CommonMultiPartTests, ReadIteratorTests):
     bas.h5 file and three bas.h5 files. The bax.h5 files do not contain CCS.
     """
 
-    def __init__(self):
+    def setup_class(self):
         """Get the full paths to the bas and bax.h5 files."""
         self.bash5_filename = pbcore.data.getBasH5_v21()
         self.baxh5_filenames = pbcore.data.getBaxH5_v21()
@@ -420,7 +420,7 @@ class TestBasH5Reader_23(CommonTests, CommonMultiPartTests, ReadIteratorTests):
     but do contain Chemistry information
     """
 
-    def __init__(self):
+    def setup_class(self):
         """Get the full paths to the bas and bax.h5 files."""
         self.bash5_filename = pbcore.data.getBasH5_v23()
         self.baxh5_filenames = pbcore.data.getBaxH5_v23()
@@ -446,7 +446,7 @@ class TestBasH5Reader_23(CommonTests, CommonMultiPartTests, ReadIteratorTests):
 class TestBasH5Reader_CCS(ReadIteratorTests):
     """Test BasH5Reader with a ccs.h5 file produced by P_CCS."""
 
-    def __init__(self):
+    def setup_class(self):
         """Get the full paths to the bas and bax.h5 files."""
         self.bash5_filename = pbcore.data.getCCSH5()
         self.baxh5_filenames = []

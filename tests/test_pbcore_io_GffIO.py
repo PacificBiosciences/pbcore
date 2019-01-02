@@ -137,7 +137,7 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
     ]
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls.files = []
         cls.combined = "tmp_pbcore_all.gff"
         with open(cls.combined, "w") as f_all:

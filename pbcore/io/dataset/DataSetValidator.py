@@ -28,7 +28,7 @@ def validateResources(xmlroot, relTo='.'):
     stack = [xmlroot]
     while stack:
         element = stack.pop()
-        stack.extend(element.getchildren())
+        stack.extend(element)
         resId = element.get('ResourceId')
         if resId:
             parsedId = urlparse(resId)

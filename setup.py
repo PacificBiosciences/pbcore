@@ -14,7 +14,8 @@ if sys.version_info[0:2] != (2, 7):
 
 test_deps = [
     'coverage',
-    'nose == 1.3.4',
+    'pytest',
+    'nose',
     'pyxb == 1.2.4',
     'sphinx',
     'h5py >= 2.0.1',
