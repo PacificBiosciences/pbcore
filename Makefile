@@ -34,7 +34,7 @@ doctest:
 
 unit-test:
 	#nosetests --with-coverage --cover-xml-file=coverage.xml --cover-package=pbcore --cover-xml --with-xunit -v tests
-	py.test -v -n auto --durations=20 --junitxml=nosetests.xml --cov=./pbcore --cov-report=xml:coverage.xml tests/test_*.py
+	pytest -v -n auto --dist=loadscope --durations=20 --junitxml=nosetests.xml --cov=./pbcore --cov-report=xml:coverage.xml tests/test_*.py
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
 test: doctest unit-test
@@ -72,3 +72,8 @@ xsd-codegen:
 
 validate-metadata:
 	xmllint --schema ../xsd-datamodels/PacBioCollectionMetadata.xsd pbcore/data/datasets/CollectionMetadata.xml
+
+wheel:
+	which pip
+	pip wheel --wheel-dir=${WHEELHOUSE} --no-deps .
+	ls -larth ${WHEELHOUSE}

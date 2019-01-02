@@ -25,9 +25,11 @@ $PIP install --user --no-index --find-link $WHEELHOUSE pbtestdata
 $PIP install --user --no-index --find-link $WHEELHOUSE pytest-xdist
 $PIP install --user --no-index --find-link $WHEELHOUSE pytest-cov
 #$PIP install --user --no-index --find-link $WHEELHOUSE pytest-parallel # not sure why this fails
-pytest --trace-config
+pytest --trace-config --collect-only
 
 set +e
 make pylint # way too many errors right now
 set -e
 make test
+
+bash bamboo_wheel.sh
