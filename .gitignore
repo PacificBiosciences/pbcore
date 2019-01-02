@@ -5,6 +5,8 @@ doc/_build
 *.pyc
 *.egg-info
 nosetests.xml
+coverage.xml
+.coverage
 
 .circleci/prefix
 .circleci/hdf5-1.8.12.tar.gz

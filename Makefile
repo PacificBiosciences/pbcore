@@ -72,3 +72,8 @@ xsd-codegen:
 
 validate-metadata:
 	xmllint --schema ../xsd-datamodels/PacBioCollectionMetadata.xsd pbcore/data/datasets/CollectionMetadata.xml
+
+wheel:
+	which pip
+	pip wheel --wheel-dir=${WHEELHOUSE} --no-deps .
+	ls -larth ${WHEELHOUSE}

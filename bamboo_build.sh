@@ -31,3 +31,5 @@ set +e
 make pylint # way too many errors right now
 set -e
 make test
+
+bash bamboo_wheel.sh
