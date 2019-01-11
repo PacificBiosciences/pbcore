@@ -1,7 +1,7 @@
 # pbcore/io/dataset/pyxb/_pbrk.py
 # -*- coding: utf-8 -*-
 # PyXB bindings for NM:82fd17ff8c81a0cc423cbd13a9167bcda5f96419
-# Generated 2019-01-03 14:03:29.655299 by PyXB version 1.2.4 using Python 2.7.9.final.0
+# Generated 2019-01-11 09:33:09.086118 by PyXB version 1.2.4 using Python 2.7.14.final.0
 # Namespace http://pacificbiosciences.com/PacBioReagentKit.xsd [xmlns:pbrk]
 
 from __future__ import unicode_literals
@@ -15,7 +15,7 @@ import sys
 import pyxb.utils.six as _six
 
 # Unique identifier for bindings created at the same time
-_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:66d28292-0fa3-11e9-a66c-1803730e031b')
+_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:f5f8b0da-15c6-11e9-b98f-005056872f45')
 
 # Version of PyXB used to generate the bindings
 _PyXBVersion = '1.2.4'
@@ -24,8 +24,8 @@ if pyxb.__version__ != _PyXBVersion:
     raise pyxb.PyXBVersionError(_PyXBVersion)
 
 # Import bindings for namespaces imported into schema
-import _pbbase as _ImportedBinding__pbbase
 import pyxb.binding.datatypes
+import _pbbase as _ImportedBinding__pbbase
 
 # NOTE: All namespace declarations are reserved within the binding
 Namespace = pyxb.namespace.NamespaceForURI('http://pacificbiosciences.com/PacBioReagentKit.xsd', create_if_missing=True)
@@ -82,7 +82,7 @@ class TubeLocation (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeratio
     """An atomic simple type."""
 
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'TubeLocation')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 162, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 162, 1)
     _Documentation = None
 TubeLocation._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=TubeLocation, enum_prefix=None)
 TubeLocation.ReagentTube0 = TubeLocation._CF_enumeration.addEnumeration(unicode_value='ReagentTube0', tag='ReagentTube0')
@@ -96,7 +96,7 @@ class TubeSize (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeration_mi
     """An atomic simple type."""
 
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'TubeSize')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 168, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 168, 1)
     _Documentation = None
 TubeSize._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=TubeSize, enum_prefix=None)
 TubeSize.DeepTube = TubeSize._CF_enumeration.addEnumeration(unicode_value='DeepTube', tag='DeepTube')
@@ -110,7 +110,7 @@ class ReagentKey (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeration_
     """An atomic simple type."""
 
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'ReagentKey')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 174, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 174, 1)
     _Documentation = None
 ReagentKey._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=ReagentKey, enum_prefix=None)
 ReagentKey.Base = ReagentKey._CF_enumeration.addEnumeration(unicode_value='Base', tag='Base')
@@ -151,6 +151,7 @@ ReagentKey.Empty11 = ReagentKey._CF_enumeration.addEnumeration(unicode_value='Em
 ReagentKey.Empty12 = ReagentKey._CF_enumeration.addEnumeration(unicode_value='Empty12', tag='Empty12')
 ReagentKey.Silwet = ReagentKey._CF_enumeration.addEnumeration(unicode_value='Silwet', tag='Silwet')
 ReagentKey.WashBuffer2 = ReagentKey._CF_enumeration.addEnumeration(unicode_value='WashBuffer2', tag='WashBuffer2')
+ReagentKey.WashBuffer3 = ReagentKey._CF_enumeration.addEnumeration(unicode_value='WashBuffer3', tag='WashBuffer3')
 ReagentKey.DL_PEG = ReagentKey._CF_enumeration.addEnumeration(unicode_value='DL_PEG', tag='DL_PEG')
 ReagentKey.DL_Analog = ReagentKey._CF_enumeration.addEnumeration(unicode_value='DL_Analog', tag='DL_Analog')
 ReagentKey.DL_PCA = ReagentKey._CF_enumeration.addEnumeration(unicode_value='DL_PCA', tag='DL_PCA')
@@ -165,13 +166,13 @@ class CTD_ANON (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 11, 2)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 11, 2)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentKit uses Python identifier ReagentKit
-    __ReagentKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), 'ReagentKit', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_httppacificbiosciences_comPacBioReagentKit_xsdReagentKit', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 18, 1), )
+    __ReagentKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), 'ReagentKit', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_httppacificbiosciences_comPacBioReagentKit_xsdReagentKit', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 18, 1), )
 
     
     ReagentKit = property(__ReagentKit.value, __ReagentKit.set, None, None)
@@ -192,13 +193,13 @@ class CTD_ANON_ (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 96, 6)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 96, 6)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}Reagent uses Python identifier Reagent
-    __Reagent = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), 'Reagent', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON__httppacificbiosciences_comPacBioReagentKit_xsdReagent', True, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 17, 1), )
+    __Reagent = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), 'Reagent', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON__httppacificbiosciences_comPacBioReagentKit_xsdReagent', True, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 17, 1), )
 
     
     Reagent = property(__Reagent.value, __Reagent.set, None, None)
@@ -219,13 +220,13 @@ class CTD_ANON_2 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 103, 6)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 103, 6)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentTube uses Python identifier ReagentTube
-    __ReagentTube = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), 'ReagentTube', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioReagentKit_xsdReagentTube', True, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 19, 1), )
+    __ReagentTube = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), 'ReagentTube', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioReagentKit_xsdReagentTube', True, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 19, 1), )
 
     
     ReagentTube = property(__ReagentTube.value, __ReagentTube.set, None, None)
@@ -246,13 +247,13 @@ class CTD_ANON_3 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 110, 6)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 110, 6)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentPlateRow uses Python identifier ReagentPlateRow
-    __ReagentPlateRow = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), 'ReagentPlateRow', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioReagentKit_xsdReagentPlateRow', True, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 20, 1), )
+    __ReagentPlateRow = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), 'ReagentPlateRow', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioReagentKit_xsdReagentPlateRow', True, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 20, 1), )
 
     
     ReagentPlateRow = property(__ReagentPlateRow.value, __ReagentPlateRow.set, None, None)
@@ -273,13 +274,13 @@ class CTD_ANON_4 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 122, 6)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 122, 6)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}Automation uses Python identifier Automation
-    __Automation = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automation'), 'Automation', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioReagentKit_xsdAutomation', True, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 124, 8), )
+    __Automation = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automation'), 'Automation', '__httppacificbiosciences_comPacBioReagentKit_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioReagentKit_xsdAutomation', True, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 124, 8), )
 
     
     Automation = property(__Automation.value, __Automation.set, None, None)
@@ -300,7 +301,7 @@ class ReagentType (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'ReagentType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 79, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 79, 1)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -325,48 +326,48 @@ class ReagentType (_ImportedBinding__pbbase.BaseEntityType):
     
     # Attribute ReagentKey uses Python identifier ReagentKey
     __ReagentKey = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ReagentKey'), 'ReagentKey', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_ReagentKey', ReagentKey, required=True)
-    __ReagentKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 82, 4)
-    __ReagentKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 82, 4)
+    __ReagentKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 82, 4)
+    __ReagentKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 82, 4)
     
     ReagentKey = property(__ReagentKey.value, __ReagentKey.set, None, None)
 
     
     # Attribute PlateColumn uses Python identifier PlateColumn
     __PlateColumn = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'PlateColumn'), 'PlateColumn', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_PlateColumn', pyxb.binding.datatypes.string, required=True)
-    __PlateColumn._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 83, 4)
-    __PlateColumn._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 83, 4)
+    __PlateColumn._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 83, 4)
+    __PlateColumn._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 83, 4)
     
     PlateColumn = property(__PlateColumn.value, __PlateColumn.set, None, None)
 
     
     # Attribute Volume uses Python identifier Volume
     __Volume = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Volume'), 'Volume', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_Volume', pyxb.binding.datatypes.int, required=True)
-    __Volume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 84, 4)
-    __Volume._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 84, 4)
+    __Volume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 84, 4)
+    __Volume._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 84, 4)
     
     Volume = property(__Volume.value, __Volume.set, None, None)
 
     
     # Attribute DeadVolume uses Python identifier DeadVolume
     __DeadVolume = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'DeadVolume'), 'DeadVolume', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_DeadVolume', pyxb.binding.datatypes.int, required=True)
-    __DeadVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 85, 4)
-    __DeadVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 85, 4)
+    __DeadVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 85, 4)
+    __DeadVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 85, 4)
     
     DeadVolume = property(__DeadVolume.value, __DeadVolume.set, None, None)
 
     
     # Attribute ActiveInHour uses Python identifier ActiveInHour
     __ActiveInHour = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ActiveInHour'), 'ActiveInHour', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_ActiveInHour', pyxb.binding.datatypes.int, required=True)
-    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 86, 4)
-    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 86, 4)
+    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 86, 4)
+    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 86, 4)
     
     ActiveInHour = property(__ActiveInHour.value, __ActiveInHour.set, None, None)
 
     
     # Attribute Rows uses Python identifier Rows
     __Rows = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Rows'), 'Rows', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentType_Rows', pyxb.binding.datatypes.string, required=True)
-    __Rows._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 87, 5)
-    __Rows._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 87, 5)
+    __Rows._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 87, 5)
+    __Rows._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 87, 5)
     
     Rows = property(__Rows.value, __Rows.set, None, None)
 
@@ -391,7 +392,7 @@ class ReagentKitType (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'ReagentKitType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 91, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 91, 1)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -399,42 +400,42 @@ class ReagentKitType (_ImportedBinding__pbbase.BaseEntityType):
     # Element Extensions ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Extensions) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
     # Element {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}ChemistryConfig uses Python identifier ChemistryConfig
-    __ChemistryConfig = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig'), 'ChemistryConfig', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioBaseDataModel_xsdChemistryConfig', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 1021, 1), )
+    __ChemistryConfig = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig'), 'ChemistryConfig', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioBaseDataModel_xsdChemistryConfig', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 1021, 1), )
 
     
     ChemistryConfig = property(__ChemistryConfig.value, __ChemistryConfig.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Defaults uses Python identifier Defaults
-    __Defaults = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults'), 'Defaults', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioBaseDataModel_xsdDefaults', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 1022, 4), )
+    __Defaults = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults'), 'Defaults', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioBaseDataModel_xsdDefaults', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 1022, 4), )
 
     
     Defaults = property(__Defaults.value, __Defaults.set, None, 'Default paramaters and filters which may be applied to PartNumber types in order to constrain them via parameterization')
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}Reagents uses Python identifier Reagents
-    __Reagents = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Reagents'), 'Reagents', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagents', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 95, 5), )
+    __Reagents = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Reagents'), 'Reagents', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagents', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 95, 5), )
 
     
     Reagents = property(__Reagents.value, __Reagents.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentTubes uses Python identifier ReagentTubes
-    __ReagentTubes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), 'ReagentTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagentTubes', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 102, 5), )
+    __ReagentTubes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), 'ReagentTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagentTubes', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 102, 5), )
 
     
     ReagentTubes = property(__ReagentTubes.value, __ReagentTubes.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentPlateRows uses Python identifier ReagentPlateRows
-    __ReagentPlateRows = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows'), 'ReagentPlateRows', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagentPlateRows', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 109, 5), )
+    __ReagentPlateRows = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows'), 'ReagentPlateRows', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdReagentPlateRows', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 109, 5), )
 
     
     ReagentPlateRows = property(__ReagentPlateRows.value, __ReagentPlateRows.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}Automations uses Python identifier Automations
-    __Automations = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automations'), 'Automations', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdAutomations', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 118, 5), )
+    __Automations = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automations'), 'Automations', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_httppacificbiosciences_comPacBioReagentKit_xsdAutomations', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 118, 5), )
 
     
     Automations = property(__Automations.value, __Automations.set, None, 'Automations that are deemed compatible with this kit.  Parameters specified within an automation will override a parameter with the same name and data type specified in the above Defaults section')
@@ -458,40 +459,40 @@ class ReagentKitType (_ImportedBinding__pbbase.BaseEntityType):
     
     # Attribute ProductCode uses Python identifier ProductCode
     __ProductCode = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ProductCode'), 'ProductCode', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_ProductCode', pyxb.binding.datatypes.string)
-    __ProductCode._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 129, 4)
-    __ProductCode._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 129, 4)
+    __ProductCode._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 129, 4)
+    __ProductCode._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 129, 4)
     
     ProductCode = property(__ProductCode.value, __ProductCode.set, None, None)
 
     
     # Attribute PlateType uses Python identifier PlateType
     __PlateType = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'PlateType'), 'PlateType', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_PlateType', pyxb.binding.datatypes.string)
-    __PlateType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 130, 4)
-    __PlateType._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 130, 4)
+    __PlateType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 130, 4)
+    __PlateType._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 130, 4)
     
     PlateType = property(__PlateType.value, __PlateType.set, None, None)
 
     
     # Attribute ActiveInHour uses Python identifier ActiveInHour
     __ActiveInHour = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ActiveInHour'), 'ActiveInHour', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_ActiveInHour', pyxb.binding.datatypes.int)
-    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 131, 4)
-    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 131, 4)
+    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 131, 4)
+    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 131, 4)
     
     ActiveInHour = property(__ActiveInHour.value, __ActiveInHour.set, None, None)
 
     
     # Attribute BasesPerSecond uses Python identifier BasesPerSecond
     __BasesPerSecond = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'BasesPerSecond'), 'BasesPerSecond', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_BasesPerSecond', pyxb.binding.datatypes.decimal)
-    __BasesPerSecond._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 132, 4)
-    __BasesPerSecond._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 132, 4)
+    __BasesPerSecond._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 132, 4)
+    __BasesPerSecond._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 132, 4)
     
     BasesPerSecond = property(__BasesPerSecond.value, __BasesPerSecond.set, None, None)
 
     
     # Attribute AcquisitionCount uses Python identifier AcquisitionCount
     __AcquisitionCount = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'AcquisitionCount'), 'AcquisitionCount', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentKitType_AcquisitionCount', pyxb.binding.datatypes.int)
-    __AcquisitionCount._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 133, 4)
-    __AcquisitionCount._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 133, 4)
+    __AcquisitionCount._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 133, 4)
+    __AcquisitionCount._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 133, 4)
     
     AcquisitionCount = property(__AcquisitionCount.value, __AcquisitionCount.set, None, None)
 
@@ -520,7 +521,7 @@ class ReagentTubeType (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'ReagentTubeType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 137, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 137, 1)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -545,80 +546,80 @@ class ReagentTubeType (_ImportedBinding__pbbase.BaseEntityType):
     
     # Attribute ProductCode uses Python identifier ProductCode
     __ProductCode = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ProductCode'), 'ProductCode', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_ProductCode', pyxb.binding.datatypes.string, required=True)
-    __ProductCode._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 140, 4)
-    __ProductCode._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 140, 4)
+    __ProductCode._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 140, 4)
+    __ProductCode._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 140, 4)
     
     ProductCode = property(__ProductCode.value, __ProductCode.set, None, None)
 
     
     # Attribute ReagentKey uses Python identifier ReagentKey
     __ReagentKey = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ReagentKey'), 'ReagentKey', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_ReagentKey', ReagentKey, required=True)
-    __ReagentKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 141, 4)
-    __ReagentKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 141, 4)
+    __ReagentKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 141, 4)
+    __ReagentKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 141, 4)
     
     ReagentKey = property(__ReagentKey.value, __ReagentKey.set, None, None)
 
     
     # Attribute Volume uses Python identifier Volume
     __Volume = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Volume'), 'Volume', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_Volume', pyxb.binding.datatypes.short, required=True)
-    __Volume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 142, 4)
-    __Volume._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 142, 4)
+    __Volume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 142, 4)
+    __Volume._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 142, 4)
     
     Volume = property(__Volume.value, __Volume.set, None, None)
 
     
     # Attribute UsageVolume uses Python identifier UsageVolume
     __UsageVolume = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'UsageVolume'), 'UsageVolume', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_UsageVolume', pyxb.binding.datatypes.double, required=True)
-    __UsageVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 143, 4)
-    __UsageVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 143, 4)
+    __UsageVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 143, 4)
+    __UsageVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 143, 4)
     
     UsageVolume = property(__UsageVolume.value, __UsageVolume.set, None, None)
 
     
     # Attribute UsageKey uses Python identifier UsageKey
     __UsageKey = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'UsageKey'), 'UsageKey', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_UsageKey', pyxb.binding.datatypes.string, required=True)
-    __UsageKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 144, 4)
-    __UsageKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 144, 4)
+    __UsageKey._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 144, 4)
+    __UsageKey._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 144, 4)
     
     UsageKey = property(__UsageKey.value, __UsageKey.set, None, None)
 
     
     # Attribute DeadVolume uses Python identifier DeadVolume
     __DeadVolume = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'DeadVolume'), 'DeadVolume', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_DeadVolume', pyxb.binding.datatypes.short, required=True)
-    __DeadVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 145, 4)
-    __DeadVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 145, 4)
+    __DeadVolume._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 145, 4)
+    __DeadVolume._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 145, 4)
     
     DeadVolume = property(__DeadVolume.value, __DeadVolume.set, None, None)
 
     
     # Attribute ActiveInHour uses Python identifier ActiveInHour
     __ActiveInHour = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ActiveInHour'), 'ActiveInHour', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_ActiveInHour', pyxb.binding.datatypes.int, required=True)
-    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 146, 4)
-    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 146, 4)
+    __ActiveInHour._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 146, 4)
+    __ActiveInHour._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 146, 4)
     
     ActiveInHour = property(__ActiveInHour.value, __ActiveInHour.set, None, None)
 
     
     # Attribute TubeWellType uses Python identifier TubeWellType
     __TubeWellType = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'TubeWellType'), 'TubeWellType', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_TubeWellType', TubeSize, required=True)
-    __TubeWellType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 147, 4)
-    __TubeWellType._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 147, 4)
+    __TubeWellType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 147, 4)
+    __TubeWellType._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 147, 4)
     
     TubeWellType = property(__TubeWellType.value, __TubeWellType.set, None, None)
 
     
     # Attribute ReagentTubeType uses Python identifier ReagentTubeType
     __ReagentTubeType = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ReagentTubeType'), 'ReagentTubeType', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_ReagentTubeType', TubeLocation, required=True)
-    __ReagentTubeType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 148, 4)
-    __ReagentTubeType._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 148, 4)
+    __ReagentTubeType._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 148, 4)
+    __ReagentTubeType._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 148, 4)
     
     ReagentTubeType = property(__ReagentTubeType.value, __ReagentTubeType.set, None, None)
 
     
     # Attribute InitialUse uses Python identifier InitialUse
     __InitialUse = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'InitialUse'), 'InitialUse', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentTubeType_InitialUse', pyxb.binding.datatypes.dateTime)
-    __InitialUse._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 149, 4)
-    __InitialUse._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 149, 4)
+    __InitialUse._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 149, 4)
+    __InitialUse._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 149, 4)
     
     InitialUse = property(__InitialUse.value, __InitialUse.set, None, None)
 
@@ -647,7 +648,7 @@ class ReagentPlateRowType (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRowType')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 153, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 153, 1)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -672,24 +673,24 @@ class ReagentPlateRowType (_ImportedBinding__pbbase.BaseEntityType):
     
     # Attribute PlateRow uses Python identifier PlateRow
     __PlateRow = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'PlateRow'), 'PlateRow', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentPlateRowType_PlateRow', pyxb.binding.datatypes.string, required=True)
-    __PlateRow._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 156, 4)
-    __PlateRow._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 156, 4)
+    __PlateRow._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 156, 4)
+    __PlateRow._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 156, 4)
     
     PlateRow = property(__PlateRow.value, __PlateRow.set, None, None)
 
     
     # Attribute InitialUse uses Python identifier InitialUse
     __InitialUse = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'InitialUse'), 'InitialUse', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentPlateRowType_InitialUse', pyxb.binding.datatypes.dateTime)
-    __InitialUse._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 157, 4)
-    __InitialUse._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 157, 4)
+    __InitialUse._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 157, 4)
+    __InitialUse._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 157, 4)
     
     InitialUse = property(__InitialUse.value, __InitialUse.set, None, None)
 
     
     # Attribute Reaction uses Python identifier Reaction
     __Reaction = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Reaction'), 'Reaction', '__httppacificbiosciences_comPacBioReagentKit_xsd_ReagentPlateRowType_Reaction', pyxb.binding.datatypes.int, required=True)
-    __Reaction._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 158, 5)
-    __Reaction._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 158, 5)
+    __Reaction._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 158, 5)
+    __Reaction._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 158, 5)
     
     Reaction = property(__Reaction.value, __Reaction.set, None, None)
 
@@ -711,7 +712,7 @@ class SupplyKitSequencing (_ImportedBinding__pbbase.PartNumberType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'SupplyKitSequencing')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 21, 1)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 21, 1)
     _ElementMap = _ImportedBinding__pbbase.PartNumberType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.PartNumberType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.PartNumberType
@@ -723,28 +724,28 @@ class SupplyKitSequencing (_ImportedBinding__pbbase.PartNumberType):
     # Element Defaults ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Defaults) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}PartNumberType
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentAutomationName uses Python identifier ReagentAutomationName
-    __ReagentAutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName'), 'ReagentAutomationName', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdReagentAutomationName', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 28, 5), )
+    __ReagentAutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName'), 'ReagentAutomationName', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdReagentAutomationName', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 28, 5), )
 
     
     ReagentAutomationName = property(__ReagentAutomationName.value, __ReagentAutomationName.set, None, 'The reagent-mixing protocol used. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}ReagentTubes uses Python identifier ReagentTubes
-    __ReagentTubes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), 'ReagentTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdReagentTubes', True, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 33, 5), )
+    __ReagentTubes = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), 'ReagentTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdReagentTubes', True, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 33, 5), )
 
     
     ReagentTubes = property(__ReagentTubes.value, __ReagentTubes.set, None, "Tubes associated with the reagent kit - can have up to two; don't forget to set the location, 0 or 1")
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}SequencingChemistry uses Python identifier SequencingChemistry
-    __SequencingChemistry = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry'), 'SequencingChemistry', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdSequencingChemistry', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 38, 5), )
+    __SequencingChemistry = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry'), 'SequencingChemistry', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdSequencingChemistry', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 38, 5), )
 
     
     SequencingChemistry = property(__SequencingChemistry.value, __SequencingChemistry.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioReagentKit.xsd}SequencingKitDefinition uses Python identifier SequencingKitDefinition
-    __SequencingKitDefinition = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition'), 'SequencingKitDefinition', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdSequencingKitDefinition', False, pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 39, 5), )
+    __SequencingKitDefinition = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition'), 'SequencingKitDefinition', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_httppacificbiosciences_comPacBioReagentKit_xsdSequencingKitDefinition', False, pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 39, 5), )
 
     
     SequencingKitDefinition = property(__SequencingKitDefinition.value, __SequencingKitDefinition.set, None, None)
@@ -790,56 +791,56 @@ class SupplyKitSequencing (_ImportedBinding__pbbase.PartNumberType):
     
     # Attribute Location uses Python identifier Location
     __Location = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Location'), 'Location', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_Location', pyxb.binding.datatypes.int, unicode_default='0')
-    __Location._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 41, 4)
-    __Location._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 41, 4)
+    __Location._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 41, 4)
+    __Location._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 41, 4)
     
     Location = property(__Location.value, __Location.set, None, 'The location of the supply kit - for a reagent plate, it could be 0 or 1, and for a tube it could be 0 or 1')
 
     
     # Attribute MaxCollections uses Python identifier MaxCollections
     __MaxCollections = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'MaxCollections'), 'MaxCollections', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_MaxCollections', pyxb.binding.datatypes.int, unicode_default='8')
-    __MaxCollections._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 46, 4)
-    __MaxCollections._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 46, 4)
+    __MaxCollections._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 46, 4)
+    __MaxCollections._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 46, 4)
     
     MaxCollections = property(__MaxCollections.value, __MaxCollections.set, None, 'The number of collections this supply kit is capable of')
 
     
     # Attribute ActiveHours uses Python identifier ActiveHours
     __ActiveHours = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ActiveHours'), 'ActiveHours', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_ActiveHours', pyxb.binding.datatypes.double, unicode_default='0')
-    __ActiveHours._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 51, 4)
-    __ActiveHours._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 51, 4)
+    __ActiveHours._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 51, 4)
+    __ActiveHours._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 51, 4)
     
     ActiveHours = property(__ActiveHours.value, __ActiveHours.set, None, 'The number of hours that the kit has been active (i.e. hours since first opened)')
 
     
     # Attribute ActiveHoursLimit uses Python identifier ActiveHoursLimit
     __ActiveHoursLimit = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'ActiveHoursLimit'), 'ActiveHoursLimit', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_ActiveHoursLimit', pyxb.binding.datatypes.int, unicode_default='0')
-    __ActiveHoursLimit._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 56, 4)
-    __ActiveHoursLimit._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 56, 4)
+    __ActiveHoursLimit._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 56, 4)
+    __ActiveHoursLimit._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 56, 4)
     
     ActiveHoursLimit = property(__ActiveHoursLimit.value, __ActiveHoursLimit.set, None, 'The limit on the number of hours after opening that a kit can be used')
 
     
     # Attribute MaxRunHours uses Python identifier MaxRunHours
     __MaxRunHours = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'MaxRunHours'), 'MaxRunHours', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_MaxRunHours', pyxb.binding.datatypes.double, unicode_default='-1')
-    __MaxRunHours._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 61, 8)
-    __MaxRunHours._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 61, 8)
+    __MaxRunHours._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 61, 8)
+    __MaxRunHours._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 61, 8)
     
     MaxRunHours = property(__MaxRunHours.value, __MaxRunHours.set, None, 'The maximum run hours for a run using this this kit.  A negative value indicates unlimited run time.')
 
     
     # Attribute NumOilTubes uses Python identifier NumOilTubes
     __NumOilTubes = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'NumOilTubes'), 'NumOilTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_NumOilTubes', pyxb.binding.datatypes.int, unicode_default='1')
-    __NumOilTubes._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 66, 8)
-    __NumOilTubes._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 66, 8)
+    __NumOilTubes._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 66, 8)
+    __NumOilTubes._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 66, 8)
     
     NumOilTubes = property(__NumOilTubes.value, __NumOilTubes.set, None, 'The number of oil tubes required to support this sequencing kit.')
 
     
     # Attribute NumOseTubes uses Python identifier NumOseTubes
     __NumOseTubes = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'NumOseTubes'), 'NumOseTubes', '__httppacificbiosciences_comPacBioReagentKit_xsd_SupplyKitSequencing_NumOseTubes', pyxb.binding.datatypes.int, unicode_default='1')
-    __NumOseTubes._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 71, 5)
-    __NumOseTubes._UseLocation = pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 71, 5)
+    __NumOseTubes._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 71, 5)
+    __NumOseTubes._UseLocation = pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 71, 5)
     
     NumOseTubes = property(__NumOseTubes.value, __NumOseTubes.set, None, 'The number of os enzyme tubes required to support this sequencing kit.')
 
@@ -861,24 +862,24 @@ class SupplyKitSequencing (_ImportedBinding__pbbase.PartNumberType):
 Namespace.addCategoryObject('typeBinding', 'SupplyKitSequencing', SupplyKitSequencing)
 
 
-PacBioReagentKit = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PacBioReagentKit'), CTD_ANON, documentation='The root element of the reagent kit standalone file', location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 7, 1))
+PacBioReagentKit = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PacBioReagentKit'), CTD_ANON, documentation='The root element of the reagent kit standalone file', location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 7, 1))
 Namespace.addCategoryObject('elementBinding', PacBioReagentKit.name().localName(), PacBioReagentKit)
 
-Reagent = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), ReagentType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 17, 1))
+Reagent = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), ReagentType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 17, 1))
 Namespace.addCategoryObject('elementBinding', Reagent.name().localName(), Reagent)
 
-ReagentKit = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 18, 1))
+ReagentKit = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 18, 1))
 Namespace.addCategoryObject('elementBinding', ReagentKit.name().localName(), ReagentKit)
 
-ReagentTube = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), ReagentTubeType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 19, 1))
+ReagentTube = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), ReagentTubeType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 19, 1))
 Namespace.addCategoryObject('elementBinding', ReagentTube.name().localName(), ReagentTube)
 
-ReagentPlateRow = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), ReagentPlateRowType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 20, 1))
+ReagentPlateRow = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), ReagentPlateRowType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 20, 1))
 Namespace.addCategoryObject('elementBinding', ReagentPlateRow.name().localName(), ReagentPlateRow)
 
 
 
-CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), ReagentKitType, scope=CTD_ANON, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 18, 1)))
+CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit'), ReagentKitType, scope=CTD_ANON, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 18, 1)))
 
 def _BuildAutomaton ():
     # Remove this helper function from the namespace after it is invoked
@@ -889,7 +890,7 @@ def _BuildAutomaton ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 13, 4))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentKit')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 13, 4))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -900,7 +901,7 @@ CTD_ANON._Automaton = _BuildAutomaton()
 
 
 
-CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), ReagentType, scope=CTD_ANON_, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 17, 1)))
+CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagent'), ReagentType, scope=CTD_ANON_, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 17, 1)))
 
 def _BuildAutomaton_ ():
     # Remove this helper function from the namespace after it is invoked
@@ -911,7 +912,7 @@ def _BuildAutomaton_ ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Reagent')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 98, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Reagent')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 98, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -924,7 +925,7 @@ CTD_ANON_._Automaton = _BuildAutomaton_()
 
 
 
-CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), ReagentTubeType, scope=CTD_ANON_2, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 19, 1)))
+CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube'), ReagentTubeType, scope=CTD_ANON_2, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 19, 1)))
 
 def _BuildAutomaton_2 ():
     # Remove this helper function from the namespace after it is invoked
@@ -935,7 +936,7 @@ def _BuildAutomaton_2 ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 105, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTube')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 105, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -948,7 +949,7 @@ CTD_ANON_2._Automaton = _BuildAutomaton_2()
 
 
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), ReagentPlateRowType, scope=CTD_ANON_3, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 20, 1)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow'), ReagentPlateRowType, scope=CTD_ANON_3, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 20, 1)))
 
 def _BuildAutomaton_3 ():
     # Remove this helper function from the namespace after it is invoked
@@ -959,7 +960,7 @@ def _BuildAutomaton_3 ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 112, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRow')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 112, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -972,7 +973,7 @@ CTD_ANON_3._Automaton = _BuildAutomaton_3()
 
 
 
-CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automation'), _ImportedBinding__pbbase.AutomationType, scope=CTD_ANON_4, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 124, 8)))
+CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automation'), _ImportedBinding__pbbase.AutomationType, scope=CTD_ANON_4, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 124, 8)))
 
 def _BuildAutomaton_4 ():
     # Remove this helper function from the namespace after it is invoked
@@ -983,7 +984,7 @@ def _BuildAutomaton_4 ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automation')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 124, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automation')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 124, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1003,12 +1004,12 @@ def _BuildAutomaton_5 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(ReagentType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    symbol = pyxb.binding.content.ElementUse(ReagentType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1021,17 +1022,17 @@ ReagentType._Automaton = _BuildAutomaton_5()
 
 
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig'), _ImportedBinding__pbbase.SequencingChemistryConfig, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 1021, 1)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig'), _ImportedBinding__pbbase.SequencingChemistryConfig, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 1021, 1)))
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults'), _ImportedBinding__pbbase.DefaultsType, nillable=pyxb.binding.datatypes.boolean(1), scope=ReagentKitType, documentation='Default paramaters and filters which may be applied to PartNumber types in order to constrain them via parameterization', location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 1022, 4)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults'), _ImportedBinding__pbbase.DefaultsType, nillable=pyxb.binding.datatypes.boolean(1), scope=ReagentKitType, documentation='Default paramaters and filters which may be applied to PartNumber types in order to constrain them via parameterization', location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 1022, 4)))
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagents'), CTD_ANON_, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 95, 5)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Reagents'), CTD_ANON_, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 95, 5)))
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), CTD_ANON_2, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 102, 5)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), CTD_ANON_2, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 102, 5)))
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows'), CTD_ANON_3, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 109, 5)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows'), CTD_ANON_3, scope=ReagentKitType, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 109, 5)))
 
-ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automations'), CTD_ANON_4, nillable=pyxb.binding.datatypes.boolean(1), scope=ReagentKitType, documentation='Automations that are deemed compatible with this kit.  Parameters specified within an automation will override a parameter with the same name and data type specified in the above Defaults section', location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 118, 5)))
+ReagentKitType._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automations'), CTD_ANON_4, nillable=pyxb.binding.datatypes.boolean(1), scope=ReagentKitType, documentation='Automations that are deemed compatible with this kit.  Parameters specified within an automation will override a parameter with the same name and data type specified in the above Defaults section', location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 118, 5)))
 
 def _BuildAutomaton_6 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1040,41 +1041,41 @@ def _BuildAutomaton_6 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 117, 5))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 117, 5))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 118, 5))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 118, 5))
     counters.add(cc_2)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Reagents')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 95, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Reagents')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 95, 5))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 102, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 102, 5))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 109, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentPlateRows')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 109, 5))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 116, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'ChemistryConfig')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 116, 5))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 117, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 117, 5))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_2, False))
-    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automations')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 118, 5))
+    symbol = pyxb.binding.content.ElementUse(ReagentKitType._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automations')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 118, 5))
     st_6 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     transitions = []
@@ -1124,12 +1125,12 @@ def _BuildAutomaton_7 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(ReagentTubeType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    symbol = pyxb.binding.content.ElementUse(ReagentTubeType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1149,12 +1150,12 @@ def _BuildAutomaton_8 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(ReagentPlateRowType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    symbol = pyxb.binding.content.ElementUse(ReagentPlateRowType._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1167,13 +1168,13 @@ ReagentPlateRowType._Automaton = _BuildAutomaton_8()
 
 
 
-SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName'), pyxb.binding.datatypes.string, scope=SupplyKitSequencing, documentation='The reagent-mixing protocol used. ', location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 28, 5)))
+SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName'), pyxb.binding.datatypes.string, scope=SupplyKitSequencing, documentation='The reagent-mixing protocol used. ', location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 28, 5)))
 
-SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), SupplyKitSequencing, scope=SupplyKitSequencing, documentation="Tubes associated with the reagent kit - can have up to two; don't forget to set the location, 0 or 1", location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 33, 5)))
+SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes'), SupplyKitSequencing, scope=SupplyKitSequencing, documentation="Tubes associated with the reagent kit - can have up to two; don't forget to set the location, 0 or 1", location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 33, 5)))
 
-SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry'), _ImportedBinding__pbbase.SequencingChemistry, scope=SupplyKitSequencing, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 38, 5)))
+SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry'), _ImportedBinding__pbbase.SequencingChemistry, scope=SupplyKitSequencing, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 38, 5)))
 
-SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition'), ReagentKitType, scope=SupplyKitSequencing, location=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 39, 5)))
+SupplyKitSequencing._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition'), ReagentKitType, scope=SupplyKitSequencing, location=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 39, 5)))
 
 def _BuildAutomaton_9 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1182,54 +1183,54 @@ def _BuildAutomaton_9 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 206, 5))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 206, 5))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 452, 5))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 452, 5))
     counters.add(cc_2)
-    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 28, 5))
+    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 28, 5))
     counters.add(cc_3)
-    cc_4 = fac.CounterCondition(min=0, max=2, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 33, 5))
+    cc_4 = fac.CounterCondition(min=0, max=2, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 33, 5))
     counters.add(cc_4)
-    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 38, 5))
+    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 38, 5))
     counters.add(cc_5)
-    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 39, 5))
+    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 39, 5))
     counters.add(cc_6)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 98, 3))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 98, 3))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'CheckSum')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 206, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'CheckSum')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 206, 5))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_2, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioBaseDataModel.xsd', 452, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Defaults')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioBaseDataModel.xsd', 452, 5))
     st_2 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_3, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 28, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentAutomationName')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 28, 5))
     st_3 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_4, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 33, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ReagentTubes')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 33, 5))
     st_4 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_5, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 38, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingChemistry')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 38, 5))
     st_5 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_6, False))
-    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition')), pyxb.utils.utility.Location('/tmp/tmp_Hqn8Lxsds/PacBioReagentKit.xsd', 39, 5))
+    symbol = pyxb.binding.content.ElementUse(SupplyKitSequencing._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitDefinition')), pyxb.utils.utility.Location('/tmp/tmpW0tI7dxsds/PacBioReagentKit.xsd', 39, 5))
     st_6 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     transitions = []
