@@ -32,6 +32,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     exclude_package_data={'pbcore.data': ['Makefile']},
+    zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
     install_requires=[
         'numpy >= 1.7.1',
