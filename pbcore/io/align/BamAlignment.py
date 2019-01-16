@@ -323,10 +323,10 @@ class BamAlignment(AlignmentRecordMixin):
         """
         uc = self.unrolledCigar(orientation)
         #                                    MIDNSHP=X
-        _exoneratePlusTrans = np.fromstring("Z  ZZZZ|*", dtype=np.int8)
-        _exonerateTrans     = np.fromstring("Z  ZZZZ| ", dtype=np.int8)
-        _cigarTrans         = np.fromstring("ZIDZZZZMM", dtype=np.int8)
-        _gusfieldTrans      = np.fromstring("ZIDZZZZMR", dtype=np.int8)
+        _exoneratePlusTrans = np.frombuffer("Z  ZZZZ|*", dtype=np.int8)
+        _exonerateTrans     = np.frombuffer("Z  ZZZZ| ", dtype=np.int8)
+        _cigarTrans         = np.frombuffer("ZIDZZZZMM", dtype=np.int8)
+        _gusfieldTrans      = np.frombuffer("ZIDZZZZMR", dtype=np.int8)
 
         if   style == "exonerate+": return _exoneratePlusTrans [uc].tostring()
         elif style == "exonerate":  return _exonerateTrans     [uc].tostring()
@@ -342,7 +342,7 @@ class BamAlignment(AlignmentRecordMixin):
         shouldRC = orientation == "native" and self.isReverseStrand
         tSeqOriented = reverseComplement(tSeq) if shouldRC else tSeq
         if aligned:
-            x = np.fromstring(tSeqOriented, dtype=np.int8)
+            x = np.frombuffer(tSeqOriented, dtype=np.int8)
             y = self._gapifyRef(x, orientation)
             return y.tostring()
         else:
@@ -459,7 +459,7 @@ class BamAlignment(AlignmentRecordMixin):
 
         # 2. Decode
         if kind_ == "qv":
-            data -= 33
+            data -= 33 # Because of this, we cannot use frombuffer() instead of fromstring() above.
         elif kind_ == "codecV1":
             data = codeToFrames(data)
 
@@ -526,7 +526,7 @@ class BamAlignment(AlignmentRecordMixin):
         seq = self.peer.seq
         if seq is None:
             seq = ''
-        data = np.fromstring(seq, dtype=np.int8)
+        data = np.frombuffer(seq, dtype=np.int8)
         if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd

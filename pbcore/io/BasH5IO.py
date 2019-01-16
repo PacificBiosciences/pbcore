@@ -281,7 +281,10 @@ def _makeOffsetsDataStructure(h5Group):
 def _makeRegionTableIndex(regionTableHoleNumbers):
     #  returns a dict: holeNumber -> (startRow, endRow)
     diffs = np.ediff1d(regionTableHoleNumbers,
-                       to_begin=[1], to_end=[1])
+                       to_begin=np.array([1],
+                                         dtype=regionTableHoleNumbers.dtype),
+                       to_end=np.array([1],
+                                       dtype=regionTableHoleNumbers.dtype))
     changepoints = np.flatnonzero(diffs)
     startsAndEnds = zip(changepoints[:-1],
                         changepoints[1:])

@@ -2723,7 +2723,7 @@ class SubreadSet(ReadSet):
         import warnings
         warnings.warn("SubreadSet.getMovieSampleNames is deprecated, " +
                       "use DataSet.metadata.getMovieSampleNames instead.")
-        return self.metadata.getMovieSampleNames()
+        return self.metadata.getMovieSampleNames()  # pylint: disable=no-member
 
 
 class AlignmentSet(ReadSet):

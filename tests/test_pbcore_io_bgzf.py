@@ -12,9 +12,6 @@ from pbcore.io.align._bgzf import BgzfReader, BgzfWriter
 
 class TestBgzf(object):
 
-    def __init__(self):
-        pass
-
     def roundTripData(self, size, sizeToRead=None):
         if sizeToRead is None: sizeToRead = size
         data = (np.sin(np.arange(size))*100).astype(np.int8).tostring()

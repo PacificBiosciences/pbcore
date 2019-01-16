@@ -224,7 +224,7 @@ class FastqWriter(WriterBase):
 ## Utility
 ##
 def qvsFromAscii(s):
-    return (np.fromstring(s, dtype=np.uint8) - 33)
+    return (np.frombuffer(s, dtype=np.uint8) - 33)
 
 def asciiFromQvs(a):
     return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()

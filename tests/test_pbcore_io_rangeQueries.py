@@ -42,7 +42,7 @@ def brute_force_reads_in_range(rangeStart, rangeEnd, tStart, tEnd):
     return flatnonzero(mask)
 
 class TestGetReadsInRange(object):
-    def __init__(self):
+    def setup_class(self):
         self.h5FileName = data.getCmpH5()
         self.cmpH5 = CmpH5Reader(self.h5FileName)
 

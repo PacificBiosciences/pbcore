@@ -11,7 +11,7 @@ class TestPbIndex(unittest.TestCase):
     BAM_FILE_NAME = pbcore.data.getUnalignedBam()
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls._bam = BamReader(cls.BAM_FILE_NAME)
         cls._pbi = PacBioBamIndex(cls.BAM_FILE_NAME + ".pbi")
 

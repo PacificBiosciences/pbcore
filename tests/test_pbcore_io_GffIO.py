@@ -137,7 +137,7 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
     ]
 
     @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         cls.files = []
         cls.combined = "tmp_pbcore_all.gff"
         with open(cls.combined, "w") as f_all:
@@ -154,7 +154,7 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
                         f_all.write(line+"\n")
 
     @classmethod
-    def tearDownClass(cls):
+    def teardown_class(cls):
         for file_name in cls.files:
             if os.path.exists(file_name):
                 os.remove(file_name)

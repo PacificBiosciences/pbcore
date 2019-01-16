@@ -66,7 +66,7 @@ _baseEncodingToInt[0b1111] = 5  # 'N' base
 # These are 2D tables indexed by (readInt, refInt)
 # 'N' base is never considered a mismatch.
 _gusfieldTranscriptTable = \
-    np.fromstring("ZDDDDDZ"
+    np.frombuffer("ZDDDDDZ"
                   "IMRRRMZ"
                   "IRMRRMZ"
                   "IRRMRMZ"
@@ -74,7 +74,7 @@ _gusfieldTranscriptTable = \
                   "IMMMMMZ"
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _cigarTranscriptTable = \
-    np.fromstring("ZDDDDDZ"
+    np.frombuffer("ZDDDDDZ"
                   "IMMMMMZ"
                   "IMMMMMZ"
                   "IMMMMMZ"
@@ -82,7 +82,7 @@ _cigarTranscriptTable = \
                   "IMMMMMZ"
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _exonerateTranscriptTable = \
-    np.fromstring("Z     Z"
+    np.frombuffer("Z     Z"
                   " |   |Z"
                   "  |  |Z"
                   "   | |Z"
@@ -90,7 +90,7 @@ _exonerateTranscriptTable = \
                   " |||||Z"
                   "ZZZZZZZ", dtype=np.uint8).reshape(7, 7)
 _exoneratePlusTranscriptTable = \
-    np.fromstring("Z     Z"
+    np.frombuffer("Z     Z"
                   " |***|Z"
                   " *|**|Z"
                   " **|*|Z"
@@ -353,8 +353,8 @@ class CmpH5Alignment(AlignmentRecordMixin):
 
         .. doctest::
 
-            >>> c[26].identity
-            0.87050359712230219
+            >>> round(c[26].identity, 4)
+            0.8705
         """
         if self.readLength == 0:
             return 0.

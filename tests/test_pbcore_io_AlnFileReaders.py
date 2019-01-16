@@ -38,7 +38,7 @@ class _BasicAlnFileReaderTests(object):
     CONSTRUCTOR_ARGS   = None
     BAX_FILE           = data.getBaxForBam()
 
-    def __init__(self):
+    def setup_class(self):
         self.f = self.READER_CONSTRUCTOR(*self.CONSTRUCTOR_ARGS)
         self.alns = list(self.f)
         self.fwdAln = self.alns[1]
@@ -462,7 +462,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
 
 
 class TestCCSBam(object):
-    def __init__(self):
+    def setup_class(self):
         self.f = BamReader(data.getCCSBAM())
 
     @SkipTest
@@ -481,7 +481,7 @@ class TestCCSBam(object):
 
 class TestTranscriptBam(object):
     BAM_FILE = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.bam"
-    def __init__(self):
+    def setup_class(self):
         if not op.isfile(self.BAM_FILE):
             raise SkipTest("Testdata not present")
         self.f = IndexedBamReader(self.BAM_FILE)
@@ -499,6 +499,8 @@ class TestEmptyBam(object):
             EQ(len(reads), 0)
 
 
+#@pytest.fixture(scope='class')
+
 class TestMultipleReadGroups(object):
     """
     Verify that BAM files with multiple read groups are handled sensibly - see
@@ -512,8 +514,7 @@ class TestMultipleReadGroups(object):
 movie1/54130/0_10\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t2\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:3f58e5b8\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:10\tqs:i:0\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2
 m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:b5482b33\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:20\tqs:i:10\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2"""
 
-    @classmethod
-    def setUpClass(cls):
+    def setup_class(cls):
         f1 = tempfile.NamedTemporaryFile(suffix=".sam").name
         f2 = tempfile.NamedTemporaryFile(suffix=".bam").name
         with open(f1, "w") as f:
@@ -522,18 +523,18 @@ m140906_231018_42161_c100676332550000001823129611271486_s1_p0/1/10_20\t2\tecoliK
             with AlignmentFile(f2, 'wb', template=sam_in) as bam_out:
                 for aln in sam_in:
                     bam_out.write(aln)
-        cls._bam_file = f2
+        cls.bam_file = f2
 
     def test_retrieve_read_group_properties(self):
         movie_names = []
-        with BamReader(self._bam_file) as bam_in:
+        with BamReader(self.bam_file) as bam_in:
             for aln in bam_in:
                 EQ(aln.sequencingChemistry, "P6-C4")
             movie_names.extend([rg.MovieName for rg in bam_in.readGroupTable])
         EQ(movie_names, ['movie1', 'm140906_231018_42161_c100676332550000001823129611271486_s1_p0'])
 
     def test_sample_names(self):
-        with BamReader(self._bam_file) as bam:
+        with BamReader(self.bam_file) as bam:
             samples = {rg.MovieName:rg.SampleName for rg in bam.readGroupTable}
             EQ(samples, {
                 "movie1": "test_sample1",
