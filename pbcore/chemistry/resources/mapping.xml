@@ -409,4 +409,12 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- // 5.0.1 ChemRel; Sequel® Binding Kit 3.0; Sequel® Sequencing Plate (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P3-C1/5.0-8M</SequencingChemistry>
+    <BindingKit>101-490-800</BindingKit>
+    <SequencingKit>101-717-100</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
