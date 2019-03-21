@@ -44,6 +44,20 @@ skip_if_no_pbtestdata = unittest.skipUnless(pbtestdata is not None,
 
 log = logging.getLogger(__name__)
 
+
+def twodots(fn):
+    """For a unit-test.
+
+    .. doctest::
+        >>> twodots('foo.subreadset.xml')
+        '.subreadset.xml'
+    """
+    bn = os.path.basename(fn)
+    dot0 = bn.rfind('.')
+    dot1 = bn.rfind('.', 0, dot0)
+    return bn[dot1:]
+
+
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
@@ -734,6 +748,27 @@ class TestDataSet(unittest.TestCase):
             else:
                 ds = openDataSet(infn, strict=False)
             self.assertEqual(type(ds), exp)
+
+    def test_factory_function_on_symlink(self):
+        # same as test_factory_function(), but symlinked
+        aln = data.getXml(8)
+        ref = data.getXml(9)
+        sub = data.getXml(10)
+        inTypes = [aln, ref, sub]
+        expTypes = [AlignmentSet, ReferenceSet, SubreadSet]
+        for infn, exp in zip(inTypes, expTypes):
+            linfn = 'foo' + twodots(infn)
+            if os.path.lexists(linfn):
+                os.remove(linfn)
+            os.symlink(infn, linfn)
+            assert os.path.islink(linfn)
+            del infn
+            if exp in [ReferenceSet, AlignmentSet]:
+                ds = openDataSet(linfn, strict=True)
+            else:
+                ds = openDataSet(linfn, strict=False)
+            self.assertEqual(type(ds), exp)
+            os.remove(linfn)
 
     def test_openDataSet_unicode(self):
         # Test to see if we can't open a unicode filename
