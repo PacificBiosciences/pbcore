@@ -14,16 +14,7 @@ from pbcore.io.dataset.DataSetMembers import (Filters, recordMembership,
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import _pbtestdata, _check_constools, _internal_data
-
-try:
-    import h5py
-except ImportError:
-    h5py = None
-
-skip_if_no_h5py = unittest.skipUnless(h5py is not None, "h5py not installed")
-skip_if_no_internal_data = unittest.skipIf(not _internal_data(),
-                                           "Internal data not available")
+from utils import skip_if_no_h5py, skip_if_no_internal_data
 
 log = logging.getLogger(__name__)
 
