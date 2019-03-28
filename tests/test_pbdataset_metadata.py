@@ -12,7 +12,7 @@ from pbcore.io.dataset.DataSetMembers import CollectionMetadata
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateFile
 
-from utils import _pbtestdata, _check_constools, _internal_data
+from utils import skip_if_no_internal_data
 
 log = logging.getLogger(__name__)
 
@@ -25,15 +25,12 @@ class TestDataSet(unittest.TestCase):
         # check that we aren't adding any additional biosamples elements:
         self.assertEqual(
             Counter(
-                ds.metadata.collections[0].wellSample.tags)['BioSamples'],
+                ds.metadata.tags)['BioSamples'],
             1)
-        self.assertEqual(
-            ds.metadata.collections[0].wellSample.bioSamples[0].name,
-            'consectetur purus')
+        self.assertEqual(ds.metadata.bioSamples[0].name, 'consectetur purus')
 
         self.assertEqual(
-            ds.metadata.collections[
-                0].wellSample.bioSamples[0].DNABarcodes[0].name,
+            ds.metadata.bioSamples[0].DNABarcodes[0].name,
             'F1--R1')
 
         self.assertTrue(ds.metadata.collections[0].getV('children',
@@ -85,34 +82,25 @@ class TestDataSet(unittest.TestCase):
 
         # There are no existing biosamples:
         self.assertFalse(
-            'BioSamples' in ss.metadata.collections[0].wellSample.tags)
+            'BioSamples' in ss.metadata.tags)
         # Therefore the metadata is falsy
-        self.assertFalse(ss.metadata.collections[0].wellSample.bioSamples)
+        self.assertFalse(ss.metadata.bioSamples)
 
-        ss.metadata.collections[0].wellSample.bioSamples.addSample('Clown')
-        self.assertEqual(
-            'Clown',
-            ss.metadata.collections[0].wellSample.bioSamples[0].name)
+        ss.metadata.bioSamples.addSample('Clown')
+        self.assertEqual('Clown', ss.metadata.bioSamples[0].name)
 
-        ss.metadata.collections[
-                0].wellSample.bioSamples[0].DNABarcodes.addBarcode('Dentist')
-        self.assertEqual(
-            'Dentist',
-            ss.metadata.collections[
-                0].wellSample.bioSamples[0].DNABarcodes[0].name)
+        ss.metadata.bioSamples[0].DNABarcodes.addBarcode('Dentist')
+        self.assertEqual('Dentist',
+                         ss.metadata.bioSamples[0].DNABarcodes[0].name)
 
         # check that we are adding one additional biosamples element:
-        self.assertEqual(
-            Counter(
-                ss.metadata.collections[0].wellSample.tags)['BioSamples'],
-            1)
+        self.assertEqual(Counter(ss.metadata.tags)['BioSamples'], 1)
         # Therefore the metadata is truthy
-        self.assertTrue(ss.metadata.collections[0].wellSample.bioSamples)
+        self.assertTrue(ss.metadata.bioSamples)
         ss.write(ofn, validate=False)
 
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_loadMetadata(self):
         aln = AlignmentSet(data.getXml(no=8))
         self.assertFalse(aln.metadata.collections)

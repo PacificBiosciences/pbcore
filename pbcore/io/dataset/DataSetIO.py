@@ -37,6 +37,7 @@ from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
+                                              ReadSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
