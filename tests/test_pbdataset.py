@@ -795,6 +795,7 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_h5py
     def test_type_checking_h5(self):
+        bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
         HdfSubreadSet(bax, strict=True)
         with self.assertRaises(Exception):
             HdfSubreadSet(bam, strict=True)
