@@ -107,16 +107,37 @@ def map_val_or_vec(func, target):
     else:
         return func(target)
 
-def inNd(arrs1, arrs2):
-    if isinstance(arrs1, tuple):
-        # a tuple of numpy columns to check:
-        res = np.ones(len(arrs1[0]), dtype=np.bool_)
-        for a1, a2 in zip(arrs1, arrs2):
-            res &= np.in1d(a1, a2)
-        return res
-    else:
-        # just two numpy columns:
-        return np.in1d(arrs1, arrs2)
+def recordMembership(records, constraints):
+    # constraints might contain fewer columns than records, but you cannot skip
+    # columns. So we can slice the first columns of records to match
+    # constraints. Both are recarrays
+    subarrs1 = records[list(records.dtype.names[:len(constraints.dtype)])]
+    return np.in1d(subarrs1, constraints)
+
+def reccheck(records, qname_tables):
+    """Create a mask for those records present in qname_tables. qname_tables is
+    a dict of {numfields: recarray}, where each recarray contains records
+    that specify a means of passing the filter, e.g. a qname in a whitelist.
+    Qnames filters can be specified as partial qnames, however, e.g. just a
+    contextid and holenumber (you cannot skip fields, e.g. just holenumber).
+    We also want to allow people to mix partially and fully specified qnames
+    in the whitelist. Therefore we have different tables for different
+    lengths (so we can use np.in1d, which operates on recarrays quite nicely)
+    """
+    mask = np.zeros(len(records), dtype=bool)
+    for table in qname_tables.values():
+        mask |= recordMembership(records, table)
+    return mask
+
+def inOp(ar1, ar2):
+    # Special case: ar2 can be a dictionary of {num_fields: qname_recarray},
+    # and we should take the qname filtering branch
+    if isinstance(ar2, dict):
+        return reccheck(ar1, ar2)
+    assert isinstance(ar1, (np.ndarray, list, tuple))
+    assert isinstance(ar2, (np.ndarray, list, tuple))
+    return np.in1d(ar1, ar2)
+
 
 OPMAP = {'==': OP.eq,
          '=': OP.eq,
@@ -135,8 +156,8 @@ OPMAP = {'==': OP.eq,
          '<': OP.lt,
          '&lt;': OP.lt,
          'lt': OP.lt,
-         'in': inNd,
-         'not_in': lambda x, y: ~inNd(x, y),
+         'in': inOp,
+         'not_in': lambda x, y: ~inOp(x, y),
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
         }
@@ -217,10 +238,36 @@ def breakqname(qname):
             tbr.append(int(span[1]))
     return tbr
 
-def qname2vec(qnames):
+def qname2vec(qnames, movie_map):
+    """Break a list of qname strings into a list of qname field tuples"""
     if isinstance(qnames, str):
         qnames = [qnames]
-    return zip(*[breakqname(q) for q in qnames])
+    sizes = defaultdict(list)
+    for qname in qnames:
+        parts = breakqname(qname)
+        parts[0] = movie_map[parts[0]]
+        sizes[len(parts)].append(tuple(parts))
+    return sizes
+
+def qnames2recarrays_by_size(qnames, movie_map, dtype):
+    """Note that qname filters can be specified as partial qnames. Therefore we
+    return a recarray for each size in qnames, in a dictionary
+    """
+    records_by_size = qname2vec(qnames, movie_map)
+    if len(records_by_size) == 0:
+        return records_by_size
+    tbr = {}
+    for size, records in records_by_size.iteritems():
+        # recarray dtypes are a little hairier, we'll give normal (or manual)
+        # dtypes an out:
+        if isinstance(dtype, list):
+            dtype_buildup = dtype[:size]
+        else:
+            dtype_buildup = []
+            for i in range(size):
+                dtype_buildup.append((dtype.names[i], dtype[i]))
+        tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
+    return tbr
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -723,8 +770,8 @@ class Filters(RecordWrapper):
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
-                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
-                                              x.qEnd)),
+                'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
+                                      'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
@@ -759,8 +806,8 @@ class Filters(RecordWrapper):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
-                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
-                                              x.qEnd)),
+                'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
+                                      'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -842,8 +889,6 @@ class Filters(RecordWrapper):
                 accMap = self._pbiMappedVecAccMap()
                 if 'RefGroupID' in indexRecords.dtype.names:
                     accMap['rname'] = (lambda x: x.RefGroupID)
-            accMap['qname'] = P(accMap['qname'],
-                                {v:k for k, v in movieMap.items()})
             # check for hdf resources:
             if 'MovieID' in indexRecords.dtype.names:
                 # TODO(mdsmith)(2016-01-29) remove these once the fields are
@@ -893,7 +938,10 @@ class Filters(RecordWrapper):
                     elif param == 'movie':
                         value = map_val_or_vec(movieMap.get, value)
                     elif param == 'qname':
-                        value = qname2vec(value)
+                        value = qnames2recarrays_by_size(
+                                value, movieMap,
+                                dtype=indexRecords[['qId', 'holeNumber',
+                                                    'qStart', 'qEnd']].dtype)
 
                     if param == 'bc':
                         # convert string to list:
