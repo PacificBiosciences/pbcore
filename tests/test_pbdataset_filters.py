@@ -9,7 +9,8 @@ import numpy as np
 
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        ConsensusReadSet)
-from pbcore.io.dataset.DataSetMembers import Filters
+from pbcore.io.dataset.DataSetMembers import (Filters, recordMembership,
+                                              qnames2recarrays_by_size)
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
@@ -318,6 +319,56 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.refNames)), 1)
         self.assertEqual(len(list(ds2.records)), 1)
         self.assertEqual(len(list(ds2.records)), len(ds2.index))
+
+    def test_recordMembership(self):
+        # This dtype doesn't have to be exactly realistic, just internally
+        # consistent for the test:
+        dtype = [('qId', long), ('holenumber', long), ('qStart', long),
+                 ('qEnd', long)]
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0/10_20', 'c1/1/0_10']
+        blacklist = ['c1/1/0_10']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[4]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[4]
+
+        self.assertEqual(np.count_nonzero(recordMembership(records, whitelist)), 2)
+        self.assertEqual(np.count_nonzero(recordMembership(records, blacklist)), 1)
+        self.assertEqual(np.count_nonzero(~recordMembership(records, blacklist)), 3)
+
+        # test partial qnames
+
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0']
+        blacklist = ['c1/1']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[2]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[2]
+
+        self.assertEqual(np.count_nonzero(recordMembership(records, whitelist)), 2)
+        self.assertEqual(np.count_nonzero(recordMembership(records, blacklist)), 2)
+        self.assertEqual(np.count_nonzero(~recordMembership(records, blacklist)), 2)
+
+        # test a mix of partial qnames
+
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0', 'c1/1/0_10']
+        blacklist = ['c1/0/0_10', 'c1/1']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)
+
+        whitelist_mask = recordMembership(records, whitelist[2])
+        blacklist_mask = recordMembership(records, blacklist[2])
+        whitelist_mask |= recordMembership(records, whitelist[4])
+        blacklist_mask |= recordMembership(records, blacklist[4])
+
+        self.assertEqual(np.count_nonzero(whitelist_mask), 3)
+        self.assertEqual(np.count_nonzero(blacklist_mask), 3)
+        self.assertEqual(np.count_nonzero(~blacklist_mask), 1)
 
     def test_file_arg(self):
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
