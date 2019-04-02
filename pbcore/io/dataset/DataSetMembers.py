@@ -1765,7 +1765,51 @@ class DataSetMetadata(RecordWrapper):
         self._runCallbacks()
 
 
-class SubreadSetMetadata(DataSetMetadata):
+class BioSamplesMetadata(RecordWrapper):
+    """The metadata for the list of BioSamples
+
+        Doctest:
+            >>> from __future__ import print_function
+            >>> from pbcore.io import SubreadSet
+            >>> import pbcore.data.datasets as data
+            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
+            >>> ds.metadata.bioSamples[0].name
+            'consectetur purus'
+            >>> for bs in ds.metadata.bioSamples:
+            ...     print(bs.name)
+            consectetur purus
+            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
+            ...       'attrib':{'Name':'great biosample'}}
+            >>> ds.metadata.bioSamples.append(em)
+            >>> ds.metadata.bioSamples[1].name
+            'great biosample'
+        """
+
+    TAG = 'BioSamples'
+    NS = 'pbsample'
+
+    def __getitem__(self, index):
+        """Get a biosample"""
+        return BioSampleMetadata(self.record['children'][index])
+
+    def __iter__(self):
+        """Iterate over biosamples"""
+        for child in self.record['children']:
+            yield BioSampleMetadata(child)
+
+    def addSample(self, name):
+        new = BioSampleMetadata()
+        new.name = name
+        self.append(new)
+        self._runCallbacks()
+
+
+class ReadSetMetadata(DataSetMetadata):
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
+                      parent=True)
+
+
+class SubreadSetMetadata(ReadSetMetadata):
     """The DataSetMetadata subtype specific to SubreadSets. Deals explicitly
     with the merging of Collections metadata hierarchies."""
 
@@ -1803,29 +1847,6 @@ class SubreadSetMetadata(DataSetMetadata):
         self.removeChildren('Collections')
         if value:
             self.append(value)
-
-    def getMovieSampleNames(self):
-        """
-        Map the BioSample names in metadata Collection to "context" ID, i.e.
-        movie names.  Used for deconvoluting multi-sample
-        inputs.  This function will raise a KeyError if a movie name is not
-        unique, or a ValueError if there is not a 1-to-1 mapping of sample to
-        to movie.
-        """
-        movie_to_sample = {}
-        for collection in self.collections:
-            bio_samples = [b.name for b in collection.wellSample.bioSamples]
-            movie_name = collection.context
-            n_bio_samples = len(bio_samples)
-            if n_bio_samples == 1:
-                if movie_to_sample.get(movie_name, None) == bio_samples[0]:
-                    raise KeyError("Collection context {c} occurs more than once".format(c=movie_name))
-                movie_to_sample[movie_name] = bio_samples[0]
-            elif n_bio_samples == 0:
-                raise ValueError("No BioSample records for collection {c}".format(c=movie_name))
-            else:
-                raise ValueError("Collection {c} has multiple BioSample records".format(c=movie_name))
-        return movie_to_sample
 
 
 class ContigSetMetadata(DataSetMetadata):
@@ -2410,45 +2431,6 @@ class RunDetailsMetadata(RecordWrapper):
     name = subaccs('Name')
 
 
-class BioSamplesMetadata(RecordWrapper):
-    """The metadata for the list of BioSamples
-
-        Doctest:
-            >>> from __future__ import print_function
-            >>> from pbcore.io import SubreadSet
-            >>> import pbcore.data.datasets as data
-            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
-            >>> ds.metadata.collections[0].wellSample.bioSamples[0].name
-            'consectetur purus'
-            >>> for bs in ds.metadata.collections[0].wellSample.bioSamples:
-            ...     print(bs.name)
-            consectetur purus
-            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
-            ...       'attrib':{'Name':'great biosample'}}
-            >>> ds.metadata.collections[0].wellSample.bioSamples.append(em)
-            >>> ds.metadata.collections[0].wellSample.bioSamples[1].name
-            'great biosample'
-        """
-
-    TAG = 'BioSamples'
-    NS = 'pbsample'
-
-    def __getitem__(self, index):
-        """Get a biosample"""
-        return BioSampleMetadata(self.record['children'][index])
-
-    def __iter__(self):
-        """Iterate over biosamples"""
-        for child in self.record['children']:
-            yield BioSampleMetadata(child)
-
-    def addSample(self, name):
-        new = BioSampleMetadata()
-        new.name = name
-        self.append(new)
-        self._runCallbacks()
-
-
 class DNABarcode(RecordWrapper):
     TAG = 'DNABarcode'
     NS = 'pbsample'
@@ -2493,8 +2475,6 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
-                      parent=True)
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)

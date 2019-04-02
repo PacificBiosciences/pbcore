@@ -14,7 +14,7 @@ from pbcore.io.dataset.DataSetMembers import (Filters, recordMembership,
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import _pbtestdata, _check_constools, _internal_data
+from utils import skip_if_no_h5py, skip_if_no_internal_data
 
 log = logging.getLogger(__name__)
 
@@ -428,8 +428,7 @@ class TestDataSetFilters(unittest.TestCase):
             og.discard(r.holeNumber)
         self.assertEqual(len(og), 0)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_qname_css(self):
         fn = ('/pbi/dept/secondary/siv/testdata/ccs-unittest/'
               'tiny/little.ccs.bam')
@@ -486,8 +485,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(og), size)
 
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_qname_filter_scaling(self):
         # unaligned bam
         bam0 = ("/pbi/dept/secondary/siv/testdata/"
@@ -540,8 +538,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_movie_filter(self):
         # unaligned bam
         bam0 = ("/pbi/dept/secondary/siv/testdata/"
@@ -586,6 +583,9 @@ class TestDataSetFilters(unittest.TestCase):
             'm140913_005018_42139_c100713652400000001823152404301534_s1_p0')])
         self.assertEqual(len(AlignmentSet(bam1)), len(aln))
 
+    @skip_if_no_internal_data
+    @skip_if_no_h5py
+    def test_movie_filter_aligned_cmph5(self):
         # cmpH5
         cmp1 = upstreamdata.getBamAndCmpH5()[1]
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
@@ -741,6 +741,7 @@ class TestDataSetFilters(unittest.TestCase):
         ref.filters.addRequirement(length=[('>', '1450')])
         self.assertEqual(len(list(ref)), 34)
 
+    @skip_if_no_h5py
     def test_cmp_alignmentset_filters(self):
         aln = AlignmentSet(upstreamdata.getBamAndCmpH5()[1], strict=True)
         self.assertEqual(len(aln), 112)
