@@ -12,7 +12,7 @@ from pbcore.io.dataset.DataSetMembers import CollectionMetadata
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateFile
 
-from utils import skip_if_no_internal_data
+from utils import skip_if_no_internal_data, skip_if_no_pbtestdata
 
 log = logging.getLogger(__name__)
 
@@ -165,3 +165,28 @@ class TestDataSet(unittest.TestCase):
         sset = SubreadSet(sset_fn)
         sset.metadata.collections.merge(orig_metadata.collections, forceUnique=True)
         self.assertEqual(len(sset.metadata.collections), 1)
+
+    @skip_if_no_pbtestdata
+    def test_merge_biosamples(self):
+        import pbtestdata
+        ds1 = pbtestdata.get_file("subreads-biosample-1")
+        ds2 = pbtestdata.get_file("subreads-biosample-2")
+        # Case 1: two biosamples
+        ds = SubreadSet(ds1, ds2)
+        samples = [bs.name for bs in ds.metadata.bioSamples]
+        self.assertEqual(samples, ["Alice", "Bob"])
+        # Case 2: same biosample in both files
+        ds = SubreadSet(ds1, ds1)
+        samples = [bs.name for bs in ds.metadata.bioSamples]
+        self.assertEqual(samples, ["Alice"])
+        self.assertEqual(len(ds.metadata.bioSamples[0].DNABarcodes), 1)
+        # Case 3: same biosample, different barcodes
+        dsTmp = SubreadSet(ds1)
+        dsTmp.metadata.bioSamples[0].DNABarcodes[0].name = "F7--R7"
+        tmpFile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
+        dsTmp.write(tmpFile)
+        ds = SubreadSet(ds1, tmpFile)
+        samples = [bs.name for bs in ds.metadata.bioSamples]
+        self.assertEqual(samples, ["Alice"])
+        bcs = [bc.name for bc in ds.metadata.bioSamples[0].DNABarcodes]
+        self.assertEqual(bcs, ["F1--R1", "F7--R7"])

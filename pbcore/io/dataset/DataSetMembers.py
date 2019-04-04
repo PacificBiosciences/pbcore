@@ -1698,6 +1698,11 @@ class DataSetMetadata(RecordWrapper):
                 self.summaryStats.merge(other.summaryStats)
             else:
                 self.append(other.summaryStats)
+        if other.bioSamples:
+            if self.bioSamples:
+                self.bioSamples.merge(other.bioSamples)
+            else:
+                self.append(other.bioSamples)
         if not self.namespace:
             self.namespace = other.namespace
             self.attrib.update(other.attrib)
@@ -1802,6 +1807,20 @@ class BioSamplesMetadata(RecordWrapper):
         new.name = name
         self.append(new)
         self._runCallbacks()
+
+    def merge(self, other):
+        bio_samples = {bs.name:bs for bs in self}
+        for bio_sample in other:
+            if bio_sample.name in bio_samples:
+                current = bio_samples[bio_sample.name]
+                dna_bcs = {(bc.name, bc.uniqueId) for bc in current.DNABarcodes}
+                for dna_bc in bio_sample.DNABarcodes:
+                    if (dna_bc.name, dna_bc.uniqueId) in dna_bcs:
+                        continue
+                    else:
+                        current.DNABarcodes.append(dna_bc)
+            else:
+                self.append(bio_sample)
 
 
 class ReadSetMetadata(DataSetMetadata):
