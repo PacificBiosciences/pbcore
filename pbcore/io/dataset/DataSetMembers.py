@@ -1698,11 +1698,6 @@ class DataSetMetadata(RecordWrapper):
                 self.summaryStats.merge(other.summaryStats)
             else:
                 self.append(other.summaryStats)
-        if other.bioSamples:
-            if self.bioSamples:
-                self.bioSamples.merge(other.bioSamples)
-            else:
-                self.append(other.bioSamples)
         if not self.namespace:
             self.namespace = other.namespace
             self.attrib.update(other.attrib)
@@ -1826,6 +1821,14 @@ class BioSamplesMetadata(RecordWrapper):
 class ReadSetMetadata(DataSetMetadata):
     bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
                       parent=True)
+
+    def merge(self, other):
+        DataSetMetadata.merge(self, other)
+        if other.bioSamples:
+            if self.bioSamples:
+                self.bioSamples.merge(other.bioSamples)
+            else:
+                self.append(other.bioSamples)
 
 
 class SubreadSetMetadata(ReadSetMetadata):
