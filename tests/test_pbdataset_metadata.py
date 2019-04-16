@@ -190,3 +190,4 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(samples, ["Alice"])
         bcs = [bc.name for bc in ds.metadata.bioSamples[0].DNABarcodes]
         self.assertEqual(bcs, ["F1--R1", "F7--R7"])
+

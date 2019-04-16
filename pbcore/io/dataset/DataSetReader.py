@@ -14,7 +14,7 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               CollectionMetadata,
                                               Filters, AutomationParameters,
                                               StatsMetadata, uri2fn,
-                                              uri2scheme)
+                                              uri2scheme, FILE_INDICES)
 from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 
@@ -111,8 +111,6 @@ def _addUnknownFile(dset, path):
             return _addGenericFile(dset, path)
 
 SUB_RESOURCES = ['.scraps.bam', '.control.subreads.bam', '.adapters.fasta']
-FILE_INDICES = ['.fai', '.pbi', '.bai', '.metadata.xml',
-                '.index', '.contig.index', '.sa']
 
 # TODO needs namespace
 def _addGenericFile(dset, path):
@@ -120,7 +118,7 @@ def _addGenericFile(dset, path):
     dictionary, return"""
     # filter out resource file types that aren't top level:
     # if we want to exclude scraps as well:
-    for ext in SUB_RESOURCES + FILE_INDICES:
+    for ext in SUB_RESOURCES + FILE_INDICES.keys():
         if path.endswith(ext):
             log.debug('Sub resource file {f} given as regular file, '
                       'will be treated '
@@ -135,7 +133,7 @@ def _addGenericFile(dset, path):
 # TODO needs namespace
 def wrapNewResource(path):
     # filter out non-resource file types:
-    for ext in FILE_INDICES:
+    for ext in FILE_INDICES.keys():
         if path.endswith(ext):
             log.debug('Index file {f} given as regular file, will be treated '
                       ' as an index file instead'.format(f=path))
@@ -143,7 +141,7 @@ def wrapNewResource(path):
     extRes = ExternalResource()
     path = resolveLocation(path)
     extRes.resourceId = path
-    index_files = [path + ext for ext in FILE_INDICES if
+    index_files = [path + ext for ext in FILE_INDICES.keys() if
                    os.path.exists(path + ext)]
     if index_files:
         extRes.addIndices(index_files)

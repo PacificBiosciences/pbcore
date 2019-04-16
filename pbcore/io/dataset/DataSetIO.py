@@ -2026,16 +2026,16 @@ class ReadSet(DataSet):
                 iname = fname + '.pbi'
                 if not os.path.isfile(iname) or force:
                     iname = _pbindexBam(fname)
+                res.pbi = iname
                 newInds.append(iname)
                 self.close()
             if not res.bai or force:
                 iname = fname + '.bai'
                 if not os.path.isfile(iname) or force:
                     iname = _indexBam(fname)
+                res.bai = iname
                 newInds.append(iname)
                 self.close()
-            if newInds:
-                res.addIndices(newInds)
         self._populateMetaTypes()
         self.updateCounts()
         return newInds
