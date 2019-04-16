@@ -74,13 +74,26 @@ import re
 from urlparse import urlparse
 from urllib import unquote
 from functools import partial as P
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
 
 log = logging.getLogger(__name__)
+
+# We want this to be sorted, as some extensions will be subsets of others. We
+# want to be able to iterate over the keys with fname.endswith and hit the
+# right MetaType
+FILE_INDICES = OrderedDict([('.fai', 'PacBio.Index.SamIndex'),
+                            ('.pbi', 'PacBio.Index.PacBioIndex'),
+                            ('.bai', 'PacBio.Index.BamIndex'),
+                            # I don't think this is ever used, but it
+                            # pre-exists this dict, so we'll leave it in limbo:
+                            ('.metadata.xml', ''),
+                            ('.contig.index', 'PacBio.Index.FastaContigIndex'),
+                            ('.index', 'PacBio.Index.Indexer'),
+                            ('.sa', 'PacBio.Index.SaWriterIndex')])
 
 def uri2fn(fn):
     return unquote(urlparse(fn).path.strip())
@@ -1417,10 +1430,7 @@ class ExternalResource(RecordWrapper):
 
     @property
     def pbi(self):
-        indices = self.indices
-        for index in indices:
-            if index.metaType == 'PacBio.Index.PacBioIndex':
-                return index.resourceId
+        return self._getIndResByMetaType('PacBio.Index.PacBioIndex')
 
     @pbi.setter
     def pbi(self, value):
@@ -1428,10 +1438,11 @@ class ExternalResource(RecordWrapper):
 
     @property
     def bai(self):
-        indices = self.indices
-        for index in indices:
-            if index.metaType == 'PacBio.Index.BamIndex':
-                return index.resourceId
+        return self._getIndResByMetaType('PacBio.Index.BamIndex')
+
+    @bai.setter
+    def bai(self, value):
+        self._setIndResByMetaType('PacBio.Index.BamIndex', value)
 
     @property
     def gmap(self):
@@ -1552,17 +1563,7 @@ class ExternalResource(RecordWrapper):
         else:
             tmp.metaType = mType
             tmp.timeStampedName = getTimeStampedName(mType)
-            resources = self.indices
-            # externalresources objects have a tag by default, which means their
-            # truthiness is true. Perhaps a truthiness change is in order
-            # TODO: (mdsmith 20160728) this can be updated now that the
-            # retention and tag system has been refactored
-            if len(resources) == 0:
-                resources = FileIndices()
-                resources.append(tmp)
-                self.append(resources)
-            else:
-                resources.append(tmp)
+            self.indices.append(tmp)
 
     def _deleteExtResByMetaType(self, mType):
         rm = []
@@ -1644,9 +1645,15 @@ class ExternalResource(RecordWrapper):
             fileIndices = FileIndices()
             self.append(fileIndices)
         for index in list(indices):
-            temp = FileIndex()
-            temp.resourceId = index
-            fileIndices.append(temp)
+            found = False
+            for ext, mtype in FILE_INDICES.iteritems():
+                if index.endswith(ext):
+                    found = True
+                    self._setIndResByMetaType(mtype, index)
+            if not found:
+                temp = FileIndex()
+                temp.resourceId = index
+                fileIndices.append(temp)
 
 class FileIndices(RecordWrapper):
     NS = 'pbbase'

@@ -495,6 +495,11 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
+
+        # lets make sure we're not getting extra entries:
+        self.assertEqual(len(aln.externalResources), 1)
+        self.assertEqual(len(aln.externalResources[0].indices), 2)
+
         nonCons = SubreadSet(data.getXml(10), data.getXml(13))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
