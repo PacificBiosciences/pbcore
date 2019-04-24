@@ -37,6 +37,7 @@ from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
+                                              ReadSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
@@ -57,6 +58,24 @@ from functools import reduce
 log = logging.getLogger(__name__)
 
 def openDataSet(*files, **kwargs):
+    """Return a DataSet, based on the named "files".
+    If any files contain other files, and if those others cannot be found,
+    then we try to resolve symlinks, but only for .xml and .fofn files themselves.
+    """
+    try:
+        return _openDataSet(*files, **kwargs)
+    except MissingFileError as exc:
+        # Could not find a resource, so we will try using an resolved path for files[0].
+        msg = '{!r}. Trying again with symlinks resolved for {!r}.'.format(exc, files)
+        log.warning(msg)
+        def maybe_resolved(fn):
+            # Resolve only FOFNs and XMLs.
+            return os.path.realpath(fn) if (fn.endswith('.xml') or fn.endswith('.fofn')) else fn
+        rfiles = [maybe_resolved(fn) for fn in files]
+        rfiles = tuple(rfiles)
+        return _openDataSet(*rfiles, **kwargs)
+
+def _openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
     if files[0].endswith('xml'):
         tbrType = _typeDataSet(files[0])
@@ -247,12 +266,17 @@ def splitKeys(keys, chunks):
         start += cs
     return key_chunks
 
+class MissingFileError(InvalidDataSetIOError):
+    """Specifically thrown by _fileExists(),
+    and trapped in openDataSet().
+    """
+
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
     if not isinstance(fname, basestring):
         fname = fname.resourceId
     if not os.path.exists(fname):
-        raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
+        raise MissingFileError("Resource {f} not found".format(f=fname))
     return True
 
 def checkAndResolve(fname, possibleRelStart=None):
@@ -2002,16 +2026,16 @@ class ReadSet(DataSet):
                 iname = fname + '.pbi'
                 if not os.path.isfile(iname) or force:
                     iname = _pbindexBam(fname)
+                res.pbi = iname
                 newInds.append(iname)
                 self.close()
             if not res.bai or force:
                 iname = fname + '.bai'
                 if not os.path.isfile(iname) or force:
                     iname = _indexBam(fname)
+                res.bai = iname
                 newInds.append(iname)
                 self.close()
-            if newInds:
-                res.addIndices(newInds)
         self._populateMetaTypes()
         self.updateCounts()
         return newInds

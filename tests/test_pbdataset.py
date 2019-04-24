@@ -31,18 +31,24 @@ from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import _pbtestdata, _check_constools, _internal_data
+from utils import skip_if_no_internal_data, skip_if_no_pbtestdata, skip_if_no_constools, skip_if_no_h5py
 from functools import reduce
 
-try:
-    import pbtestdata
-except ImportError:
-    pbtestdata = None
-
-skip_if_no_pbtestdata = unittest.skipUnless(pbtestdata is not None,
-                                            "PacBioTestData not installed")
-
 log = logging.getLogger(__name__)
+
+
+def twodots(fn):
+    """For a unit-test.
+
+    .. doctest::
+        >>> twodots('foo.subreadset.xml')
+        '.subreadset.xml'
+    """
+    bn = os.path.basename(fn)
+    dot0 = bn.rfind('.')
+    dot1 = bn.rfind('.', 0, dot0)
+    return bn[dot1:]
+
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -444,8 +450,7 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(extRes.metaType,
                              "PacBio.AlignmentFile.AlignmentBamFile")
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_empty_file_counts(self):
         # empty with pbi:
         dset = SubreadSet(upstreamdata.getEmptyBam())
@@ -735,6 +740,27 @@ class TestDataSet(unittest.TestCase):
                 ds = openDataSet(infn, strict=False)
             self.assertEqual(type(ds), exp)
 
+    def test_factory_function_on_symlink(self):
+        # same as test_factory_function(), but symlinked
+        aln = data.getXml(8)
+        ref = data.getXml(9)
+        sub = data.getXml(10)
+        inTypes = [aln, ref, sub]
+        expTypes = [AlignmentSet, ReferenceSet, SubreadSet]
+        for infn, exp in zip(inTypes, expTypes):
+            linfn = 'foo' + twodots(infn)
+            if os.path.lexists(linfn):
+                os.remove(linfn)
+            os.symlink(infn, linfn)
+            assert os.path.islink(linfn)
+            del infn
+            if exp in [ReferenceSet, AlignmentSet]:
+                ds = openDataSet(linfn, strict=True)
+            else:
+                ds = openDataSet(linfn, strict=False)
+            self.assertEqual(type(ds), exp)
+            os.remove(linfn)
+
     def test_openDataSet_unicode(self):
         # Test to see if we can't open a unicode filename
         fn = data.getXml(8)
@@ -767,6 +793,9 @@ class TestDataSet(unittest.TestCase):
         with self.assertRaises(Exception):
             ReferenceSet(bax, strict=True)
 
+    @skip_if_no_h5py
+    def test_type_checking_h5(self):
+        bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
         HdfSubreadSet(bax, strict=True)
         with self.assertRaises(Exception):
             HdfSubreadSet(bam, strict=True)
@@ -783,8 +812,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, 0)
         self.assertEqual(aln.numRecords, 0)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_no_internal_data
     def test_barcode_accession(self):
         testFile = ("/pbi/dept/secondary/siv/testdata/pblaa-unittest/"
                     "P6-C4/HLA_ClassI/m150724_012016_sherri_c1008203"
@@ -868,8 +896,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(expLen, accLen)
         self.assertEqual(expNum, accNum)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_scraps_detection(self):
         path = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/'
                 'lambda/3150128/r54008_20160308_001811/'
@@ -904,8 +931,7 @@ class TestDataSet(unittest.TestCase):
                 controlscraps)
 
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_referenceInfoTableMerging(self):
         log.info("Testing refIds, etc. after merging")
         bam1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
@@ -1055,8 +1081,7 @@ class TestDataSet(unittest.TestCase):
         with AlignmentSet(data.getXml(8)) as aln:
             aln.write(sys.stdout)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_no_internal_data
     def test_multi_movie_readsByName(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -1201,8 +1226,8 @@ class TestDataSet(unittest.TestCase):
         self.assertNotEqual(sorted(aln.toExternalFiles()),
                             sorted(aln2.toExternalFiles()))
 
-    @unittest.skipIf((not _pbtestdata() or not _check_constools()),
-                     "Internal data not available")
+    @skip_if_no_pbtestdata
+    @skip_if_no_constools
     def test_mixed_pbi_columns(self):
         import pbtestdata
 
@@ -1211,8 +1236,8 @@ class TestDataSet(unittest.TestCase):
                             pbtestdata.get_file("subreads-unbarcoded"))
 
 
-    @unittest.skipIf((not _pbtestdata() or not _check_constools()),
-                     "Internal data not available")
+    @skip_if_no_internal_data
+    @skip_if_no_constools
     def test_copyTo_same_base_names(self):
         import pbtestdata
         # see bug 33778
@@ -1361,8 +1386,7 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(ri, rr)
 
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_no_internal_data
     def test_reads_in_range_order(self):
         log.debug("Testing with one file")
         testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -1396,8 +1420,7 @@ class TestDataSet(unittest.TestCase):
             num += 1
         self.assertEqual(num, 105)
 
-    @unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                         "Missing testadata directory")
+    @skip_if_no_internal_data
     def test_reads_in_range_order_large(self):
         window = ('Staphylococcus_aureus_subsp_aureus_USA300_TCH1516',
                   558500,
@@ -1517,7 +1540,8 @@ class TestDataSet(unittest.TestCase):
         totalTargetLength = sum(ends - starts)
         self.assertEqual(totalTargetLength, sum(coverage))
 
-
+    @skip_if_no_h5py
+    def test_alignmentset_cmph5(self):
         # test a cmp.h5 alignmentset
         ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
         coverage = ds.intervalContour('lambda_NEB3011')
@@ -1651,8 +1675,7 @@ class TestDataSet(unittest.TestCase):
             for i, item in enumerate(aln):
                 self.assertEqual(item, aln[i])
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_induce_indices(self):
         # all of our test files are indexed. Copy just the main files to a temp
         # location, open as dataset, assert unindexed, open with
@@ -2224,8 +2247,8 @@ class TestDataSet(unittest.TestCase):
         #    150292.0,
         #    ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_h5py
+    @skip_if_no_internal_data
     def test_merged_cmp(self):
         cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
                 "-unittest/data/sat/aligned_reads.cmp.h5")
@@ -2243,8 +2266,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfoTable['EndRow'][0], 338113)
         self.assertEqual(len(aln), 338114)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_h5py
+    @skip_if_no_internal_data
     def test_two_cmpH5(self):
         cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
                 "-unittest/data/sat/aligned_reads.cmp.h5")
@@ -2269,8 +2292,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
                          None)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_h5py
+    @skip_if_no_internal_data
     def test_two_ref_cmpH5(self):
         cmp1 = upstreamdata.getBamAndCmpH5()[1]
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
@@ -2300,8 +2323,7 @@ class TestDataSet(unittest.TestCase):
                          aln.referenceInfo(1))
 
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_two_bam(self):
         cmp1 = ("/pbi/dept/secondary/siv/testdata/SA3-RS/ecoli/"
                 "2590953/0001/Alignment_Results/"
@@ -2325,8 +2347,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
                          aln.referenceInfo(0))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_two_xml(self):
         cmp1 = ("/pbi/dept/secondary/siv/testdata/"
                 "SA3-DS/ecoli/2590953/0001/Alignment_Results/"
@@ -2356,8 +2377,7 @@ class TestDataSet(unittest.TestCase):
             for o, e in zip(obs, exp):
                 self.assertEqual(o, e)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_two_ref_bam(self):
         cmp1 = upstreamdata.getBamAndCmpH5()[0]
         # this is the supposedly the same data as above:
@@ -2385,8 +2405,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
                          aln.referenceInfo(1))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_two_ref_three_bam(self):
         # Here we test whether duplicate references in a non-identical
         # reference situation remain duplicates or are collapsed
@@ -2428,8 +2447,7 @@ class TestDataSet(unittest.TestCase):
         aln = AlignmentSet(data.getXml(8))
         self.assertEqual(aln.createdAt, '2015-08-05T10:25:18')
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_load_sts_from_extres(self):
         # don't have a subreadset.xml with loaded sts.xml in testdata,
         # fabricate one here:
@@ -2447,8 +2465,7 @@ class TestDataSet(unittest.TestCase):
         ss.write(outXml, validate=False)
         ss.write(outXml)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_fixed_bin_sts(self):
         # don't have a subreadset.xml with loaded sts.xml in testdata,
         # fabricate one here:
@@ -2475,8 +2492,7 @@ class TestDataSet(unittest.TestCase):
         ss3.metadata.summaryStats.insertReadLenDists
         ss3.metadata.summaryStats.insertReadQualDists
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_reduced_sts_merging(self):
         # don't have a subreadset.xml with loaded sts.xml in testdata,
         # fabricate one here:
@@ -2564,8 +2580,7 @@ class TestDataSet(unittest.TestCase):
                               ss2.metadata.summaryStats.readLenDist.bins)])
         ss4 = SubreadSet(outXml, outXml2)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_missing_extres(self):
         # copy a file with relative paths, rescue ResourceId's
         test_file = ('/pbi/dept/secondary/siv/testdata/'
@@ -2626,19 +2641,7 @@ class TestDataSet(unittest.TestCase):
                    relPaths=True)
         naset = AlignmentSet(ofn)
 
-    @skip_if_no_pbtestdata
-    def test_subreadset_get_movie_sample_names(self):
-        ds_file1 = pbtestdata.get_file("subreads-biosample-1")
-        ds_file2 = pbtestdata.get_file("subreads-biosample-2")
-        ds1 = SubreadSet(ds_file1, strict=True)
-        ds2 = SubreadSet(ds_file2, strict=True)
-        self.assertEqual(ds1.metadata.getMovieSampleNames(), {"m1": "Alice"})
-        self.assertEqual(ds2.metadata.getMovieSampleNames(), {"m2": "Bob"})
-        ds3 = SubreadSet(ds_file1, ds_file2, strict=True)
-        self.assertEqual(ds3.metadata.getMovieSampleNames(), {"m1": "Alice", "m2": "Bob"})
-
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_length_0_bam_records(self):
         ds_file1 = ('/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/'
                     'EmptyRecords/m54043_180414_094215.subreadset.xml')

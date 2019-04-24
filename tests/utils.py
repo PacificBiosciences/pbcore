@@ -1,4 +1,5 @@
 
+import unittest
 import logging
 import os
 from pbcore.util.Process import backticks
@@ -20,3 +21,18 @@ def _internal_data():
     if os.path.exists("/pbi/dept/secondary/siv/testdata"):
         return True
     return False
+
+def _h5py():
+    try:
+        import h5py
+        return True
+    except ImportError:
+        return False
+
+skip_if_no_pbtestdata = unittest.skipUnless(_pbtestdata(),
+                                            "PacBioTestData not installed")
+skip_if_no_h5py = unittest.skipUnless(_h5py(), "h5py not installed")
+skip_if_no_internal_data = unittest.skipUnless(_internal_data(),
+                                               "Internal data not available")
+skip_if_no_constools = unittest.skipUnless(_check_constools(),
+                                           "Binary tools not found")

@@ -20,18 +20,10 @@ from pbcore.io import (SubreadSet, ConsensusReadSet,
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
-from utils import _check_constools, _internal_data
-
-try:
-    import pbtestdata
-except ImportError:
-    pbtestdata = None
+from utils import skip_if_no_pbtestdata, skip_if_no_internal_data, skip_if_no_constools, skip_if_no_h5py, _h5py
 
 log = logging.getLogger(__name__)
-skip_if_no_internal_data = unittest.skipIf(not _internal_data(),
-                                           "Internal data not found, skipping")
-skip_if_no_pbtestdata = unittest.skipIf(pbtestdata is None,
-                                        "PacBioTestData not found, skipping")
+
 
 class TestDataSet(unittest.TestCase):
     """Unit and integrationt tests for the DataSet class and \
@@ -253,9 +245,9 @@ class TestDataSet(unittest.TestCase):
         # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
         types = [AlignmentSet(data.getXml(8)),
                  ReferenceSet(data.getXml(9)),
-                 SubreadSet(data.getXml(10)),
-                 #ConsensusAlignmentSet(data.getXml(20)),
-                 HdfSubreadSet(data.getXml(19))]
+                 SubreadSet(data.getXml(10))]
+        if _h5py():
+            types.extend([HdfSubreadSet(data.getXml(19))])
         for ds in types:
             mystery = openDataFile(ds.toExternalFiles()[0])
             self.assertEqual(type(mystery), type(ds))
@@ -282,8 +274,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(type(ds2).__name__, 'ContigSet')
         self.assertEquals(type(ds2._metadata).__name__, 'ContigSetMetadata')
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_pbmerge(self):
         log.debug("Test through API")
         aln = AlignmentSet(data.getXml(12))
@@ -327,8 +318,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(aln), len(cons))
         orig_stats = os.stat(outfn + '.pbi')
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_pbmerge_indexing(self):
         log.debug("Test through API")
         aln = AlignmentSet(data.getXml(12))
@@ -356,8 +346,7 @@ class TestDataSet(unittest.TestCase):
         cons.induceIndices(force=True)
         self.assertNotEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_alignmentset_consolidate(self):
         log.debug("Test through API")
         aln = AlignmentSet(data.getXml(12))
@@ -473,9 +462,8 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(aln), len(nonCons))
         self.assertEqual(aln.externalResources[0].reference, reference)
 
-
-    @unittest.skipIf(not _check_constools() or not _internal_data(),
-                     "bamtools, pbindex or data not found, skipping")
+    @skip_if_no_internal_data
+    @skip_if_no_constools
     def test_alignmentset_partial_consolidate(self):
         testFile = ("/pbi/dept/secondary/siv/testdata/SA3-DS/"
                     "lambda/2372215/0007_tiny/Alignment_"
@@ -497,9 +485,7 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(read1, read2)
         self.assertEqual(len(aln), len(nonCons))
 
-
-    @unittest.skipIf(not _check_constools(),
-                     "bamtools or pbindex not found, skipping")
+    @skip_if_no_constools
     def test_subreadset_consolidate(self):
         log.debug("Test through API")
         aln = SubreadSet(data.getXml(10), data.getXml(13))
@@ -509,6 +495,11 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
+
+        # lets make sure we're not getting extra entries:
+        self.assertEqual(len(aln.externalResources), 1)
+        self.assertEqual(len(aln.externalResources[0].indices), 2)
+
         nonCons = SubreadSet(data.getXml(10), data.getXml(13))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
@@ -796,21 +787,6 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.totalLength, 52023)
         self.assertEqual(aln.numRecords, 40)
 
-        # AlignmentSet with cmp.h5
-        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
-        self.assertEqual(len(aln), 112)
-        self.assertEqual(aln._length, (112, 59970))
-        self.assertEqual(aln.totalLength, 59970)
-        self.assertEqual(aln.numRecords, 112)
-        aln.totalLength = -1
-        aln.numRecords = -1
-        self.assertEqual(aln.totalLength, -1)
-        self.assertEqual(aln.numRecords, -1)
-        aln.updateCounts()
-        self.assertEqual(aln.totalLength, 59970)
-        self.assertEqual(aln.numRecords, 112)
-
-
         # SubreadSet
         sset = SubreadSet(data.getXml(10), strict=True)
         self.assertEqual(len(sset), 92)
@@ -827,6 +803,21 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sum(1 for _ in sset), 92)
         self.assertEqual(sum(len(rec) for rec in sset), 124093)
 
+        # ReferenceSet
+        sset = ReferenceSet(data.getXml(9), strict=True)
+        self.assertEqual(len(sset), 59)
+        self.assertEqual(sset.totalLength, 85774)
+        self.assertEqual(sset.numRecords, 59)
+        sset.totalLength = -1
+        sset.numRecords = -1
+        self.assertEqual(sset.totalLength, -1)
+        self.assertEqual(sset.numRecords, -1)
+        sset.updateCounts()
+        self.assertEqual(sset.totalLength, 85774)
+        self.assertEqual(sset.numRecords, 59)
+
+    @skip_if_no_h5py
+    def test_len_h5(self):
         # HdfSubreadSet
         # len means something else in bax/bas land. These numbers may actually
         # be correct...
@@ -843,18 +834,19 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sset.totalLength, 128093)
         self.assertEqual(sset.numRecords, 9)
 
-        # ReferenceSet
-        sset = ReferenceSet(data.getXml(9), strict=True)
-        self.assertEqual(len(sset), 59)
-        self.assertEqual(sset.totalLength, 85774)
-        self.assertEqual(sset.numRecords, 59)
-        sset.totalLength = -1
-        sset.numRecords = -1
-        self.assertEqual(sset.totalLength, -1)
-        self.assertEqual(sset.numRecords, -1)
-        sset.updateCounts()
-        self.assertEqual(sset.totalLength, 85774)
-        self.assertEqual(sset.numRecords, 59)
+        # AlignmentSet with cmp.h5
+        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
+        self.assertEqual(len(aln), 112)
+        self.assertEqual(aln._length, (112, 59970))
+        self.assertEqual(aln.totalLength, 59970)
+        self.assertEqual(aln.numRecords, 112)
+        aln.totalLength = -1
+        aln.numRecords = -1
+        self.assertEqual(aln.totalLength, -1)
+        self.assertEqual(aln.numRecords, -1)
+        aln.updateCounts()
+        self.assertEqual(aln.totalLength, 59970)
+        self.assertEqual(aln.numRecords, 112)
 
     def test_alignment_reference(self):
         rfn = data.getXml(9)
@@ -1022,6 +1014,7 @@ class TestDataSet(unittest.TestCase):
         ds = ContigSet(fasta)
         self.assertEqual(ds[0].name, "lambda_NEB3011")
 
+    @skip_if_no_h5py
     def test_alignmentset_index(self):
         aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
         reads = aln.readsInRange(aln.refNames[0], 0, 1000)
@@ -1062,12 +1055,12 @@ class TestDataSet(unittest.TestCase):
         for ds in types:
             self.assertTrue(ds[0])
 
-
     def test_incorrect_len_getitem(self):
         types = [AlignmentSet(data.getXml(8)),
                  ReferenceSet(data.getXml(9)),
-                 SubreadSet(data.getXml(10)),
-                 HdfSubreadSet(data.getXml(19))]
+                 SubreadSet(data.getXml(10))]
+        if _h5py():
+            types.extend([HdfSubreadSet(data.getXml(19))])
         fn = tempfile.NamedTemporaryFile(suffix=".xml").name
         for ds in types:
             explen = -2
@@ -1112,6 +1105,7 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_pbtestdata
     def test_provenance_record_ordering(self):
+        import pbtestdata
         ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
         ds.metadata.addParentDataSet(uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
         tmp_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -1128,6 +1122,7 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_pbtestdata
     def test_consensus_read_set_ref(self):
+        import pbtestdata
         ds = ConsensusReadSet(pbtestdata.get_file("ccs-sequel"), strict=True)
         uuid = ds.metadata.collections[0].consensusReadSetRef.uuid
         self.assertEqual(uuid, "5416f525-d3c7-496b-ba8c-18d7ec1b4499")

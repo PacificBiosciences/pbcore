@@ -74,13 +74,26 @@ import re
 from urlparse import urlparse
 from urllib import unquote
 from functools import partial as P
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, OrderedDict
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
 
 log = logging.getLogger(__name__)
+
+# We want this to be sorted, as some extensions will be subsets of others. We
+# want to be able to iterate over the keys with fname.endswith and hit the
+# right MetaType
+FILE_INDICES = OrderedDict([('.fai', 'PacBio.Index.SamIndex'),
+                            ('.pbi', 'PacBio.Index.PacBioIndex'),
+                            ('.bai', 'PacBio.Index.BamIndex'),
+                            # I don't think this is ever used, but it
+                            # pre-exists this dict, so we'll leave it in limbo:
+                            ('.metadata.xml', ''),
+                            ('.contig.index', 'PacBio.Index.FastaContigIndex'),
+                            ('.index', 'PacBio.Index.Indexer'),
+                            ('.sa', 'PacBio.Index.SaWriterIndex')])
 
 def uri2fn(fn):
     return unquote(urlparse(fn).path.strip())
@@ -107,16 +120,37 @@ def map_val_or_vec(func, target):
     else:
         return func(target)
 
-def inNd(arrs1, arrs2):
-    if isinstance(arrs1, tuple):
-        # a tuple of numpy columns to check:
-        res = np.ones(len(arrs1[0]), dtype=np.bool_)
-        for a1, a2 in zip(arrs1, arrs2):
-            res &= np.in1d(a1, a2)
-        return res
-    else:
-        # just two numpy columns:
-        return np.in1d(arrs1, arrs2)
+def recordMembership(records, constraints):
+    # constraints might contain fewer columns than records, but you cannot skip
+    # columns. So we can slice the first columns of records to match
+    # constraints. Both are recarrays
+    subarrs1 = records[list(records.dtype.names[:len(constraints.dtype)])]
+    return np.in1d(subarrs1, constraints)
+
+def reccheck(records, qname_tables):
+    """Create a mask for those records present in qname_tables. qname_tables is
+    a dict of {numfields: recarray}, where each recarray contains records
+    that specify a means of passing the filter, e.g. a qname in a whitelist.
+    Qnames filters can be specified as partial qnames, however, e.g. just a
+    contextid and holenumber (you cannot skip fields, e.g. just holenumber).
+    We also want to allow people to mix partially and fully specified qnames
+    in the whitelist. Therefore we have different tables for different
+    lengths (so we can use np.in1d, which operates on recarrays quite nicely)
+    """
+    mask = np.zeros(len(records), dtype=bool)
+    for table in qname_tables.values():
+        mask |= recordMembership(records, table)
+    return mask
+
+def inOp(ar1, ar2):
+    # Special case: ar2 can be a dictionary of {num_fields: qname_recarray},
+    # and we should take the qname filtering branch
+    if isinstance(ar2, dict):
+        return reccheck(ar1, ar2)
+    assert isinstance(ar1, (np.ndarray, list, tuple))
+    assert isinstance(ar2, (np.ndarray, list, tuple))
+    return np.in1d(ar1, ar2)
+
 
 OPMAP = {'==': OP.eq,
          '=': OP.eq,
@@ -135,8 +169,8 @@ OPMAP = {'==': OP.eq,
          '<': OP.lt,
          '&lt;': OP.lt,
          'lt': OP.lt,
-         'in': inNd,
-         'not_in': lambda x, y: ~inNd(x, y),
+         'in': inOp,
+         'not_in': lambda x, y: ~inOp(x, y),
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
         }
@@ -217,10 +251,36 @@ def breakqname(qname):
             tbr.append(int(span[1]))
     return tbr
 
-def qname2vec(qnames):
+def qname2vec(qnames, movie_map):
+    """Break a list of qname strings into a list of qname field tuples"""
     if isinstance(qnames, str):
         qnames = [qnames]
-    return zip(*[breakqname(q) for q in qnames])
+    sizes = defaultdict(list)
+    for qname in qnames:
+        parts = breakqname(qname)
+        parts[0] = movie_map[parts[0]]
+        sizes[len(parts)].append(tuple(parts))
+    return sizes
+
+def qnames2recarrays_by_size(qnames, movie_map, dtype):
+    """Note that qname filters can be specified as partial qnames. Therefore we
+    return a recarray for each size in qnames, in a dictionary
+    """
+    records_by_size = qname2vec(qnames, movie_map)
+    if len(records_by_size) == 0:
+        return records_by_size
+    tbr = {}
+    for size, records in records_by_size.iteritems():
+        # recarray dtypes are a little hairier, we'll give normal (or manual)
+        # dtypes an out:
+        if isinstance(dtype, list):
+            dtype_buildup = dtype[:size]
+        else:
+            dtype_buildup = []
+            for i in range(size):
+                dtype_buildup.append((dtype.names[i], dtype[i]))
+        tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
+    return tbr
 
 class PbiFlags(object):
     NO_LOCAL_CONTEXT = 0
@@ -723,8 +783,8 @@ class Filters(RecordWrapper):
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
-                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
-                                              x.qEnd)),
+                'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
+                                      'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
@@ -759,8 +819,8 @@ class Filters(RecordWrapper):
         return {'length': (lambda x: x.qEnd - x.qStart),
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
-                'qname': (lambda m, x: qnamer(m, x.qId, x.holeNumber, x.qStart,
-                                              x.qEnd)),
+                'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
+                                      'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -842,8 +902,6 @@ class Filters(RecordWrapper):
                 accMap = self._pbiMappedVecAccMap()
                 if 'RefGroupID' in indexRecords.dtype.names:
                     accMap['rname'] = (lambda x: x.RefGroupID)
-            accMap['qname'] = P(accMap['qname'],
-                                {v:k for k, v in movieMap.items()})
             # check for hdf resources:
             if 'MovieID' in indexRecords.dtype.names:
                 # TODO(mdsmith)(2016-01-29) remove these once the fields are
@@ -893,7 +951,10 @@ class Filters(RecordWrapper):
                     elif param == 'movie':
                         value = map_val_or_vec(movieMap.get, value)
                     elif param == 'qname':
-                        value = qname2vec(value)
+                        value = qnames2recarrays_by_size(
+                                value, movieMap,
+                                dtype=indexRecords[['qId', 'holeNumber',
+                                                    'qStart', 'qEnd']].dtype)
 
                     if param == 'bc':
                         # convert string to list:
@@ -1369,10 +1430,7 @@ class ExternalResource(RecordWrapper):
 
     @property
     def pbi(self):
-        indices = self.indices
-        for index in indices:
-            if index.metaType == 'PacBio.Index.PacBioIndex':
-                return index.resourceId
+        return self._getIndResByMetaType('PacBio.Index.PacBioIndex')
 
     @pbi.setter
     def pbi(self, value):
@@ -1380,10 +1438,11 @@ class ExternalResource(RecordWrapper):
 
     @property
     def bai(self):
-        indices = self.indices
-        for index in indices:
-            if index.metaType == 'PacBio.Index.BamIndex':
-                return index.resourceId
+        return self._getIndResByMetaType('PacBio.Index.BamIndex')
+
+    @bai.setter
+    def bai(self, value):
+        self._setIndResByMetaType('PacBio.Index.BamIndex', value)
 
     @property
     def gmap(self):
@@ -1504,17 +1563,7 @@ class ExternalResource(RecordWrapper):
         else:
             tmp.metaType = mType
             tmp.timeStampedName = getTimeStampedName(mType)
-            resources = self.indices
-            # externalresources objects have a tag by default, which means their
-            # truthiness is true. Perhaps a truthiness change is in order
-            # TODO: (mdsmith 20160728) this can be updated now that the
-            # retention and tag system has been refactored
-            if len(resources) == 0:
-                resources = FileIndices()
-                resources.append(tmp)
-                self.append(resources)
-            else:
-                resources.append(tmp)
+            self.indices.append(tmp)
 
     def _deleteExtResByMetaType(self, mType):
         rm = []
@@ -1596,9 +1645,15 @@ class ExternalResource(RecordWrapper):
             fileIndices = FileIndices()
             self.append(fileIndices)
         for index in list(indices):
-            temp = FileIndex()
-            temp.resourceId = index
-            fileIndices.append(temp)
+            found = False
+            for ext, mtype in FILE_INDICES.iteritems():
+                if index.endswith(ext):
+                    found = True
+                    self._setIndResByMetaType(mtype, index)
+            if not found:
+                temp = FileIndex()
+                temp.resourceId = index
+                fileIndices.append(temp)
 
 class FileIndices(RecordWrapper):
     NS = 'pbbase'
@@ -1717,7 +1772,73 @@ class DataSetMetadata(RecordWrapper):
         self._runCallbacks()
 
 
-class SubreadSetMetadata(DataSetMetadata):
+class BioSamplesMetadata(RecordWrapper):
+    """The metadata for the list of BioSamples
+
+        Doctest:
+            >>> from __future__ import print_function
+            >>> from pbcore.io import SubreadSet
+            >>> import pbcore.data.datasets as data
+            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
+            >>> ds.metadata.bioSamples[0].name
+            'consectetur purus'
+            >>> for bs in ds.metadata.bioSamples:
+            ...     print(bs.name)
+            consectetur purus
+            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
+            ...       'attrib':{'Name':'great biosample'}}
+            >>> ds.metadata.bioSamples.append(em)
+            >>> ds.metadata.bioSamples[1].name
+            'great biosample'
+        """
+
+    TAG = 'BioSamples'
+    NS = 'pbsample'
+
+    def __getitem__(self, index):
+        """Get a biosample"""
+        return BioSampleMetadata(self.record['children'][index])
+
+    def __iter__(self):
+        """Iterate over biosamples"""
+        for child in self.record['children']:
+            yield BioSampleMetadata(child)
+
+    def addSample(self, name):
+        new = BioSampleMetadata()
+        new.name = name
+        self.append(new)
+        self._runCallbacks()
+
+    def merge(self, other):
+        bio_samples = {bs.name:bs for bs in self}
+        for bio_sample in other:
+            if bio_sample.name in bio_samples:
+                current = bio_samples[bio_sample.name]
+                dna_bcs = {(bc.name, bc.uniqueId) for bc in current.DNABarcodes}
+                for dna_bc in bio_sample.DNABarcodes:
+                    if (dna_bc.name, dna_bc.uniqueId) in dna_bcs:
+                        continue
+                    else:
+                        current.DNABarcodes.append(dna_bc)
+            else:
+                self.append(bio_sample)
+
+
+class ReadSetMetadata(DataSetMetadata):
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
+                      parent=True)
+
+    def merge(self, other):
+        DataSetMetadata.merge(self, other)
+        if other.bioSamples:
+            if self.bioSamples:
+                self.bioSamples.merge(other.bioSamples)
+            else:
+                self.append(other.bioSamples)
+
+
+class SubreadSetMetadata(ReadSetMetadata):
     """The DataSetMetadata subtype specific to SubreadSets. Deals explicitly
     with the merging of Collections metadata hierarchies."""
 
@@ -1755,29 +1876,6 @@ class SubreadSetMetadata(DataSetMetadata):
         self.removeChildren('Collections')
         if value:
             self.append(value)
-
-    def getMovieSampleNames(self):
-        """
-        Map the BioSample names in metadata Collection to "context" ID, i.e.
-        movie names.  Used for deconvoluting multi-sample
-        inputs.  This function will raise a KeyError if a movie name is not
-        unique, or a ValueError if there is not a 1-to-1 mapping of sample to
-        to movie.
-        """
-        movie_to_sample = {}
-        for collection in self.collections:
-            bio_samples = [b.name for b in collection.wellSample.bioSamples]
-            movie_name = collection.context
-            n_bio_samples = len(bio_samples)
-            if n_bio_samples == 1:
-                if movie_to_sample.get(movie_name, None) == bio_samples[0]:
-                    raise KeyError("Collection context {c} occurs more than once".format(c=movie_name))
-                movie_to_sample[movie_name] = bio_samples[0]
-            elif n_bio_samples == 0:
-                raise ValueError("No BioSample records for collection {c}".format(c=movie_name))
-            else:
-                raise ValueError("Collection {c} has multiple BioSample records".format(c=movie_name))
-        return movie_to_sample
 
 
 class ContigSetMetadata(DataSetMetadata):
@@ -2362,45 +2460,6 @@ class RunDetailsMetadata(RecordWrapper):
     name = subaccs('Name')
 
 
-class BioSamplesMetadata(RecordWrapper):
-    """The metadata for the list of BioSamples
-
-        Doctest:
-            >>> from __future__ import print_function
-            >>> from pbcore.io import SubreadSet
-            >>> import pbcore.data.datasets as data
-            >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
-            >>> ds.metadata.collections[0].wellSample.bioSamples[0].name
-            'consectetur purus'
-            >>> for bs in ds.metadata.collections[0].wellSample.bioSamples:
-            ...     print(bs.name)
-            consectetur purus
-            >>> em = {'tag':'BioSample', 'text':'', 'children':[],
-            ...       'attrib':{'Name':'great biosample'}}
-            >>> ds.metadata.collections[0].wellSample.bioSamples.append(em)
-            >>> ds.metadata.collections[0].wellSample.bioSamples[1].name
-            'great biosample'
-        """
-
-    TAG = 'BioSamples'
-    NS = 'pbsample'
-
-    def __getitem__(self, index):
-        """Get a biosample"""
-        return BioSampleMetadata(self.record['children'][index])
-
-    def __iter__(self):
-        """Iterate over biosamples"""
-        for child in self.record['children']:
-            yield BioSampleMetadata(child)
-
-    def addSample(self, name):
-        new = BioSampleMetadata()
-        new.name = name
-        self.append(new)
-        self._runCallbacks()
-
-
 class DNABarcode(RecordWrapper):
     TAG = 'DNABarcode'
     NS = 'pbsample'
@@ -2445,8 +2504,6 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata,
-                      parent=True)
 
     def __init__(self, *args, **kwargs):
         super(self.__class__, self).__init__(*args, **kwargs)

@@ -14,18 +14,10 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import _pbtestdata, _check_constools, _internal_data
+from utils import skip_if_no_internal_data, skip_if_no_h5py, skip_if_no_constools
 from functools import reduce
 
 log = logging.getLogger(__name__)
-
-
-def skip_if_not_internal():
-    # this should probably be centralized within utils
-    def wrapper(f):
-        return unittest.skipUnless(os.path.isdir("/pbi/dept/secondary/siv/testdata"),
-                                   "Missing internal testadata directory")(f)
-    return wrapper
 
 
 class TestDataSetSplit(unittest.TestCase):
@@ -195,7 +187,7 @@ class TestDataSetSplit(unittest.TestCase):
                 ds1.index.holeNumber < rg[1],
                 ds1.index.holeNumber > rg[0]))[0]), 0)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_multi_movie_split_zmws(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -228,7 +220,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127819, 163468)])
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_multi_movie_split_zmws_existing_simple_filters(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -272,7 +264,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               127695, 163468)])
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_multi_movie_split_zmws_existing_filters(self):
         N_RECORDS = 1745161
         test_file_1 = ("/pbi/dept/secondary/siv/testdata/SA3-DS/lambda/"
@@ -321,7 +313,7 @@ class TestDataSetSplit(unittest.TestCase):
             [('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
               137634, 139999)])
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_movie_split(self):
         N_RECORDS = 1745161
         N_RECORDS_1 = 959539
@@ -360,7 +352,7 @@ class TestDataSetSplit(unittest.TestCase):
             'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')
         self.assertEqual(len(dss[-1]), N_RECORDS_2)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_split_references(self):
         test_file_1 = ('/pbi/dept/secondary/siv/testdata/SA3-RS/lambda/'
                        '2372215/0007_tiny/Alignment_Results/m150404_1016'
@@ -405,7 +397,7 @@ class TestDataSetSplit(unittest.TestCase):
             'lambda_NEB3011')
         self.assertEqual(len(dss[-1]), NREC1)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_multi_movie_split_zmws_with_existing_movie_filter(self):
         # TODO: test with three movies and two chunks
         N_RECORDS = 959539
@@ -726,8 +718,8 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
         self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
-    @unittest.skipIf((not _internal_data() or not _check_constools()),
-                     "Internal data or binaries not found, skipping")
+    @skip_if_no_internal_data
+    @skip_if_no_constools
     def test_isBarcoded(self):
         empty = upstreamdata.getEmptyBam()
         nonempty = ('/pbi/dept/secondary/siv/testdata/'
@@ -756,7 +748,7 @@ class TestDataSetSplit(unittest.TestCase):
         sset.induceIndices(force=True)
         self.assertFalse(sset.isBarcoded)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_barcode_split_cornercases(self):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
@@ -789,7 +781,7 @@ class TestDataSetSplit(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(len(sset), 4710)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_barcode_split_maxChunks(self):
         fn = ('/pbi/dept/secondary/siv/testdata/'
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
@@ -823,7 +815,7 @@ class TestDataSetSplit(unittest.TestCase):
         sset.updateCounts()
         self.assertEqual(len(sset), 9763)
 
-    @skip_if_not_internal()
+    @skip_if_no_internal_data
     def test_split_read_groups(self):
         fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/combined.alignmentset.xml"
         ds = AlignmentSet(fn)
