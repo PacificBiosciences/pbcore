@@ -449,4 +449,12 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- // Sequel® II Binding Kit 2.0EA; Sequel® II Sequencing Plate 2.0EA (4 Rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P4-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-789-500</BindingKit>
+    <SequencingKit>101-789-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
