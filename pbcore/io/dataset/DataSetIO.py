@@ -3771,7 +3771,7 @@ class AlignmentSet(ReadSet):
                 self._referenceInfoTableIsStacked = True
         elif len(responses) == 1:
             table = responses[0]
-        else:
+        elif len(self) > 0:
             raise InvalidDataSetIOError("No reference tables found, "
                                         "are these input files aligned?")
         if self.isCmpH5:

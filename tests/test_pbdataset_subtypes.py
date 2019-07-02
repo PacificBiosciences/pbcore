@@ -1132,3 +1132,8 @@ class TestDataSet(unittest.TestCase):
         fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/merged.dataset.xml"
         # this just needs to not crash
         self.assertTrue(SubreadSet(fn) is not None)
+
+    def test_permissive_empty_bam(self):
+        fn = upstreamData.getEmptyBam2()
+        ds = AlignmentSet(fn)
+        self.assertEqual(len(ds), 0)

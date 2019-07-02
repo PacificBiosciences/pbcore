@@ -152,3 +152,6 @@ def getMappingXml():
 
 def getWeird():
     return _getAbsPath("weird.fa")
+
+def getEmptyBam2():
+    return _getAbsPath("empty2.bam")
