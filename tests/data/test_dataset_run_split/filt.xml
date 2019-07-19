@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pbds:SubreadSet xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbdm="http://pacificbiosciences.com/PacBioDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:pbrk="http://pacificbiosciences.com/PacBioReagentKit.xsd" xmlns:pbsample="http://pacificbiosciences.com/PacBioSampleInfo.xsd" xmlns:pbpn="http://pacificbiosciences.com/PacBioPartNumbers.xsd" xmlns:pbmeta="http://pacificbiosciences.com/PacBioCollectionMetadata.xsd" Name="synth5k" Tags="" Version="3.0.1" CreatedAt="2016-05-10T09:48:10" UniqueId="4a8e4795-e730-c739-0803-2266fb9cec73" MetaType="PacBio.DataSet.SubreadSet" TimeStampedName="pacbio_dataset_subreadset-160510_164810243">
    <pbbase:ExternalResources>
-      <pbbase:ExternalResource ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k_new_chemistry.bam" UniqueId="7ba37714-00cc-480e-8279-3cc2728e1707" MetaType="PacBio.SubreadFile.SubreadBamFile" TimeStampedName="pacbio_subreadfile_subreadbamfile-160510_164810239">
+      <pbbase:ExternalResource ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k.subreads.bam" UniqueId="7ba37714-00cc-480e-8279-3cc2728e1707" MetaType="PacBio.SubreadFile.SubreadBamFile" TimeStampedName="pacbio_subreadfile_subreadbamfile-160510_164810239">
          <pbbase:FileIndices>
-            <pbbase:FileIndex ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k_new_chemistry.bam.pbi" UniqueId="c64f370b-3ed0-468f-81d1-fc7bfc18bde7" MetaType="PacBio.Index.PacBioIndex" TimeStampedName="pacbio_index_pacbioindex-160510_164810240"/>
-            <pbbase:FileIndex ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k_new_chemistry.bam.bai" UniqueId="bfd943c0-0f6f-4d71-af30-82594368e1f6" MetaType="PacBio.Index.BamIndex" TimeStampedName="pacbio_index_bamindex-160510_164810240"/>
+            <pbbase:FileIndex ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k.subreads.bam.pbi" UniqueId="c64f370b-3ed0-468f-81d1-fc7bfc18bde7" MetaType="PacBio.Index.PacBioIndex" TimeStampedName="pacbio_index_pacbioindex-160510_164810240"/>
+            <pbbase:FileIndex ResourceId="/pbi/dept/secondary/siv/testdata/hgap/synth5k/synth5k.subreads.bam.bai" UniqueId="bfd943c0-0f6f-4d71-af30-82594368e1f6" MetaType="PacBio.Index.BamIndex" TimeStampedName="pacbio_index_bamindex-160510_164810240"/>
          </pbbase:FileIndices>
       </pbbase:ExternalResource>
    </pbbase:ExternalResources>
