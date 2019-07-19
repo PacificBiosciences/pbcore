@@ -12,11 +12,7 @@ import logging
 import json
 import shutil
 import datetime
-
 import pysam
-import numpy as np
-from numpy.lib.recfunctions import append_fields
-
 from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
@@ -178,51 +174,3 @@ def hash_combine_zmw(zmw):
 
 def hash_combine_zmws(zmws):
     return [hash_combine_zmw(zmw) for zmw in zmws]
-
-
-def _homogenize_recarrays(arrays):
-    dtypes = {}
-    for array in arrays:
-        for field, (dtype, _) in array.dtype.fields.iteritems():
-            if field in dtypes:
-                assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
-            else:
-                dtypes[field] = dtype
-    arrays_out = []
-    for array in arrays:
-        array_fields = {field for field in array.dtype.names}
-        new_fields = []
-        new_data = []
-        for field, dtype in dtypes.iteritems():
-            if not field in array_fields:
-                log.warn("%s missing in array, will populate with dummy values",
-                         field)
-                new_fields.append(field)
-                new_data.append(np.full(len(array), -1, dtype=dtype))
-        if len(new_fields) > 0:
-            arrays_out.append(append_fields(array, new_fields, new_data))
-        else:
-            arrays_out.append(array)
-    return arrays_out
-
-
-def _stackRecArrays(recArrays):
-    """Stack recarrays into a single larger recarray"""
-
-    empties = []
-    nonempties = []
-    for array in recArrays:
-        if len(array) == 0:
-            empties.append(array)
-        else:
-            nonempties.append(array)
-    if nonempties:
-        _checkFields([arr.dtype.names for arr in nonempties])
-        tbr = np.concatenate(nonempties)
-        tbr = tbr.view(np.recarray)
-        return tbr
-    else:
-        _checkFields([arr.dtype.names for arr in empties])
-        tbr = np.concatenate(empties)
-        tbr = tbr.view(np.recarray)
-        return tbr
