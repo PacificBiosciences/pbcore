@@ -1227,14 +1227,22 @@ class TestDataSet(unittest.TestCase):
                             sorted(aln2.toExternalFiles()))
 
     @skip_if_no_pbtestdata
-    @skip_if_no_constools
     def test_mixed_pbi_columns(self):
         import pbtestdata
-
-        with self.assertRaises(InvalidDataSetIOError):
-            ds = SubreadSet(pbtestdata.get_file("barcoded-subreadset"),
-                            pbtestdata.get_file("subreads-unbarcoded"))
-
+        inp1 = pbtestdata.get_file("barcoded-subreadset")
+        inp2 = pbtestdata.get_file("subreads-unbarcoded")
+        ds1 = SubreadSet(inp1, strict=True)
+        ds2 = SubreadSet(inp2, strict=True)
+        ds3 = SubreadSet(inp1, inp2)
+        for ds in [ds1, ds2, ds3]:
+            ds.updateCounts()
+        self.assertEqual(len(ds3), len(ds1) + len(ds2))
+        self.assertTrue(ds1.isBarcoded)
+        self.assertFalse(ds2.isBarcoded)
+        self.assertFalse(ds3.isBarcoded)
+        for ds in [ds1, ds2, ds3]:
+            self.assertTrue(ds.isIndexed)
+            self.assertFalse(ds.isMapped)
 
     @skip_if_no_internal_data
     @skip_if_no_constools
