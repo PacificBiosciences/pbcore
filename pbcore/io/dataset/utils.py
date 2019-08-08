@@ -80,8 +80,8 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
     if useTmp:
         shutil.copy(outbam, origOutBam)
         shutil.copy(outbam + ".pbi", origOutBam + ".pbi")
-        if cleanup:
-            shutil.rmtree(tmpout)
+    if cleanup:
+        shutil.rmtree(tmpout)
     return outbam
 
 def _tmpFiles(inFiles, tmpout=None):
