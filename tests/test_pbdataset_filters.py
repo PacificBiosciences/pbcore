@@ -9,11 +9,12 @@ import numpy as np
 
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
                        ConsensusReadSet)
-from pbcore.io.dataset.DataSetMembers import Filters
+from pbcore.io.dataset.DataSetMembers import (Filters, recordMembership,
+                                              qnames2recarrays_by_size)
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import _pbtestdata, _check_constools, _internal_data
+from utils import skip_if_no_h5py, skip_if_no_internal_data
 
 log = logging.getLogger(__name__)
 
@@ -319,6 +320,56 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds2.records)), 1)
         self.assertEqual(len(list(ds2.records)), len(ds2.index))
 
+    def test_recordMembership(self):
+        # This dtype doesn't have to be exactly realistic, just internally
+        # consistent for the test:
+        dtype = [('qId', long), ('holenumber', long), ('qStart', long),
+                 ('qEnd', long)]
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0/10_20', 'c1/1/0_10']
+        blacklist = ['c1/1/0_10']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[4]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[4]
+
+        self.assertEqual(np.count_nonzero(recordMembership(records, whitelist)), 2)
+        self.assertEqual(np.count_nonzero(recordMembership(records, blacklist)), 1)
+        self.assertEqual(np.count_nonzero(~recordMembership(records, blacklist)), 3)
+
+        # test partial qnames
+
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0']
+        blacklist = ['c1/1']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[2]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[2]
+
+        self.assertEqual(np.count_nonzero(recordMembership(records, whitelist)), 2)
+        self.assertEqual(np.count_nonzero(recordMembership(records, blacklist)), 2)
+        self.assertEqual(np.count_nonzero(~recordMembership(records, blacklist)), 2)
+
+        # test a mix of partial qnames
+
+        records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
+        whitelist = ['c1/0', 'c1/1/0_10']
+        blacklist = ['c1/0/0_10', 'c1/1']
+
+        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)
+
+        whitelist_mask = recordMembership(records, whitelist[2])
+        blacklist_mask = recordMembership(records, blacklist[2])
+        whitelist_mask |= recordMembership(records, whitelist[4])
+        blacklist_mask |= recordMembership(records, blacklist[4])
+
+        self.assertEqual(np.count_nonzero(whitelist_mask), 3)
+        self.assertEqual(np.count_nonzero(blacklist_mask), 3)
+        self.assertEqual(np.count_nonzero(~blacklist_mask), 1)
+
     def test_file_arg(self):
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
@@ -377,8 +428,7 @@ class TestDataSetFilters(unittest.TestCase):
             og.discard(r.holeNumber)
         self.assertEqual(len(og), 0)
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_qname_css(self):
         fn = ('/pbi/dept/secondary/siv/testdata/ccs-unittest/'
               'tiny/little.ccs.bam')
@@ -435,8 +485,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(og), size)
 
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_qname_filter_scaling(self):
         # unaligned bam
         bam0 = ("/pbi/dept/secondary/siv/testdata/"
@@ -489,8 +538,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
 
-    @unittest.skipIf(not _internal_data(),
-                     "Internal data not available")
+    @skip_if_no_internal_data
     def test_movie_filter(self):
         # unaligned bam
         bam0 = ("/pbi/dept/secondary/siv/testdata/"
@@ -535,6 +583,9 @@ class TestDataSetFilters(unittest.TestCase):
             'm140913_005018_42139_c100713652400000001823152404301534_s1_p0')])
         self.assertEqual(len(AlignmentSet(bam1)), len(aln))
 
+    @skip_if_no_internal_data
+    @skip_if_no_h5py
+    def test_movie_filter_aligned_cmph5(self):
         # cmpH5
         cmp1 = upstreamdata.getBamAndCmpH5()[1]
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
@@ -690,6 +741,7 @@ class TestDataSetFilters(unittest.TestCase):
         ref.filters.addRequirement(length=[('>', '1450')])
         self.assertEqual(len(list(ref)), 34)
 
+    @skip_if_no_h5py
     def test_cmp_alignmentset_filters(self):
         aln = AlignmentSet(upstreamdata.getBamAndCmpH5()[1], strict=True)
         self.assertEqual(len(aln), 112)

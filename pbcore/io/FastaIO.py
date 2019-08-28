@@ -264,7 +264,9 @@ def loadFastaIndex(faidxFilename, fastaView):
         length, offset, lineWidth, blen = map(int, line.split()[-4:])
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
         header_    = fastaView[offsetEnd:offset]
-        assert (header_[0] == ">" and header_[-1] == "\n")
+        if not (header_[0] == ">" and header_[-1] == "\n"):
+            raise IOError("Companion FASTA index (.fai) file malformatted! "
+                          "Use 'samtools faidx' to generate FASTA index")
         # used to use 1:-newlineWidth here, but when DOS encoded
         # and single-line, single-entry FASTA, sometimes newlineWidth = 0
         header     = header_[1:].rstrip('\r\n')

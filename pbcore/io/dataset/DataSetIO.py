@@ -19,6 +19,7 @@ import tempfile
 import uuid
 import xml.dom.minidom
 import numpy as np
+from numpy.lib.recfunctions import append_fields
 from urlparse import urlparse
 from functools import wraps, partial
 from collections import defaultdict, Counter
@@ -37,6 +38,7 @@ from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
+                                              ReadSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
@@ -57,6 +59,24 @@ from functools import reduce
 log = logging.getLogger(__name__)
 
 def openDataSet(*files, **kwargs):
+    """Return a DataSet, based on the named "files".
+    If any files contain other files, and if those others cannot be found,
+    then we try to resolve symlinks, but only for .xml and .fofn files themselves.
+    """
+    try:
+        return _openDataSet(*files, **kwargs)
+    except MissingFileError as exc:
+        # Could not find a resource, so we will try using an resolved path for files[0].
+        msg = '{!r}. Trying again with symlinks resolved for {!r}.'.format(exc, files)
+        log.warning(msg)
+        def maybe_resolved(fn):
+            # Resolve only FOFNs and XMLs.
+            return os.path.realpath(fn) if (fn.endswith('.xml') or fn.endswith('.fofn')) else fn
+        rfiles = [maybe_resolved(fn) for fn in files]
+        rfiles = tuple(rfiles)
+        return _openDataSet(*rfiles, **kwargs)
+
+def _openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
     if files[0].endswith('xml'):
         tbrType = _typeDataSet(files[0])
@@ -150,6 +170,36 @@ def filtered(generator):
                     yield read
     return wrapper
 
+def _homogenizeRecArrays(arrays):
+    """
+    Ensure that all indices have the same columns, filling in with -1 values
+    if necessary.
+    """
+    dtypes = {}
+    for array in arrays:
+        for field, (dtype, _) in array.dtype.fields.iteritems():
+            if field in dtypes:
+                assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
+            else:
+                dtypes[field] = dtype
+    arrays_out = []
+    for array in arrays:
+        array_fields = {field for field in array.dtype.names}
+        new_fields = []
+        new_data = []
+        for field, dtype in dtypes.iteritems():
+            if not field in array_fields:
+                log.warn("%s missing in array, will populate with dummy values",
+                         field)
+                new_fields.append(field)
+                new_data.append(np.full(len(array), -1, dtype=dtype))
+        if len(new_fields) > 0:
+            arrays_out.append(append_fields(array, new_fields, new_data,
+                              usemask=False))
+        else:
+            arrays_out.append(array)
+    return arrays_out
+
 def _checkFields(fieldNames):
     """Check for identical PBI field names"""
     for field in fieldNames:
@@ -171,12 +221,12 @@ def _stackRecArrays(recArrays):
         else:
             nonempties.append(array)
     if nonempties:
-        _checkFields([arr.dtype.names for arr in nonempties])
+        nonempties = _homogenizeRecArrays(nonempties)
         tbr = np.concatenate(nonempties)
         tbr = tbr.view(np.recarray)
         return tbr
     else:
-        _checkFields([arr.dtype.names for arr in empties])
+        empties = _homogenizeRecArrays(empties)
         tbr = np.concatenate(empties)
         tbr = tbr.view(np.recarray)
         return tbr
@@ -247,12 +297,17 @@ def splitKeys(keys, chunks):
         start += cs
     return key_chunks
 
+class MissingFileError(InvalidDataSetIOError):
+    """Specifically thrown by _fileExists(),
+    and trapped in openDataSet().
+    """
+
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
     if not isinstance(fname, basestring):
         fname = fname.resourceId
     if not os.path.exists(fname):
-        raise InvalidDataSetIOError("Resource {f} not found".format(f=fname))
+        raise MissingFileError("Resource {f} not found".format(f=fname))
     return True
 
 def checkAndResolve(fname, possibleRelStart=None):
@@ -2002,16 +2057,16 @@ class ReadSet(DataSet):
                 iname = fname + '.pbi'
                 if not os.path.isfile(iname) or force:
                     iname = _pbindexBam(fname)
+                res.pbi = iname
                 newInds.append(iname)
                 self.close()
             if not res.bai or force:
                 iname = fname + '.bai'
                 if not os.path.isfile(iname) or force:
                     iname = _indexBam(fname)
+                res.bai = iname
                 newInds.append(iname)
                 self.close()
-            if newInds:
-                res.addIndices(newInds)
         self._populateMetaTypes()
         self.updateCounts()
         return newInds
@@ -2036,7 +2091,12 @@ class ReadSet(DataSet):
         if not self.isEmpty:
             res = [r for r, reader in zip(res, self.resourceReaders()) if
                     len(reader)]
-        return self._unifyResponses(res)
+        try:
+            return self._unifyResponses(res)
+        except ResourceMismatchError as e:
+            log.warn("BAM files contain a mix of barcoded and non-barcoded reads")
+            log.warn("Dataset will be treated as non-barcoded")
+            return False
 
     def assertBarcoded(self):
         """Test whether all resources are barcoded files"""
@@ -3747,7 +3807,7 @@ class AlignmentSet(ReadSet):
                 self._referenceInfoTableIsStacked = True
         elif len(responses) == 1:
             table = responses[0]
-        else:
+        elif len(self) > 0:
             raise InvalidDataSetIOError("No reference tables found, "
                                         "are these input files aligned?")
         if self.isCmpH5:

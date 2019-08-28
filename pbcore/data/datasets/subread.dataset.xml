@@ -104,6 +104,13 @@
         TimeStampedName="subreadset_150304_231154"
         MetaType="PacBio.DataSet.SubreadSet"/>
     </pbds:Provenance>
+    <pbsample:BioSamples>
+        <pbsample:BioSample Name="consectetur purus">
+            <pbsample:DNABarcodes>
+                <pbsample:DNABarcode Name="F1--R1"/>
+            </pbsample:DNABarcodes>
+        </pbsample:BioSample>
+    </pbsample:BioSamples>
     <pbmeta:Collections>
         <pbmeta:CollectionMetadata 
             UniqueId="b095d0a3-94b8-4918-b3af-a3f81bbe5393" 
@@ -126,13 +133,6 @@
                 <pbmeta:StageHotstartEnabled>true</pbmeta:StageHotstartEnabled>
                 <pbmeta:SizeSelectionEnabled>true</pbmeta:SizeSelectionEnabled>
                 <pbmeta:UseCount>0</pbmeta:UseCount>
-                <pbsample:BioSamples>
-                    <pbsample:BioSample Name="consectetur purus">
-                        <pbsample:DNABarcodes>
-                            <pbsample:DNABarcode Name="F1--R1"/>
-                        </pbsample:DNABarcodes>
-                    </pbsample:BioSample>
-                </pbsample:BioSamples>
             </pbmeta:WellSample>
             <pbmeta:Automation>
                 <pbbase:AutomationParameters>
