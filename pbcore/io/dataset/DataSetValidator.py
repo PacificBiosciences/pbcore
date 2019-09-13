@@ -25,6 +25,9 @@ def validateResources(xmlroot, relTo='.'):
                work poorly if relTo is not set to the dirname of the incoming
                XML file.
     """
+    # FIXME hacky workaround to avoid crashing on a field that was defined
+    # improperly
+    IGNORE_RESOURCES = set(["BioSamplesCsv"])
     stack = [xmlroot]
     while stack:
         element = stack.pop()
@@ -38,7 +41,11 @@ def validateResources(xmlroot, relTo='.'):
                                                     rfn)) and
                         not os.path.exists(os.path.join('.',
                                                         rfn))):
-                    raise IOError("{f} not found".format(f=rfn))
+                    tag_name = re.sub("\{.*\}", "", element.tag)
+                    if tag_name in IGNORE_RESOURCES:
+                        log.warn("{f} not found".format(f=rfn))
+                    else:
+                        raise IOError("{f} not found".format(f=rfn))
 
 def validateLxml(xml_fn, xsd_fn):
     try:
