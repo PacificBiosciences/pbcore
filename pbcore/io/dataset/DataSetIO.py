@@ -1424,12 +1424,14 @@ class DataSet(object):
                     log.warn("Future warning: merging datasets that don't "
                              "share a version number will fail.")
                     return True
-                raise ValueError("Wrong dataset version for merging {v1} vs "
+                else:
+                    log.warn("Mismatched dataset versions for merging {v1} vs "
                                  "{v2}".format(
                                      v1=newMetadata.get('Version'),
                                      v2=self.objMetadata.get('Version')))
-            log.warn("Future warning: merging will require Version "
-                     "numbers for both DataSets")
+            else:
+                log.warn("Future warning: merging will require Version "
+                         "numbers for both DataSets")
         return True
 
 
