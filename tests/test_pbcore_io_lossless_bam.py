@@ -1,9 +1,10 @@
-
 # FIXME This is not compatible with running nosetests on everything at once!
 
 # Test for hack to support lossless pulse feature encoding (e.g. Ipd).
 # XXX this should be kept in some form, but the hope is that changes in pysam
 # will make the environment variable hack unnecessary in the future.
+
+from __future__ import absolute_import, division, print_function
 
 import subprocess
 import unittest

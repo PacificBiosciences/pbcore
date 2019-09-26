@@ -1,7 +1,6 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from functools import wraps
 from bisect import bisect_right, bisect_left

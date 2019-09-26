@@ -1,6 +1,6 @@
 # Authors: David Alexander, Jim Bullard
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,

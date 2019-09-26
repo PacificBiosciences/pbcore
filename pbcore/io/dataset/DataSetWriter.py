@@ -2,7 +2,8 @@
 
 
 """ Input and output functions for DataSet XML files"""
-from __future__ import absolute_import
+
+from __future__ import absolute_import, division, print_function
 
 import copy, time
 import xml.etree.ElementTree as ET

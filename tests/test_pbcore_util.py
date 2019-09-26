@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from nose.tools import assert_equal
 from pbcore.util import Process
 from pbcore.util.statistics import accuracy_as_phred_qv

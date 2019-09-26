@@ -6,7 +6,8 @@ I/O support for GFF3 files.
 The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
-from __future__ import absolute_import
+
+from __future__ import absolute_import, division, print_function
 
 __all__ = [ "Gff3Record",
             "GffReader",

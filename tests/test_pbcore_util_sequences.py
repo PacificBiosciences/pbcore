@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 import nose
 from nose.tools import assert_equal, assert_true, assert_false
 from pbcore import sequence

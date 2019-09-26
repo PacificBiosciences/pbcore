@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 from nose.tools import assert_equal, assert_true, assert_false
 import sys, numpy as np

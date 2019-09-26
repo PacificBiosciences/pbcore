@@ -1,6 +1,6 @@
 # Authors: David Alexander
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser

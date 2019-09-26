@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, print_function
+
 from nose.tools import assert_equal, assert_true, assert_false
 from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord

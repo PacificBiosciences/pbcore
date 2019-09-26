@@ -1,7 +1,8 @@
 # Base classes for readers and writers.
 # Author: David Alexander
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
+
 import gzip
 from os.path import abspath, expanduser
 

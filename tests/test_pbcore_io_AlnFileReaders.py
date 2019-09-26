@@ -1,4 +1,5 @@
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
 from nose.tools import (nottest,
