@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 import numpy as np
 
 class UnavailableFeature(Exception): pass
@@ -81,9 +82,9 @@ def _makeLookup(framepoints):
     for i, (fl, fu) in enumerate(zip(framepoints, framepoints[1:])):
         if (fu > fl + 1):
             m = (fl + fu)//2
-            for f in xrange(fl, m):
+            for f in range(fl, m):
                 frameToCode[f] = i
-            for f in xrange(m, fu):
+            for f in range(m, fu):
                 frameToCode[f] = i + 1
         else:
             frameToCode[fl] = i

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 from nose.tools import assert_equal, assert_true, assert_false
 from numpy.testing import assert_array_equal
 from pbcore import data
@@ -109,7 +110,7 @@ class TestFastqRecord(object):
     def test_eq(self):
         header = 'r1'
         seq = 'ACGT'
-        qvs = list(xrange(10, 10 + len(seq)))
+        qvs = list(range(10, 10 + len(seq)))
         r1 = FastqRecord(header, seq, qvs)
         r2 = FastqRecord(header, seq, qvs)
         assert_true(r1 == r2)
@@ -118,7 +119,7 @@ class TestFastqRecord(object):
     def test_not_equal(self):
         header = 'r1'
         seq = 'ACGT'
-        qvs = list(xrange(10, 10 + len(seq)))
+        qvs = list(range(10, 10 + len(seq)))
         r1 = FastqRecord(header, seq, qvs)
         r2 = FastqRecord('r2', seq, qvs)
         assert_true(r1 != r2)

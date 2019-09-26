@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 from nose.tools import assert_equal
 from numpy.testing import assert_array_equal
 
@@ -58,7 +59,7 @@ class TestGetReadsInRange(object):
         # This is a brute force check that reads in range returns the
         # right answer for 50-base windows of lambda
         for BLOCKSIZE in [50, 77]:
-            for winStart in xrange(0, 45000, BLOCKSIZE):
+            for winStart in range(0, 45000, BLOCKSIZE):
                 winEnd = winStart + BLOCKSIZE
                 assert_array_equal(brute_force_reads_in_range(winStart, winEnd, self.cmpH5.tStart, self.cmpH5.tEnd),
                                    self.cmpH5.readsInRange(1, winStart, winEnd, justIndices=True))
@@ -67,7 +68,7 @@ class TestGetReadsInRange(object):
 
     def test_coverage_in_range2(self):
         # Brute force over lambda
-        for winStart in xrange(0, 45000, 50):
+        for winStart in range(0, 45000, 50):
             winEnd = winStart + 1
             assert_array_equal([len(brute_force_reads_in_range(winStart, winEnd, self.cmpH5.tStart, self.cmpH5.tEnd))],
                                RQ.getCoverageInRange(self.cmpH5, (1, winStart, winEnd)))

@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 from nose.tools import assert_equal, assert_true, assert_false
 import sys, numpy as np
 
@@ -25,7 +26,7 @@ class TestBgzf(object):
 
     def test_small_data(self):
         self.roundTripData(0)
-        for i in xrange(8):
+        for i in range(8):
             self.roundTripData(10**i)
 
     def test_partial_reads(self):

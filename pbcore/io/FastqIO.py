@@ -11,6 +11,8 @@ __all__ = [ "FastqRecord",
             "FastqWriter",
             "qvsFromAscii",
             "asciiFromQvs" ]
+
+from builtins import range
 import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
@@ -177,7 +179,7 @@ class FastqReader(ReaderBase):
         One-shot iteration support
         """
         while True:
-            lines = [next(self.file) for i in xrange(4)]
+            lines = [next(self.file) for i in range(4)]
             yield FastqRecord(lines[0][1:-1],
                               lines[1][:-1],
                               qualityString=lines[3][:-1])

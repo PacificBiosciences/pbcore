@@ -6,6 +6,8 @@ __all__ = [ "CmpH5Reader",
             "CmpH5Alignment",
             "EmptyCmpH5Error" ]
 
+from builtins import range
+
 try:
     import h5py
 except ImportError:
@@ -573,7 +575,7 @@ class CmpH5Alignment(AlignmentRecordMixin):
         transcript = self.transcript(style="exonerate+")
         refPos = self.referencePositions()
         refPosString = "".join([str(pos % 10) for pos in refPos])
-        for i in xrange(0, len(alignedRef), COLUMNS):
+        for i in range(0, len(alignedRef), COLUMNS):
             val += "\n"
             val += "  " + refPosString[i:i+COLUMNS] + "\n"
             val += "  " + alignedRef  [i:i+COLUMNS] + "\n"
@@ -1244,7 +1246,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
             return CmpH5Alignment(self, rowNumbers)
         elif isinstance(rowNumbers, slice):
             return [CmpH5Alignment(self, r)
-                    for r in xrange(*rowNumbers.indices(len(self)))]
+                    for r in range(*rowNumbers.indices(len(self)))]
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []
@@ -1257,7 +1259,7 @@ class CmpH5Reader(ReaderBase, IndexedAlignmentReaderMixin):
         raise TypeError("Invalid type for CmpH5Reader slicing")
 
     def __iter__(self):
-        return (self[i] for i in xrange(len(self)))
+        return (self[i] for i in range(len(self)))
 
     def __len__(self):
         return len(self.alignmentIndex)

@@ -4,6 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
+from builtins import range
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -414,7 +415,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             return self.atRowNumber(rowNumbers)
         elif isinstance(rowNumbers, slice):
             return ( self.atRowNumber(r)
-                     for r in xrange(*rowNumbers.indices(len(self))))
+                     for r in range(*rowNumbers.indices(len(self))))
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []

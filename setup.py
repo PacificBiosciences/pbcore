@@ -35,6 +35,7 @@ setup(
     zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
     install_requires=[
+        'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',
     ],

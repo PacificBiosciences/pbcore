@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
+
 try:
     import h5py
 except ImportError:
@@ -106,9 +108,9 @@ def writeBarcodeH5(labeledZmws, labeler, outFile,
         def makeRecord(lZmw):
             zmws = makeArray(nBarcodes * lZmw.nScored, lZmw.holeNumber)
             adapters = n.concatenate([makeArray(nBarcodes, i) for i in \
-                                          xrange(1, lZmw.nScored + 1)])
+                                          range(1, lZmw.nScored + 1)])
             idxs = n.concatenate([range(0, nBarcodes) for i in \
-                                      xrange(0, lZmw.nScored)])
+                                      range(0, lZmw.nScored)])
             scores = n.concatenate(lZmw.allScores)
             return n.transpose(n.vstack((zmws, adapters, idxs, scores)))
 
@@ -141,7 +143,7 @@ class BarcodeH5Reader(object):
         self._movieName = self.bestDS.attrs['movieName']
         # zmw => LabeledZmw
         labeledZmws = [LabeledZmw.fromBestRecord(self.bestDS[i,:]) for i in
-                       xrange(0, self.bestDS.shape[0])]
+                       range(0, self.bestDS.shape[0])]
         self.labeledZmws = dict([(lZmw.holeNumber, lZmw) for lZmw in labeledZmws])
 
         # barcode => LabeledZmws
@@ -234,7 +236,7 @@ class MPBarcodeH5Reader(object):
             return self.labeledZmwsFromBarcodeLabel(item)
         elif isinstance(item, slice):
             return [ self.labeledZmwFromHoleNumber(item)
-                    for r in xrange(*item.indices(len(self)))]
+                    for r in range(*item.indices(len(self)))]
         elif isinstance(item, list) or isinstance(item, n.ndarray):
             if len(item) == 0:
                 return []
