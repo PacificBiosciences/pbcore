@@ -1,10 +1,11 @@
-
 """
 A corner case: reference sequence contains IUPAC ambiguous nucleotide
 characters, which we allow.  This test ensures that we can extract the
 transcript from a BAM alignment file, specifically when the reverse complement
 is needed.
 """
+
+from __future__ import absolute_import, division, print_function
 
 from pbcore.io.align.BamIO import AlignmentFile
 import pbcore.io

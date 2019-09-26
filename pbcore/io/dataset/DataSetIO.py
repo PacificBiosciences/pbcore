@@ -4,9 +4,10 @@
 """
 Classes representing DataSets of various types.
 """
-from __future__ import absolute_import
-from __future__ import division
 
+from __future__ import absolute_import, division, print_function
+
+from builtins import range
 import copy
 import errno
 import hashlib
@@ -1609,7 +1610,7 @@ class DataSet(object):
         ExternalResources and record order within each file"""
         if self.isIndexed:
             # this uses the index to respect filters
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 yield self[i]
         else:
             # this uses post-filtering to respect filters

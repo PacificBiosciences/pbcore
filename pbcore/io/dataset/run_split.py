@@ -6,6 +6,9 @@ In order to avoid extra work with mobs, we will call this via
 
     python2 -m pbcore.io.dataset.run_split -h
 """
+
+from __future__ import absolute_import, division, print_function
+
 from pbcore.io import (SubreadSet, ExternalResource) # pylint: disable=import-error
 import argparse
 import logging

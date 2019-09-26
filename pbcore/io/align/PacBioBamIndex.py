@@ -1,7 +1,8 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
+from builtins import range
 from os.path import abspath, expanduser
 from struct import unpack
 import math
@@ -221,7 +222,7 @@ class PacBioBamIndex(PbIndexBase):
         return len(self._tbl)
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
 
     def rangeQuery(self, winId, winStart, winEnd):

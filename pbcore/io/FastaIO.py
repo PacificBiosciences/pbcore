@@ -3,7 +3,8 @@
 """
 Streaming I/O support for FASTA files.
 """
-from __future__ import absolute_import
+
+from __future__ import absolute_import, division, print_function
 
 __all__ = [ "FastaRecord",
             "FastaReader",
@@ -12,6 +13,7 @@ __all__ = [ "FastaRecord",
             "IndexedFastaReader",
             "splitFastaHeader"]
 
+from builtins import range
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore import sequence
@@ -236,7 +238,7 @@ class FastaWriter(WriterBase):
 ##
 def wrap(s, columns):
     return "\n".join(s[start:start+columns]
-                     for start in xrange(0, len(s), columns))
+                     for start in range(0, len(s), columns))
 
 
 
@@ -428,7 +430,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
             key = len(self) + key
 
         if isinstance(key, slice):
-            indices = xrange(*key.indices(len(self)))
+            indices = range(*key.indices(len(self)))
             return [ IndexedFastaRecord(self.view, self.contigLookup[i])
                      for i in indices ]
         elif key in self.contigLookup:
@@ -437,7 +439,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
             raise IndexError("Contig not in FastaTable")
 
     def __iter__(self):
-        return (self[i] for i in xrange(len(self)))
+        return (self[i] for i in range(len(self)))
 
     def __len__(self):
         return len(self.fai)

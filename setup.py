@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from setuptools import setup, find_packages
 
@@ -35,6 +35,7 @@ setup(
     zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
     install_requires=[
+        'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',
     ],

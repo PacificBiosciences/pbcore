@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 class h5py_dummy(object):
     def __getattr__(self, name):

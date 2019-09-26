@@ -1,10 +1,12 @@
 # Authors: David Alexander, Jim Bullard
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BasH5Reader"     ,
             "BaxH5Reader"     ,
             "BasH5Collection" ]
+
+from builtins import range
 
 try:
     import h5py
@@ -670,7 +672,7 @@ class BasH5Reader(object):
             self.file        = None
             self._parts      = [ BaxH5Reader(fn) for fn in partFilenames ]
             holeLookupDict   = { hn : (i + 1)
-                                 for i in xrange(len(self._parts))
+                                 for i in range(len(self._parts))
                                  for hn in self._parts[i]._holeNumberToIndex }
             self._holeLookup = lambda hn: holeLookupDict[hn]
         self._sequencingZmws = np.concatenate([ part.sequencingZmws
@@ -739,7 +741,7 @@ class BasH5Reader(object):
             return self._getitemScalar(holeNumbers)
         elif isinstance(holeNumbers, slice):
             return [ self._getitemScalar(r)
-                     for r in xrange(*holeNumbers.indices(len(self)))]
+                     for r in range(*holeNumbers.indices(len(self)))]
         elif isinstance(holeNumbers, list) or isinstance(holeNumbers, np.ndarray):
             if len(holeNumbers) == 0:
                 return []

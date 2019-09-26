@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 __doc__="""Useful functions for interacting with processes."""
 import sys

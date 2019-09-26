@@ -1,4 +1,5 @@
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
 from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
 from nose.tools import (nottest,
@@ -7,6 +8,7 @@ from nose.tools import (nottest,
                         assert_almost_equal as EQISH)
 from nose import SkipTest
 
+from builtins import range
 import os.path as op
 import tempfile
 import shutil
@@ -307,15 +309,15 @@ class _BasicAlnFileReaderTests(object):
     def testClippingsVsBaxData(self):
         self.f.attach(self.BAX_FILE)
         for aln in [self.fwdAln, self.revAln]:
-            for cS in xrange(aln.tStart, aln.tEnd + 1):
-                for cE in xrange(cS + 1, min(aln.tEnd, cS + 10)):
+            for cS in range(aln.tStart, aln.tEnd + 1):
+                for cE in range(cS + 1, min(aln.tEnd, cS + 10)):
                     ca = aln.clippedTo(cS, cE)
                     EQ(ca.zmwRead.basecalls(),
                        ca.read(aligned=False, orientation="native"))
 
     def testReadsInRange(self):
         wLen = 1000
-        for wStart in xrange(0, 50000, wLen):
+        for wStart in range(0, 50000, wLen):
             wEnd = wStart + wLen
             expectedNames = set([ a.readName for a in self.alns
                                   if (a.referenceName == "lambda_NEB3011" and
