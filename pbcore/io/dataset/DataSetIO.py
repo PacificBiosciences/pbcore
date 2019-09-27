@@ -55,6 +55,7 @@ from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
 from functools import reduce
+from future.utils import iteritems
 
 
 log = logging.getLogger(__name__)
@@ -182,7 +183,7 @@ def _homogenizeRecArrays(arrays):
     """
     dtypes = {}
     for array in arrays:
-        for field, (dtype, _) in array.dtype.fields.iteritems():
+        for (field, (dtype, _)) in iteritems(array.dtype.fields):
             if field in dtypes:
                 assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
             else:
@@ -192,7 +193,7 @@ def _homogenizeRecArrays(arrays):
         array_fields = {field for field in array.dtype.names}
         new_fields = []
         new_data = []
-        for field, dtype in dtypes.iteritems():
+        for (field, dtype) in iteritems(dtypes):
             if not field in array_fields:
                 log.warn("%s missing in array, will populate with dummy values",
                          field)
@@ -3070,7 +3071,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for rname, rAtoms in rnames.iteritems():
+        for (rname, rAtoms) in iteritems(rnames):
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))

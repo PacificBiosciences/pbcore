@@ -16,6 +16,7 @@ __all__ = [ "Gff3Record",
 from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
+from future.utils import iteritems
 import logging
 import tempfile
 import os.path
@@ -100,7 +101,7 @@ class Gff3Record(object):
     def __str__(self):
         formattedAttributes = ";".join(
             ("%s=%s" % (k, self._formatField(v))
-             for (k, v) in self.attributes.iteritems()))
+             for (k, v) in iteritems(self.attributes)))
         formattedFixedColumns = "\t".join(
             self._formatField(getattr(self, k))
             for k in self._GFF_COLUMNS[:-1])

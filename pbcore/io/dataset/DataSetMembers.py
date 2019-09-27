@@ -78,6 +78,7 @@ from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
+from future.utils import iteritems
 
 log = logging.getLogger(__name__)
 
@@ -269,7 +270,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
     if len(records_by_size) == 0:
         return records_by_size
     tbr = {}
-    for size, records in records_by_size.iteritems():
+    for (size, records) in iteritems(records_by_size):
         # recarray dtypes are a little hairier, we'll give normal (or manual)
         # dtypes an out:
         if isinstance(dtype, list):
@@ -1645,7 +1646,7 @@ class ExternalResource(RecordWrapper):
             self.append(fileIndices)
         for index in list(indices):
             found = False
-            for ext, mtype in FILE_INDICES.iteritems():
+            for (ext, mtype) in iteritems(FILE_INDICES):
                 if index.endswith(ext):
                     found = True
                     self._setIndResByMetaType(mtype, index)
