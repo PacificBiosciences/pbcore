@@ -34,6 +34,7 @@ import pbcore.data as upstreamdata
 
 from utils import skip_if_no_internal_data, skip_if_no_pbtestdata, skip_if_no_constools
 from functools import reduce
+from future.utils import iteritems
 
 log = logging.getLogger(__name__)
 
@@ -1536,7 +1537,7 @@ class TestDataSet(unittest.TestCase):
         ds = AlignmentSet(data.getBam(0))
         random_few = {'B.cereus.6': 1472, 'S.agalactiae.1': 1470,
                       'B.cereus.4': 1472}
-        for key, value in random_few.items():
+        for (key, value) in iteritems(random_few):
             self.assertEqual(ds.refLengths[key], value)
 
         # this is a hack to only emit refNames that actually have records

@@ -1497,7 +1497,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for key, value in kwargs.items():
+        for (key, value) in iteritems(kwargs):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -3892,7 +3892,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -3902,7 +3902,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+            writeTemp = any([len(m) > 1 for (n, m) in iteritems(matches)])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -3914,7 +3914,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)

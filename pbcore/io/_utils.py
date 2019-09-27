@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
+from future.utils import iteritems
 from cStringIO import StringIO
 
 
@@ -149,7 +150,7 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
 
     if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
         newrec_fields = list(newrec.dtype.fields)
-        for k, v in defaults.items():
+        for (k, v) in iteritems(defaults):
             if k in newrec_fields:
                 newrec[k] = v
 

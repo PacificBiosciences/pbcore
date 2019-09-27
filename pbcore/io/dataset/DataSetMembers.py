@@ -230,7 +230,7 @@ def isFile(string):
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
         max(map(len, qid2mov.values()))))
-    for k, v in qid2mov.items():
+    for (k, v) in iteritems(qid2mov):
         movs[qId == k] = v
     return (movs, hn, qs, qe)
 
@@ -1013,7 +1013,7 @@ class Filters(RecordWrapper):
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
             newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
                         val = option[1]
@@ -1024,7 +1024,7 @@ class Filters(RecordWrapper):
                 self.extend(filtList)
         else:
             newFilts = [Filter() for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     val = option[1]
                     if isinstance(val, np.ndarray):
@@ -1046,7 +1046,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for name, options in kwargs.items():
+        for (name, options) in iteritems(kwargs):
             for option in options:
                 newFilt.addRequirement(name, *option)
         self.append(newFilt)
@@ -1114,7 +1114,7 @@ class Filters(RecordWrapper):
         # Check that this length is equal to the current number of filters:
         assert len(kwargs.values()[0]) == len(list(self))
 
-        for req, opvals in kwargs.items():
+        for (req, opvals) in iteritems(kwargs):
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, *opval)
         self._runCallbacks()
