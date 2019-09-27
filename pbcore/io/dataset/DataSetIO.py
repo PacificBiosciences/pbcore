@@ -3250,10 +3250,10 @@ class AlignmentSet(ReadSet):
             # abstraction.
             if len(result._filters) > 100:
                 meanNum = self.numRecords//len(chunks)
-                result.numRecords = long(round(meanNum,
+                result.numRecords = int(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
                 meanLen = self.totalLength//len(chunks)
-                result.totalLength = long(round(meanLen,
+                result.totalLength = int(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
                 result._openReaders = self._openReaders

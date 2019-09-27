@@ -323,8 +323,8 @@ class TestDataSetFilters(unittest.TestCase):
     def test_recordMembership(self):
         # This dtype doesn't have to be exactly realistic, just internally
         # consistent for the test:
-        dtype = [('qId', long), ('holenumber', long), ('qStart', long),
-                 ('qEnd', long)]
+        dtype = [('qId', int), ('holenumber', int), ('qStart', int),
+                 ('qEnd', int)]
         records = ['c1/0/0_10', 'c1/0/10_20', 'c1/1/0_10', 'c1/1/10_20']
         whitelist = ['c1/0/10_20', 'c1/1/0_10']
         blacklist = ['c1/1/0_10']
