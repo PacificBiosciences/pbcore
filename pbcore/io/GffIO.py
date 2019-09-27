@@ -9,6 +9,7 @@ The specification for the GFF format is available at
 
 from __future__ import absolute_import, division, print_function
 
+from pbcore.util import cmp
 __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
