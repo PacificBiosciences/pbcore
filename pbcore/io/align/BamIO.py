@@ -114,7 +114,7 @@ class _BamReaderBase(ReaderBase):
 
             readGroupTable_.append(
                 (rgID, rgName, rgReadType, rgChem, rgFrameRate, rgSample,
-                 frozenset(baseFeatureNameMapping.iterkeys())))
+                 frozenset(baseFeatureNameMapping)))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
