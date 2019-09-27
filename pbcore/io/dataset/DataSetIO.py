@@ -488,12 +488,12 @@ class DataSet(object):
             for fname in self.toExternalFiles():
                 # FIXME due to h5 file types, must be unpythonic:
                 found = False
-                for allowed in self._metaTypeMapping().keys():
+                for allowed in self._metaTypeMapping():
                     if fname.endswith(allowed):
                         found = True
                         break
                 if not found:
-                    allowed = self._metaTypeMapping().keys()
+                    allowed = list(self._metaTypeMapping())
                     extension = fname.split('.')[-1]
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
@@ -2226,7 +2226,7 @@ class ReadSet(DataSet):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
 
-        log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
+        log.debug("{i} barcodes found".format(i=len(list(barcodes))))
 
         atoms = barcodes.items()
 
@@ -2479,7 +2479,7 @@ class ReadSet(DataSet):
             qIdMap = dict(zip(rr.readGroupTable.ID,
                               rr.readGroupTable.MovieName))
             nameMap = self.movieIds
-            for qId in qIdMap.keys():
+            for qId in qIdMap:
                 qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
                     qIdMap[qId]]
 
@@ -2603,7 +2603,7 @@ class ReadSet(DataSet):
                          "lost")
             else:
                 for extres in self.externalResources:
-                    extres.reference = refCounts.keys()[0]
+                    extres.reference = list(refCounts)[0]
         # reset the indexmap especially, as it is out of date:
         self._index = None
         self._indexMap = None
@@ -2774,7 +2774,7 @@ class AlignmentSet(ReadSet):
             rname2tid = dict(zip(unfilteredRefTable['Name'],
                             unfilteredRefTable['ID']))
             #nameMap = self.refIds
-            for tId in tIdMap.keys():
+            for tId in tIdMap:
                 tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
                     tIdMap[tId]]
 
@@ -3103,7 +3103,7 @@ class AlignmentSet(ReadSet):
         # pull both at once so you only have to mess with the
         # referenceInfoTable once.
         refLens = self.refLengths
-        refNames = refLens.keys()
+        refNames = list(refLens)
         log.debug("{i} references found".format(i=len(refNames)))
 
         log.debug("Finding contigs")
@@ -3961,7 +3961,7 @@ class ContigSet(DataSet):
                                          'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
-                for name in list(matches.keys()):
+                for name in list(matches):
                     seq, comments, quality = _get_merged_sequence(name)
                     if comments:
                         name = ' '.join([name, comments])

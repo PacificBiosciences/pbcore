@@ -2503,7 +2503,7 @@ class TestDataSet(unittest.TestCase):
         sset = SubreadSet(resXml)
 
         # check that removing any one breaks it:
-        for key in path_map.keys():
+        for key in path_map:
             mod_pmap = path_map.copy()
 
             # remove a resourceId from the map:

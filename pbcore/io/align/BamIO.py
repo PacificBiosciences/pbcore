@@ -103,10 +103,10 @@ class _BamReaderBase(ReaderBase):
             # (This is a bit messy.  Can we separate the manifest from
             # the rest of the DS content?)
             baseFeatureNameMapping  = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in ds
                                         if key in BASE_FEATURE_TAGS }
             pulseFeatureNameMapping = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in ds
                                         if key in PULSE_FEATURE_TAGS }
             self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
             self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
@@ -133,9 +133,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._baseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in self._baseFeatureNameMappings.values()])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._pulseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in self._pulseFeatureNameMappings.values()])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))

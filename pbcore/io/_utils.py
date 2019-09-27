@@ -80,8 +80,8 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
     r1d = dict([(makekey(row),i) for i,row in enumerate(r1)])
     r2d = dict([(makekey(row),i) for i,row in enumerate(r2)])
 
-    r1keys = set(r1d.keys())
-    r2keys = set(r2d.keys())
+    r1keys = set(r1d)
+    r2keys = set(r2d)
 
     common_keys = r1keys & r2keys
 
@@ -148,7 +148,7 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
             newrec[name] = 0
 
     if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
-        newrec_fields = newrec.dtype.fields.keys()
+        newrec_fields = list(newrec.dtype.fields)
         for k, v in defaults.items():
             if k in newrec_fields:
                 newrec[k] = v

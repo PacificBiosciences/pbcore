@@ -394,7 +394,7 @@ class RecordWrapper(object):
                 # register a callback to append this object to the parent, so
                 # that it will be added to the XML file
                 self.registerCallback(runonce(P(parent.append, self.record)))
-        assert 'tag' in self.record.keys()
+        assert 'tag' in self.record
 
         # we could do the same with namespace, but it isn't used in nonzero, so
         # we can just update it:
@@ -925,7 +925,7 @@ class Filters(RecordWrapper):
                 param = req.name
                 if param == 'qname_file':
                     param = 'qname'
-                if param in accMap.keys():
+                if param in accMap:
                     # Treat "value" as a string of a list of potential values
                     # if operator is 'in', or 'in' masquerading as '=='.
                     # Have to be careful with bc and other values that are

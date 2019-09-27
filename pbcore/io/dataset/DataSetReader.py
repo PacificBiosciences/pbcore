@@ -119,7 +119,7 @@ def _addGenericFile(dset, path):
     dictionary, return"""
     # filter out resource file types that aren't top level:
     # if we want to exclude scraps as well:
-    for ext in SUB_RESOURCES + FILE_INDICES.keys():
+    for ext in SUB_RESOURCES + list(FILE_INDICES):
         if path.endswith(ext):
             log.debug('Sub resource file {f} given as regular file, '
                       'will be treated '
@@ -134,7 +134,7 @@ def _addGenericFile(dset, path):
 # TODO needs namespace
 def wrapNewResource(path):
     # filter out non-resource file types:
-    for ext in FILE_INDICES.keys():
+    for ext in FILE_INDICES:
         if path.endswith(ext):
             log.debug('Index file {f} given as regular file, will be treated '
                       ' as an index file instead'.format(f=path))
@@ -142,7 +142,7 @@ def wrapNewResource(path):
     extRes = ExternalResource()
     path = resolveLocation(path)
     extRes.resourceId = path
-    index_files = [path + ext for ext in FILE_INDICES.keys() if
+    index_files = [path + ext for ext in FILE_INDICES if
                    os.path.exists(path + ext)]
     if index_files:
         extRes.addIndices(index_files)
