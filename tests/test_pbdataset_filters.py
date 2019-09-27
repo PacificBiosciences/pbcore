@@ -14,7 +14,7 @@ from pbcore.io.dataset.DataSetMembers import (Filters, recordMembership,
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import skip_if_no_h5py, skip_if_no_internal_data
+from utils import skip_if_no_internal_data
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class TestDataSetFilters(unittest.TestCase):
         ds1.addFilters(filt)
         self.assertEquals(str(ds1.filters), '( rq > 0.85 )')
         # Or added from a source XML
-        ds2 = DataSet(data.getXml(16))
+        ds2 = DataSet(data.getXml(15))
         self.assertTrue(str(ds2.filters).startswith(
             '( rname = E.faecalis'))
 
@@ -46,12 +46,12 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEquals(str(ds2.filters), '( rq > 0.85 )')
 
     def test_add_double_bound_filters(self):
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.filters.addRequirement(rq=[('>', '0.85'),
                                        ('<', '0.99')])
         self.assertEquals(str(ds1.filters), '( rq > 0.85 ) OR ( rq < 0.99 )')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         self.assertEquals(str(ds1.filters), '')
         ds1.filters.addFilter(rq=[('>', '0.85'),
                                   ('<', '0.99')])
@@ -66,13 +66,13 @@ class TestDataSetFilters(unittest.TestCase):
                           '( length > 1000 )')
 
     def test_n_subreads_filter(self):
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         ds2.filters.addRequirement(n_subreads=[('>', '4')])
         self.assertEqual(len(list(ds2.records)), 87)
         self.assertEqual(len(ds2), 87)
 
     def test_subset_filter(self):
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(ds2), 92)
         modvalue = 8
 
@@ -101,13 +101,13 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertTrue(found)
 
     def test_mapqv_filter(self):
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(list(ds2.records)), 92)
         ds2.filters.addRequirement(mapqv=[('>', '128')])
         self.assertEqual(len(list(ds2.records)), 16)
 
     def test_filter(self):
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         self.assertEqual(len(list(ds2.records)), 20)
         ds2.disableFilters()
@@ -126,13 +126,13 @@ class TestDataSetFilters(unittest.TestCase):
                   ('zm', '>', '1000')]]
 
         # no new filters, no existing:
-        ds0 = AlignmentSet(data.getXml(8))
+        ds0 = AlignmentSet(data.getXml(7))
         ds0.filters.broadcastFilters([])
         self.assertEqual(str(ds0.filters), '')
         self.assertEqual(len(list(ds0.records)), 92)
 
         # no new filters, one existing:
-        ds0 = AlignmentSet(data.getXml(8))
+        ds0 = AlignmentSet(data.getXml(7))
         ds0.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         self.assertEqual(str(ds0.filters), '( rname = E.faecalis.1 )')
         self.assertEqual(len(list(ds0.records)), 20)
@@ -141,20 +141,20 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(ds0.records)), 20)
 
         # no existing filters:
-        ds0 = AlignmentSet(data.getXml(8))
+        ds0 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(list(ds0.records)), 92)
 
         ds0.filters.broadcastFilters(filt1)
         self.assertEqual(str(ds0.filters), '( zm < 1000 AND zm > 0 )')
 
-        ds0 = AlignmentSet(data.getXml(8))
+        ds0 = AlignmentSet(data.getXml(7))
         ds0.filters.broadcastFilters(filt2)
         self.assertEqual(
             str(ds0.filters),
             '( zm < 1000 AND zm > 0 ) OR ( zm < 2000 AND zm > 1000 )')
 
         # one filter:
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         self.assertEqual(len(list(ds1.records)), 20)
 
@@ -163,7 +163,7 @@ class TestDataSetFilters(unittest.TestCase):
             str(ds1.filters),
             '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 )')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         ds1.filters.broadcastFilters(filt2)
         self.assertEqual(
@@ -172,7 +172,7 @@ class TestDataSetFilters(unittest.TestCase):
              '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 )'))
 
         # two filters:
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
                                           ('=', 'E.faecalis.2')])
         self.assertEqual(len(list(ds2.records)), 23)
@@ -183,7 +183,7 @@ class TestDataSetFilters(unittest.TestCase):
             ('( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
              '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 )'))
 
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
                                           ('=', 'E.faecalis.2')])
         ds2.filters.broadcastFilters(filt2)
@@ -373,7 +373,7 @@ class TestDataSetFilters(unittest.TestCase):
     def test_file_arg(self):
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), 92)
         size = 10
         qn = [r.qName for r in sset[:size]]
@@ -392,7 +392,7 @@ class TestDataSetFilters(unittest.TestCase):
 
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), 92)
         size = 10
         qn = [r.qName for r in sset[:size]]
@@ -411,7 +411,7 @@ class TestDataSetFilters(unittest.TestCase):
 
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), 92)
         size = 4
         hn = [r
@@ -447,7 +447,7 @@ class TestDataSetFilters(unittest.TestCase):
         nreads = 92
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         nzmws = len(set(sset.index.holeNumber))
         self.assertEqual(len(sset), nreads)
         size = 10
@@ -467,7 +467,7 @@ class TestDataSetFilters(unittest.TestCase):
 
         fn = tempfile.NamedTemporaryFile(suffix="filterVals.txt").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), nreads)
         size = 4
         hn = [r
@@ -508,7 +508,7 @@ class TestDataSetFilters(unittest.TestCase):
         #self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
 
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), 92)
         size = 10
         qn = [r.qName for r in sset[:size]]
@@ -529,7 +529,7 @@ class TestDataSetFilters(unittest.TestCase):
         #self.assertEqual(size, sum(1 for _ in sset))
         self.assertEqual(size, len(sset))
 
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         self.assertEqual(len(sset), 92)
         size = 10
         qn = [r.qName for r in sset[:size]]
@@ -566,7 +566,7 @@ class TestDataSetFilters(unittest.TestCase):
         #        "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
         #        "m140913_222218_42240_c1006999524000000018231"
         #        "39203261564_s1_p0.all.alignmentset.xml")
-        bam0 = upstreamdata.getBamAndCmpH5()[0]
+        bam0 = upstreamdata.getAlignedBam()
         bam1 = ("/pbi/dept/secondary/siv/testdata/"
                 "SA3-DS/ecoli/2590953/0001/Alignment_Results/"
                 "m140913_005018_42139_c1007136524000000018231"
@@ -583,50 +583,26 @@ class TestDataSetFilters(unittest.TestCase):
             'm140913_005018_42139_c100713652400000001823152404301534_s1_p0')])
         self.assertEqual(len(AlignmentSet(bam1)), len(aln))
 
-    @skip_if_no_internal_data
-    @skip_if_no_h5py
-    def test_movie_filter_aligned_cmph5(self):
-        # cmpH5
-        cmp1 = upstreamdata.getBamAndCmpH5()[1]
-        cmp2 = ("/pbi/dept/secondary/siv/testdata/"
-                "genomic_consensus-unittest/bam_c4p6_tests/"
-                "ecoli_c4p6.cmp.h5")
-        aln = AlignmentSet(cmp1, cmp2)
-        self.assertEqual(len(set(aln.readGroupTable['ID'])),
-                         len(aln.readGroupTable['ID']))
-        self.assertEqual(len(set(aln.readGroupTable['ID'])),
-                         len(set(aln.index.MovieID)))
-        self.assertEqual(len(set(aln.readGroupTable['ID'])), 2)
-        self.assertEqual(len(aln), 57147)
-        aln.filters.addRequirement(movie=[(
-            '=',
-            'm140905_042212_sidney_c100564852550000001823085912221377_s1_X0')])
-        len1 = len(AlignmentSet(cmp1))
-        self.assertEqual(len1, len(aln))
-
-        aln.filters.removeRequirement('movie')
-        self.assertEqual(len(aln), 57147)
-
     def test_accuracy_filter(self):
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         aln.filters.addRequirement(accuracy=[('>', '.85')])
         self.assertEqual(len(list(aln)), 174)
 
     def test_membership_filter(self):
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         aln.filters.addRequirement(zm=[('in', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)
         aln.filters.addRequirement(zm=[('in', hns)])
         self.assertEqual(len(list(aln)), 177)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)
         hns = [n for _ in range(10000) for n in hns]
@@ -634,34 +610,34 @@ class TestDataSetFilters(unittest.TestCase):
         aln.filters.addRequirement(zm=[('in', hns)])
         self.assertEqual(len(list(aln)), 177)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         hns = list(hns)
         aln.filters.addRequirement(zm=[('in', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         hns = set(hns)
         aln.filters.addRequirement(zm=[('in', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         qnames = [r.qName for r in aln[:10]]
         aln.filters.addRequirement(qname=[('in', qnames)])
         self.assertEqual(len(list(aln)), 10)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         qnames = [r.qName for r in aln[:1]]
         aln.filters.addRequirement(qname=[('in', qnames)])
         self.assertEqual(len(list(aln)), 1)
 
         # test partial qnames:
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         qnames = ['/'.join(r.qName.split('/')[:2]) for r in aln[:1]]
         self.assertEqual(qnames, ['pbalchemy1GbRSIIsim0/6'])
@@ -669,7 +645,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(aln)), 7)
 
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         aln.filters.addRequirement(zm=[('in', hns)])
@@ -679,19 +655,19 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(aln2)), 5)
 
     def test_membership_filter_with_equal_operator(self):
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         aln.filters.addRequirement(zm=[('=', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)
         aln.filters.addRequirement(zm=[('==', hns)])
         self.assertEqual(len(list(aln)), 177)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)
         hns = [n for _ in range(10000) for n in hns]
@@ -699,34 +675,34 @@ class TestDataSetFilters(unittest.TestCase):
         aln.filters.addRequirement(zm=[('==', hns)])
         self.assertEqual(len(list(aln)), 177)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         hns = list(hns)
         aln.filters.addRequirement(zm=[('==', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         hns = set(hns)
         aln.filters.addRequirement(zm=[('==', hns)])
         self.assertEqual(len(list(aln)), 5)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         qnames = [r.qName for r in aln[:10]]
         aln.filters.addRequirement(qname=[('==', qnames)])
         self.assertEqual(len(list(aln)), 10)
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         qnames = [r.qName for r in aln[:1]]
         aln.filters.addRequirement(qname=[('==', qnames)])
         self.assertEqual(len(list(aln)), 1)
 
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         hns = np.unique(aln.index.holeNumber)[:1]
         aln.filters.addRequirement(zm=[('==', hns)])
@@ -736,14 +712,7 @@ class TestDataSetFilters(unittest.TestCase):
         self.assertEqual(len(list(aln2)), 5)
 
     def test_contigset_filter(self):
-        ref = ReferenceSet(data.getXml(9))
+        ref = ReferenceSet(data.getXml(8))
         self.assertEqual(len(list(ref)), 59)
         ref.filters.addRequirement(length=[('>', '1450')])
         self.assertEqual(len(list(ref)), 34)
-
-    @skip_if_no_h5py
-    def test_cmp_alignmentset_filters(self):
-        aln = AlignmentSet(upstreamdata.getBamAndCmpH5()[1], strict=True)
-        self.assertEqual(len(aln), 112)
-        aln.filters.addRequirement(length=[('>=', 1000)])
-        self.assertEqual(len(aln), 12)

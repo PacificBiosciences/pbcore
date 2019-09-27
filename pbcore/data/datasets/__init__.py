@@ -12,21 +12,17 @@ XML_FILES = ["alignment.dataset.xml", #0
              "reference.dataset.xml", #4
              "subread.dataset.xml",
              "transformed_rs_subread_dataset.xml",
-             "hdfsubread_dataset.xml",
              "pbalchemysim0.alignmentset.xml",
-             "pbalchemysim0.referenceset.xml", #9
+             "pbalchemysim0.referenceset.xml", #8
              "pbalchemysim0.subreadset.xml",
              "pbalchemysim1.alignmentset.xml",
              "pbalchemysim.alignmentset.xml", # both sim0 and sim1 bam files
              "pbalchemysim1.subreadset.xml",
-             "subreadSetWithStats.xml", #14
+             "subreadSetWithStats.xml", #13
              "pbalchemysim0.alignmentset.chunk0contigs.xml",
              "pbalchemysim0.alignmentset.chunk1contigs.xml",
-             "pbalchemysim0.hdfsubreadset.xml",
-             "pbalchemysim1.hdfsubreadset.xml",
-             "pbalchemysim.hdfsubreadset.xml", #19
              "ccsaligned.dataset.xml",
-             "CollectionMetadata.xml"
+             "CollectionMetadata.xml", #17
             ]
 BAM_FILES = ["pbalchemysim0.pbalign.bam",
              "pbalchemysim1.pbalign.bam",
@@ -45,7 +41,7 @@ def getXml(no=0):
     return _getAbsPath(XML_FILES[no])
 
 def getXmlWithStats():
-    return _getAbsPath(XML_FILES[14])
+    return _getAbsPath(XML_FILES[13])
 
 def getBam(no=0):
     return _getAbsPath(BAM_FILES[no])
@@ -60,16 +56,13 @@ def getFofn(no=0):
     return _getAbsPath(FOFN_FILES[no])
 
 def getRef():
-    return _getAbsPath(XML_FILES[9])
+    return _getAbsPath(XML_FILES[8])
 
 def getSubreadSet():
     return _getAbsPath(XML_FILES[5])
-
-def getHdfSubreadSet():
-    return _getAbsPath(XML_FILES[7])
 
 def getBarcodedBam():
     return _getAbsPath(BAM_FILES[3])
 
 def getMockCollectionMetadata():
-    return _getAbsPath(XML_FILES[21])
+    return _getAbsPath(XML_FILES[17])

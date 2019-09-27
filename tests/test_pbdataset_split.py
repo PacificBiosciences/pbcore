@@ -10,12 +10,11 @@ import numpy as np
 
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
-                       openDataSet, HdfSubreadSet,
-                       openDataFile)
+                       openDataSet, openDataFile)
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import skip_if_no_internal_data, skip_if_no_h5py, skip_if_no_constools
+from utils import skip_if_no_internal_data, skip_if_no_constools
 from functools import reduce
 
 log = logging.getLogger(__name__)
@@ -26,7 +25,7 @@ class TestDataSetSplit(unittest.TestCase):
     associated module functions"""
 
     def test_split(self):
-        ds1 = openDataSet(data.getXml(12))
+        ds1 = openDataSet(data.getXml(11))
         self.assertTrue(ds1.numExternalResources > 1)
         dss = ds1.split()
         self.assertTrue(len(dss) == ds1.numExternalResources)
@@ -51,10 +50,10 @@ class TestDataSetSplit(unittest.TestCase):
         self.assertFalse(dss[0].uuid == dss[1].uuid)
         self.assertTrue(dss[0].name == dss[1].name)
         # Lets try merging and splitting on subdatasets
-        ds1 = openDataSet(data.getXml(8))
+        ds1 = openDataSet(data.getXml(7))
         self.assertEquals(ds1.totalLength, 123588)
         ds1tl = ds1.totalLength
-        ds2 = openDataSet(data.getXml(11))
+        ds2 = openDataSet(data.getXml(10))
         self.assertEquals(ds2.totalLength, 117086)
         ds2tl = ds2.totalLength
         dss = ds1 + ds2
@@ -437,7 +436,7 @@ class TestDataSetSplit(unittest.TestCase):
 
         # Test to make sure the result of a split by contigs has an appropriate
         # number of records (make sure filters are appropriately aggressive)
-        ds2 = DataSet(data.getXml(15))
+        ds2 = DataSet(data.getXml(14))
         bams = ds2.externalResources.resourceIds
         self.assertEqual(len(bams), 2)
         refwindows = ds2.refWindows
@@ -694,14 +693,14 @@ class TestDataSetSplit(unittest.TestCase):
     def test_subreadset_split_metadata_element_name(self):
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         log.debug(fn)
-        sset = SubreadSet(data.getXml(10),
-                          data.getXml(13))
+        sset = SubreadSet(data.getXml(9),
+                          data.getXml(12))
         chunks = sset.split(chunks=5, zmws=False, ignoreSubDatasets=True)
         self.assertEqual(len(chunks), 2)
         chunks[0].write(fn)
 
     def test_contigset_split(self):
-        ref = ReferenceSet(data.getXml(9))
+        ref = ReferenceSet(data.getXml(8))
         exp_n_contigs = len(ref)
         refs = ref.split(10)
         self.assertEqual(len(refs), 10)
@@ -709,15 +708,6 @@ class TestDataSetSplit(unittest.TestCase):
         for r in refs:
             obs_n_contigs += sum(1 for _ in r)
         self.assertEqual(obs_n_contigs, exp_n_contigs)
-
-
-    def test_split_hdfsubreadset(self):
-        hdfds = HdfSubreadSet(*upstreamdata.getBaxH5_v23())
-        self.assertEqual(len(hdfds.toExternalFiles()), 3)
-        hdfdss = hdfds.split(chunks=2, ignoreSubDatasets=True)
-        self.assertEqual(len(hdfdss), 2)
-        self.assertEqual(len(hdfdss[0].toExternalFiles()), 2)
-        self.assertEqual(len(hdfdss[1].toExternalFiles()), 1)
 
     @skip_if_no_internal_data
     @skip_if_no_constools
