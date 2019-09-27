@@ -55,6 +55,7 @@ from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
 from functools import reduce
+from future.utils import iteritems, itervalues
 
 
 log = logging.getLogger(__name__)
@@ -182,7 +183,7 @@ def _homogenizeRecArrays(arrays):
     """
     dtypes = {}
     for array in arrays:
-        for field, (dtype, _) in array.dtype.fields.iteritems():
+        for (field, (dtype, _)) in iteritems(array.dtype.fields):
             if field in dtypes:
                 assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
             else:
@@ -192,7 +193,7 @@ def _homogenizeRecArrays(arrays):
         array_fields = {field for field in array.dtype.names}
         new_fields = []
         new_data = []
-        for field, dtype in dtypes.iteritems():
+        for (field, dtype) in iteritems(dtypes):
             if not field in array_fields:
                 log.warn("%s missing in array, will populate with dummy values",
                          field)
@@ -487,12 +488,12 @@ class DataSet(object):
             for fname in self.toExternalFiles():
                 # FIXME due to h5 file types, must be unpythonic:
                 found = False
-                for allowed in self._metaTypeMapping().keys():
+                for allowed in self._metaTypeMapping():
                     if fname.endswith(allowed):
                         found = True
                         break
                 if not found:
-                    allowed = self._metaTypeMapping().keys()
+                    allowed = list(self._metaTypeMapping())
                     extension = fname.split('.')[-1]
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
@@ -1496,7 +1497,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for key, value in kwargs.items():
+        for (key, value) in iteritems(kwargs):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -2225,9 +2226,9 @@ class ReadSet(DataSet):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
 
-        log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
+        log.debug("{i} barcodes found".format(i=len(list(barcodes))))
 
-        atoms = barcodes.items()
+        atoms = list(barcodes.items())
 
         # The number of reads per barcode is used for balancing
         balanceKey = lambda x: x[1]
@@ -2478,7 +2479,7 @@ class ReadSet(DataSet):
             qIdMap = dict(zip(rr.readGroupTable.ID,
                               rr.readGroupTable.MovieName))
             nameMap = self.movieIds
-            for qId in qIdMap.keys():
+            for qId in qIdMap:
                 qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
                     qIdMap[qId]]
 
@@ -2602,7 +2603,7 @@ class ReadSet(DataSet):
                          "lost")
             else:
                 for extres in self.externalResources:
-                    extres.reference = refCounts.keys()[0]
+                    extres.reference = list(refCounts)[0]
         # reset the indexmap especially, as it is out of date:
         self._index = None
         self._indexMap = None
@@ -2773,7 +2774,7 @@ class AlignmentSet(ReadSet):
             rname2tid = dict(zip(unfilteredRefTable['Name'],
                             unfilteredRefTable['ID']))
             #nameMap = self.refIds
-            for tId in tIdMap.keys():
+            for tId in tIdMap:
                 tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
                     tIdMap[tId]]
 
@@ -3070,7 +3071,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for rname, rAtoms in rnames.iteritems():
+        for (rname, rAtoms) in iteritems(rnames):
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))
@@ -3102,7 +3103,7 @@ class AlignmentSet(ReadSet):
         # pull both at once so you only have to mess with the
         # referenceInfoTable once.
         refLens = self.refLengths
-        refNames = refLens.keys()
+        refNames = list(refLens)
         log.debug("{i} references found".format(i=len(refNames)))
 
         log.debug("Finding contigs")
@@ -3186,7 +3187,7 @@ class AlignmentSet(ReadSet):
             # very long
             # We are only doing this for refLength splits for now, as those are
             # cheap (and quiver is linear in length not coverage)
-            dataSize = sum(refLens.values())
+            dataSize = sum(itervalues(refLens))
             # target size per chunk:
             target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
@@ -3249,10 +3250,10 @@ class AlignmentSet(ReadSet):
             # abstraction.
             if len(result._filters) > 100:
                 meanNum = self.numRecords//len(chunks)
-                result.numRecords = long(round(meanNum,
+                result.numRecords = int(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
                 meanLen = self.totalLength//len(chunks)
-                result.totalLength = long(round(meanLen,
+                result.totalLength = int(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
                 result._openReaders = self._openReaders
@@ -3891,7 +3892,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -3901,7 +3902,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+            writeTemp = any([len(m) > 1 for (n, m) in iteritems(matches)])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -3913,7 +3914,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)
@@ -3960,7 +3961,7 @@ class ContigSet(DataSet):
                                          'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
-                for name in list(matches.keys()):
+                for name in list(matches):
                     seq, comments, quality = _get_merged_sequence(name)
                     if comments:
                         name = ' '.join([name, comments])

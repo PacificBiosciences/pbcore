@@ -62,6 +62,7 @@ Notes:
 
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 import ast
 import uuid
 import copy
@@ -78,6 +79,7 @@ from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
+from future.utils import iteritems, itervalues
 
 log = logging.getLogger(__name__)
 
@@ -137,7 +139,7 @@ def reccheck(records, qname_tables):
     lengths (so we can use np.in1d, which operates on recarrays quite nicely)
     """
     mask = np.zeros(len(records), dtype=bool)
-    for table in qname_tables.values():
+    for table in itervalues(qname_tables):
         mask |= recordMembership(records, table)
     return mask
 
@@ -228,8 +230,8 @@ def isFile(string):
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
-        max(map(len, qid2mov.values()))))
-    for k, v in qid2mov.items():
+        max(map(len, itervalues(qid2mov)))))
+    for (k, v) in iteritems(qid2mov):
         movs[qId == k] = v
     return (movs, hn, qs, qe)
 
@@ -269,7 +271,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
     if len(records_by_size) == 0:
         return records_by_size
     tbr = {}
-    for size, records in records_by_size.iteritems():
+    for (size, records) in iteritems(records_by_size):
         # recarray dtypes are a little hairier, we'll give normal (or manual)
         # dtypes an out:
         if isinstance(dtype, list):
@@ -393,7 +395,7 @@ class RecordWrapper(object):
                 # register a callback to append this object to the parent, so
                 # that it will be added to the XML file
                 self.registerCallback(runonce(P(parent.append, self.record)))
-        assert 'tag' in self.record.keys()
+        assert 'tag' in self.record
 
         # we could do the same with namespace, but it isn't used in nonzero, so
         # we can just update it:
@@ -924,7 +926,7 @@ class Filters(RecordWrapper):
                 param = req.name
                 if param == 'qname_file':
                     param = 'qname'
-                if param in accMap.keys():
+                if param in accMap:
                     # Treat "value" as a string of a list of potential values
                     # if operator is 'in', or 'in' masquerading as '=='.
                     # Have to be careful with bc and other values that are
@@ -1011,8 +1013,8 @@ class Filters(RecordWrapper):
         if self.submetadata:
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
-            newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
+            for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
                         val = option[1]
@@ -1022,8 +1024,8 @@ class Filters(RecordWrapper):
             for filtList in newFilts:
                 self.extend(filtList)
         else:
-            newFilts = [Filter() for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [Filter() for _ in list(kwargs.values())[0]]
+            for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     val = option[1]
                     if isinstance(val, np.ndarray):
@@ -1045,7 +1047,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for name, options in kwargs.items():
+        for (name, options) in iteritems(kwargs):
             for option in options:
                 newFilt.addRequirement(name, *option)
         self.append(newFilt)
@@ -1105,15 +1107,15 @@ class Filters(RecordWrapper):
         """Add requirements to each of the existing requirements, mapped one
         to one"""
         # Check that all lists of values are the same length:
-        values = kwargs.values()
+        values = list(kwargs.values())
         if len(values) > 1:
             for v in values[1:]:
                 assert len(v) == len(values[0])
 
         # Check that this length is equal to the current number of filters:
-        assert len(kwargs.values()[0]) == len(list(self))
+        assert len(list(kwargs.values())[0]) == len(list(self))
 
-        for req, opvals in kwargs.items():
+        for (req, opvals) in iteritems(kwargs):
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, *opval)
         self._runCallbacks()
@@ -1645,7 +1647,7 @@ class ExternalResource(RecordWrapper):
             self.append(fileIndices)
         for index in list(indices):
             found = False
-            for ext, mtype in FILE_INDICES.iteritems():
+            for (ext, mtype) in iteritems(FILE_INDICES):
                 if index.endswith(ext):
                     found = True
                     self._setIndResByMetaType(mtype, index)

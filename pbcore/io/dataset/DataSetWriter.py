@@ -8,6 +8,7 @@ from __future__ import absolute_import, division, print_function
 import copy, time
 import xml.etree.ElementTree as ET
 import logging
+from future.utils import iteritems
 
 log = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ TAGS = [
 ]
 
 def register_namespaces():
-    for prefix, uri in NAMESPACES.items():
+    for (prefix, uri) in iteritems(NAMESPACES):
         ET.register_namespace(prefix, uri)
 
 def _toElementTree(dataSet, root=None, core=False):
@@ -295,7 +296,7 @@ def _extResToXMLAttribs(extRes):
     as it requires knowledge of which members are appropriate for XML
     attributes and which are not."""
     attr = {}
-    for key, value in extRes.toDict().items():
+    for (key, value) in iteritems(extRes.toDict()):
         if value and not (key == 'PacBioIndex' or key == 'PacBioMetadata'):
             attr[key] = value
     return attr

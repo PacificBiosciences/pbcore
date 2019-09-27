@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+from pbcore.util import cmp
 from builtins import range
 from functools import wraps
 from bisect import bisect_right, bisect_left
