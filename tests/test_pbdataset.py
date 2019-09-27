@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 import pytest
 import os
 import sys
@@ -931,7 +932,7 @@ class TestDataSet(unittest.TestCase):
         readers = aln.resourceReaders()
 
         ids = sorted([i for _, i in aln.refInfo('ID')])
-        self.assertEqual(range(len(ids)), ids)
+        self.assertEqual(list(range(len(ids))), ids)
 
         accNames = aln.refNames
         expNames = reduce(np.append,

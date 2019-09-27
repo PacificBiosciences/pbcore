@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
 from StringIO import StringIO
 import tempfile
 import unittest
