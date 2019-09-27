@@ -55,7 +55,7 @@ from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
 from functools import reduce
-from future.utils import iteritems
+from future.utils import iteritems, itervalues
 
 
 log = logging.getLogger(__name__)
@@ -3187,7 +3187,7 @@ class AlignmentSet(ReadSet):
             # very long
             # We are only doing this for refLength splits for now, as those are
             # cheap (and quiver is linear in length not coverage)
-            dataSize = sum(refLens.values())
+            dataSize = sum(itervalues(refLens))
             # target size per chunk:
             target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))

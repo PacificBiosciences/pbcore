@@ -78,7 +78,7 @@ from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
-from future.utils import iteritems
+from future.utils import iteritems, itervalues
 
 log = logging.getLogger(__name__)
 
@@ -138,7 +138,7 @@ def reccheck(records, qname_tables):
     lengths (so we can use np.in1d, which operates on recarrays quite nicely)
     """
     mask = np.zeros(len(records), dtype=bool)
-    for table in qname_tables.values():
+    for table in itervalues(qname_tables):
         mask |= recordMembership(records, table)
     return mask
 
@@ -229,7 +229,7 @@ def isFile(string):
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
-        max(map(len, qid2mov.values()))))
+        max(map(len, itervalues(qid2mov)))))
     for (k, v) in iteritems(qid2mov):
         movs[qId == k] = v
     return (movs, hn, qs, qe)

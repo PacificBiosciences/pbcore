@@ -22,6 +22,7 @@ from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
+from future.utils import itervalues
 
 
 def requiresBai(method):
@@ -133,9 +134,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in self._baseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in itervalues(self._baseFeatureNameMappings)])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in self._pulseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in itervalues(self._pulseFeatureNameMappings)])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
