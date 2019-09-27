@@ -2228,7 +2228,7 @@ class ReadSet(DataSet):
 
         log.debug("{i} barcodes found".format(i=len(list(barcodes))))
 
-        atoms = barcodes.items()
+        atoms = list(barcodes.items())
 
         # The number of reads per barcode is used for balancing
         balanceKey = lambda x: x[1]

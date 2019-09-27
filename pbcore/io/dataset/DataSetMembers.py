@@ -1012,7 +1012,7 @@ class Filters(RecordWrapper):
         if self.submetadata:
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
-            newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
+            newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
             for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
@@ -1023,7 +1023,7 @@ class Filters(RecordWrapper):
             for filtList in newFilts:
                 self.extend(filtList)
         else:
-            newFilts = [Filter() for _ in kwargs.values()[0]]
+            newFilts = [Filter() for _ in list(kwargs.values())[0]]
             for (name, options) in iteritems(kwargs):
                 for i, option in enumerate(options):
                     val = option[1]
@@ -1106,13 +1106,13 @@ class Filters(RecordWrapper):
         """Add requirements to each of the existing requirements, mapped one
         to one"""
         # Check that all lists of values are the same length:
-        values = kwargs.values()
+        values = list(kwargs.values())
         if len(values) > 1:
             for v in values[1:]:
                 assert len(v) == len(values[0])
 
         # Check that this length is equal to the current number of filters:
-        assert len(kwargs.values()[0]) == len(list(self))
+        assert len(list(kwargs.values())[0]) == len(list(self))
 
         for (req, opvals) in iteritems(kwargs):
             for filt, opval in zip(self, opvals):
