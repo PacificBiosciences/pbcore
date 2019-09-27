@@ -40,7 +40,7 @@ class _BamReaderBase(ReaderBase):
     files.  If a PacBio BAM index (bam.pbi file) is present and the
     user instantiates the BamReader using the reference FASTA as the
     second argument, the BamReader will provide an interface
-    compatible with CmpH5Reader.
+    compatible with the now removed CmpH5Reader.
     """
     def _loadReferenceInfo(self):
         refRecords = self.peer.header["SQ"]

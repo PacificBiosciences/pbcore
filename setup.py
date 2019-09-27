@@ -18,7 +18,6 @@ test_deps = [
     'nose',
     'pyxb == 1.2.4',
     'sphinx',
-    'h5py >= 2.0.1',
     'pylint == 1.6.4',
 ]
 

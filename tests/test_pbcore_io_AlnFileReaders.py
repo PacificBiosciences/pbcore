@@ -15,11 +15,10 @@ import shutil
 import pysam
 import numpy as np
 import bisect
-import h5py
 from collections import Counter
 
 from pbcore import data
-from pbcore.io import CmpH5Reader, BamReader, IndexedBamReader
+from pbcore.io import BamReader, IndexedBamReader
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
@@ -33,12 +32,11 @@ class _BasicAlnFileReaderTests(object):
     Abstract base class for tests of the basic reader
     functionality---functionality not requiring the bam.pbi index.
 
-    The tests are pretty tailored to the BAM/cmp.h5 files in
+    The tests are pretty tailored to the BAM files in
     pbcore.data.
     """
     READER_CONSTRUCTOR = None
     CONSTRUCTOR_ARGS   = None
-    BAX_FILE           = data.getBaxForBam()
 
     def setup_class(self):
         self.f = self.READER_CONSTRUCTOR(*self.CONSTRUCTOR_ARGS)
@@ -283,38 +281,6 @@ class _BasicAlnFileReaderTests(object):
 
         #         # where's the test code?
 
-    def testBaxAttaching(self):
-        # Before attaching, should get sane exceptions
-        with assert_raises(ValueError):
-           self.fwdAln.zmw
-
-        with assert_raises(ValueError):
-           self.fwdAln.zmwRead
-
-        # Now attach
-        self.f.attach(self.BAX_FILE)
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328/1_344",
-           self.fwdAln.readName)
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328",
-           self.fwdAln.zmwName)
-        EQ("<Zmw: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328>",
-           repr(self.fwdAln.zmw))
-        EQ("<ZmwRead: m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328/1_344>",
-           repr(self.fwdAln.zmwRead))
-
-        # Check read contents, for every aln.
-        for aln in self.alns:
-            EQ(aln.read(aligned=False, orientation="native"), aln.zmwRead.basecalls())
-
-    def testClippingsVsBaxData(self):
-        self.f.attach(self.BAX_FILE)
-        for aln in [self.fwdAln, self.revAln]:
-            for cS in range(aln.tStart, aln.tEnd + 1):
-                for cE in range(cS + 1, min(aln.tEnd, cS + 10)):
-                    ca = aln.clippedTo(cS, cE)
-                    EQ(ca.zmwRead.basecalls(),
-                       ca.read(aligned=False, orientation="native"))
-
     def testReadsInRange(self):
         wLen = 1000
         for wStart in range(0, 50000, wLen):
@@ -390,33 +356,9 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         EQ(expectedReadNames, [r.readName for r in reads2771_3])
 
 
-class TestCmpH5(_IndexedAlnFileReaderTests):
-    READER_CONSTRUCTOR = CmpH5Reader
-    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[1],)
-
-    #
-    # Test behaviors specific to CmpH5Reader, which should be few.
-    #
-    def testLazyChemistryResolution(self):
-        """
-        The CmpH5Reader allows reading of files that have missing
-        chemistry information---an exception will be thrown only upon
-        attempts to access the information.  We need to retain this
-        behavior for compatibility.  """
-        oldCmpH5 = data.getCmpH5()
-
-        C = CmpH5Reader(oldCmpH5) # no exception here
-
-        with assert_raises(ChemistryLookupError):
-            C.sequencingChemistry
-
-        with assert_raises(ChemistryLookupError):
-            C[0].sequencingChemistry
-
-
 class TestBasicBam(_BasicAlnFileReaderTests):
     READER_CONSTRUCTOR = BamReader
-    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+    CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
 
     def testSpecVersion(self):
         EQ("3.0.1",     self.f.version)
@@ -430,7 +372,7 @@ class TestBasicBam(_BasicAlnFileReaderTests):
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
     READER_CONSTRUCTOR = IndexedBamReader
-    CONSTRUCTOR_ARGS   = (data.getBamAndCmpH5()[0], data.getLambdaFasta())
+    CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
 
     def test_empty_bam(self):
         fn = data.getEmptyBam()
@@ -442,7 +384,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         Check that the values of the 'identity' property are consistent
         between IndexedBamReader (numpy array) and BamAlignment (float)
         """
-        fn = data.getBamAndCmpH5()[0]
+        fn = data.getAlignedBam()
         with IndexedBamReader(fn) as bam_in:
             i1 = bam_in.identity
             i2 = np.array([ rec.identity for rec in bam_in ])
@@ -453,7 +395,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         Check that the value of the 'identity' property is the same whether
         or not the .pbi index was used to calculate it.
         """
-        fn1 = data.getBamAndCmpH5()[0]
+        fn1 = data.getAlignedBam()
         fn2 = tempfile.NamedTemporaryFile(suffix=".bam").name
         shutil.copyfile(fn1, fn2)
         with IndexedBamReader(fn1) as bam_pbi:

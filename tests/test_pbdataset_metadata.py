@@ -52,7 +52,7 @@ class TestDataSet(unittest.TestCase):
     def test_de_novo(self):
         ofn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         log.info(ofn)
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         col = CollectionMetadata()
         self.assertFalse(ss.metadata.collections)
 
@@ -103,7 +103,7 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_internal_data
     def test_loadMetadata(self):
-        aln = AlignmentSet(data.getXml(no=8))
+        aln = AlignmentSet(data.getXml(7))
         self.assertFalse(aln.metadata.collections)
         aln.loadMetadata('/pbi/dept/secondary/siv/testdata/'
                          'SA3-Sequel/lambda/roche_SAT/'
@@ -146,7 +146,7 @@ class TestDataSet(unittest.TestCase):
         _ = ds.newUuid()
         self.assertNotEqual(old, ds.uuid)
 
-        aln = AlignmentSet(data.getXml(no=8))
+        aln = AlignmentSet(data.getXml(7))
         oldUuid = aln.uuid
         outdir = tempfile.mkdtemp(suffix="dataset-doctest")
         outXml = os.path.join(outdir, 'tempfile.xml')

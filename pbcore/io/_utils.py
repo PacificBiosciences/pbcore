@@ -1,26 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
-try:
-    import h5py
-except ImportError:
-    from pbcore.util import h5py_dummy
-    h5py = h5py_dummy()
-
 import numpy as np
 from cStringIO import StringIO
-
-
-def arrayFromDataset(ds, offsetBegin, offsetEnd):
-    """
-    Extract a one-dimensional array from an HDF5 dataset.
-    """
-    shape = (offsetEnd - offsetBegin,)
-    a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape)
-    fspace = ds.id.get_space()
-    fspace.select_hyperslab((offsetBegin,), shape, (1,))
-    ds.id.read(mspace, fspace, a)
-    return a
 
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):

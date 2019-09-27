@@ -5,22 +5,23 @@ __all__ = [ "openAlignmentFile",
             "entryPoint" ]
 
 from pbcore.io import (IndexedFastaReader, FastaReader,
-                       BaxH5Reader, BasH5Reader, BasH5Collection,
-                       CmpH5Reader, BamReader, IndexedBamReader,
+                       BamReader, IndexedBamReader,
                        GffReader, FastqReader,
                        PacBioBamIndex, openDataSet)
 
+def raise_no_h5():
+    raise NotImplementedError("hdf5 file support has been removed")
+
 def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
-    Factory function to get a handle to a reader for an alignment file
-    (cmp.h5 or BAM), requiring index capability (built-in for cmp.h5;
-    requires bam.pbi index for BAM
+    Factory function to get a handle to a reader for an alignment file (BAM),
+    requires bam.pbi index
 
     The reference FASTA, if provided, must have a FASTA index
     (fasta.fai).
     """
-    if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname, sharedIndex=sharedIndex)
+    if fname.endswith(".h5"):
+        raise_no_h5()
     elif fname.endswith("bam"):
         return IndexedBamReader(fname, referenceFastaFname=referenceFastaFname, sharedIndex=sharedIndex)
     else:
@@ -28,14 +29,11 @@ def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
 
 def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
-    Factory function to get a handle to a reader for an alignment file
-    (cmp.h5 or BAM), not requiring index capability
-
-    (A `sharedIndex` can still be passed for opening a cmp.h5, for which
-    the index is compulsory.)
+    Factory function to get a handle to a reader for an alignment file (BAM),
+    not requiring index capability
     """
     if fname.endswith("cmp.h5"):
-        return CmpH5Reader(fname, sharedIndex=sharedIndex)
+        raise_no_h5()
     elif fname.endswith("bam"):
         return BamReader(fname, referenceFastaFname)
 
@@ -43,10 +41,10 @@ def _openersFor(ext):
     if   ext == "gff":           return (GffReader,)
     elif ext in ("fq", "fastq"): return (FastqReader,)
     elif ext in ("fa", "fasta"): return (IndexedFastaReader, FastaReader)
-    elif ext == "cmp.h5":        return (CmpH5Reader,)
-    elif ext == "bas.h5":        return (BasH5Reader,)
-    elif ext == "bax.h5":        return (BaxH5Reader,)
-    elif ext == "fofn":          return (BasH5Collection,)
+    elif ext == "cmp.h5":        raise_no_h5()
+    elif ext == "bas.h5":        raise_no_h5()
+    elif ext == "bax.h5":        raise_no_h5()
+    elif ext == "fofn":          raise_no_h5()
     elif ext == "bam":           return (IndexedBamReader, BamReader)
     elif ext == "pbi":           return (PacBioBamIndex,)
     elif ext == "xml":           return (openDataSet,)
@@ -56,7 +54,7 @@ def _openersFor(ext):
 def _extension(fname):
     parts = fname.split(".")
     if parts[-1] == "h5":
-        return ".".join(parts[-2:])
+        raise_no_h5()
     else:
         return parts[-1]
 

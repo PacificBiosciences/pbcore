@@ -6,7 +6,6 @@ __all__ = [ "AlignmentReaderMixin",
             "AlignmentRecordMixin",
             "IndexedAlignmentReaderMixin" ]
 
-from pbcore.io import BasH5Collection
 import numpy as np
 
 class AlignmentReaderMixin(object):
@@ -15,15 +14,11 @@ class AlignmentReaderMixin(object):
     readers.
     """
     def attach(self, fofnFilename):
-        """
-        Attach the actual movie data files that were used to create this
-        alignment file.
-        """
-        self.basH5Collection = BasH5Collection(fofnFilename)
+        raise NotImplementedError()
 
     @property
     def moviesAttached(self):
-        return (hasattr(self, "basH5Collection") and self.basH5Collection is not None)
+        raise NotImplementedError()
 
 
 class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
@@ -123,14 +118,14 @@ class AlignmentRecordMixin(object):
     @property
     def readStart(self):
         """
-        The left bound of the alignment, in read coordinates (from the BAS.H5 file).
+        The left bound of the alignment, in read coordinates.
         """
         return self.aStart
 
     @property
     def readEnd(self):
         """
-        The right bound of the alignment, in read coordinates (from the BAS.H5 file).
+        The right bound of the alignment, in read coordinates.
         """
         return self.aEnd
 

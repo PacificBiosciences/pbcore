@@ -15,13 +15,13 @@ from pbcore.io.dataset.utils import _infixFname, consolidateXml
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
-                       HdfSubreadSet, ConsensusAlignmentSet,
+                       ConsensusAlignmentSet,
                        openDataFile, FastqReader,
                        GmapReferenceSet, TranscriptSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
-from utils import skip_if_no_pbtestdata, skip_if_no_internal_data, skip_if_no_constools, skip_if_no_h5py, _h5py
+from utils import skip_if_no_pbtestdata, skip_if_no_internal_data, skip_if_no_constools
 
 log = logging.getLogger(__name__)
 
@@ -49,8 +49,8 @@ class TestDataSet(unittest.TestCase):
 
     def test_subreadset_metadata_element_name(self):
         # without touching the element:
-        sset = SubreadSet(data.getXml(10))
-        log.debug(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
+        log.debug(data.getXml(9))
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         log.debug(fn)
         sset.write(fn)
@@ -65,7 +65,7 @@ class TestDataSet(unittest.TestCase):
             1)
 
         # with touching the element:
-        sset = SubreadSet(data.getXml(10))
+        sset = SubreadSet(data.getXml(9))
         sset.metadata.description = 'foo'
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         sset.write(fn, validate=False)
@@ -80,22 +80,17 @@ class TestDataSet(unittest.TestCase):
             1)
 
     def test_valid_referencesets(self):
-        validateXml(ET.parse(data.getXml(9)).getroot(), skipResources=True)
-
-    def test_valid_hdfsubreadsets(self):
-        validateXml(ET.parse(data.getXml(17)).getroot(), skipResources=True)
-        validateXml(ET.parse(data.getXml(18)).getroot(), skipResources=True)
-        validateXml(ET.parse(data.getXml(19)).getroot(), skipResources=True)
+        validateXml(ET.parse(data.getXml(8)).getroot(), skipResources=True)
 
     def test_autofilled_metatypes(self):
-        ds = ReferenceSet(data.getXml(9))
+        ds = ReferenceSet(data.getXml(8))
         for extRes in ds.externalResources:
             self.assertEqual(extRes.metaType,
                              'PacBio.ReferenceFile.ReferenceFastaFile')
             self.assertEqual(len(extRes.indices), 1)
             for index in extRes.indices:
                 self.assertEqual(index.metaType, "PacBio.Index.SamIndex")
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         for extRes in ds.externalResources:
             self.assertEqual(extRes.metaType,
                              'PacBio.SubreadFile.SubreadBamFile')
@@ -134,7 +129,7 @@ class TestDataSet(unittest.TestCase):
                    1463, 1463, 1463, 1463, 1463, 1424, 1494, 1471, 1471, 1471,
                    1471, 1462, 1446, 1457, 1457, 1386, 1388, 1473, 1473, 1473,
                    1472, 1472, 1472, 1472, 1472, 1470, 1478, 1478, 1467]
-        ds = ReferenceSet(data.getXml(9))
+        ds = ReferenceSet(data.getXml(8))
         log.debug([contig.id for contig in ds])
         for contig, name, seqlen in zip(ds.contigs, names, seqlens):
             self.assertEqual(contig.id, name)
@@ -147,7 +142,7 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(ds[name].id == name)
 
     def test_contigset_len(self):
-        ref = ReferenceSet(data.getXml(9))
+        ref = ReferenceSet(data.getXml(8))
         exp_n_contigs = len(ref)
         refs = ref.split(10)
         self.assertEqual(len(refs), 10)
@@ -205,12 +200,12 @@ class TestDataSet(unittest.TestCase):
         ds1.write(fn)
 
     def test_ccsalignment_build(self):
-        ds1 = ConsensusAlignmentSet(data.getXml(20), strict=False,
+        ds1 = ConsensusAlignmentSet(data.getXml(16), strict=False,
                                     skipMissing=True)
         self.assertEquals(type(ds1).__name__, 'ConsensusAlignmentSet')
         self.assertEquals(type(ds1._metadata).__name__, 'SubreadSetMetadata')
         # XXX strict=True requires actual existing .bam files
-        #ds2 = ConsensusAlignmentSet(data.getXml(20), strict=True)
+        #ds2 = ConsensusAlignmentSet(data.getXml(16), strict=True)
         #self.assertEquals(type(ds2).__name__, 'ConsensusAlignmentSet')
         #self.assertEquals(type(ds2._metadata).__name__, 'SubreadSetMetadata')
 
@@ -244,11 +239,9 @@ class TestDataSet(unittest.TestCase):
 
     def test_file_factory(self):
         # TODO: add ConsensusReadSet, cmp.h5 alignmentSet
-        types = [AlignmentSet(data.getXml(8)),
-                 ReferenceSet(data.getXml(9)),
-                 SubreadSet(data.getXml(10))]
-        if _h5py():
-            types.extend([HdfSubreadSet(data.getXml(19))])
+        types = [AlignmentSet(data.getXml(7)),
+                 ReferenceSet(data.getXml(8)),
+                 SubreadSet(data.getXml(9))]
         for ds in types:
             mystery = openDataFile(ds.toExternalFiles()[0])
             self.assertEqual(type(mystery), type(ds))
@@ -278,7 +271,7 @@ class TestDataSet(unittest.TestCase):
     @skip_if_no_constools
     def test_pbmerge(self):
         log.debug("Test through API")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
@@ -306,7 +299,7 @@ class TestDataSet(unittest.TestCase):
         cons.induceIndices(force=True)
         self.assertNotEqual(orig_stats, os.stat(cons.externalResources[0].pbi))
 
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
@@ -322,7 +315,7 @@ class TestDataSet(unittest.TestCase):
     @skip_if_no_constools
     def test_pbmerge_indexing(self):
         log.debug("Test through API")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
@@ -350,14 +343,14 @@ class TestDataSet(unittest.TestCase):
     @skip_if_no_constools
     def test_alignmentset_consolidate(self):
         log.debug("Test through API")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        nonCons = AlignmentSet(data.getXml(12))
+        nonCons = AlignmentSet(data.getXml(11))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
             self.assertEqual(read1, read2)
@@ -371,7 +364,7 @@ class TestDataSet(unittest.TestCase):
         aln.write(xmlfile)
 
         log.debug("Test with cheap filter")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         aln.filters.addRequirement(rname=[('=', 'B.vulgatus.5')])
         self.assertEqual(len(list(aln)), 7)
@@ -381,7 +374,7 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        nonCons = AlignmentSet(data.getXml(12))
+        nonCons = AlignmentSet(data.getXml(11))
         nonCons.filters.addRequirement(rname=[('=', 'B.vulgatus.5')])
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
@@ -391,7 +384,7 @@ class TestDataSet(unittest.TestCase):
         log.debug("Test with not refname filter")
         # This isn't trivial with bamtools
         """
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         aln.filters.addRequirement(rname=[('!=', 'B.vulgatus.5')])
         self.assertEqual(len(list(aln)), 7)
@@ -401,7 +394,7 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        nonCons = AlignmentSet(data.getXml(12))
+        nonCons = AlignmentSet(data.getXml(11))
         nonCons.filters.addRequirement(rname=[('!=', 'B.vulgatus.5')])
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
@@ -410,7 +403,7 @@ class TestDataSet(unittest.TestCase):
         """
 
         log.debug("Test with expensive filter")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         self.assertEqual(len(list(aln)), 177)
         aln.filters.addRequirement(accuracy=[('>', '.85')])
         self.assertEqual(len(list(aln)), 174)
@@ -420,7 +413,7 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        nonCons = AlignmentSet(data.getXml(12))
+        nonCons = AlignmentSet(data.getXml(11))
         nonCons.filters.addRequirement(accuracy=[('>', '.85')])
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
@@ -428,7 +421,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(aln)), len(list(nonCons)))
 
         log.debug("Test with one reference")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         reference = upstreamData.getFasta()
         aln.externalResources[0].reference = reference
         nonCons = aln.copy()
@@ -438,7 +431,7 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        #nonCons = AlignmentSet(data.getXml(12))
+        #nonCons = AlignmentSet(data.getXml(11))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
             self.assertEqual(read1, read2)
@@ -446,7 +439,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.externalResources[0].reference, reference)
 
         log.debug("Test with two references")
-        aln = AlignmentSet(data.getXml(12))
+        aln = AlignmentSet(data.getXml(11))
         reference = upstreamData.getFasta()
         for extRes in aln.externalResources:
             extRes.reference = reference
@@ -456,7 +449,7 @@ class TestDataSet(unittest.TestCase):
         aln.consolidate(outfn)
         self.assertTrue(os.path.exists(outfn))
         self.assertEqual(len(aln.toExternalFiles()), 1)
-        #nonCons = AlignmentSet(data.getXml(12))
+        #nonCons = AlignmentSet(data.getXml(11))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
             self.assertEqual(read1, read2)
@@ -489,7 +482,7 @@ class TestDataSet(unittest.TestCase):
     @skip_if_no_constools
     def test_subreadset_consolidate(self):
         log.debug("Test through API")
-        aln = SubreadSet(data.getXml(10), data.getXml(13))
+        aln = SubreadSet(data.getXml(9), data.getXml(12))
         self.assertEqual(len(aln.toExternalFiles()), 2)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
@@ -501,7 +494,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(aln.externalResources), 1)
         self.assertEqual(len(aln.externalResources[0].indices), 2)
 
-        nonCons = SubreadSet(data.getXml(10), data.getXml(13))
+        nonCons = SubreadSet(data.getXml(9), data.getXml(12))
         self.assertEqual(len(nonCons.toExternalFiles()), 2)
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
             self.assertEqual(read1, read2)
@@ -517,7 +510,7 @@ class TestDataSet(unittest.TestCase):
 
         # copy fasta reference to hide fai and ensure FastaReader is used
         backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
                       o=inFas))
         rs1 = ContigSet(inFas)
 
@@ -576,7 +569,7 @@ class TestDataSet(unittest.TestCase):
 
         # copy fasta reference to hide fai and ensure FastaReader is used
         backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
                       o=inFas))
         rs1 = ContigSet(inFas)
 
@@ -759,7 +752,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_len(self):
         # AlignmentSet
-        aln = AlignmentSet(data.getXml(8), strict=True)
+        aln = AlignmentSet(data.getXml(7), strict=True)
         self.assertEqual(len(aln), 92)
         self.assertEqual(aln._length, (92, 123588))
         self.assertEqual(aln.totalLength, 123588)
@@ -775,7 +768,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sum(len(rec) for rec in aln), 123588)
 
         # AlignmentSet with filters
-        aln = AlignmentSet(data.getXml(15), strict=True)
+        aln = AlignmentSet(data.getXml(14), strict=True)
         self.assertEqual(len(aln), 40)
         self.assertEqual(aln._length, (40, 52023))
         self.assertEqual(aln.totalLength, 52023)
@@ -789,7 +782,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(aln.numRecords, 40)
 
         # SubreadSet
-        sset = SubreadSet(data.getXml(10), strict=True)
+        sset = SubreadSet(data.getXml(9), strict=True)
         self.assertEqual(len(sset), 92)
         self.assertEqual(sset._length, (92, 124093))
         self.assertEqual(sset.totalLength, 124093)
@@ -805,7 +798,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sum(len(rec) for rec in sset), 124093)
 
         # ReferenceSet
-        sset = ReferenceSet(data.getXml(9), strict=True)
+        sset = ReferenceSet(data.getXml(8), strict=True)
         self.assertEqual(len(sset), 59)
         self.assertEqual(sset.totalLength, 85774)
         self.assertEqual(sset.numRecords, 59)
@@ -817,45 +810,13 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(sset.totalLength, 85774)
         self.assertEqual(sset.numRecords, 59)
 
-    @skip_if_no_h5py
-    def test_len_h5(self):
-        # HdfSubreadSet
-        # len means something else in bax/bas land. These numbers may actually
-        # be correct...
-        sset = HdfSubreadSet(data.getXml(17), strict=True)
-        self.assertEqual(len(sset), 9)
-        self.assertEqual(sset._length, (9, 128093))
-        self.assertEqual(sset.totalLength, 128093)
-        self.assertEqual(sset.numRecords, 9)
-        sset.totalLength = -1
-        sset.numRecords = -1
-        self.assertEqual(sset.totalLength, -1)
-        self.assertEqual(sset.numRecords, -1)
-        sset.updateCounts()
-        self.assertEqual(sset.totalLength, 128093)
-        self.assertEqual(sset.numRecords, 9)
-
-        # AlignmentSet with cmp.h5
-        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
-        self.assertEqual(len(aln), 112)
-        self.assertEqual(aln._length, (112, 59970))
-        self.assertEqual(aln.totalLength, 59970)
-        self.assertEqual(aln.numRecords, 112)
-        aln.totalLength = -1
-        aln.numRecords = -1
-        self.assertEqual(aln.totalLength, -1)
-        self.assertEqual(aln.numRecords, -1)
-        aln.updateCounts()
-        self.assertEqual(aln.totalLength, 59970)
-        self.assertEqual(aln.numRecords, 112)
-
     def test_alignment_reference(self):
-        rfn = data.getXml(9)
-        rs1 = ReferenceSet(data.getXml(9))
+        rfn = data.getXml(8)
+        rs1 = ReferenceSet(data.getXml(8))
         fasta_res = rs1.externalResources[0]
         fasta_file = urlparse(fasta_res.resourceId).path
 
-        ds1 = AlignmentSet(data.getXml(8),
+        ds1 = AlignmentSet(data.getXml(7),
                            referenceFastaFname=rs1)
         aln_ref = None
         for aln in ds1:
@@ -866,7 +827,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
                          fasta_file)
 
-        ds1 = AlignmentSet(data.getXml(8),
+        ds1 = AlignmentSet(data.getXml(7),
                            referenceFastaFname=fasta_file)
         aln_ref = None
         for aln in ds1:
@@ -877,7 +838,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(ds1.resourceReaders()[0].referenceFasta.filename,
                          fasta_file)
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.addReference(fasta_file)
         aln_ref = None
         for aln in ds1:
@@ -891,9 +852,9 @@ class TestDataSet(unittest.TestCase):
         fofn_out = tempfile.NamedTemporaryFile(suffix=".fofn").name
         log.debug(fofn_out)
         with open(fofn_out, 'w') as f:
-            f.write(data.getXml(8))
+            f.write(data.getXml(7))
             f.write('\n')
-            f.write(data.getXml(11))
+            f.write(data.getXml(10))
             f.write('\n')
         ds1 = AlignmentSet(fofn_out,
                            referenceFastaFname=fasta_file)
@@ -907,7 +868,7 @@ class TestDataSet(unittest.TestCase):
                          fasta_file)
 
         # Re-enable when referenceset is acceptable reference
-        #ds1 = AlignmentSet(data.getXml(8),
+        #ds1 = AlignmentSet(data.getXml(7),
         #                   referenceFastaFname=rfn)
         #aln_ref = None
         #for aln in ds1:
@@ -953,7 +914,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(subs.externalResources[0].reference, None)
 
         log.debug("Testing added nested externalResoruces to SubreadSet")
-        subs = SubreadSet(data.getXml(10))
+        subs = SubreadSet(data.getXml(9))
         self.assertFalse(subs.externalResources[0].scraps)
         subs.externalResources[0].scraps = 'fake.fasta'
         self.assertTrue(subs.externalResources[0].scraps)
@@ -975,7 +936,7 @@ class TestDataSet(unittest.TestCase):
 
         log.debug("Testing adding nested externalResources to AlignmetnSet "
                   "manually")
-        aln = AlignmentSet(data.getXml(8))
+        aln = AlignmentSet(data.getXml(7))
         self.assertTrue(aln.externalResources[0].bai)
         self.assertTrue(aln.externalResources[0].pbi)
         self.assertFalse(aln.externalResources[0].reference)
@@ -989,7 +950,7 @@ class TestDataSet(unittest.TestCase):
         # think it might cause accidental pollution.
         #log.debug("Testing adding nested externalResources to AlignmetnSet "
         #          "on construction")
-        #aln = AlignmentSet(data.getXml(8), referenceFastaFname=data.getXml(9))
+        #aln = AlignmentSet(data.getXml(7), referenceFastaFname=data.getXml(8))
         #self.assertTrue(aln.externalResources[0].bai)
         #self.assertTrue(aln.externalResources[0].pbi)
         #self.assertTrue(aln.externalResources[0].reference)
@@ -1000,7 +961,7 @@ class TestDataSet(unittest.TestCase):
         #log.debug("Testing adding nested externalResources to "
         #          "AlignmentSets with multiple external resources "
         #          "on construction")
-        #aln = AlignmentSet(data.getXml(12), referenceFastaFname=data.getXml(9))
+        #aln = AlignmentSet(data.getXml(11), referenceFastaFname=data.getXml(8))
         #for i in range(1):
         #    self.assertTrue(aln.externalResources[i].bai)
         #    self.assertTrue(aln.externalResources[i].pbi)
@@ -1014,14 +975,6 @@ class TestDataSet(unittest.TestCase):
         fasta = upstreamData.getLambdaFasta()
         ds = ContigSet(fasta)
         self.assertEqual(ds[0].name, "lambda_NEB3011")
-
-    @skip_if_no_h5py
-    def test_alignmentset_index(self):
-        aln = AlignmentSet(upstreamData.getBamAndCmpH5()[1], strict=True)
-        reads = aln.readsInRange(aln.refNames[0], 0, 1000)
-        self.assertEqual(len(list(reads)), 2)
-        self.assertEqual(len(list(aln)), 112)
-        self.assertEqual(len(aln.index), 112)
 
     def test_barcodeset(self):
         fa_out = tempfile.NamedTemporaryFile(suffix=".fasta").name
@@ -1049,19 +1002,17 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len(cset), 49)
 
     def test_getitem(self):
-        types = [AlignmentSet(data.getXml(8)),
-                 ReferenceSet(data.getXml(9)),
-                 SubreadSet(data.getXml(10)),
+        types = [AlignmentSet(data.getXml(7)),
+                 ReferenceSet(data.getXml(8)),
+                 SubreadSet(data.getXml(9)),
                 ]
         for ds in types:
             self.assertTrue(ds[0])
 
     def test_incorrect_len_getitem(self):
-        types = [AlignmentSet(data.getXml(8)),
-                 ReferenceSet(data.getXml(9)),
-                 SubreadSet(data.getXml(10))]
-        if _h5py():
-            types.extend([HdfSubreadSet(data.getXml(19))])
+        types = [AlignmentSet(data.getXml(7)),
+                 ReferenceSet(data.getXml(8)),
+                 SubreadSet(data.getXml(9))]
         fn = tempfile.NamedTemporaryFile(suffix=".xml").name
         for ds in types:
             explen = -2
@@ -1080,7 +1031,7 @@ class TestDataSet(unittest.TestCase):
 
         # copy fasta reference to hide fai and ensure FastaReader is used
         backticks('cp {i} {o}'.format(
-            i=ReferenceSet(data.getXml(9)).toExternalFiles()[0],
+            i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
             o=inFas))
         rs1 = ContigSet(inFas)
         with self.assertRaises(IOError) as cm:

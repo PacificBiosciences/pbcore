@@ -19,8 +19,7 @@ from pbcore.io import PacBioBamIndex, IndexedBamReader
 from pbcore.io import openIndexedAlignmentFile
 from pbcore.io.dataset.utils import consolidateXml
 from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
-                       openDataSet, HdfSubreadSet,
-                       ConsensusReadSet, ConsensusAlignmentSet)
+                       openDataSet, ConsensusReadSet, ConsensusAlignmentSet)
 from pbcore.io.dataset.DataSetMetaTypes import InvalidDataSetIOError
 from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
                                               ContinuousDistribution,
@@ -33,7 +32,7 @@ from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
-from utils import skip_if_no_internal_data, skip_if_no_pbtestdata, skip_if_no_constools, skip_if_no_h5py
+from utils import skip_if_no_internal_data, skip_if_no_pbtestdata, skip_if_no_constools
 from functools import reduce
 
 log = logging.getLogger(__name__)
@@ -79,7 +78,7 @@ class TestDataSet(unittest.TestCase):
         # The UniqueId will be the same
         self.assertTrue(d.uuid == dOldUuid)
         # Inputs can be many and varied
-        ds1 = DataSet(data.getXml(11), data.getBam())
+        ds1 = DataSet(data.getXml(10), data.getBam())
         self.assertEquals(ds1.numExternalResources, 2)
         ds1 = DataSet(data.getFofn())
         self.assertEquals(ds1.numExternalResources, 2)
@@ -125,12 +124,12 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(u1, ds1.uuid)
         self.assertEqual(u2, ds2.uuid)
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         u1 = ds1.uuid
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         u2 = ds2.uuid
         self.assertNotEqual(u1, u2)
-        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        merged = AlignmentSet(data.getXml(7), data.getXml(10))
         u3 = merged.uuid
         self.assertNotEqual(u1, u3)
         self.assertNotEqual(u2, u3)
@@ -138,24 +137,24 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(u2, ds2.uuid)
 
     def test_merged_CreatedAt(self):
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         u1 = ds1.createdAt
         self.assertEqual(u1, '2015-08-05T10:25:18')
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         u2 = ds2.createdAt
         self.assertEqual(u2, '2015-08-05T10:43:42')
         self.assertNotEqual(u1, u2)
-        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        merged = AlignmentSet(data.getXml(7), data.getXml(10))
         u3 = merged.createdAt
         self.assertNotEqual(u1, u3)
         self.assertNotEqual(u2, u3)
         self.assertEqual(u1, ds1.createdAt)
         self.assertEqual(u2, ds2.createdAt)
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         u1 = ds1.createdAt
         self.assertEqual(u1, '2015-08-05T10:25:18')
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         u2 = ds2.createdAt
         self.assertEqual(u2, '2015-08-05T10:43:42')
         self.assertNotEqual(u1, u2)
@@ -168,9 +167,9 @@ class TestDataSet(unittest.TestCase):
 
     def test_merged_Name(self):
         # First has a name
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = 'Foo'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = ''
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -179,17 +178,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.name, 'Foo')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = 'Foo'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = ''
         merged = ds1 + ds2
         self.assertEqual(merged.name, 'Foo')
 
         # Second has a name
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = 'Foo'
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -198,17 +197,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.name, 'Foo')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = 'Foo'
         merged = ds1 + ds2
         self.assertEqual(merged.name, 'Foo')
 
         # Neither has a name
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = ''
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -217,17 +216,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.name, '')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = ''
         merged = ds1 + ds2
         self.assertEqual(merged.name, '')
 
         # both have a names
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = 'Foo'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = 'Bar'
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -239,26 +238,26 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.name, 'Foo AND Bar')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = 'Foo'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = 'Bar'
         merged = ds1 + ds2
         self.assertEqual(merged.name, 'Foo AND Bar')
 
         # if the names are the same don't append:
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.name = 'Foo'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.name = 'Foo'
         merged = ds1 + ds2
         self.assertEqual(merged.name, 'Foo')
 
     def test_merged_Tags(self):
         # First has tags
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = ''
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -267,17 +266,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.tags, 'Foo Bar')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = ''
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo Bar')
 
         # Second has tags
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Foo Bar'
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -286,17 +285,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.tags, 'Foo Bar')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Foo'
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo')
 
         # Neither has tags
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = ''
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -305,17 +304,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.tags, '')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = ''
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = ''
         merged = ds1 + ds2
         self.assertEqual(merged.tags, '')
 
         # both have tags
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Baz'
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -327,17 +326,17 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.tags, 'Foo Bar Baz')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Baz'
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo Bar Baz')
 
         # both have same tags
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Foo Bar'
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -349,9 +348,9 @@ class TestDataSet(unittest.TestCase):
         merged = AlignmentSet(fn1, fn2)
         self.assertEqual(merged.tags, 'Foo Bar')
 
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         ds1.tags = 'Foo Bar'
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         ds2.tags = 'Foo Bar'
         merged = ds1 + ds2
         self.assertEqual(merged.tags, 'Foo Bar')
@@ -373,35 +372,35 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
 
         # from data set
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(ds1.subdatasets), 0)
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         self.assertEqual(len(ds2.subdatasets), 0)
         merged = ds1 + ds2
         self.assertEqual(len(merged.subdatasets), 2)
         self.assertEqual(merged.subdatasets[0].toExternalFiles(),
-                         AlignmentSet(data.getXml(8)).toExternalFiles())
+                         AlignmentSet(data.getXml(7)).toExternalFiles())
         self.assertEqual(len(merged.subdatasets[0].toExternalFiles()), 1)
         self.assertEqual(merged.subdatasets[1].toExternalFiles(),
-                         AlignmentSet(data.getXml(11)).toExternalFiles())
+                         AlignmentSet(data.getXml(10)).toExternalFiles())
         self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
 
         # combined data set
-        merged = AlignmentSet(data.getXml(8), data.getXml(11))
+        merged = AlignmentSet(data.getXml(7), data.getXml(10))
         self.assertEqual(len(merged.subdatasets), 2)
         self.assertEqual(len(merged.subdatasets[0].toExternalFiles()), 1)
         self.assertEqual(merged.subdatasets[0].toExternalFiles(),
-                         AlignmentSet(data.getXml(8)).toExternalFiles())
+                         AlignmentSet(data.getXml(7)).toExternalFiles())
         self.assertEqual(len(merged.subdatasets[1].toExternalFiles()), 1)
         self.assertEqual(merged.subdatasets[1].toExternalFiles(),
-                         AlignmentSet(data.getXml(11)).toExternalFiles())
+                         AlignmentSet(data.getXml(10)).toExternalFiles())
 
         # No filters, 3 files:
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(ds1.subdatasets), 0)
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         self.assertEqual(len(ds2.subdatasets), 0)
-        ds3 = AlignmentSet(data.getXml(11))
+        ds3 = AlignmentSet(data.getXml(10))
         self.assertEqual(len(ds3.subdatasets), 0)
         ds3.externalResources[0].resourceId = "/blah.bam"
         ds4 = ds1 + ds2 + ds3
@@ -409,13 +408,13 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(ds4.subdatasets), 3)
 
         # Filters, 3 files:
-        ds1 = AlignmentSet(data.getXml(8))
+        ds1 = AlignmentSet(data.getXml(7))
         self.assertEqual(len(ds1.subdatasets), 0)
         ds1.filters.addRequirement(rq=[('>', 0.8)])
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         self.assertEqual(len(ds2.subdatasets), 0)
         ds2.filters.addRequirement(rq=[('>', 0.8)])
-        ds3 = AlignmentSet(data.getXml(11))
+        ds3 = AlignmentSet(data.getXml(10))
         self.assertEqual(len(ds3.subdatasets), 0)
         ds3.externalResources[0].resourceId = "/blah.bam"
         ds3.filters.addRequirement(rq=[('>', 0.8)])
@@ -427,13 +426,13 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(str(sss.filters), '( rq > 0.8 )')
         with self.assertRaises(TypeError):
             # mismatched Filters, 3 files:
-            ds1 = AlignmentSet(data.getXml(8))
+            ds1 = AlignmentSet(data.getXml(7))
             self.assertEqual(len(ds1.subdatasets), 0)
             ds1.filters.addRequirement(rq=[('>', 0.8)])
-            ds2 = AlignmentSet(data.getXml(11))
+            ds2 = AlignmentSet(data.getXml(10))
             self.assertEqual(len(ds2.subdatasets), 0)
             ds2.filters.addRequirement(rq=[('>', 0.7)])
-            ds3 = AlignmentSet(data.getXml(11))
+            ds3 = AlignmentSet(data.getXml(10))
             self.assertEqual(len(ds3.subdatasets), 0)
             ds3.externalResources[0].resourceId = "/blah.bam"
             ds3.filters.addRequirement(rq=[('>', 0.8)])
@@ -632,7 +631,7 @@ class TestDataSet(unittest.TestCase):
     def test_space_in_filename(self):
         outdir = tempfile.mkdtemp(suffix="dataset unittest")
         ofn = os.path.join(outdir, 'spaced.subreadset.xml')
-        ss = SubreadSet(data.getXml(10), strict=True)
+        ss = SubreadSet(data.getXml(9), strict=True)
         ss.copyTo(ofn)
         ss = SubreadSet(ofn, strict=True)
         for fn in ss.toExternalFiles():
@@ -669,7 +668,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(np.array_equal(alnFile.index.tId, empty))
 
         # Check to make sure we can stack them:
-        full_bam = upstreamdata.getBamAndCmpH5()[0]
+        full_bam = upstreamdata.getAlignedBam()
         aset = AlignmentSet(empty_bam, full_bam)
 
         # The BAM API
@@ -682,7 +681,7 @@ class TestDataSet(unittest.TestCase):
         # This models the old and new ways by which Genomic Consensus generates
         # lists of paired tStarts and tEnds.
 
-        full_bam = upstreamdata.getBamAndCmpH5()[0]
+        full_bam = upstreamdata.getAlignedBam()
         empty_bam = data.getEmptyAlignedBam()
         file_lists = [[empty_bam],
                       [full_bam, empty_bam],
@@ -728,9 +727,9 @@ class TestDataSet(unittest.TestCase):
             self.assertTrue(res.isReferenceLoaded)
 
     def test_factory_function(self):
-        aln = data.getXml(8)
-        ref = data.getXml(9)
-        sub = data.getXml(10)
+        aln = data.getXml(7)
+        ref = data.getXml(8)
+        sub = data.getXml(9)
         inTypes = [aln, ref, sub]
         expTypes = [AlignmentSet, ReferenceSet, SubreadSet]
         for infn, exp in zip(inTypes, expTypes):
@@ -744,9 +743,9 @@ class TestDataSet(unittest.TestCase):
 
     def test_factory_function_on_symlink(self):
         # same as test_factory_function(), but symlinked
-        aln = data.getXml(8)
-        ref = data.getXml(9)
-        sub = data.getXml(10)
+        aln = data.getXml(7)
+        ref = data.getXml(8)
+        sub = data.getXml(9)
         inTypes = [aln, ref, sub]
         expTypes = [AlignmentSet, ReferenceSet, SubreadSet]
         for infn, exp in zip(inTypes, expTypes):
@@ -770,39 +769,22 @@ class TestDataSet(unittest.TestCase):
 
     def test_type_checking(self):
         bam = data.getBam()
-        fasta = ReferenceSet(data.getXml(9)).toExternalFiles()[0]
-        bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
+        fasta = ReferenceSet(data.getXml(8)).toExternalFiles()[0]
 
         DataSet(bam, strict=False)
         DataSet(fasta, strict=False)
-        DataSet(bax, strict=False)
         with self.assertRaises(Exception):
             DataSet(bam, strict=True)
         with self.assertRaises(Exception):
             DataSet(fasta, strict=True)
-        with self.assertRaises(Exception):
-            DataSet(bax, strict=True)
 
         AlignmentSet(bam, strict=True)
         with self.assertRaises(Exception):
             AlignmentSet(fasta, strict=True)
-        with self.assertRaises(Exception):
-            AlignmentSet(bax, strict=True)
 
         ReferenceSet(fasta, strict=True)
         with self.assertRaises(Exception):
             ReferenceSet(bam, strict=True)
-        with self.assertRaises(Exception):
-            ReferenceSet(bax, strict=True)
-
-    @skip_if_no_h5py
-    def test_type_checking_h5(self):
-        bax = HdfSubreadSet(data.getXml(19)).toExternalFiles()[0]
-        HdfSubreadSet(bax, strict=True)
-        with self.assertRaises(Exception):
-            HdfSubreadSet(bam, strict=True)
-        with self.assertRaises(Exception):
-            HdfSubreadSet(fasta, strict=True)
 
     def test_updateCounts_without_pbi(self):
         log.info("Testing updateCounts without pbi")
@@ -1011,7 +993,7 @@ class TestDataSet(unittest.TestCase):
         self.assertTrue(reallynew != old)
 
     def test_newUuid_copy(self):
-        fn_orig = data.getXml(8)
+        fn_orig = data.getXml(7)
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         shutil.copy(fn_orig, fn1)
@@ -1025,7 +1007,7 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(ds1.uuid, ds2.uuid)
 
     def test_newUuid_random(self):
-        fn_orig = data.getXml(8)
+        fn_orig = data.getXml(7)
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         shutil.copy(fn_orig, fn1)
@@ -1050,7 +1032,7 @@ class TestDataSet(unittest.TestCase):
     def test_bad_xml_extension(self):
         fn = tempfile.NamedTemporaryFile(
             suffix=".alignmentset.xml.disabled").name
-        with AlignmentSet(data.getXml(8)) as aln:
+        with AlignmentSet(data.getXml(7)) as aln:
             aln.write(fn)
         with AlignmentSet(fn) as aln:
             self.assertEqual(len(aln), 92)
@@ -1064,7 +1046,7 @@ class TestDataSet(unittest.TestCase):
         fn = tempfile.NamedTemporaryFile(
             suffix=".alignmentset.xml").name
         ofh = open(fn, 'w')
-        with AlignmentSet(data.getXml(8)) as aln:
+        with AlignmentSet(data.getXml(7)) as aln:
             aln.write(ofh)
         with AlignmentSet(fn) as aln:
             self.assertEqual(len(aln), 92)
@@ -1072,7 +1054,7 @@ class TestDataSet(unittest.TestCase):
         # unicode string:
         fn = unicode(tempfile.NamedTemporaryFile(
             suffix=".alignmentset.xml").name)
-        with AlignmentSet(data.getXml(8)) as aln:
+        with AlignmentSet(data.getXml(7)) as aln:
             aln.write(fn)
         with AlignmentSet(fn) as aln:
             self.assertEqual(len(aln), 92)
@@ -1080,7 +1062,7 @@ class TestDataSet(unittest.TestCase):
         # stdout:
         # This is just going to be printed into the test output, but it is good
         # to show that this doesn't error out
-        with AlignmentSet(data.getXml(8)) as aln:
+        with AlignmentSet(data.getXml(7)) as aln:
             aln.write(sys.stdout)
 
     @skip_if_no_internal_data
@@ -1126,7 +1108,7 @@ class TestDataSet(unittest.TestCase):
         self.assertFalse(pbi.aStart is None)
 
     def test_copy(self):
-        ds1 = DataSet(data.getXml(12))
+        ds1 = DataSet(data.getXml(11))
         ds2 = ds1.copy()
         self.assertFalse(ds1 == ds2)
         self.assertFalse(ds1.uuid == ds2.uuid)
@@ -1144,7 +1126,7 @@ class TestDataSet(unittest.TestCase):
                            ds1.subdatasets for ds2d in
                            ds2.subdatasets])
         # TODO: once simulated files are indexable, turn on strict:
-        ds1 = SubreadSet(data.getXml(no=10), strict=False)
+        ds1 = SubreadSet(data.getXml(9), strict=False)
         self.assertEquals(type(ds1.metadata).__name__,
                           'SubreadSetMetadata')
         ds2 = ds1.copy()
@@ -1183,7 +1165,7 @@ class TestDataSet(unittest.TestCase):
         ds.addMetadata(None, Name='LongReadsRock')
         self.assertEquals(ds._metadata.getV(container='attrib', tag='Name'),
                           'LongReadsRock')
-        ds2 = DataSet(data.getXml(no=8))
+        ds2 = DataSet(data.getXml(7))
         self.assertEquals(ds2._metadata.totalLength, 123588)
         ds2._metadata.totalLength = 100000
         self.assertEquals(ds2._metadata.totalLength, 100000)
@@ -1191,7 +1173,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEquals(ds2._metadata.totalLength, 200000)
 
     def test_copyTo(self):
-        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        aln = AlignmentSet(data.getXml(7), strict=True)
         explen = len(aln)
         fn = tempfile.NamedTemporaryFile(suffix=".alignmentset.xml").name
         aln.copyTo(fn)
@@ -1210,13 +1192,13 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(explen, len(aln))
 
         # do it twice to same dir to induce collisions
-        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        aln = AlignmentSet(data.getXml(7), strict=True)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         aln.copyTo(outdir)
         fn = os.path.join(outdir, "test.alignmentset.xml")
         aln.write(fn)
 
-        aln = AlignmentSet(data.getXml(no=8), strict=True)
+        aln = AlignmentSet(data.getXml(7), strict=True)
         aln.copyTo(outdir)
         fn2 = os.path.join(outdir, "test2.alignmentset.xml")
         aln.write(fn2)
@@ -1297,7 +1279,7 @@ class TestDataSet(unittest.TestCase):
             self.assertEqual(len([row for row in seqFile]), 92)
 
     def test_records(self):
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         self.assertTrue(len(list(ds.records)), 112)
 
     def test_toFofn(self):
@@ -1550,31 +1532,6 @@ class TestDataSet(unittest.TestCase):
         totalTargetLength = sum(ends - starts)
         self.assertEqual(totalTargetLength, sum(coverage))
 
-    @skip_if_no_h5py
-    def test_alignmentset_cmph5(self):
-        # test a cmp.h5 alignmentset
-        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
-        coverage = ds.intervalContour('lambda_NEB3011')
-        totalTargetLength = sum(ds.index.tEnd - ds.index.tStart)
-        self.assertEqual(totalTargetLength, sum(coverage))
-
-        # partial interval
-        ds = AlignmentSet(upstreamdata.getBamAndCmpH5()[1])
-        coverage = ds.intervalContour('lambda_NEB3011', tStart=100, tEnd=500)
-        ds.filters.addRequirement(rname=[('=', 'lambda_NEB3011')],
-                                  tStart=[('<', '500')],
-                                  tEnd=[('>', '100')])
-        # regular totalLength uses aEnd/aStart, which includes insertions
-        starts = ds.index.tStart
-        ends = ds.index.tEnd
-        post = ends > 500
-        ends[post] = 500
-        pre = starts < 100
-        starts[pre] = 100
-        totalTargetLength = sum(ends - starts)
-        self.assertEqual(totalTargetLength, sum(coverage))
-
-
     def test_refLengths(self):
         ds = AlignmentSet(data.getBam(0))
         random_few = {'B.cereus.6': 1472, 'S.agalactiae.1': 1470,
@@ -1601,7 +1558,7 @@ class TestDataSet(unittest.TestCase):
 
     def test_reads_in_contig(self):
         log.info("Testing reads in contigs")
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         dss = ds.split(contigs=True)
         self.assertEqual(len(dss), 12)
         efaec1TimesFound = 0
@@ -1622,7 +1579,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(efaec2TimesFound, 1)
         self.assertEqual(efaec2TotFound, 3)
 
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         filt = Filters()
         filt.addRequirement(length=[('>', '100')])
         ds.addFilters(filt)
@@ -1646,7 +1603,7 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(efaec2TimesFound, 1)
         self.assertEqual(efaec2TotFound, 3)
 
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         filt = Filters()
         filt.addRequirement(length=[('>', '1000')])
         ds.addFilters(filt)
@@ -1674,7 +1631,7 @@ class TestDataSet(unittest.TestCase):
         # Indexed files only for now:
         # XXX Reactivate subreadsets when pbindex works for them
         #toTest = [8, 10, 11, 12, 13, 15, 16]
-        toTest = [8, 11, 12, 15, 16]
+        toTest = [7, 10, 11, 14, 15]
         for fileNo in toTest:
             aln = openDataSet(data.getXml(fileNo))
             items1 = [aln[i] for i in range(len(aln))]
@@ -1722,7 +1679,7 @@ class TestDataSet(unittest.TestCase):
         reads = ds2.readsInReference("E.faecalis.2")
         self.assertEqual(len(list(reads)), 3)
 
-        ds2 = AlignmentSet(data.getXml(8))
+        ds2 = AlignmentSet(data.getXml(7))
         reads = ds2.readsInReference("E.faecalis.1")
         self.assertEqual(len(list(reads)), 20)
 
@@ -1733,14 +1690,14 @@ class TestDataSet(unittest.TestCase):
         self.assertEqual(len(list(reads)), 0)
 
     def test_staggered_reads_in_range(self):
-        ds = AlignmentSet(data.getXml(8))
+        ds = AlignmentSet(data.getXml(7))
         refNames = ds.refNames
 
         rn = 'B.vulgatus.5'
         reads = list(ds.readsInRange(rn, 0, 10000))
-        ds2 = AlignmentSet(data.getXml(11))
+        ds2 = AlignmentSet(data.getXml(10))
         reads2 = list(ds2.readsInRange(rn, 0, 10000))
-        dsBoth = AlignmentSet(data.getXml(8), data.getXml(11))
+        dsBoth = AlignmentSet(data.getXml(7), data.getXml(10))
         readsBoth = list(dsBoth.readsInRange(rn, 0, 10000))
         readsBothNoPbi = list(dsBoth.readsInRange(rn, 0, 10000, usePbi=False))
         self.assertListEqual(readsBoth, readsBothNoPbi)
@@ -1815,7 +1772,7 @@ class TestDataSet(unittest.TestCase):
         # both zero
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -1837,7 +1794,7 @@ class TestDataSet(unittest.TestCase):
         # one zero
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -1859,7 +1816,7 @@ class TestDataSet(unittest.TestCase):
         # other zero
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
@@ -1881,9 +1838,9 @@ class TestDataSet(unittest.TestCase):
         # one zero more zero
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
-        ds3 = DataSet(data.getXml(11))
+        ds3 = DataSet(data.getXml(10))
         ds3.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
@@ -1911,9 +1868,9 @@ class TestDataSet(unittest.TestCase):
         # other zero
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
-        ds3 = DataSet(data.getXml(11))
+        ds3 = DataSet(data.getXml(10))
         ds3.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
@@ -2113,7 +2070,7 @@ class TestDataSet(unittest.TestCase):
                          [1576, 901, 399, 0])
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds3 = ds1 + ds2
         self.assertEqual(ds1.metadata.summaryStats.prodDist.bins,
@@ -2140,7 +2097,7 @@ class TestDataSet(unittest.TestCase):
         # Lets check some manual values
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
@@ -2201,7 +2158,7 @@ class TestDataSet(unittest.TestCase):
         # now lets swap
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
@@ -2222,7 +2179,7 @@ class TestDataSet(unittest.TestCase):
         # now lets do some non-overlapping
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
-        ds2 = DataSet(data.getXml(11))
+        ds2 = DataSet(data.getXml(10))
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [1, 1, 1])
@@ -2256,82 +2213,6 @@ class TestDataSet(unittest.TestCase):
         #self.assertEqual(
         #    150292.0,
         #    ss.subdatasets[1].metadata.summaryStats.numSequencingZmws)
-
-    @skip_if_no_h5py
-    @skip_if_no_internal_data
-    def test_merged_cmp(self):
-        cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
-                "-unittest/data/sat/aligned_reads.cmp.h5")
-        cmp2 = upstreamdata.getBamAndCmpH5()[1]
-        aln0 = AlignmentSet(cmp1)
-        self.assertEqual(aln0.referenceInfoTable['EndRow'][0], 338001)
-        self.assertEqual(len(aln0), 338002)
-        aln1 = AlignmentSet(cmp2)
-        self.assertEqual(aln1.referenceInfoTable['EndRow'][0], 111)
-        self.assertEqual(len(aln1), 112)
-        aln = AlignmentSet(cmp1, cmp2)
-        refnames = aln.refNames
-        self.assertEqual(refnames, ['lambda_NEB3011'])
-        self.assertEqual(aln.refIds[aln.refNames[0]], 1)
-        self.assertEqual(aln.referenceInfoTable['EndRow'][0], 338113)
-        self.assertEqual(len(aln), 338114)
-
-    @skip_if_no_h5py
-    @skip_if_no_internal_data
-    def test_two_cmpH5(self):
-        cmp1 = ("/pbi/dept/secondary/siv/testdata/pbreports"
-                "-unittest/data/sat/aligned_reads.cmp.h5")
-        cmp2 = upstreamdata.getBamAndCmpH5()[1]
-        len1 = len(AlignmentSet(cmp1))
-        len2 = len(AlignmentSet(cmp2))
-        aln = AlignmentSet(cmp1, cmp2)
-        len3 = len(aln)
-        self.assertEqual(len1 + len2, len3)
-        self.assertEqual(len3, 338114)
-        obstbl = aln.referenceInfoTable
-        exptbl = [(1, 1, 'lambda_NEB3011', 'lambda_NEB3011',
-                   48502, 'a1319ff90e994c8190a4fe6569d0822a', 0, 338113)]
-        self.assertListOfTuplesEqual(obstbl, exptbl)
-        self.assertEqual(set(aln.tId), {1})
-        # + 1, because bounds are inclusive, rather than exclusive
-        self.assertEqual(len3, (aln.referenceInfoTable[0].EndRow -
-                                aln.referenceInfoTable[0].StartRow) + 1)
-        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
-                         aln.referenceInfo(1))
-        # ask for the wrong one:
-        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
-                         None)
-
-    @skip_if_no_h5py
-    @skip_if_no_internal_data
-    def test_two_ref_cmpH5(self):
-        cmp1 = upstreamdata.getBamAndCmpH5()[1]
-        cmp2 = ("/pbi/dept/secondary/siv/testdata/"
-                "genomic_consensus-unittest/bam_c4p6_tests/"
-                "ecoli_c4p6.cmp.h5")
-        len1 = len(AlignmentSet(cmp1))
-        len2 = len(AlignmentSet(cmp2))
-        aln = AlignmentSet(cmp1, cmp2)
-        len3 = len(aln)
-        self.assertEqual(len1 + len2, len3)
-        self.assertEqual(len3, 57147)
-        obstbl = aln.referenceInfoTable
-        exptbl = [(0, 0, 'ecoliK12_pbi_March2013', 'ecoliK12_pbi_March2013',
-                   4642522, '52cd7c5fa92877152fa487906ae484c5', 0, 57034),
-                  (1, 1, 'lambda_NEB3011', 'lambda_NEB3011', 48502,
-                   'a1319ff90e994c8190a4fe6569d0822a', 57035, 57146)]
-        self.assertListOfTuplesEqual(obstbl, exptbl)
-        self.assertEqual(set(aln.tId), {0, 1})
-        # + 1, because bounds are inclusive, rather than exclusive
-        self.assertEqual(len1, (aln.referenceInfoTable[1].EndRow -
-                                aln.referenceInfoTable[1].StartRow) + 1)
-        self.assertEqual(len2, (aln.referenceInfoTable[0].EndRow -
-                                aln.referenceInfoTable[0].StartRow) + 1)
-        self.assertEqual(aln.referenceInfo('ecoliK12_pbi_March2013'),
-                         aln.referenceInfo(0))
-        self.assertEqual(aln.referenceInfo('lambda_NEB3011'),
-                         aln.referenceInfo(1))
-
 
     @skip_if_no_internal_data
     def test_two_bam(self):
@@ -2389,7 +2270,7 @@ class TestDataSet(unittest.TestCase):
 
     @skip_if_no_internal_data
     def test_two_ref_bam(self):
-        cmp1 = upstreamdata.getBamAndCmpH5()[0]
+        cmp1 = upstreamdata.getAlignedBam()
         # this is the supposedly the same data as above:
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
                 "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
@@ -2419,7 +2300,7 @@ class TestDataSet(unittest.TestCase):
     def test_two_ref_three_bam(self):
         # Here we test whether duplicate references in a non-identical
         # reference situation remain duplicates or are collapsed
-        cmp1 = upstreamdata.getBamAndCmpH5()[0]
+        cmp1 = upstreamdata.getAlignedBam()
         # this is the supposedly the same data as above:
         cmp2 = ("/pbi/dept/secondary/siv/testdata/"
                 "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
@@ -2454,14 +2335,14 @@ class TestDataSet(unittest.TestCase):
         assert 'Wrong!' in str(e.value)
 
     def test_createdAt(self):
-        aln = AlignmentSet(data.getXml(8))
+        aln = AlignmentSet(data.getXml(7))
         self.assertEqual(aln.createdAt, '2015-08-05T10:25:18')
 
     @skip_if_no_internal_data
     def test_load_sts_from_extres(self):
         # don't have a subreadset.xml with loaded sts.xml in testdata,
         # fabricate one here:
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = ('/pbi/dept/secondary/siv/testdata/'
                                          'SA3-Sequel/lambda/roche_SAT/'
                                          'm54013_151205_032353.sts.xml')
@@ -2479,7 +2360,7 @@ class TestDataSet(unittest.TestCase):
     def test_fixed_bin_sts(self):
         # don't have a subreadset.xml with loaded sts.xml in testdata,
         # fabricate one here:
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = ('/pbi/dept/secondary/siv/testdata/'
                                        'pbreports-unittest/data/sts_xml/'
                                        '3120134-r54009_20160323_173308-'
@@ -2517,7 +2398,7 @@ class TestDataSet(unittest.TestCase):
                    '32246/m54026_160402_062929.sts.xml')
 
         # two partial
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = partial
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
@@ -2537,7 +2418,7 @@ class TestDataSet(unittest.TestCase):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
         outXml2 = os.path.join(outdir, 'tempfile2.xml')
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = partial
         ss.write(outXml)
         ss.externalResources[0].sts = full
@@ -2557,7 +2438,7 @@ class TestDataSet(unittest.TestCase):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
         outXml2 = os.path.join(outdir, 'tempfile2.xml')
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = full
         ss.write(outXml)
         ss.externalResources[0].sts = partial
@@ -2577,7 +2458,7 @@ class TestDataSet(unittest.TestCase):
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
         outXml2 = os.path.join(outdir, 'tempfile2.xml')
-        ss = SubreadSet(data.getXml(10))
+        ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = full
         ss.write(outXml)
         ss.write(outXml2)
@@ -2641,8 +2522,8 @@ class TestDataSet(unittest.TestCase):
         objects contain the same external resource objects as your dataset, and
         you make everything relative, paths will be relativized twice, making
         them invalid. """
-        ifn1 = data.getXml(8)
-        ifn2 = data.getXml(11)
+        ifn1 = data.getXml(7)
+        ifn2 = data.getXml(10)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         ofn = os.path.join(outdir, 'test.alignmentset.xml')
         log.info(ofn)

@@ -81,7 +81,6 @@ TAGS = [
     ":ReadQualDist",
     ":ReadTypeDist",
     ":ShortInsertFraction",
-    ":HdfSubreadSet",
     ":SubreadSet",
     ":SummaryStats",
     ":TotalLength",

@@ -41,7 +41,7 @@ class TestDataSetUtils(unittest.TestCase):
         self.assertEqual(meta_type, "PacBio.DataSet.SubreadSet")
 
     def test_dsIdToSuffix(self):
-        suffixes = ['subreadset.xml', 'hdfsubreadset.xml', 'alignmentset.xml',
+        suffixes = ['subreadset.xml', 'alignmentset.xml',
                     'barcodeset.xml', 'consensusreadset.xml',
                     'consensusalignmentset.xml',
                     'referenceset.xml', 'contigset.xml']
