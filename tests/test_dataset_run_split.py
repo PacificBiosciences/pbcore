@@ -5,6 +5,8 @@ import glob
 import os
 import pytest
 
+from utils import skip_if_no_internal_data
+
 @pytest.fixture(scope="module")
 def script_loc(request):
     '''Return the directory of the currently running test script'''
@@ -13,6 +15,7 @@ def script_loc(request):
     # a string. LocalPath.join calls normpath for us when joining the path
     return request.fspath.join('..')
 
+@skip_if_no_internal_data
 def test(tmpdir, script_loc):
     tmpdir.chdir()
     dset = script_loc.join('data/test_dataset_run_split/filt.xml')

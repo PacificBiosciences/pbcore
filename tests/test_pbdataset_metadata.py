@@ -154,6 +154,7 @@ class TestDataSet(unittest.TestCase):
         aln = AlignmentSet(outXml)
         self.assertEqual(aln.uuid, oldUuid)
 
+    @skip_if_no_internal_data
     def test_merge(self):
         sset_fn = ('/pbi/dept/secondary/siv/testdata/'
                 'SA3-Sequel/lambda/roche_SAT/'

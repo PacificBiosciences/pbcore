@@ -175,11 +175,11 @@ class FastaReader(ReaderBase):
         >>> filename = data.getTinyFasta()
         >>> r = FastaReader(filename)
         >>> for record in r:
-        ...     print(record.header, len(record.sequence))
-        ref000001|EGFR_Exon_2 183
-        ref000002|EGFR_Exon_3 203
-        ref000003|EGFR_Exon_4 215
-        ref000004|EGFR_Exon_5 157
+        ...     print((record.header, len(record.sequence)))
+        ('ref000001|EGFR_Exon_2', 183)
+        ('ref000002|EGFR_Exon_3', 203)
+        ('ref000003|EGFR_Exon_4', 215)
+        ('ref000004|EGFR_Exon_5', 157)
         >>> r.close()
 
     """
