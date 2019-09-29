@@ -2,35 +2,6 @@
 <MappingTable>
   <DefaultSequencingChemistry>S/P3-C1/5.0-8M</DefaultSequencingChemistry>
 
-  <!---3.2 ("Goat") chemistry (a.k.a "Mimosa") -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>3.3</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>4.0</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>4.1</SoftwareVersion>
-  </Mapping>
-
   <!-- "Seabiscuit" chemistry, accompanied 4.0 SW -->
   <Mapping>
     <SequencingChemistry>S/P2-C2</SequencingChemistry>
