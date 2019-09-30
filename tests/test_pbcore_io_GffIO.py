@@ -1,12 +1,11 @@
 from __future__ import absolute_import, division, print_function
 
 from builtins import range
-from StringIO import StringIO
-import tempfile
-import unittest
-import os.path
 
-from nose.tools import assert_equal, assert_raises
+import tempfile
+import os
+import pytest
+from StringIO import StringIO
 
 from pbcore.io import GffWriter, Gff3Record, GffReader
 from pbcore.io.GffIO import merge_gffs, merge_gffs_sorted, sort_gff
@@ -18,58 +17,52 @@ def rm_out(fname):
 
 class TestGff3Record(object):
 
-    def setup(self):
-        self.record = Gff3Record("chr1", 10, 11, "insertion",
-                                 attributes=[("cat", "1"), ("dog", "2")])
+    RECORD = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
 
     def test_str(self):
-        assert_equal("chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2",
-                     str(self.record))
+        assert "chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2" == str(self.RECORD)
 
     def test_modification(self):
-        record = self.record.copy()
+        record = self.RECORD.copy()
         record.dog = 3
         record.cat = 4
         record.mouse = 5
         record.start = 100
         record.end = 110
-        assert_equal("chr1\t.\tinsertion\t100\t110\t.\t.\t.\tcat=4;dog=3;mouse=5",
-                     str(record))
+        assert "chr1\t.\tinsertion\t100\t110\t.\t.\t.\tcat=4;dog=3;mouse=5" == str(record)
 
     def test_fromString(self):
-        newRecord = Gff3Record.fromString(str(self.record))
-        assert_equal(str(self.record),  str(newRecord))
+        newRecord = Gff3Record.fromString(str(self.RECORD))
+        assert str(self.RECORD) == str(newRecord)
 
     def test_get(self):
         """
         Verify field access behavior
         """
-        record = self.record
+        record = self.RECORD
         record.dog = 3
         record.cat = 4
         record.mouse = 5
         record.start = 100
         record.end = 110
 
-        assert_equal(3, record.dog)
-        assert_equal(100, record.start)
-        with assert_raises(AttributeError):
+        assert 3 == record.dog
+        assert 100 == record.start
+        with pytest.raises(AttributeError):
             record.god
 
-        assert_equal(3, record.get("dog"))
-        assert_equal(None, record.get("god"))
-        assert_equal(100, record.get("start", 100))
-
-
+        assert 3 == record.get("dog")
+        assert record.get("god") is None
+        assert 100 == record.get("start", 100)
 
 
 class TestGffReader(object):
-    def setup(self):
-        self.rawFile = open(data.getGff3())
-        self.reader = GffReader(data.getGff3())
+
+    RAWFILE = open(data.getGff3())
+    READER = GffReader(data.getGff3())
 
     def test_headers(self):
-        assert_equal(["##gff-version 3",
+        assert ["##gff-version 3",
                       "##pacbio-variant-version 2.1",
                       "##date Sat Mar 22 12:16:13 2014",
                       "##feature-ontology http://song.cvs.sourceforge.net/*checkout*/song/ontology/sofa.obo?revision=1.12",
@@ -77,44 +70,43 @@ class TestGffReader(object):
                       "##source-commandline /Users/dalexander/.virtualenvs/VE/bin/variantCaller.py --algorithm=plurality -q20 -x5 pbcore/data/aligned_reads_1.cmp.h5 -r /Users/dalexander/Data/lambdaNEB.fa -o /tmp/v.gff",
                       "##source-alignment-file /Users/dalexander/Dropbox/Sources/git/pbcore/pbcore/data/aligned_reads_1.cmp.h5",
                       "##source-reference-file /Users/dalexander/Data/lambdaNEB.fa",
-                      "##sequence-region lambda_NEB3011 1 48502"],
-                     self.reader.headers)
+                      "##sequence-region lambda_NEB3011 1 48502"] == self.READER.headers
 
     def test__iter__(self):
-        records = list(self.reader)
-        rawLines = self.rawFile.readlines()[9:]
+        records = list(self.READER)
+        rawLines = self.RAWFILE.readlines()[9:]
         for record, rawLine in zip(records, rawLines):
             # No newlines or whitespace allowed in records
-            assert_equal(str(record).strip(), str(record))
+            assert str(record).strip() == str(record)
             # Make sure record matches line
-            assert_equal(rawLine.strip(), str(record))
+            assert rawLine.strip() == str(record)
 
 
 class TestGffWriter(object):
-    def setup(self):
+
+    RECORD1 = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
+    RECORD2 = Gff3Record("chr1", 200, 201, "substitution", attributes=[("mouse", "1"), ("moose", "2")])
+
+    def setup_method(self):
         self.outfile = StringIO()
-        self.record1 = Gff3Record("chr1", 10, 11, "insertion",
-                                  attributes=[("cat", "1"), ("dog", "2")])
-        self.record2 = Gff3Record("chr1", 200, 201, "substitution",
-                                  attributes=[("mouse", "1"), ("moose", "2")])
         self.gffWriter = GffWriter(self.outfile)
 
     def test_writeHeader(self):
         self.gffWriter.writeHeader("##foo bar")
-        assert_equal("##gff-version 3\n##foo bar\n",
-                     self.outfile.getvalue())
+        assert "##gff-version 3\n##foo bar\n" == self.outfile.getvalue()
 
     def test_writeRecord(self):
-        self.gffWriter.writeRecord(self.record1)
-        self.gffWriter.writeRecord(self.record2)
+        self.gffWriter.writeRecord(self.RECORD1)
+        self.gffWriter.writeRecord(self.RECORD2)
         expected = ("##gff-version 3\n" +
                     "chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2\n" +
                     "chr1\t.\tsubstitution\t200\t201\t.\t.\t.\tmouse=1;moose=2\n")
-        assert_equal(expected, self.outfile.getvalue())
+        assert expected == self.outfile.getvalue()
 
 
-class TestGffSorting(unittest.TestCase):
-    gff_data = ["""\
+class TestGffSorting(object):
+
+    GFF_DATA = ["""\
 ##gff-version 3
 ##source ipdSummary
 ##source-commandline ipdSummary etc.
@@ -132,7 +124,7 @@ chr2\tkinModCall\tmodified_base\t1953\t1953\t39\t+\t.\tcoverage=148;context=AATG
 chr1\tkinModCall\tmodified_base\t16204\t16204\t31\t-\t.\tcoverage=119;context=CCCGCGCAGATGATAATTACGGCTCACCTGCTGGCTGCCGA;IPDRatio=1.80
 chr1\tkinModCall\tmodified_base\t16302\t16302\t33\t+\t.\tcoverage=108;context=TGGGACGGAACGTTTAAACCGGCATACAGCAACAACATGGC;IPDRatio=1.81
 chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CCCCATGCCGTAGCGCGGATGGGTCAGCATATCCCACAGAC;IPDRatio=1.82""",]
-    sorted_start = [
+    SORTED_START = [
         ('chr1', 16204), ('chr1', 16302), ('chr1', 16348),
         ('chr1', 32580), ('chr1', 32766), ('chr1', 32773),
         ('chr2', 1200), ('chr2', 1786), ('chr2', 1953),
@@ -146,9 +138,9 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
             for i in range(3):
                 file_name = "tmp_pbcore_%d.gff" % i
                 with open(file_name, "w") as f:
-                    f.write(cls.gff_data[i])
+                    f.write(cls.GFF_DATA[i])
                 cls.files.append(file_name)
-                for line in cls.gff_data[i].splitlines():
+                for line in cls.GFF_DATA[i].splitlines():
                     if line.startswith("#"):
                         if i == 0:
                             f_all.write(line+"\n")
@@ -171,13 +163,13 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
             with GffReader(fn) as f:
                 n_rec += len([ rec for rec in f ])
         with GffReader(gff_out) as f:
-            self.assertEqual(f.headers, [
+            assert f.headers == [
                 "##gff-version 3",
                 "##source ipdSummary",
                 "##sequence-region lambda_NEB3011 1 48502",
-            ])
+            ]
             n_rec_merged = len([ rec for rec in f ])
-            self.assertEqual(n_rec, n_rec_merged)
+            assert n_rec == n_rec_merged
         rm_out(gff_out)
 
     def test_merge_gffs_sorted(self):
@@ -185,14 +177,14 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
         merge_gffs_sorted(self.files, gff_out)
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
-            self.assertEqual(start, self.sorted_start)
+            assert start == self.SORTED_START
         rm_out(gff_out)
 
     def test_sort_gff(self):
         gff_out = sort_gff(self.combined)
         with GffReader(gff_out) as f:
             start = [ (rec.seqid, rec.start) for rec in f ]
-            self.assertEqual(start, self.sorted_start)
+            assert start == self.SORTED_START
         rm_out(gff_out)
 
     def test_empty_file(self):

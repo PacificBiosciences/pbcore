@@ -1,21 +1,16 @@
 from __future__ import absolute_import, division, print_function
 
+from builtins import range
+
+from collections import Counter
+import numpy as np
+import os
+import pytest
+import shutil
+import tempfile
+
 from numpy.testing import (assert_array_almost_equal as ASIM,
                            assert_array_equal        as AEQ)
-from nose.tools import (nottest,
-                        assert_raises,
-                        assert_equal as EQ,
-                        assert_almost_equal as EQISH)
-from nose import SkipTest
-
-from builtins import range
-import os.path as op
-import tempfile
-import shutil
-import pysam
-import numpy as np
-import bisect
-from collections import Counter
 
 from pbcore import data
 from pbcore.io import BamReader, IndexedBamReader
@@ -23,8 +18,6 @@ from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.sequence import reverseComplement as RC
 from pbcore.chemistry import ChemistryLookupError
 from pbcore.io.align.BamIO import AlignmentFile
-
-from utils import _internal_data
 
 
 class _BasicAlnFileReaderTests(object):
@@ -35,67 +28,67 @@ class _BasicAlnFileReaderTests(object):
     The tests are pretty tailored to the BAM files in
     pbcore.data.
     """
+
     READER_CONSTRUCTOR = None
     CONSTRUCTOR_ARGS   = None
 
-    def setup_class(self):
-        self.f = self.READER_CONSTRUCTOR(*self.CONSTRUCTOR_ARGS)
-        self.alns = list(self.f)
-        self.fwdAln = self.alns[1]
-        self.revAln = self.alns[105]
+    @classmethod
+    def setup_class(cls):
+        cls.f = cls.READER_CONSTRUCTOR(*cls.CONSTRUCTOR_ARGS)
+        cls.alns = list(cls.f)
+        cls.fwdAln = cls.alns[1]
+        cls.revAln = cls.alns[105]
 
     def testBasicOperations(self):
-        EQ(False, self.f.isEmpty)
-        EQ(True,  self.f.isSorted)
-        EQ(112,   len(self.f))
+        assert False == self.f.isEmpty
+        assert True == self.f.isSorted
+        assert 112 == len(self.f)
 
     def testStrandOrientation(self):
-        EQ(True,  self.fwdAln.isForwardStrand)
-        EQ(False, self.fwdAln.isReverseStrand)
-        EQ(False, self.revAln.isForwardStrand)
-        EQ(True,  self.revAln.isReverseStrand)
+        assert True == self.fwdAln.isForwardStrand
+        assert False == self.fwdAln.isReverseStrand
+        assert False == self.revAln.isForwardStrand
+        assert True == self.revAln.isReverseStrand
 
     def testReadName(self):
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328/1_344",
-           self.fwdAln.readName)
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/51534/1_200",
-           self.revAln.readName)
+        assert "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/32328/1_344" == self.fwdAln.readName
+        assert "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/51534/1_200" == self.revAln.readName
 
     def testAlignedRead(self):
         expectedFwdNative = "GCCGCGAT-GATGAAAACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTT-ACAGGCTGCGGCATTTTGTCCGCGCC-GGCTTCGCTCACTGTTCAGGCCGGAG-CACAGACCGCCGTTGAAATGGGCGGATGCTAATTACTATCTCCCGAAAGAAT-CGC-TACCAGGAAGGGCGATGGGAAACACTGCCCTTTCAGCGGG-CATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGT-AATGTGGTGAAGTCTG-CCGTGTCGGTTATTCCAAAATGCTGCTGGGTG-TTATGCCT-CGTTTATAGAGCATAAGCAGCGCAACA-CCTTATCTGGTTGCC"
-        EQ(expectedFwdNative, self.fwdAln.read(aligned=True))
-        EQ(expectedFwdNative, self.fwdAln.read())
-        EQ(expectedFwdNative, self.fwdAln.read(orientation="genomic"))
+        assert expectedFwdNative == self.fwdAln.read(aligned=True)
+        assert expectedFwdNative == self.fwdAln.read()
+        assert expectedFwdNative == self.fwdAln.read(orientation="genomic")
         expectedRevNative = "TAGCCACCGGATATCACCACAGGTGAGGCCGTGTAAGTTG-AGGTTTTTCTACGTCAGATTCTTTTGGGATTGGGCTTGGGTTTATTTCCTGGTGCGTTTCGTT-GAAGGTATTTGCAGTTTTCGCAGATTATGCCTCCGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC"
-        EQ(expectedRevNative, self.revAln.read(aligned=True))
-        EQ(expectedRevNative, self.revAln.read())
-        EQ(RC(expectedRevNative), self.revAln.read(orientation="genomic"))
+        assert expectedRevNative == self.revAln.read(aligned=True)
+        assert expectedRevNative == self.revAln.read()
+        assert RC(expectedRevNative) == self.revAln.read(orientation="genomic")
 
     def testUnalignedRead(self):
         expectedFwdNative = 'GCCGCGATGATGAAAACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTACAGGCTGCGGCATTTTGTCCGCGCCGGCTTCGCTCACTGTTCAGGCCGGAGCACAGACCGCCGTTGAAATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCGCTACCAGGAAGGGCGATGGGAAACACTGCCCTTTCAGCGGGCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTAATGTGGTGAAGTCTGCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTATGCCTCGTTTATAGAGCATAAGCAGCGCAACACCTTATCTGGTTGCC'
-        EQ(expectedFwdNative, self.fwdAln.read(aligned=False))
-        EQ(expectedFwdNative, self.fwdAln.read(aligned=False, orientation="genomic"))
+        assert expectedFwdNative == self.fwdAln.read(aligned=False)
+        assert expectedFwdNative == self.fwdAln.read(aligned=False, orientation="genomic")
         expectedRevNative = "TAGCCACCGGATATCACCACAGGTGAGGCCGTGTAAGTTGAGGTTTTTCTACGTCAGATTCTTTTGGGATTGGGCTTGGGTTTATTTCCTGGTGCGTTTCGTTGAAGGTATTTGCAGTTTTCGCAGATTATGCCTCCGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC"
-        EQ(expectedRevNative, self.revAln.read(aligned=False))
-        EQ(RC(expectedRevNative), self.revAln.read(aligned=False, orientation="genomic"))
+        assert expectedRevNative == self.revAln.read(aligned=False)
+        assert RC(expectedRevNative) == self.revAln.read(aligned=False, orientation="genomic")
 
     def testAlignedReference(self):
         expectedFwdNative = 'GCCGCGCTGGATG--AACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTAACAGGCTGCGGCATTTTGTCCGCGCCGGGCTTCGCTCACTGTTCAGGCCGGAGCCACAGACCGCCGTTG-AATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCCGCATACCAGGAAGGGCGCTGGGAAACACTGCCCTTTCAGCGGGCCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTGAATGTGGTGAAGTCTGCCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTTATGCCTAC-TTTATAGAGCATAAGCAGCGCAACACCCTTATCTGGTTGCC'
-        EQ(expectedFwdNative, self.fwdAln.reference(aligned=True))
-        EQ(expectedFwdNative, self.fwdAln.reference())
-        EQ(expectedFwdNative, self.fwdAln.reference(orientation="genomic"))
+        assert expectedFwdNative == self.fwdAln.reference(aligned=True)
+        assert expectedFwdNative == self.fwdAln.reference()
+        assert expectedFwdNative == self.fwdAln.reference(orientation="genomic")
         expectedRevNative = 'TAGCCACCGGATATC-CCACAGGTGA-GCCGTGT-AGTTGAAGG-TTTT-TACGTCAGATTCTTTTGGGATT-GGCTTGGGTTTATTT-CTGGTGCGTTTCGTTGGAAGGTATTTGCAGTTTTCGCAGATTATG--T-CGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC'
-        EQ(expectedRevNative, self.revAln.reference(aligned=True))
-        EQ(expectedRevNative, self.revAln.reference())
-        EQ(RC(expectedRevNative), self.revAln.reference(orientation="genomic"))
+        assert expectedRevNative == self.revAln.reference(aligned=True)
+        assert expectedRevNative == self.revAln.reference()
+        assert RC(expectedRevNative) == self.revAln.reference(orientation="genomic")
 
     def testUnalignedReference(self):
         expectedFwdNative = "GCCGCGCTGGATGAACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTAACAGGCTGCGGCATTTTGTCCGCGCCGGGCTTCGCTCACTGTTCAGGCCGGAGCCACAGACCGCCGTTGAATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCCGCATACCAGGAAGGGCGCTGGGAAACACTGCCCTTTCAGCGGGCCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTGAATGTGGTGAAGTCTGCCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTTATGCCTACTTTATAGAGCATAAGCAGCGCAACACCCTTATCTGGTTGCC"
-        EQ(expectedFwdNative, self.fwdAln.reference(aligned=False))
-        EQ(expectedFwdNative, self.fwdAln.reference(aligned=False, orientation="genomic"))
+        assert expectedFwdNative == self.fwdAln.reference(aligned=False)
+        assert expectedFwdNative == self.fwdAln.reference(aligned=False, orientation="genomic")
         expectedRevNative = "TAGCCACCGGATATCCCACAGGTGAGCCGTGTAGTTGAAGGTTTTTACGTCAGATTCTTTTGGGATTGGCTTGGGTTTATTTCTGGTGCGTTTCGTTGGAAGGTATTTGCAGTTTTCGCAGATTATGTCGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC"
-        EQ(expectedRevNative, self.revAln.reference(aligned=False))
-        EQ(RC(expectedRevNative), self.revAln.reference(aligned=False, orientation="genomic"))
+        assert expectedRevNative == self.revAln.reference(aligned=False)
+        assert RC(expectedRevNative) == self.revAln.reference(aligned=False, orientation="genomic")
 
     def testDeletionQV(self):
         expectedFwdNative = (
@@ -145,78 +138,66 @@ class _BasicAlnFileReaderTests(object):
         AEQ(expectedRevNative, self.revAln.DeletionQV())
         AEQ(expectedRevNative[::-1], self.revAln.DeletionQV(orientation="genomic"))
 
-
-        #     # def testInsertionQV(self):
-        #     #     pass
-
-        #     # def testSubstitutionQV(self):
-        #     #     pass
-
-        #     # def testIPD(self):
-        #     #     pass
-
-
-
-        #     def testDeletionTag(self):
-        #         expectedFwdNative = [78, 78, 84, 78, 78, 67, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,
-        #                              78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 65, 78,
-        #                              78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78]
-        #         AEQ(expectedFwdNative, self.fwdAln.DeletionTag(aligned=True))
-        #         AEQ(expectedFwdNative, self.fwdAln.DeletionTag())
-        #         AEQ(expectedFwdNative, self.fwdAln.DeletionTag(orientation="genomic"))
-
-        #         expectedRevNative = [78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78,
-        #                              78, 78, 78, 78, 45, 67, 78, 78, 78, 78, 78, 45, 84, 78, 78, 78, 78,
-        #                              78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 78, 45, 78, 78, 78, 78,
-        #                              78, 78, 78, 78, 78, 78, 78, 78, 78, 78]
-        #         AEQ(expectedRevNative, self.revAln.DeletionTag(aligned=True))
-        #         AEQ(expectedRevNative, self.revAln.DeletionTag())
-
-        #         # TODO: what is the correct behavior here?
-        #         #AEQ(expectedRevNative[::-1], self.revAln.DeletionTag(orientation="genomic"))
-
     def testTranscript(self):
-        EQ('MMMMMMRMDMMMMIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMDMMMMMMMMMMMMMMRMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMDMIMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMM',
-           self.fwdAln.transcript())
+        assert ('MMMMMMRMDMMMMIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'
+                'MMDMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMDM'
+                'MMMMMMMMMMMMMMIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMDMMMDMM'
+                'MMMMMMMMMMMMRMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMM'
+                'MMMMMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMM'
+                'MMMMMMMMMMMMDMMMMMMMMDMIMMMMMMMMMMMMMMMMMMMMMMMMMDMMMMMMMM'
+                'MMMMMMM') == self.fwdAln.transcript()
 
-        EQ("MMMMMMMMMMMMMMMIMMMMMMMMMMIMMMMMMMIMMMMMDMMMIMMMMIMMMMMMMMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMDMMMMMMMMMMMMMMMMMMMMMMMMMMMMMIIMIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-           self.revAln.transcript())
+        assert ("MMMMMMMMMMMMMMMIMMMMMMMMMMIMMMMMMMIMMMMMDMMMIMMMMIMMMMMMMM"
+                "MMMMMMMMMMMMMMIMMMMMMMMMMMMMMMIMMMMMMMMMMMMMMMDMMMMMMMMMMM"
+                "MMMMMMMMMMMMMMMMMMIIMIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+                "MMMMMMMMMMMMMMMMMMMMMMMMMMM") == self.revAln.transcript()
 
     def testClippedAlignments(self):
         # Get a more interesting (more gappy) fwd strand aln
         a = self.fwdAln
-        EQ([(980, 'C', 'C'),
-            (981, 'C', 'C'),
+        assert [(980, 'C', 'C'),
+                (981, 'C', 'C'),
+                (982, 'T', 'T'),
+                (983, 'A', '-'),
+                (984, 'C', 'C'),
+                (985, '-', 'G'),
+                (985, 'T', 'T'),
+                (986, 'T', 'T')] == zip(
+                    a.referencePositions(),
+                    a.reference(),
+                    a.read())[308:316]
+
+        ac1 = a.clippedTo(983, 985)
+        assert 983 == ac1.referenceStart
+        assert 985 == ac1.referenceEnd
+        assert [
+            (983, 'A', '-'),
+            (984, 'C', 'C')] == zip(
+                ac1.referencePositions(),
+                ac1.reference(),
+                ac1.read())
+
+        ac2 = a.clippedTo(982, 986)
+        assert 982 == ac2.referenceStart
+        assert 986 == ac2.referenceEnd
+        assert [
             (982, 'T', 'T'),
             (983, 'A', '-'),
             (984, 'C', 'C'),
             (985, '-', 'G'),
-            (985, 'T', 'T'),
-            (986, 'T', 'T') ],
-           zip(a.referencePositions(), a.reference(), a.read())[308:316])
-
-        ac1 = a.clippedTo(983, 985)
-        EQ(983, ac1.referenceStart)
-        EQ(985, ac1.referenceEnd)
-        EQ([(983, 'A', '-'),
-            (984, 'C', 'C')],
-           zip(ac1.referencePositions(), ac1.reference(), ac1.read()))
-
-        ac2 = a.clippedTo(982, 986)
-        EQ(982, ac2.referenceStart)
-        EQ(986, ac2.referenceEnd)
-        EQ([(982, 'T', 'T'),
-            (983, 'A', '-'),
-            (984, 'C', 'C'),
-            (985, '-', 'G'),
-            (985, 'T', 'T')],
-           zip(ac2.referencePositions(), ac2.reference(), ac2.read()))
+            (985, 'T', 'T')] == zip(
+                ac2.referencePositions(),
+                ac2.reference(),
+                ac2.read())
 
         ac3 = a.clippedTo(984, 985)
-        EQ(984, ac3.referenceStart)
-        EQ(985, ac3.referenceEnd)
-        EQ([(984, 'C', 'C')],
-           zip(ac3.referencePositions(), ac3.reference(), ac3.read()))
+        assert 984 == ac3.referenceStart
+        assert 985 == ac3.referenceEnd
+        assert [
+            (984, 'C', 'C')] == zip(
+                ac3.referencePositions(),
+                ac3.reference(),
+                ac3.read())
 
         #         # Get a more interesting (more gappy) rev strand aln
         #         b = self.alns[3]
@@ -262,7 +243,6 @@ class _BasicAlnFileReaderTests(object):
         #             (2209, 'T', 'T')],
         #            zip(bc3.referencePositions(), bc3.reference(), bc3.read()))
 
-
         #         # Test clipping in a large deletion
         #         d = self.alns[52]
         #         EQ([(16191, 'C', 'C'),
@@ -288,22 +268,26 @@ class _BasicAlnFileReaderTests(object):
             expectedNames = set([ a.readName for a in self.alns
                                   if (a.referenceName == "lambda_NEB3011" and
                                       a.overlapsReferenceRange(wStart, wEnd)) ])
-            EQ(expectedNames,
-               set([ a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd) ]))
+            assert expectedNames == set([a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd)])
 
     def testReadGroupTable(self):
         rgFwd = self.fwdAln.readGroupInfo
-        EQ([('ID', '<i4'), ('MovieName', 'O'), ('ReadType', 'O'), ('SequencingChemistry', 'O'), ('FrameRate', '<f8'), ('SampleName', 'O'), ('BaseFeatures', 'O')], rgFwd.dtype)
-        EQ(True, isinstance(rgFwd.BaseFeatures, frozenset))
-        EQ('S/P4-C2/5.0-8M', rgFwd.SequencingChemistry)
-        EQ("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0", rgFwd.MovieName)
-        #EQ("bar", rgFwd.ReadType)
+        assert [
+            ('ID', '<i4'),
+            ('MovieName', 'O'),
+            ('ReadType', 'O'),
+            ('SequencingChemistry', 'O'),
+            ('FrameRate', '<f8'),
+            ('SampleName', 'O'),
+            ('BaseFeatures', 'O')] == rgFwd.dtype
+        assert isinstance(rgFwd.BaseFeatures, frozenset)
+        assert 'S/P4-C2/5.0-8M' == rgFwd.SequencingChemistry
+        assert "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0" == rgFwd.MovieName
 
     def testSequencingChemistry(self):
-        EQ(['S/P4-C2/5.0-8M'], self.f.sequencingChemistry)
-        EQ('S/P4-C2/5.0-8M', self.fwdAln.sequencingChemistry)
-        EQ('S/P4-C2/5.0-8M', self.revAln.sequencingChemistry)
-
+        assert ['S/P4-C2/5.0-8M'] == self.f.sequencingChemistry
+        assert 'S/P4-C2/5.0-8M' == self.fwdAln.sequencingChemistry
+        assert 'S/P4-C2/5.0-8M' == self.revAln.sequencingChemistry
 
 
 class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
@@ -314,7 +298,7 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
 
     def testMapQV(self):
         c = Counter(self.f.mapQV)
-        EQ(Counter({254: 112}), c)
+        assert Counter({254: 112}) == c
 
     def testHoleNumbers(self):
         c  = Counter([a.holeNumber for a in self.f])   # from records
@@ -328,20 +312,16 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
                             15641: 1, 49050: 1, 19360: 1, 42165: 1, 44356: 1, 51534: 1,
                             29843: 1, 38754: 1, 52206: 1, 49521: 1, 45203: 1, 7670: 1,
                             54396: 1, 19837: 1})
-        EQ(expected, c)
-        EQ(expected, c2)
+        assert expected == c
+        assert expected == c2
 
     def testErrorCounts(self):
         for aln in [self.fwdAln, self.revAln]:
             counts = Counter(aln.transcript())
-            EQ(counts["M"], aln.nM)
-            EQ(counts["R"], aln.nMM)
-            EQ(counts["I"], aln.nIns)
-            EQ(counts["D"], aln.nDel)
-
-
-    #     def testAlignedIdentity(self):
-    #         pass
+            assert counts["M"] == aln.nM
+            assert counts["R"] == aln.nMM
+            assert counts["I"] == aln.nIns
+            assert counts["D"] == aln.nDel
 
     def testReadsByName(self):
         reads2771_1 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/*")
@@ -351,33 +331,35 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         expectedReadNames = ["m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8741_8874",
                              "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8942_9480"]
 
-        EQ(expectedReadNames, [r.readName for r in reads2771_1])
-        EQ(expectedReadNames, [r.readName for r in reads2771_2])
-        EQ(expectedReadNames, [r.readName for r in reads2771_3])
+        assert expectedReadNames == [r.readName for r in reads2771_1]
+        assert expectedReadNames == [r.readName for r in reads2771_2]
+        assert expectedReadNames == [r.readName for r in reads2771_3]
 
 
 class TestBasicBam(_BasicAlnFileReaderTests):
+
     READER_CONSTRUCTOR = BamReader
     CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
 
     def testSpecVersion(self):
-        EQ("3.0.1",     self.f.version)
+        assert "3.0.1" == self.f.version
 
     def testReadScore(self):
-        EQISH(0.904, self.fwdAln.readScore, 3)
+        assert 0.904 == pytest.approx(self.fwdAln.readScore)
 
     def test_sample_name_default(self):
-        EQ("UnnamedSample", self.f.readGroupTable[0].SampleName)
+        assert "UnnamedSample" == self.f.readGroupTable[0].SampleName
 
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
+
     READER_CONSTRUCTOR = IndexedBamReader
     CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
 
     def test_empty_bam(self):
         fn = data.getEmptyBam()
         bam = IndexedBamReader(fn)
-        EQ(len(bam), 0)
+        assert len(bam) == 0
 
     def test_alignment_identity(self):
         """
@@ -388,7 +370,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         with IndexedBamReader(fn) as bam_in:
             i1 = bam_in.identity
             i2 = np.array([ rec.identity for rec in bam_in ])
-            EQ((i2 == i1).all(), True)
+            assert (i2 == i1).all()
 
     def test_alignment_identity_unindexed(self):
         """
@@ -402,36 +384,40 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
             with BamReader(fn2) as bam_noindex:
                 i1 = np.array([ rec.identity for rec in bam_pbi ])
                 i2 = np.array([ rec.identity for rec in bam_noindex ])
-                EQ((i2 == i1).all(), True)
+                assert (i2 == i1).all()
 
 
 class TestCCSBam(object):
-    def setup_class(self):
-        self.f = BamReader(data.getCCSBAM())
 
-    @SkipTest
+    @classmethod
+    def setup_class(cls):
+        cls.f = BamReader(data.getCCSBAM())
+
+    @pytest.mark.skip(reason="broken")
     def testBasicOperations(self):
-        EQ(False, self.f.isEmpty)
-        EQ(False, self.f.isSorted)
-        EQ(18,    len(self.f))
+        assert False == self.f.isEmpty
+        assert False == self.f.isSorted
+        assert 18 == len(self.f)
 
     def testQStartEndUnavailable(self):
         for aln in self.f:
-            with assert_raises(UnavailableFeature):
+            with pytest.raises(UnavailableFeature):
                 aln.qStart
-            with assert_raises(UnavailableFeature):
+            with pytest.raises(UnavailableFeature):
                 aln.qEnd
 
 
+@pytest.mark.internal_data
 class TestTranscriptBam(object):
+
     BAM_FILE = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.bam"
-    def setup_class(self):
-        if not op.isfile(self.BAM_FILE):
-            raise SkipTest("Testdata not present")
-        self.f = IndexedBamReader(self.BAM_FILE)
+
+    @classmethod
+    def setup_class(cls):
+        cls.f = IndexedBamReader(cls.BAM_FILE)
 
     def test_transcript_set_support(self):
-        EQ(len(self.f), 12218)
+        assert len(self.f) == 12218
 
 
 class TestEmptyBam(object):
@@ -440,16 +426,15 @@ class TestEmptyBam(object):
         with IndexedBamReader(data.getEmptyAlignedBam()) as bam:
             reads = bam.readsInRange("lambda_NEB3011", 0, 50000,
                 justIndices=True)
-            EQ(len(reads), 0)
+            assert len(reads) == 0
 
-
-#@pytest.fixture(scope='class')
 
 class TestMultipleReadGroups(object):
     """
     Verify that BAM files with multiple read groups are handled sensibly - see
     bug 26548.
     """
+
     SAM_IN = """\
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0.7
 @SQ\tSN:ecoliK12_pbi_March2013_2955000_to_2980000\tLN:25000\tM5:734d5f3b2859595f4bd87a2fe6b7389b
@@ -458,6 +443,7 @@ class TestMultipleReadGroups(object):
 movie1/54130/0_10\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t2\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:19d45c63\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:10\tqs:i:0\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2
 m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:69995355\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:20\tqs:i:10\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2"""
 
+    @classmethod
     def setup_class(cls):
         f1 = tempfile.NamedTemporaryFile(suffix=".sam").name
         f2 = tempfile.NamedTemporaryFile(suffix=".bam").name
@@ -473,22 +459,23 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
         movie_names = []
         with BamReader(self.bam_file) as bam_in:
             for aln in bam_in:
-                EQ(aln.sequencingChemistry, 'S/P4-C2/5.0-8M')
+                assert aln.sequencingChemistry == 'S/P4-C2/5.0-8M'
             movie_names.extend([rg.MovieName for rg in bam_in.readGroupTable])
-        EQ(movie_names, ['movie1', 'm64012_181222_192540'])
+        assert movie_names == ['movie1', 'm64012_181222_192540']
 
     def test_sample_names(self):
         with BamReader(self.bam_file) as bam:
             samples = {rg.MovieName:rg.SampleName for rg in bam.readGroupTable}
-            EQ(samples, {
+            assert samples == {
                 "movie1": "test_sample1",
-                "m64012_181222_192540": "test_sample2"})
+                "m64012_181222_192540": "test_sample2"}
 
 
 class TestMissingHeaderM5(object):
     """
     Verify that BAM files no M5 for SQ can still be processed
     """
+
     SAM_IN = """\
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0.7
 @SQ\tSN:ecoliK12_pbi_March2013_2955000_to_2980000\tLN:25000
@@ -509,9 +496,9 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
         movie_names = []
         with BamReader(f2) as bam_in:
             for aln in bam_in:
-                EQ(aln.sequencingChemistry, 'S/P4-C2/5.0-8M')
+                assert aln.sequencingChemistry == 'S/P4-C2/5.0-8M'
                 movie_names.append(aln.movieName)
-        EQ(movie_names, ['movie1', 'm64012_181222_192540'])
+        assert movie_names == ['movie1', 'm64012_181222_192540']
 
 
 class TestUpdatedChemistryMapping(object):
@@ -526,7 +513,7 @@ class TestUpdatedChemistryMapping(object):
         from pbcore.chemistry.chemistry import _loadBarcodeMappings
         os.environ["SMRT_CHEMISTRY_BUNDLE_DIR"] = dirname(data.getMappingXml())
         mappings = _loadBarcodeMappings()
-        EQ(mappings.get(("1", "2", "3.4"), None), "FOUND")
+        assert mappings.get(("1", "2", "3.4"), None) == "FOUND"
         del os.environ["SMRT_CHEMISTRY_BUNDLE_DIR"]
         mappings = _loadBarcodeMappings()
-        EQ(mappings.get(("1", "2", "3.4"), None), None)
+        assert mappings.get(("1", "2", "3.4"), None) is None

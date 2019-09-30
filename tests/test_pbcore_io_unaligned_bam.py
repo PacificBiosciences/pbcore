@@ -1,28 +1,17 @@
 from __future__ import absolute_import, division, print_function
 
-from numpy.testing import (assert_array_almost_equal as ASIM,
-                           assert_array_equal        as AEQ)
-from nose.tools import (nottest,
-                        assert_raises,
-                        assert_equal as EQ)
-from nose import SkipTest
-
-import numpy as np
-import bisect
-from collections import Counter
+import pytest
 
 from pbcore import data
 from pbcore.io import BamReader
 from pbcore.io.align._BamSupport import UnavailableFeature
 
-from pbcore.sequence import reverseComplement as RC
-
 class TestUnalignedBam(object):
 
-    def setup_class(self):
-        self.bam = BamReader(data.getUnalignedBam())
-
-        self.bamRead0 = next(iter(self.bam))
+    @classmethod
+    def setup_class(cls):
+        cls.bam = BamReader(data.getUnalignedBam())
+        cls.bamRead0 = next(iter(cls.bam))
 
     def testInvalidOperations(self):
 
@@ -35,22 +24,22 @@ class TestUnalignedBam(object):
         #     self.bamRead0.tStart
 
         # attempts to get read aligned or oriented
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.read(aligned=True, orientation="native")
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.read(aligned=False, orientation="genomic")
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.read()
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.InsertionQV(aligned=True, orientation="native")
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.InsertionQV(aligned=False, orientation="genomic")
-        with assert_raises(UnavailableFeature):
+        with pytest.raises(UnavailableFeature):
             self.bamRead0.InsertionQV()
 
     def testIpd(self):
         """Check that 'Ipd' feature is recognized correctly."""
         pfa = self.bam.baseFeaturesAvailable()
-        EQ(pfa, frozenset(['Ipd', 'DeletionTag', 'MergeQV', 'SubstitutionQV',
-                           'InsertionQV', 'DeletionQV']))
+        assert pfa == frozenset(['Ipd', 'DeletionTag', 'MergeQV', 'SubstitutionQV',
+                                 'InsertionQV', 'DeletionQV'])
         ipd = self.bamRead0.IPD(aligned=False, orientation="native")

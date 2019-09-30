@@ -15,7 +15,8 @@ if sys.version_info[0:2] != (2, 7):
 test_deps = [
     'coverage',
     'pytest',
-    'nose',
+    'pytest-cov',
+    'pytest-xdist',
     'pyxb == 1.2.4',
     'sphinx',
     'pylint == 1.6.4',
@@ -33,6 +34,9 @@ setup(
     exclude_package_data={'pbcore.data': ['Makefile']},
     zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
+    setup_requires=[
+        'pytest-runner',
+    ],
     install_requires=[
         'future >= 0.16.0',
         'numpy >= 1.7.1',
