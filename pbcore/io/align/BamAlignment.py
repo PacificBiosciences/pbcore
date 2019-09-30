@@ -7,6 +7,8 @@ from builtins import range
 from functools import wraps
 from bisect import bisect_right, bisect_left
 
+from future.utils import binary_type
+
 from pbcore.sequence import reverseComplement
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentRecordMixin
@@ -448,8 +450,8 @@ class BamAlignment(AlignmentRecordMixin):
         tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
-        if isinstance(data_, str):
-            data = np.fromstring(data_, dtype=dtype_)
+        if isinstance(data_, binary_type):
+            data = np.copy(np.frombuffer(data_, dtype=dtype_))
         else:
             # This is about 300x slower than the fromstring above.
             # Unless pysam exposes  buffer or numpy interface,

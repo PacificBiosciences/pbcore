@@ -55,7 +55,7 @@ from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
 from functools import reduce
-from future.utils import iteritems, itervalues
+from future.utils import iteritems, itervalues, string_types
 
 
 log = logging.getLogger(__name__)
@@ -310,7 +310,7 @@ class MissingFileError(InvalidDataSetIOError):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, basestring):
+    if not isinstance(fname, string_types):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise MissingFileError("Resource {f} not found".format(f=fname))
@@ -1132,7 +1132,7 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths and not isinstance(outFile, basestring):
+            if relPaths and not isinstance(outFile, string_types):
                 raise InvalidDataSetIOError("Cannot write relative "
                     "pathnames without a filename")
             elif relPaths:
@@ -1154,14 +1154,14 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                if isinstance(outFile, basestring):
+                if isinstance(outFile, string_types):
                     validateString(xml_string, relTo=os.path.dirname(outFile))
                 else:
                     validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        if isinstance(outFile, basestring):
+        if isinstance(outFile, string_types):
             fileName = urlparse(outFile).path.strip()
             if self._strict and not isinstance(self.datasetType, tuple):
                 if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1212,7 +1212,7 @@ class DataSet(object):
         if filename is None:
             checksts(self, subdatasets=True)
         else:
-            if isinstance(filename, basestring):
+            if isinstance(filename, string_types):
                 statsMetadata = parseStats(str(filename))
             else:
                 statsMetadata = filename
@@ -1234,7 +1234,7 @@ class DataSet(object):
             :filename: the filename of a <moviename>.metadata.xml file
 
         """
-        if isinstance(filename, basestring):
+        if isinstance(filename, string_types):
             if isDataSet(filename):
                 # path to DataSet
                 metadata = openDataSet(filename).metadata
@@ -2040,7 +2040,7 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, basestring):
+        elif isinstance(index, string_types):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
@@ -3609,7 +3609,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, basestring):
+        if not isinstance(refName, string_types):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:

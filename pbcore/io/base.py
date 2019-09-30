@@ -3,6 +3,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+from future.utils import string_types
+
 import gzip
 from os.path import abspath, expanduser
 
@@ -24,7 +26,7 @@ def getFileHandle(filenameOrFile, mode="r"):
     """
     assert mode in ("r", "w")
 
-    if isinstance(filenameOrFile, basestring):
+    if isinstance(filenameOrFile, string_types):
         filename = abspath(expanduser(filenameOrFile))
         if filename.endswith(".gz"):
             return gzip.open(filename, mode)
