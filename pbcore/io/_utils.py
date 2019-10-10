@@ -1,27 +1,8 @@
-from __future__ import absolute_import
-from __future__ import print_function
-
-try:
-    import h5py
-except ImportError:
-    from pbcore.util import h5py_dummy
-    h5py = h5py_dummy()
+from __future__ import absolute_import, division, print_function
 
 import numpy as np
+from future.utils import iteritems
 from cStringIO import StringIO
-
-
-def arrayFromDataset(ds, offsetBegin, offsetEnd):
-    """
-    Extract a one-dimensional array from an HDF5 dataset.
-    """
-    shape = (offsetEnd - offsetBegin,)
-    a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape)
-    fspace = ds.id.get_space()
-    fspace.select_hyperslab((offsetBegin,), shape, (1,))
-    ds.id.read(mspace, fspace, a)
-    return a
 
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):
@@ -100,8 +81,8 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
     r1d = dict([(makekey(row),i) for i,row in enumerate(r1)])
     r2d = dict([(makekey(row),i) for i,row in enumerate(r2)])
 
-    r1keys = set(r1d.keys())
-    r2keys = set(r2d.keys())
+    r1keys = set(r1d)
+    r2keys = set(r2d)
 
     common_keys = r1keys & r2keys
 
@@ -168,8 +149,8 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
             newrec[name] = 0
 
     if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
-        newrec_fields = newrec.dtype.fields.keys()
-        for k, v in defaults.items():
+        newrec_fields = list(newrec.dtype.fields)
+        for (k, v) in iteritems(defaults):
             if k in newrec_fields:
                 newrec[k] = v
 

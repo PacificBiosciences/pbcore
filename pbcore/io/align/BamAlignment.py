@@ -1,10 +1,13 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
+from pbcore.util import cmp
+from builtins import range
 from functools import wraps
 from bisect import bisect_right, bisect_left
+
+from future.utils import binary_type
 
 from pbcore.sequence import reverseComplement
 from ._BamSupport import *
@@ -447,8 +450,8 @@ class BamAlignment(AlignmentRecordMixin):
         tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
-        if isinstance(data_, str):
-            data = np.fromstring(data_, dtype=dtype_)
+        if isinstance(data_, binary_type):
+            data = np.copy(np.frombuffer(data_, dtype=dtype_))
         else:
             # This is about 300x slower than the fromstring above.
             # Unless pysam exposes  buffer or numpy interface,
@@ -569,7 +572,7 @@ class BamAlignment(AlignmentRecordMixin):
             transcript = self.transcript(style="exonerate+")
             refPos = self.referencePositions()
             refPosString = "".join([str(pos % 10) for pos in refPos])
-            for i in xrange(0, len(alignedRef), COLUMNS):
+            for i in range(0, len(alignedRef), COLUMNS):
                 val += "\n"
                 val += "  " + refPosString[i:i+COLUMNS] + "\n"
                 val += "  " + alignedRef  [i:i+COLUMNS] + "\n"

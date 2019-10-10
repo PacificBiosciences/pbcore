@@ -1,7 +1,6 @@
 # Author: Lance Hepler
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 """
 I/O support for VCF4 files.
@@ -12,6 +11,7 @@ The specification for the VCF4 format is available at:
 
 from collections import OrderedDict
 from functools import total_ordering
+from future.utils import iteritems
 
 __all__ = ["Vcf4Record"]
 
@@ -105,7 +105,7 @@ class Vcf4Record(object):
                 chrom=self.chrom, pos=self.pos, id=self.id,
                 ref=self.ref, alt=self.alt, qual=_fmt(self.qual),
                 filter=self.filter,
-                info=";".join("{0}={1}".format(k, _fmt(v)) for k, v in self.info.iteritems()),
+                info=";".join("{0}={1}".format(k, _fmt(v)) for (k, v) in iteritems(self.info)),
                 fields="\t".join(_empty_then(self.fields)))
 
 
@@ -135,9 +135,9 @@ def merge_vcfs_sorted(vcf_files, output_file_name):
     sorted_files = sorted(fst_recs, key=lambda x: x[0])
     nrec = 0
     with open(output_file_name, "w") as oh:
-        for m, _ in meta.iteritems():
+        for (m, _) in iteritems(meta):
             print(m, file=oh)
-        print("#{0}".format("\t".join(h for h, _ in hdr.iteritems())), file=oh)
+        print("#{0}".format("\t".join(h for (h, _) in iteritems(hdr))), file=oh)
         for _, f in sorted_files:
             with open(f) as h:
                 for line in h:

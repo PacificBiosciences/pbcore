@@ -33,8 +33,7 @@ doctest:
 	cd doc && make doctest
 
 unit-test:
-	#nosetests --with-coverage --cover-xml-file=coverage.xml --cover-package=pbcore --cover-xml --with-xunit -v tests
-	pytest -v -n auto --dist=loadscope --durations=20 --junitxml=nosetests.xml --cov=./pbcore --cov-report=xml:coverage.xml tests/test_*.py
+	python setup.py test
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
 test: doctest unit-test

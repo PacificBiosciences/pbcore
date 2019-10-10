@@ -1,10 +1,10 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
+from builtins import range
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -22,6 +22,7 @@ from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
+from future.utils import itervalues
 
 
 def requiresBai(method):
@@ -40,7 +41,7 @@ class _BamReaderBase(ReaderBase):
     files.  If a PacBio BAM index (bam.pbi file) is present and the
     user instantiates the BamReader using the reference FASTA as the
     second argument, the BamReader will provide an interface
-    compatible with CmpH5Reader.
+    compatible with the now removed CmpH5Reader.
     """
     def _loadReferenceInfo(self):
         refRecords = self.peer.header["SQ"]
@@ -103,17 +104,17 @@ class _BamReaderBase(ReaderBase):
             # (This is a bit messy.  Can we separate the manifest from
             # the rest of the DS content?)
             baseFeatureNameMapping  = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in ds
                                         if key in BASE_FEATURE_TAGS }
             pulseFeatureNameMapping = { key.split(":")[0] : key
-                                        for key in ds.keys()
+                                        for key in ds
                                         if key in PULSE_FEATURE_TAGS }
             self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
             self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
 
             readGroupTable_.append(
                 (rgID, rgName, rgReadType, rgChem, rgFrameRate, rgSample,
-                 frozenset(baseFeatureNameMapping.iterkeys())))
+                 frozenset(baseFeatureNameMapping)))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -133,9 +134,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._baseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in itervalues(self._baseFeatureNameMappings)])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping.keys()) for mapping in self._pulseFeatureNameMappings.values()])
+            *[set(mapping) for mapping in itervalues(self._pulseFeatureNameMappings)])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
@@ -415,7 +416,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             return self.atRowNumber(rowNumbers)
         elif isinstance(rowNumbers, slice):
             return ( self.atRowNumber(r)
-                     for r in xrange(*rowNumbers.indices(len(self))))
+                     for r in range(*rowNumbers.indices(len(self))))
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []

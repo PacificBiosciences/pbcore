@@ -4,6 +4,7 @@ doc/_build
 *~
 *.pyc
 *.egg-info
+.eggs/
 nosetests.xml
 coverage.xml
 .coverage

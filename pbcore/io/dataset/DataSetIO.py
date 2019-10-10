@@ -4,9 +4,10 @@
 """
 Classes representing DataSets of various types.
 """
-from __future__ import absolute_import
-from __future__ import division
 
+from __future__ import absolute_import, division, print_function
+
+from builtins import range
 import copy
 import errno
 import hashlib
@@ -28,8 +29,8 @@ from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
-from pbcore.io import (BaxH5Reader, FastaReader, IndexedFastaReader,
-                       CmpH5Reader, IndexedBamReader, BamReader)
+from pbcore.io import (FastaReader, IndexedFastaReader,
+                       IndexedBamReader, BamReader)
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
@@ -54,9 +55,14 @@ from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
 from functools import reduce
+from future.utils import iteritems, itervalues, string_types
 
 
 log = logging.getLogger(__name__)
+
+
+def raise_unsupported_format(file_name):
+    raise NotImplementedError("Data files of this type are not supported: '{f}'".format(f=file_name))
 
 def openDataSet(*files, **kwargs):
     """Return a DataSet, based on the named "files".
@@ -116,7 +122,7 @@ def isDataSet(xmlfile):
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
     possibleTypes = [AlignmentSet, SubreadSet, ConsensusReadSet,
-                     ConsensusAlignmentSet, ReferenceSet, HdfSubreadSet]
+                     ConsensusAlignmentSet, ReferenceSet]
     origFiles = files
     fileMap = defaultdict(list)
     for dstype in possibleTypes:
@@ -143,7 +149,7 @@ def openDataFile(*files, **kwargs):
             if files[0].endswith('bam'):
                 bam = BamReader(files[0])
             else:
-                bam = CmpH5Reader(files[0])
+                raise_unsupported_format(files[0])
             if bam.isMapped:
                 if bam.readType == "CCS":
                     return ConsensusAlignmentSet(*origFiles, **kwargs)
@@ -177,7 +183,7 @@ def _homogenizeRecArrays(arrays):
     """
     dtypes = {}
     for array in arrays:
-        for field, (dtype, _) in array.dtype.fields.iteritems():
+        for (field, (dtype, _)) in iteritems(array.dtype.fields):
             if field in dtypes:
                 assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
             else:
@@ -187,7 +193,7 @@ def _homogenizeRecArrays(arrays):
         array_fields = {field for field in array.dtype.names}
         new_fields = []
         new_data = []
-        for field, dtype in dtypes.iteritems():
+        for (field, dtype) in iteritems(dtypes):
             if not field in array_fields:
                 log.warn("%s missing in array, will populate with dummy values",
                          field)
@@ -304,7 +310,7 @@ class MissingFileError(InvalidDataSetIOError):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, basestring):
+    if not isinstance(fname, string_types):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise MissingFileError("Resource {f} not found".format(f=fname))
@@ -384,7 +390,7 @@ class DataSet(object):
             >>> d.uuid == dOldUuid
             True
             >>> # Inputs can be many and varied
-            >>> ds1 = AlignmentSet(data.getXml(8), data.getBam(1))
+            >>> ds1 = AlignmentSet(data.getXml(7), data.getBam(1))
             >>> ds1.numExternalResources
             2
             >>> ds1 = AlignmentSet(data.getFofn())
@@ -480,14 +486,14 @@ class DataSet(object):
         # (external resources of improper types)
         if not baseDataSet:
             for fname in self.toExternalFiles():
-                # due to h5 file types, must be unpythonic:
+                # FIXME due to h5 file types, must be unpythonic:
                 found = False
-                for allowed in self._metaTypeMapping().keys():
+                for allowed in self._metaTypeMapping():
                     if fname.endswith(allowed):
                         found = True
                         break
                 if not found:
-                    allowed = self._metaTypeMapping().keys()
+                    allowed = list(self._metaTypeMapping())
                     extension = fname.split('.')[-1]
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
@@ -554,8 +560,8 @@ class DataSet(object):
             >>> from pbcore.io import AlignmentSet
             >>> from pbcore.io.dataset.DataSetWriter import toXml
             >>> # xmls with different resourceIds: success
-            >>> ds1 = AlignmentSet(data.getXml(no=8))
-            >>> ds2 = AlignmentSet(data.getXml(no=11))
+            >>> ds1 = AlignmentSet(data.getXml(7))
+            >>> ds2 = AlignmentSet(data.getXml(10))
             >>> ds3 = ds1 + ds2
             >>> expected = ds1.numExternalResources + ds2.numExternalResources
             >>> ds3.numExternalResources == expected
@@ -566,8 +572,8 @@ class DataSet(object):
             >>> ds3 = ds1 + ds2
             >>> ds3
             >>> # xmls with same resourceIds: ignores new inputs
-            >>> ds1 = AlignmentSet(data.getXml(no=8))
-            >>> ds2 = AlignmentSet(data.getXml(no=8))
+            >>> ds1 = AlignmentSet(data.getXml(7))
+            >>> ds2 = AlignmentSet(data.getXml(7))
             >>> ds3 = ds1 + ds2
             >>> expected = ds1.numExternalResources
             >>> ds3.numExternalResources == expected
@@ -818,7 +824,7 @@ class DataSet(object):
         Doctest:
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
-            >>> ds1 = DataSet(data.getXml(12))
+            >>> ds1 = DataSet(data.getXml(11))
             >>> # Deep copying datasets is easy:
             >>> ds2 = ds1.copy()
             >>> # But the resulting uuid's should be different.
@@ -850,7 +856,7 @@ class DataSet(object):
             ...                    ds1.subdatasets for ds2d in
             ...                    ds2.subdatasets])
             >>> # But types are maintained:
-            >>> ds1 = SubreadSet(data.getXml(no=10), strict=True)
+            >>> ds1 = SubreadSet(data.getXml(9), strict=True)
             >>> ds1.metadata # doctest:+ELLIPSIS
             <SubreadSetMetadata...
             >>> ds2 = ds1.copy()
@@ -929,7 +935,7 @@ class DataSet(object):
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> # splitting is pretty intuitive:
-            >>> ds1 = AlignmentSet(data.getXml(12))
+            >>> ds1 = AlignmentSet(data.getXml(11))
             >>> # but divides up extRes's, so have more than one:
             >>> ds1.numExternalResources > 1
             True
@@ -952,11 +958,11 @@ class DataSet(object):
             >>> # Previously merged datasets are 'unmerged' upon split, unless
             >>> # otherwise specified.
             >>> # Lets try merging and splitting on subdatasets:
-            >>> ds1 = AlignmentSet(data.getXml(8))
+            >>> ds1 = AlignmentSet(data.getXml(7))
             >>> ds1.totalLength
             123588
             >>> ds1tl = ds1.totalLength
-            >>> ds2 = AlignmentSet(data.getXml(11))
+            >>> ds2 = AlignmentSet(data.getXml(10))
             >>> ds2.totalLength
             117086
             >>> ds2tl = ds2.totalLength
@@ -1126,7 +1132,7 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths and not isinstance(outFile, basestring):
+            if relPaths and not isinstance(outFile, string_types):
                 raise InvalidDataSetIOError("Cannot write relative "
                     "pathnames without a filename")
             elif relPaths:
@@ -1148,14 +1154,14 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                if isinstance(outFile, basestring):
+                if isinstance(outFile, string_types):
                     validateString(xml_string, relTo=os.path.dirname(outFile))
                 else:
                     validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        if isinstance(outFile, basestring):
+        if isinstance(outFile, string_types):
             fileName = urlparse(outFile).path.strip()
             if self._strict and not isinstance(self.datasetType, tuple):
                 if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1190,9 +1196,9 @@ class DataSet(object):
         Doctest:
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
-            >>> ds1 = AlignmentSet(data.getXml(8))
+            >>> ds1 = AlignmentSet(data.getXml(7))
             >>> ds1.loadStats(data.getStats())
-            >>> ds2 = AlignmentSet(data.getXml(11))
+            >>> ds2 = AlignmentSet(data.getXml(10))
             >>> ds2.loadStats(data.getStats())
             >>> ds3 = ds1 + ds2
             >>> ds1.metadata.summaryStats.prodDist.bins
@@ -1206,7 +1212,7 @@ class DataSet(object):
         if filename is None:
             checksts(self, subdatasets=True)
         else:
-            if isinstance(filename, basestring):
+            if isinstance(filename, string_types):
                 statsMetadata = parseStats(str(filename))
             else:
                 statsMetadata = filename
@@ -1228,7 +1234,7 @@ class DataSet(object):
             :filename: the filename of a <moviename>.metadata.xml file
 
         """
-        if isinstance(filename, basestring):
+        if isinstance(filename, string_types):
             if isDataSet(filename):
                 # path to DataSet
                 metadata = openDataSet(filename).metadata
@@ -1396,7 +1402,7 @@ class DataSet(object):
             >>> print(ds1.filters)
             ( rq > 0.85 )
             >>> # Or load with a DataSet
-            >>> ds2 = DataSet(data.getXml(16))
+            >>> ds2 = DataSet(data.getXml(15))
             >>> print(ds2.filters)
             ... # doctest:+ELLIPSIS
             ( rname = E.faecalis...
@@ -1424,12 +1430,14 @@ class DataSet(object):
                     log.warn("Future warning: merging datasets that don't "
                              "share a version number will fail.")
                     return True
-                raise ValueError("Wrong dataset version for merging {v1} vs "
+                else:
+                    log.warn("Mismatched dataset versions for merging {v1} vs "
                                  "{v2}".format(
                                      v1=newMetadata.get('Version'),
                                      v2=self.objMetadata.get('Version')))
-            log.warn("Future warning: merging will require Version "
-                     "numbers for both DataSets")
+            else:
+                log.warn("Future warning: merging will require Version "
+                         "numbers for both DataSets")
         return True
 
 
@@ -1463,7 +1471,7 @@ class DataSet(object):
             >>> print(ds._metadata.getV(container='attrib', tag='Name'))
             LongReadsRock
             >>> # but most will be loaded and modified:
-            >>> ds2 = DataSet(data.getXml(no=8))
+            >>> ds2 = DataSet(data.getXml(7))
             >>> ds2._metadata.totalLength
             123588
             >>> ds2._metadata.totalLength = 100000
@@ -1472,9 +1480,9 @@ class DataSet(object):
             >>> ds2._metadata.totalLength += 100000
             >>> ds2._metadata.totalLength
             200000
-            >>> ds3 = DataSet(data.getXml(no=8))
+            >>> ds3 = DataSet(data.getXml(7))
             >>> ds3.loadStats(data.getStats())
-            >>> ds4 = DataSet(data.getXml(no=11))
+            >>> ds4 = DataSet(data.getXml(10))
             >>> ds4.loadStats(data.getStats())
             >>> ds5 = ds3 + ds4
         """
@@ -1489,7 +1497,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for key, value in kwargs.items():
+        for (key, value) in iteritems(kwargs):
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -1607,7 +1615,7 @@ class DataSet(object):
         ExternalResources and record order within each file"""
         if self.isIndexed:
             # this uses the index to respect filters
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 yield self[i]
         else:
             # this uses post-filtering to respect filters
@@ -1758,7 +1766,6 @@ class DataSet(object):
                     cls.__name__: cls}
         return {'DataSet': DataSet,
                 'SubreadSet': SubreadSet,
-                'HdfSubreadSet': HdfSubreadSet,
                 'AlignmentSet': AlignmentSet,
                 'ContigSet': ContigSet,
                 'ConsensusReadSet': ConsensusReadSet,
@@ -2033,7 +2040,7 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, basestring):
+        elif isinstance(index, string_types):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
@@ -2136,7 +2143,7 @@ class ReadSet(DataSet):
                     if refFile:
                         resource.referenceFasta = sharedRefs[refFile]
                 else:
-                    resource = CmpH5Reader(location)
+                    raise_unsupported_format(location)
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
                     log.warn("pbi file missing for {f}, operating with "
@@ -2219,9 +2226,9 @@ class ReadSet(DataSet):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
 
-        log.debug("{i} barcodes found".format(i=len(barcodes.keys())))
+        log.debug("{i} barcodes found".format(i=len(list(barcodes))))
 
-        atoms = barcodes.items()
+        atoms = list(barcodes.items())
 
         # The number of reads per barcode is used for balancing
         balanceKey = lambda x: x[1]
@@ -2461,37 +2468,18 @@ class ReadSet(DataSet):
         return {rg.ID: rg.MovieName for rg in self.readGroupTable}
 
     def assertIndexed(self):
-        self._assertIndexed((IndexedBamReader, CmpH5Reader))
-
-    @property
-    def isCmpH5(self):
-        """Test whether all resources are cmp.h5 files"""
-        res = self._pollResources(lambda x: isinstance(x, CmpH5Reader))
-        return self._unifyResponses(res)
+        self._assertIndexed(IndexedBamReader)
 
     def _fixQIds(self, indices, resourceReader):
-        qId_acc = lambda x: x.MovieID
-        if not self.isCmpH5:
-            qId_acc = lambda x: x.qId
+        qId_acc = lambda x: x.qId
 
         rr = resourceReader
-        try:
-            # this would populate the _readGroupTableIsRemapped member, but
-            # for whatever reason a lot of cmp.h5's are broken
-            _ = self.readGroupTable
-        except ChemistryLookupError:
-            # this should be an error, but that would mess up Quiver cram
-            # tests. If anyone tries to access the readGroupTable in a
-            # dataset it will still fail, at least
-            log.info("Chemistry information could not be found in "
-                     "cmp.h5, cannot fix the readGroupTable or "
-                     "MovieID field.")
         if self._readGroupTableIsRemapped:
             log.debug("Must correct index qId's")
             qIdMap = dict(zip(rr.readGroupTable.ID,
                               rr.readGroupTable.MovieName))
             nameMap = self.movieIds
-            for qId in qIdMap.keys():
+            for qId in qIdMap:
                 qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
                     qIdMap[qId]]
 
@@ -2543,9 +2531,7 @@ class ReadSet(DataSet):
     def _length(self):
         """Used to populate metadata in updateCounts. We're using the pbi here,
         which is necessary and sufficient for both subreadsets and
-        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
-        duplicate code, we'll implement the hdf specific _length as an
-        overriding function where needed.
+        alignmentsets.
 
         ..note:: Both mapped and unmapped bams can be either indexed or
                  unindexed. This makes life more difficult, but we should
@@ -2617,7 +2603,7 @@ class ReadSet(DataSet):
                          "lost")
             else:
                 for extres in self.externalResources:
-                    extres.reference = refCounts.keys()[0]
+                    extres.reference = list(refCounts)[0]
         # reset the indexmap especially, as it is out of date:
         self._index = None
         self._indexMap = None
@@ -2644,83 +2630,6 @@ class ReadSet(DataSet):
                 self.metadata.numRecords = 0
             else:
                 raise
-
-
-class HdfSubreadSet(ReadSet):
-
-    datasetType = DataSetMetaTypes.HDF_SUBREAD
-
-    def __init__(self, *files, **kwargs):
-        super(HdfSubreadSet, self).__init__(*files, **kwargs)
-
-        # The metatype for this dataset type is inconsistent, plaster over it
-        # here:
-        self.objMetadata["MetaType"] = "PacBio.DataSet.HdfSubreadSet"
-        self.objMetadata["TimeStampedName"] = getTimeStampedName(
-            self.objMetadata["MetaType"])
-
-    def induceIndices(self, force=False):
-        log.debug("Bax files don't have external indices")
-
-    @property
-    def isIndexed(self):
-        return False
-
-    def _openFiles(self):
-        """Open the files (assert they exist, assert they are of the proper
-        type before accessing any file)
-        """
-        if self._openReaders:
-            log.debug("Closing old readers...")
-            self.close()
-        log.debug("Opening resources")
-        for extRes in self.externalResources:
-            location = urlparse(extRes.resourceId).path
-            resource = BaxH5Reader(location)
-            self._openReaders.append(resource)
-        if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
-            raise IOError("No files were openable or reads found")
-        log.debug("Done opening resources")
-
-    @property
-    def _length(self):
-        """Used to populate metadata in updateCounts"""
-        length = 0
-        count = 0
-        for rec in self.records:
-            count += 1
-            hqReg = rec.hqRegion
-            length += hqReg[1] - hqReg[0]
-        return count, length
-
-    def updateCounts(self):
-        """Overriding here so we don't have to assertIndexed"""
-        if self._skipCounts:
-            log.debug("SkipCounts is true, skipping updateCounts()")
-            self.metadata.totalLength = -1
-            self.metadata.numRecords = -1
-            return
-        try:
-            log.debug('Updating counts')
-            numRecords, totalLength = self._length
-            self.metadata.totalLength = totalLength
-            self.metadata.numRecords = numRecords
-            self._countsUpdated = True
-        except (IOError, UnavailableFeature):
-            if not self._strict:
-                log.debug("File problem, metadata not populated")
-                self.metadata.totalLength = 0
-                self.metadata.numRecords = 0
-            else:
-                raise
-
-    def consolidate(self, dataFile, numFiles=1):
-        raise NotImplementedError()
-
-    @staticmethod
-    def _metaTypeMapping():
-        return {'bax.h5':'PacBio.SubreadFile.BaxFile',
-                'bas.h5':'PacBio.SubreadFile.BasFile', }
 
 
 class SubreadSet(ReadSet):
@@ -2836,25 +2745,6 @@ class AlignmentSet(ReadSet):
                 for record in resource:
                     yield record
 
-    def consolidate(self, *args, **kwargs):
-        if self.isCmpH5:
-            raise NotImplementedError()
-        else:
-            return super(AlignmentSet, self).consolidate(*args, **kwargs)
-
-    def induceIndices(self, force=False):
-        if self.isCmpH5:
-            log.debug("Cmp.h5 files already indexed")
-        else:
-            return super(AlignmentSet, self).induceIndices(force=force)
-
-    @property
-    def isIndexed(self):
-        if self.isCmpH5:
-            return True
-        else:
-            return super(AlignmentSet, self).isIndexed
-
     def addReference(self, fname):
         if isinstance(fname, ReferenceSet):
             reference = fname.externalResources.resourceIds
@@ -2873,11 +2763,8 @@ class AlignmentSet(ReadSet):
             self._openFiles()
 
     def _fixTIds(self, indices, rr, correctIds=True):
-        tId_acc = lambda x: x.RefGroupID
-        rName = lambda x: x['FullName']
-        if not self.isCmpH5:
-            tId_acc = lambda x: x.tId
-            rName = lambda x: x['Name']
+        tId_acc = lambda x: x.tId
+        rName = lambda x: x['Name']
 
         if correctIds and self._stackedReferenceInfoTable:
             log.debug("Must correct index tId's")
@@ -2887,7 +2774,7 @@ class AlignmentSet(ReadSet):
             rname2tid = dict(zip(unfilteredRefTable['Name'],
                             unfilteredRefTable['ID']))
             #nameMap = self.refIds
-            for tId in tIdMap.keys():
+            for tId in tIdMap:
                 tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
                     tIdMap[tId]]
 
@@ -2904,11 +2791,7 @@ class AlignmentSet(ReadSet):
             indices = rr.index
             # pbi files lack e.g. mapping cols when bam emtpy, ignore
             # TODO(mdsmith)(2016-01-19) rename the fields instead of branching:
-            #if self.isCmpH5:
-            #    _renameField(indices, 'MovieID', 'qId')
-            #    _renameField(indices, 'RefGroupID', 'tId')
-            if not self.isCmpH5:
-                indices = indices._tbl
+            indices = indices._tbl
 
             # Correct tId field
             self._fixTIds(indices, rr, correctIds)
@@ -2934,21 +2817,6 @@ class AlignmentSet(ReadSet):
             return recArrays
         tbr = _stackRecArrays(recArrays)
 
-        # sort if cmp.h5 so we can rectify RowStart/End, maybe someday bam
-        if self.isCmpH5:
-            sort_order = np.argsort(tbr, order=('RefGroupID', 'tStart',
-                                                'tEnd',))
-            tbr = tbr[sort_order]
-            self._indexMap = self._indexMap[sort_order]
-            ranges = _ranges_in_list(tbr.RefGroupID)
-            for ref in self.referenceInfoTable:
-                bounds = ranges.get(ref.ID)
-                if bounds:
-                    ref.StartRow = bounds[0]
-                    # we want the ranges to be inclusive:
-                    ref.EndRow = bounds[1] - 1
-                # and fix the naming scheme while we're at it
-                ref.Name = self._cleanCmpName(ref.FullName)
         return tbr
 
     def resourceReaders(self, refName=False):
@@ -3203,7 +3071,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for rname, rAtoms in rnames.iteritems():
+        for (rname, rAtoms) in iteritems(rnames):
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))
@@ -3235,7 +3103,7 @@ class AlignmentSet(ReadSet):
         # pull both at once so you only have to mess with the
         # referenceInfoTable once.
         refLens = self.refLengths
-        refNames = refLens.keys()
+        refNames = list(refLens)
         log.debug("{i} references found".format(i=len(refNames)))
 
         log.debug("Finding contigs")
@@ -3319,7 +3187,7 @@ class AlignmentSet(ReadSet):
             # very long
             # We are only doing this for refLength splits for now, as those are
             # cheap (and quiver is linear in length not coverage)
-            dataSize = sum(refLens.values())
+            dataSize = sum(itervalues(refLens))
             # target size per chunk:
             target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
@@ -3382,10 +3250,10 @@ class AlignmentSet(ReadSet):
             # abstraction.
             if len(result._filters) > 100:
                 meanNum = self.numRecords//len(chunks)
-                result.numRecords = long(round(meanNum,
+                result.numRecords = int(round(meanNum,
                                                (-1 * len(str(meanNum))) + 3))
                 meanLen = self.totalLength//len(chunks)
-                result.totalLength = long(round(meanLen,
+                result.totalLength = int(round(meanLen,
                                                 (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
                 result._openReaders = self._openReaders
@@ -3410,14 +3278,9 @@ class AlignmentSet(ReadSet):
 
         """
         desiredTid = self.refIds[refName]
-        if self.isCmpH5:
-            passes = ((self.index.RefGroupID == desiredTid) &
-                      (self.index.tStart < end) &
-                      (self.index.tEnd > start))
-        else:
-            passes = ((self.index.tId == desiredTid) &
-                      (self.index.tStart < end) &
-                      (self.index.tEnd > start))
+        passes = ((self.index.tId == desiredTid) &
+                  (self.index.tStart < end) &
+                  (self.index.tEnd > start))
         if justIndices:
             return np.nonzero(passes)[0]
             #return passes
@@ -3583,12 +3446,6 @@ class AlignmentSet(ReadSet):
         """
         refName = self.guaranteeName(refName)
 
-        # correct the cmp.h5 reference names before reads go out the door
-        if self.isCmpH5:
-            for res in self.resourceReaders():
-                for row in res.referenceInfoTable:
-                    row.FullName = self._cleanCmpName(row.FullName)
-
         if justIndices:
             return self._indexReadsInRange(refName, start, end,
                                            justIndices=True)
@@ -3686,14 +3543,10 @@ class AlignmentSet(ReadSet):
 
     @property
     def tId(self):
-        if self.isCmpH5:
-            return self.index.RefGroupID
         return self.index.tId
 
     @property
     def mapQV(self):
-        if self.isCmpH5:
-            return self.index.MapQV
         return self.index.mapQV
 
     @property
@@ -3712,9 +3565,7 @@ class AlignmentSet(ReadSet):
     def _length(self):
         """Used to populate metadata in updateCounts. We're using the pbi here,
         which is necessary and sufficient for both subreadsets and
-        alignmentsets, but doesn't work for hdfsubreadsets. Rather than
-        duplicate code, we'll implement the hdf specific _length as an
-        overriding function where needed.
+        alignmentsets.
 
         ..note:: Both mapped and unmapped bams can be either indexed or
                  unindexed. This makes life more difficult, but we should
@@ -3724,20 +3575,17 @@ class AlignmentSet(ReadSet):
         count = len(self.index)
         length = 0
         if count:
-            if self.isCmpH5:
-                length = sum(self.index.rEnd - self.index.rStart)
-            else:
-                try:
-                    length = sum(self.index.aEnd - self.index.aStart)
-                except AttributeError:
-                    # If the bam is empty or the file is not actually aligned,
-                    # this field wont be populated
-                    if self.isMapped:
-                        log.debug(".pbi mapping columns missing from mapped "
-                                  "bam, bam may be empty")
-                    else:
-                        log.warn("File not actually mapped!")
-                    length = 0
+            try:
+                length = sum(self.index.aEnd - self.index.aStart)
+            except AttributeError:
+                # If the bam is empty or the file is not actually aligned,
+                # this field wont be populated
+                if self.isMapped:
+                    log.debug(".pbi mapping columns missing from mapped "
+                              "bam, bam may be empty")
+                else:
+                    log.warn("File not actually mapped!")
+                length = 0
         return count, length
 
     @property
@@ -3761,7 +3609,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, basestring):
+        if not isinstance(refName, string_types):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:
@@ -3783,15 +3631,9 @@ class AlignmentSet(ReadSet):
         # allow for merge here:
         for res in self._pollResources(lambda x: x.referenceInfoTable):
             if not res is None:
-                if self.isCmpH5:
-                    for rec in res:
-                        rec.StartRow = 0
-                        rec.EndRow = 0
                 responses.append(res)
         table = []
         if len(responses) > 1:
-            # perhaps this can be removed someday so that cmpH5 references
-            # are 0-indexed even if only one exists
             try:
                 # this works even for cmp's, because we overwrite the
                 # highly variable fields above
@@ -3810,10 +3652,6 @@ class AlignmentSet(ReadSet):
         elif len(self) > 0:
             raise InvalidDataSetIOError("No reference tables found, "
                                         "are these input files aligned?")
-        if self.isCmpH5:
-            for rec in table:
-                rec.Name = self._cleanCmpName(rec.FullName)
-
         # Not sure if this is necessary or a good idea, looking back on it
         # a year later. It complicates fixTids
         if filterMissing:
@@ -3830,8 +3668,7 @@ class AlignmentSet(ReadSet):
     def referenceInfoTable(self):
         """The merged reference info tables from the external resources.
         Record.ID is remapped to a unique integer key (though using record.Name
-        is preferred). Record.Names are remapped for cmp.h5 files to be
-        consistent with bam files.
+        is preferred).
 
         ..note:: Reference names are assumed to be unique
 
@@ -3920,7 +3757,6 @@ class AlignmentSet(ReadSet):
         return {'bam':'PacBio.AlignmentFile.AlignmentBamFile',
                 'bai':'PacBio.Index.BamIndex',
                 'pbi':'PacBio.Index.PacBioIndex',
-                'cmp.h5':'PacBio.AlignmentFile.AlignmentCmpH5File',
                }
 
 
@@ -4056,7 +3892,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -4066,7 +3902,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for n, m in matches.items()])
+            writeTemp = any([len(m) > 1 for (n, m) in iteritems(matches)])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -4078,7 +3914,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for name, match_list in matches.items():
+        for (name, match_list) in iteritems(matches):
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)
@@ -4125,7 +3961,7 @@ class ContigSet(DataSet):
                                          'consolidated_contigs.fasta')
             with self._writer(outfn) as outfile:
                 log.debug("Writing new resource {o}".format(o=outfn))
-                for name in list(matches.keys()):
+                for name in list(matches):
                     seq, comments, quality = _get_merged_sequence(name)
                     if comments:
                         name = ' '.join([name, comments])

@@ -1,8 +1,9 @@
-from __future__ import division
+from __future__ import absolute_import, division, print_function
 
-from nose.tools import assert_equal, assert_true, assert_false
-import sys, numpy as np
+from builtins import range
 
+import sys
+import numpy as np
 from tempfile import NamedTemporaryFile
 
 from pbcore.io.align._bgzf import BgzfReader, BgzfWriter
@@ -21,11 +22,11 @@ class TestBgzf(object):
                 writer.write(data)
             with BgzfReader(compressionOutput.name) as reader:
                 decompressionOutput = reader.read(sizeToRead)
-        assert_equal(data[:sizeToRead], decompressionOutput)
+        assert data[:sizeToRead] == decompressionOutput
 
     def test_small_data(self):
         self.roundTripData(0)
-        for i in xrange(8):
+        for i in range(8):
             self.roundTripData(10**i)
 
     def test_partial_reads(self):
@@ -35,7 +36,3 @@ class TestBgzf(object):
     #     # This breaks because of recursion depth limit in
     #     # implementation from Biopython.
     #     self.roundTripData(10**8)
-
-if __name__ == "__main__":
-    size = int(sys.argv[1])
-    TestBgzf().roundTripData(size)

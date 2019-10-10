@@ -1,6 +1,6 @@
 # Author: Martin D. Smith
 
-from __future__ import absolute_import
+from __future__ import absolute_import, division, print_function
 
 import logging
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,)
@@ -17,7 +17,6 @@ class DataSetMetaTypes(object):
     to reference a specific dataset type.
     """
     SUBREAD = toDsId("SubreadSet")
-    HDF_SUBREAD = toDsId("HdfSubreadSet")
     ALIGNMENT = toDsId("AlignmentSet")
     BARCODE = toDsId("BarcodeSet")
     CCS_ALIGNMENT = toDsId("ConsensusAlignmentSet")
@@ -28,7 +27,7 @@ class DataSetMetaTypes(object):
     TRANSCRIPT = toDsId("TranscriptSet")
     TRANSCRIPT_ALIGNMENT = toDsId("TranscriptAlignmentSet")
 
-    ALL = (SUBREAD, HDF_SUBREAD, ALIGNMENT,
+    ALL = (SUBREAD, ALIGNMENT,
            BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE,
            TRANSCRIPT, TRANSCRIPT_ALIGNMENT)
 

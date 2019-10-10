@@ -1,5 +1,5 @@
 [MASTER]
-extension-pkg-whitelist=numpy,xlml.etree,pysam.samtools,h5py.h5s
+extension-pkg-whitelist=numpy,xlml.etree,pysam.samtools
 
 [TYPECHECK]
 
@@ -7,7 +7,7 @@ extension-pkg-whitelist=numpy,xlml.etree,pysam.samtools,h5py.h5s
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=numpy,lxml.etree,pysam.samtools,h5py.h5s
+ignored-modules=numpy,lxml.etree,pysam.samtools
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set). This supports can work

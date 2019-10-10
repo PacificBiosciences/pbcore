@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 from setuptools import setup, find_packages
 
@@ -15,10 +15,10 @@ if sys.version_info[0:2] != (2, 7):
 test_deps = [
     'coverage',
     'pytest',
-    'nose',
+    'pytest-cov',
+    'pytest-xdist',
     'pyxb == 1.2.4',
     'sphinx',
-    'h5py >= 2.0.1',
     'pylint == 1.6.4',
 ]
 
@@ -34,7 +34,11 @@ setup(
     exclude_package_data={'pbcore.data': ['Makefile']},
     zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
+    setup_requires=[
+        'pytest-runner',
+    ],
     install_requires=[
+        'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',
     ],
