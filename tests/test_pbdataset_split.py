@@ -23,22 +23,22 @@ class TestDataSetSplit(object):
     def test_split(self):
         ds1 = openDataSet(data.getXml(11))
         assert ds1.numExternalResources > 1
-        dss = ds1.split()
+        dss = list(ds1.split())
         assert len(dss) == ds1.numExternalResources
         assert sum(ds.numRecords for ds in dss) == ds1.numRecords
         assert sum(ds.totalLength for ds in dss) == ds1.totalLength
         assert sum(len(ds) for ds in dss) == len(ds1)
-        dss = ds1.split(chunks=1)
+        dss = list(ds1.split(chunks=1))
         assert len(dss) == 1
         assert sum(ds.numRecords for ds in dss) == ds1.numRecords
         assert sum(ds.totalLength for ds in dss) == ds1.totalLength
         assert sum(len(ds) for ds in dss) == len(ds1)
-        dss = ds1.split(chunks=2)
+        dss = list(ds1.split(chunks=2))
         assert len(dss) == 2
         assert sum(ds.numRecords for ds in dss) == ds1.numRecords
         assert sum(ds.totalLength for ds in dss) == ds1.totalLength
         assert sum(len(ds) for ds in dss) == len(ds1)
-        dss = ds1.split(chunks=2, ignoreSubDatasets=True)
+        dss = list(ds1.split(chunks=2, ignoreSubDatasets=True))
         assert len(dss) == 2
         assert sum(ds.numRecords for ds in dss) == ds1.numRecords
         assert sum(ds.totalLength for ds in dss) == ds1.totalLength
@@ -66,13 +66,13 @@ class TestDataSetSplit(object):
         ds1 = openDataFile(test_file)
         assert len([r for r in ds1]) == N_RECORDS
         assert len(ds1) == N_RECORDS
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
         assert len(dss) == 1
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
 
         # We have a lower limit on the number of zmws, now
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 2
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
@@ -105,7 +105,7 @@ class TestDataSetSplit(object):
         assert len(set(ds1.index.holeNumber)) == N_ZMWS
 
         # with no split
-        dss = ds1.split(targetSize=1000, zmws=True)
+        dss = list(ds1.split(targetSize=1000, zmws=True))
         assert len(dss) == 1
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
@@ -114,7 +114,7 @@ class TestDataSetSplit(object):
         assert exp == obs
 
         # with a split
-        dss = ds1.split(targetSize=25, zmws=True)
+        dss = list(ds1.split(targetSize=25, zmws=True))
         assert len(dss) == 2
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
@@ -123,7 +123,7 @@ class TestDataSetSplit(object):
         assert exp == obs
 
         # with a split
-        dss = ds1.split(targetSize=5, zmws=True)
+        dss = list(ds1.split(targetSize=5, zmws=True))
         assert len(dss) == 10
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
@@ -140,10 +140,10 @@ class TestDataSetSplit(object):
                      "l.subreadset.xml")
         ds1 = openDataFile(test_file)
         assert len(ds1) == N_RECORDS
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
         assert len(dss) == 1
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert dss[0].zmwRanges == [
@@ -180,11 +180,11 @@ class TestDataSetSplit(object):
         # used to get total:
         #assert sum(1 for _ in ds1) == N_RECORDS
         assert len(ds1) == N_RECORDS
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
         assert len(dss) == 1
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
 
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert dss[0].zmwRanges == [
@@ -216,7 +216,7 @@ class TestDataSetSplit(object):
         ds1.updateCounts()
         assert len(ds1) == FILT_RECORDS
 
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
         dss[0]._index = None
         dss[0].updateCounts()
 
@@ -224,7 +224,7 @@ class TestDataSetSplit(object):
         assert len(dss[0]) == FILT_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
 
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
         assert dss[0].zmwRanges == [
@@ -263,13 +263,13 @@ class TestDataSetSplit(object):
         ds1.updateCounts()
         assert len(ds1) == FILT_RECORDS
 
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
 
         assert len(dss) == 1
         assert len(dss[0]) == FILT_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
 
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
         assert dss[0].zmwRanges == [
@@ -296,13 +296,13 @@ class TestDataSetSplit(object):
         # used to get total:
         #assert sum(1 for _ in ds1) == N_RECORDS
         assert len(ds1) == N_RECORDS
-        dss = ds1.split_movies(1)
+        dss = list(ds1.split_movies(1))
         assert len(dss) == 1
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert len(ds1) == N_RECORDS
         assert not ds1.filters
 
-        dss = ds1.split_movies(12)
+        dss = list(ds1.split_movies(12))
         assert len(dss) == 2
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert len(set(dss[0].index.qId)) == 1
@@ -336,13 +336,13 @@ class TestDataSetSplit(object):
         # used to get total:
         #assert sum(1 for _ in ds1) == N_RECORDS
         assert len(ds1) == NREC
-        dss = ds1.split_references(1)
+        dss = list(ds1.split_references(1))
         assert len(dss) == 1
         assert sum([len(ds_) for ds_ in dss]) == NREC
         assert len(ds1) == NREC
         assert not ds1.filters
 
-        dss = ds1.split_references(12)
+        dss = list(ds1.split_references(12))
         assert len(dss) == 2
         assert sum([len(ds_) for ds_ in dss]) == NREC
         assert len(set(dss[0].index.tId)) == 1
@@ -365,17 +365,17 @@ class TestDataSetSplit(object):
                        "han_c100699872550000001823139203261572_s1_p0.al"
                        "l.subreadset.xml")
         ds1 = SubreadSet(test_file_1, test_file_2)
-        dss = ds1.split_movies(2)
+        dss = list(ds1.split_movies(2))
         assert len(dss) == 2
         ds1 = dss[0]
         # used to get total:
         #assert sum(1 for _ in ds1) == N_RECORDS
         assert len(ds1) == N_RECORDS
-        dss = ds1.split(chunks=1, zmws=True)
+        dss = list(ds1.split(chunks=1, zmws=True))
         assert len(dss) == 1
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
 
-        dss = ds1.split(chunks=12, zmws=True)
+        dss = list(ds1.split(chunks=12, zmws=True))
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         for ds in dss:
@@ -410,7 +410,7 @@ class TestDataSetSplit(object):
     def test_split_by_contigs_with_split_and_maxChunks(self):
         # test to make sure the refWindows work when chunks == # refs
         ds3 = AlignmentSet(data.getBam())
-        dss = ds3.split(contigs=True)
+        dss = list(ds3.split(contigs=True))
         assert len(dss) == 12
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -429,13 +429,13 @@ class TestDataSetSplit(object):
                       ('B.vulgatus.4', 0, 1449),
                       ('E.faecalis.1', 0, 1482)]
 
-        dss = ds3.split(contigs=True, maxChunks=1)
+        dss = list(ds3.split(contigs=True, maxChunks=1))
         assert len(dss) == 1
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         assert refWindows == old_refWindows
 
-        dss = ds3.split(contigs=True, maxChunks=24)
+        dss = list(ds3.split(contigs=True, maxChunks=24))
         # This isn't expected if num refs >= 100, as map check isn't made
         # for now (too expensive)
         # There are only 12 refs represented in this set, however...
@@ -453,7 +453,7 @@ class TestDataSetSplit(object):
             assert found
 
         # test with maxchunks but no breaking contigs
-        dss = ds3.split(contigs=True, maxChunks=36)
+        dss = list(ds3.split(contigs=True, maxChunks=36))
         assert len(dss) == 12
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -466,7 +466,7 @@ class TestDataSetSplit(object):
 
         # test with maxchunks and breaking contigs is allowed (triggers
         # targetsize, may result in fewer chunks)
-        dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True)
+        dss = list(ds3.split(contigs=True, maxChunks=36, breakContigs=True))
         assert len(dss) == 2
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -479,8 +479,8 @@ class TestDataSetSplit(object):
 
         # test with previous setup and smaller targetSize, resulting in more
         # chunks
-        dss = ds3.split(contigs=True, maxChunks=36, breakContigs=True,
-                        targetSize=10)
+        dss = list(ds3.split(contigs=True, maxChunks=36, breakContigs=True,
+                             targetSize=10))
         assert len(dss) == 9
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -492,7 +492,7 @@ class TestDataSetSplit(object):
             assert found
 
         # test with byRecords and fewer chunks than atoms
-        dss = ds3.split(contigs=True, chunks=3, byRecords=True)
+        dss = list(ds3.split(contigs=True, chunks=3, byRecords=True))
         assert len(dss) == 3
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -508,7 +508,7 @@ class TestDataSetSplit(object):
         random_few = [('C.beijerinckii.13', 0, 747),
                       ('B.vulgatus.4', 0, 1449),
                       ('E.faecalis.1', 0, 742)]
-        dss = ds3.split(contigs=True, chunks=16, byRecords=True)
+        dss = list(ds3.split(contigs=True, chunks=16, byRecords=True))
         assert len(dss) == 16
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -521,8 +521,8 @@ class TestDataSetSplit(object):
 
         # test with byRecords and updateCounts
         random_few = orf
-        dss = ds3.split(contigs=True, chunks=3, byRecords=True,
-                        updateCounts=True)
+        dss = list(ds3.split(contigs=True, chunks=3, byRecords=True,
+                             updateCounts=True))
         assert len(dss) == 3
         sizes = sorted([dset.numRecords for dset in dss])
         assert sizes == [30, 31, 31]
@@ -537,7 +537,7 @@ class TestDataSetSplit(object):
 
         # test with byRefLength and updateCounts
         random_few = orf
-        dss = ds3.split(contigs=True, chunks=3, updateCounts=True)
+        dss = list(ds3.split(contigs=True, chunks=3, updateCounts=True))
         assert len(dss) == 3
         sizes = sorted([dset.numRecords for dset in dss])
         assert sizes == [20, 24, 48]
@@ -553,7 +553,7 @@ class TestDataSetSplit(object):
     def test_split_by_contigs_with_split(self):
         # test to make sure the refWindows work when chunks == # refs
         ds3 = AlignmentSet(data.getBam())
-        dss = ds3.split(contigs=True)
+        dss = list(ds3.split(contigs=True))
         assert len(dss) == 12
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -571,13 +571,13 @@ class TestDataSetSplit(object):
             assert found
         old_refWindows = refWindows
 
-        dss = ds3.split(contigs=True, chunks=1)
+        dss = list(ds3.split(contigs=True, chunks=1))
         assert len(dss) == 1
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         assert refWindows == old_refWindows
 
-        dss = ds3.split(contigs=True, chunks=24)
+        dss = list(ds3.split(contigs=True, chunks=24))
         assert len(dss) == 24
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -593,7 +593,7 @@ class TestDataSetSplit(object):
                 log.debug(ref)
             assert found
 
-        dss = ds3.split(contigs=True, chunks=36)
+        dss = list(ds3.split(contigs=True, chunks=36))
         assert len(dss) == 36
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
@@ -609,7 +609,7 @@ class TestDataSetSplit(object):
 
     def test_refWindows(self):
         ds = AlignmentSet(data.getBam())
-        dss = ds.split(chunks=2, contigs=True)
+        dss = list(ds.split(chunks=2, contigs=True))
         assert len(dss) == 2
         log.debug(dss[0].filters)
         log.debug(dss[1].filters)
@@ -633,14 +633,14 @@ class TestDataSetSplit(object):
         human = ('/pbi/dept/secondary/siv/testdata/SA3-DS/'
                  'human/JCV_85x_v030/jcv_85x_v030.subreadset.xml')
         sset = SubreadSet(human)
-        ssets = sset.split(zmws=True, maxChunks=5)
+        ssets = list(sset.split(zmws=True, maxChunks=5))
 
     def test_subreadset_split_metadata_element_name(self):
         fn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         log.debug(fn)
         sset = SubreadSet(data.getXml(9),
                           data.getXml(12))
-        chunks = sset.split(chunks=5, zmws=False, ignoreSubDatasets=True)
+        chunks = list(sset.split(chunks=5, zmws=False, ignoreSubDatasets=True))
         assert len(chunks) == 2
         chunks[0].write(fn)
 
@@ -690,7 +690,7 @@ class TestDataSetSplit(object):
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
               '.tiny.subreadset.xml')
         sset = SubreadSet(fn, skipMissing=True)
-        ssets = sset.split(chunks=3, barcodes=True)
+        ssets = list(sset.split(chunks=3, barcodes=True))
         assert [str(ss.filters) for ss in ssets] == [
                           "( bc = [0, 0] )",
                           "( bc = [1, 1] )",
@@ -723,7 +723,7 @@ class TestDataSetSplit(object):
               'pblaa-unittest/Sequel/Phi29/m54008_160219_003234'
               '.tiny.subreadset.xml')
         sset = SubreadSet(fn, skipMissing=True)
-        ssets = sset.split(maxChunks=2, barcodes=True)
+        ssets = list(sset.split(maxChunks=2, barcodes=True))
         assert [str(ss.filters) for ss in ssets] == [
                           "( bc = [0, 0] )",
                           "( bc = [1, 1] ) OR ( bc = [2, 2] )"]

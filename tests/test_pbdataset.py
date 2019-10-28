@@ -459,19 +459,19 @@ class TestDataSet(object):
         dset.updateCounts()
         dset.index
         assert len(dset.resourceReaders()) == 1
-        assert len(dset.split(zmws=True, maxChunks=12)) == 1
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 1
 
         # empty and full:
-        full_bam = SubreadSet(data.getXml(10)).toExternalFiles()[0]
+        full_bam = SubreadSet(data.getXml(9)).toExternalFiles()[0]
         dset = SubreadSet(upstreamdata.getEmptyBam(), full_bam)
-        assert dset.numRecords == 92
+        assert dset.numRecords == 92, dset.numRecords
         assert dset.totalLength == 124093
         assert len(list(dset)) == 92
         dset.updateCounts()
         assert not list(dset.index) == []
         assert len(dset.resourceReaders()) == 2
         # there are 9 reads in this set, < the minimum chunk size
-        assert len(dset.split(zmws=True, maxChunks=12)) == 2
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 2
 
         dset = AlignmentSet(upstreamdata.getEmptyAlignedBam())
         assert dset.numRecords == 0
@@ -481,7 +481,7 @@ class TestDataSet(object):
         dset.index
         assert len(dset.resourceReaders()) == 1
         # there is a minimum chunk size here:
-        assert len(dset.split(contigs=True, maxChunks=12, breakContigs=True)) == 1
+        assert len(list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
 
         # empty and full:
         dset = AlignmentSet(upstreamdata.getEmptyAlignedBam(), data.getBam())
@@ -492,7 +492,7 @@ class TestDataSet(object):
         assert not list(dset.index) == []
         assert len(dset.resourceReaders()) == 2
         # there are 9 reads in this set, < the minimum chunk size
-        assert len(dset.split(zmws=True, maxChunks=12)) == 2
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 2
 
         dset = ConsensusReadSet(upstreamdata.getEmptyBam())
         assert dset.numRecords == 0
@@ -524,10 +524,10 @@ class TestDataSet(object):
         assert len(list(dset)) == 0
         dset.updateCounts()
         assert len(dset.resourceReaders()) == 1
-        assert len(dset.split(zmws=True, maxChunks=12)) == 1
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 1
 
         # empty and full:
-        full_bam = SubreadSet(data.getXml(10)).toExternalFiles()[0]
+        full_bam = SubreadSet(data.getXml(9)).toExternalFiles()[0]
         dset = SubreadSet(outpath, full_bam)
         assert len(dset.resourceReaders()) == 2
         dset.updateCounts()
@@ -537,7 +537,7 @@ class TestDataSet(object):
         assert len(list(dset)) == 92
         with pytest.raises(IOError):
             assert not list(dset.index) == []
-        assert len(dset.split(zmws=True, maxChunks=12)) == 1
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 1
 
         dset = AlignmentSet(alnoutpath)
         assert dset.numRecords == 0
@@ -545,7 +545,7 @@ class TestDataSet(object):
         assert len(list(dset)) == 0
         dset.updateCounts()
         assert len(dset.resourceReaders()) == 1
-        assert len(dset.split(contigs=True, maxChunks=12, breakContigs=True)) == 1
+        assert len(list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
 
         # empty and full:
         dset = AlignmentSet(alnoutpath, data.getBam())
@@ -557,7 +557,7 @@ class TestDataSet(object):
         with pytest.raises(IOError):
             assert not list(dset.index) == []
         assert len(dset.resourceReaders()) == 2
-        assert len(dset.split(zmws=True, maxChunks=12)) == 1
+        assert len(list(dset.split(zmws=True, maxChunks=12))) == 1
 
         dset = ConsensusReadSet(outpath)
         assert dset.numRecords == 0
@@ -787,7 +787,7 @@ class TestDataSet(object):
 
         # Test split by barcode:
         ss = SubreadSet(testFile)
-        sss = ss.split(chunks=2, barcodes=True)
+        sss = list(ss.split(chunks=2, barcodes=True))
         assert len(sss) == 2
         for sset in sss:
             assert len(sset.barcodes) >= 1
@@ -1416,7 +1416,7 @@ class TestDataSet(object):
         #refs = ['E.faecalis.1', 'E.faecalis.2']
         #readRefs = ['E.faecalis.1'] * 2 + ['E.faecalis.2'] * 9
         #ds.filters.removeRequirement('rname')
-        dss = ds.split(contigs=True)
+        dss = list(ds.split(contigs=True))
         assert len(dss) == 12
         assert ['B.vulgatus.4', 'B.vulgatus.5',
                 'C.beijerinckii.13', 'C.beijerinckii.14',
@@ -1489,7 +1489,7 @@ class TestDataSet(object):
 
         # this is a hack to only emit refNames that actually have records
         # associated with them:
-        dss = ds.split(contigs=True, chunks=1)[0]
+        dss = list(ds.split(contigs=True, chunks=1))[0]
         assert dss.refLengths == {
                 'B.vulgatus.4': 1449,
                 'B.vulgatus.5': 1449,
@@ -1508,7 +1508,7 @@ class TestDataSet(object):
     def test_reads_in_contig(self):
         log.info("Testing reads in contigs")
         ds = AlignmentSet(data.getXml(7))
-        dss = ds.split(contigs=True)
+        dss = list(ds.split(contigs=True))
         assert len(dss) == 12
         efaec1TimesFound = 0
         efaec1TotFound = 0
@@ -1532,7 +1532,7 @@ class TestDataSet(object):
         filt = Filters()
         filt.addRequirement(length=[('>', '100')])
         ds.addFilters(filt)
-        dss = ds.split(contigs=True)
+        dss = list(ds.split(contigs=True))
         assert len(dss) == 12
         efaec1TimesFound = 0
         efaec1TotFound = 0
@@ -1556,7 +1556,7 @@ class TestDataSet(object):
         filt = Filters()
         filt.addRequirement(length=[('>', '1000')])
         ds.addFilters(filt)
-        dss = ds.split(contigs=True)
+        dss = list(ds.split(contigs=True))
         assert len(dss) == 9
         efaec1TimesFound = 0
         efaec1TotFound = 0
@@ -1596,7 +1596,7 @@ class TestDataSet(object):
         # all of our test files are indexed. Copy just the main files to a temp
         # location, open as dataset, assert unindexed, open with
         # generateIndices=True, assert indexed
-        toTest = [8, 9, 10, 11, 12, 15, 16]
+        toTest = [8, 9, 10, 11, 12, 14, 15]
         for fileNo in toTest:
             outdir = tempfile.mkdtemp(suffix="dataset-unittest")
             orig_dset = openDataSet(data.getXml(fileNo))
