@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function
 import sys, os
 
 # don't forget to update setup.py and pbcore/__init__.py too
-__VERSION__ = '1.7.1'
+__VERSION__ = '1.8.1'
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
