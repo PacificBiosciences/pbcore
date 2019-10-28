@@ -958,11 +958,12 @@ class TestDataSet(object):
         assert reallynew != old
 
     def test_newUuid_copy(self):
-        fn_orig = data.getXml(7)
+        fn_orig = data.getXml(9)
+        ds = openDataSet(fn_orig)
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml")
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml")
-        shutil.copy(fn_orig, fn1.name)
-        shutil.copy(fn_orig, fn2.name)
+        ds.write(fn1.name)
+        ds.write(fn2.name)
         ds1 = openDataSet(fn1.name)
         ds2 = openDataSet(fn2.name)
         assert ds1.uuid == ds2.uuid
@@ -974,15 +975,14 @@ class TestDataSet(object):
         fn2.close()
 
     def test_newUuid_random(self):
-        fn_orig = data.getXml(7)
+        fn_orig = data.getXml(9)
+        ds = openDataSet(fn_orig)
         fn1 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml")
         fn2 = tempfile.NamedTemporaryFile(suffix=".subreadset.xml")
-        shutil.copy(fn_orig, fn1.name)
-        shutil.copy(fn_orig, fn2.name)
+        ds.write(fn1.name)
+        ds.write(fn2.name)
         ds1 = openDataSet(fn1.name)
-
         original_uuid = ds1.uuid
-
         ds2 = openDataSet(fn2.name)
         ds3 = openDataSet(fn1.name)
         assert ds1.uuid == ds2.uuid
