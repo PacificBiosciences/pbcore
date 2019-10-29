@@ -172,7 +172,7 @@ class _BamReaderBase(ReaderBase):
             raise badVersionException
         else:
             major, minor, patch = checkedVersion.split('.')
-            if not (major, minor, patch) >= (3, 0, 1):
+            if not (int(major), int(minor), int(patch)) >= (3, 0, 1):
                 raise badVersionException
 
     def __init__(self, fname, referenceFastaFname=None):
