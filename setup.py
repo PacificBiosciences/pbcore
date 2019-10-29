@@ -8,10 +8,6 @@ from setuptools import setup, find_packages
 import sys
 import os
 
-if sys.version_info[0:2] != (2, 7):
-    print('pbcore requires Python 2.7')
-    sys.exit(-1)
-
 test_deps = [
     'coverage',
     'pytest',
