@@ -2,9 +2,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-from pbcore.util import cmp
 from builtins import range
-from functools import wraps
+from functools import total_ordering, wraps
 from bisect import bisect_right, bisect_left
 
 from future.utils import binary_type
@@ -67,6 +66,7 @@ def requiresMapping(method):
     return f
 
 
+@total_ordering
 class BamAlignment(AlignmentRecordMixin):
     def __init__(self, bamReader, pysamAlignedRead, rowNumber=None):
         #TODO: make these __slot__
@@ -583,9 +583,14 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             return repr(self)
 
-    def __cmp__(self, other):
-        return cmp((self.referenceId, self.tStart, self.tEnd),
-                   (other.referenceId, other.tStart, other.tEnd))
+    def __eq__(self, other):
+        return ((self.referenceId, self.tStart, self.tEnd) == (other.referenceId, other.tStart, other.tEnd))
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return ((self.referenceId, self.tStart, self.tEnd) < (other.referenceId, other.tStart, other.tEnd))
 
     @requiresPbi
     def __getattr__(self, key):

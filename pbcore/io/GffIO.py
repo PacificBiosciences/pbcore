@@ -9,7 +9,6 @@ The specification for the GFF format is available at
 
 from __future__ import absolute_import, division, print_function
 
-from pbcore.util import cmp
 __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
@@ -18,11 +17,13 @@ from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
 from future.utils import iteritems
+from functools import total_ordering
 import logging
 import tempfile
 import os.path
 
 
+@total_ordering
 class Gff3Record(object):
     """
     Class for GFF record, providing uniform access to standard
@@ -139,8 +140,15 @@ class Gff3Record(object):
     def put(self, name, value):
         setattr(self, name, value)
 
-    def __cmp__(self, other):
-        return cmp((self.seqid, self.start), (other.seqid, other.start))
+    def __eq__(self, other):
+        return ((self.seqid, self.start) == (other.seqid, other.start))
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return ((self.seqid, self.start) < (other.seqid, other.start))
+
 
 class GffReader(ReaderBase):
     """
