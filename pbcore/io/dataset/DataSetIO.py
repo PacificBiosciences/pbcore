@@ -73,7 +73,7 @@ def openDataSet(*files, **kwargs):
         return _openDataSet(*files, **kwargs)
     except MissingFileError as exc:
         # Could not find a resource, so we will try using an resolved path for files[0].
-	    msg = '{e}: trying again with symlinks resolved'.format(e=exc.message)
+        msg = '{e}: trying again with symlinks resolved'.format(e=exc.message)
         log.warning(msg)
         def maybe_resolved(fn):
             # Resolve only FOFNs and XMLs.
