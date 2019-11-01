@@ -20,7 +20,7 @@ test_deps = [
 
 setup(
     name='pbcore',
-    version='1.8.1', # don't forget to update pbcore/__init__.py and doc/conf.py too
+    version='1.9.900',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',
@@ -34,6 +34,7 @@ setup(
         'pytest-runner',
     ],
     install_requires=[
+        'biopython >= 1.74',
         'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',
