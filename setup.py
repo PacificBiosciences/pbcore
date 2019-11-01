@@ -34,6 +34,7 @@ setup(
         'pytest-runner',
     ],
     install_requires=[
+        'biopython >= 1.74',
         'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',

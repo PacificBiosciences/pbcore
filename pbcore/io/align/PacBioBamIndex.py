@@ -11,7 +11,7 @@ import gc
 import numpy as np
 import numpy.lib.recfunctions as nlr
 
-from ._bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
+from Bio.bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
 from ._BamSupport import IncompatibleFile
 
 __all__ = ["PacBioBamIndex"]
