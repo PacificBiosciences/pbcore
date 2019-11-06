@@ -8,10 +8,6 @@ from setuptools import setup, find_packages
 import sys
 import os
 
-if sys.version_info[0:2] != (2, 7):
-    print('pbcore requires Python 2.7')
-    sys.exit(-1)
-
 test_deps = [
     'coverage',
     'pytest',
@@ -24,7 +20,7 @@ test_deps = [
 
 setup(
     name='pbcore',
-    version='1.7.1', # don't forget to update pbcore/__init__.py and doc/conf.py too
+    version='1.9.900',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',
@@ -38,6 +34,7 @@ setup(
         'pytest-runner',
     ],
     install_requires=[
+        'biopython >= 1.74',
         'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',

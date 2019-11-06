@@ -13,10 +13,13 @@
 
 from __future__ import absolute_import, division, print_function
 
+import pkg_resources
 import sys, os
 
-# don't forget to update setup.py and pbcore/__init__.py too
-__VERSION__ = '1.7.1'
+try:
+    __VERSION__ = pkg_resources.get_distribution('pbcore').version
+except Exception:
+    __VERSION__ = 'unknown'
 
 
 # If extensions (or modules to document with autodoc) are in another directory,

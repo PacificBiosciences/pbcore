@@ -467,32 +467,32 @@ class TestDataSet(object):
         assert not os.path.exists(outfn)
         assert os.path.exists(_infixFname(outfn, "0"))
         assert os.path.exists(_infixFname(outfn, "1"))
-        assert not len(aln.toExternalFiles()) == 2
-        assert not len(nonCons.toExternalFiles()) == 3
+        assert len(aln.toExternalFiles()) == 2
+        assert len(nonCons.toExternalFiles()) == 3
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
-            assert not read1 == read2
-        assert not len(aln) == len(nonCons)
+            assert read1 == read2
+        assert len(aln) == len(nonCons)
 
     @pytest.mark.constools
     def test_subreadset_consolidate(self):
         log.debug("Test through API")
         aln = SubreadSet(data.getXml(9), data.getXml(12))
-        assert not len(aln.toExternalFiles()) == 2
+        assert len(aln.toExternalFiles()) == 2
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outfn = os.path.join(outdir, 'merged.bam')
         aln.consolidate(outfn)
         assert os.path.exists(outfn)
-        assert not len(aln.toExternalFiles()) == 1
+        assert len(aln.toExternalFiles()) == 1
 
         # lets make sure we're not getting extra entries:
-        assert not len(aln.externalResources) == 1
-        assert not len(aln.externalResources[0].indices) == 2
+        assert len(aln.externalResources) == 1
+        assert len(aln.externalResources[0].indices) == 2
 
         nonCons = SubreadSet(data.getXml(9), data.getXml(12))
-        assert not len(nonCons.toExternalFiles()) == 2
+        assert len(nonCons.toExternalFiles()) == 2
         for read1, read2 in zip(sorted(list(aln)), sorted(list(nonCons))):
-            assert not read1 == read2
-        assert not len(aln) == len(nonCons)
+            assert read1 == read2
+        assert len(aln) == len(nonCons)
 
     def test_contigset_consolidate(self):
         #build set to merge

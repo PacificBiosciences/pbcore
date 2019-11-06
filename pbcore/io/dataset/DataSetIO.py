@@ -73,7 +73,7 @@ def openDataSet(*files, **kwargs):
         return _openDataSet(*files, **kwargs)
     except MissingFileError as exc:
         # Could not find a resource, so we will try using an resolved path for files[0].
-        msg = '{!r}. Trying again with symlinks resolved for {!r}.'.format(exc, files)
+        msg = '{e}: trying again with symlinks resolved'.format(e=exc.message)
         log.warning(msg)
         def maybe_resolved(fn):
             # Resolve only FOFNs and XMLs.
@@ -348,6 +348,10 @@ def _copier(dest, resource, subfolder=None):
             subfolder[0] = resource.uniqueId
         resource.resourceId = currentPath
 
+def _yield_chunks(chunk_generator):
+    for chunk in chunk_generator:
+        yield chunk
+    return
 
 class DataSet(object):
     """The record containing the DataSet information, with possible type
@@ -929,7 +933,7 @@ class DataSet(object):
             :updateCounts: Update the count metadata in each chunk
 
         Returns:
-            A list of new DataSet objects (all other information deep copied).
+            A generator of new DataSet objects (all other information deep copied).
 
         Doctest:
             >>> import pbcore.data.datasets as data
@@ -940,14 +944,14 @@ class DataSet(object):
             >>> ds1.numExternalResources > 1
             True
             >>> # the default is one AlignmentSet per ExtRes:
-            >>> dss = ds1.split()
+            >>> dss = list(ds1.split())
             >>> len(dss) == ds1.numExternalResources
             True
             >>> # but you can specify a number of AlignmentSets to produce:
-            >>> dss = ds1.split(chunks=1)
+            >>> dss = list(ds1.split(chunks=1))
             >>> len(dss) == 1
             True
-            >>> dss = ds1.split(chunks=2, ignoreSubDatasets=True)
+            >>> dss = list(ds1.split(chunks=2, ignoreSubDatasets=True))
             >>> len(dss) == 2
             True
             >>> # The resulting objects are similar:
@@ -972,7 +976,7 @@ class DataSet(object):
             True
             >>> # unmerge:
             >>> ds1, ds2 = sorted(
-            ... dss.split(2, ignoreSubDatasets=False),
+            ... list(dss.split(2, ignoreSubDatasets=False)),
             ... key=lambda x: x.totalLength, reverse=True)
             >>> ds1.totalLength == ds1tl
             True
@@ -982,12 +986,13 @@ class DataSet(object):
         """
         # File must have pbi index to be splittable:
         if len(self) == 0:
-            return [self.copy()]
+            return self._split_single()
         if contigs:
-            return self._split_contigs(chunks, maxChunks, breakContigs,
-                                       targetSize=targetSize,
-                                       byRecords=byRecords,
-                                       updateCounts=updateCounts)
+            return _yield_chunks(self._split_contigs(chunks, maxChunks, breakContigs,
+                                              targetSize=targetSize,
+                                              byRecords=byRecords,
+                                              updateCounts=updateCounts))
+
         elif zmws:
             if chunks == 0:
                 if maxChunks:
@@ -997,18 +1002,25 @@ class DataSet(object):
                                  int(round(np.true_divide(
                                      len(set(self.index.holeNumber)),
                                      targetSize))))
-            return self._split_zmws(chunks, targetSize=targetSize)
+            return _yield_chunks(self._split_zmws(chunks, targetSize=targetSize))
         elif barcodes:
             if maxChunks and not chunks:
                 chunks = maxChunks
-            return self._split_barcodes(chunks)
+            return _yield_chunks(self._split_barcodes(chunks))
 
         # Lets only split on datasets if actual splitting will occur,
         # And if all subdatasets have the required balancing key (totalLength)
         if (len(self.subdatasets) > 1
                 and not ignoreSubDatasets):
-            return self._split_subdatasets(chunks)
+            return _yield_chunks(self._split_subdatasets(chunks))
 
+        return self._split_resources(chunks, updateCounts)
+
+    def _split_single(self):
+        yield self.copy()
+        return
+
+    def _split_resources(self, chunks, updateCounts=True):
         atoms = self.externalResources.resources
         balanceKey = len
 
@@ -1020,32 +1032,28 @@ class DataSet(object):
 
         # Nothing to split!
         if chunks == 1:
-            tbr = [self.copy()]
-            return tbr
-
-        # duplicate
-        results = [self.copy() for _ in range(chunks)]
+            yield self.copy()
+            return
 
         # replace default (complete) ExternalResource lists
         log.debug("Starting chunking")
         chunks = self._chunkList(atoms, chunks, balanceKey)
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
-        for result, chunk in zip(results, chunks):
+        for chunk in chunks:
+            result = self.copy()
             result.externalResources.resources = copy.deepcopy(chunk)
-
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        for result in results:
+            # UniqueId was regenerated when the ExternalResource list was
+            # whole, therefore we need to regenerate it again here
+            log.debug("Generating new UUID")
             if updateCounts:
                 result.updateCounts()
             result.newUuid()
+            yield result
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
         # TODO
-        return results
 
     def _split_contigs(self, chunks, maxChunks=0, breakContigs=False,
                        targetSize=5000, byRecords=False, updateCounts=False):
@@ -1080,7 +1088,9 @@ class DataSet(object):
         if (chunks == len(self.subdatasets)
                 and all([sds.externalResources.resourceIds
                          for sds in self.subdatasets])):
-            return self.subdatasets
+            for ds in self.subdatasets:
+                yield ds
+            return
 
         # Chunk subdatasets into sets of subdatasets of roughly equal
         # lengths
@@ -1094,8 +1104,7 @@ class DataSet(object):
             newCopy = self.copy()
             newCopy.subdatasets = subDatasets
             newCopy.newUuid()
-            results.append(newCopy)
-        return results
+            yield newCopy
 
     def write(self, outFile, validate=True, modPaths=None,
               relPaths=None, pretty=True):
@@ -2219,7 +2228,8 @@ class ReadSet(DataSet):
             self.assertBarcoded()
         except RuntimeError:
             log.info("No barcodes found in BAM file, skipping split")
-            return [self.copy()]
+            yield self.copy()
+            return
         barcodes = defaultdict(int)
         for bcTuple in itertools.izip(self.index.bcForward,
                                       self.index.bcReverse):
@@ -2237,30 +2247,18 @@ class ReadSet(DataSet):
         if chunks <= 0 or chunks > len(atoms):
             chunks = len(atoms)
 
-        log.debug("Making copies")
-        results = [self.copy() for _ in range(chunks)]
-
-        log.debug("Distributing chunks")
-        chunks = self._chunkList(atoms, chunks, balanceKey)
-        log.debug("Done chunking")
-        log.debug("Modifying filters or resources")
-        for result, chunk in zip(results, chunks):
+        log.debug("Determining chunk barcodes")
+        chunk_bcs = self._chunkList(atoms, chunks, balanceKey)
+        log.debug("Copying chunks")
+        for chunk in chunk_bcs:
+            result = self.copy()
             result.filters.removeRequirement('bc')
             result.filters.addRequirement(
                 bc=[('=', list(c[0])) for c in chunk])
-
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        for result in results:
             result.reFilter()
             result.newUuid()
             result.updateCounts()
-
-        # Update the basic metadata for the new DataSets from external
-        # resources, or at least mark as dirty
-        # TODO
-        return results
+            yield result
 
     def split_movies(self, chunks):
         """Chunks requested:
@@ -2269,7 +2267,8 @@ class ReadSet(DataSet):
         """
         # File must have pbi index to be splittable:
         if len(self) == 0:
-            return [self.copy()]
+            yield self.copy()
+            return
 
         atoms = self.index.qId
         movs = zip(*np.unique(atoms, return_counts=True))
@@ -2279,7 +2278,8 @@ class ReadSet(DataSet):
             chunks = len(movs)
 
         if chunks == 1:
-            return [self.copy()]
+            yield self.copy()
+            return
 
         balanceKey = lambda x: x[1]
         log.debug("Starting chunking")
@@ -2288,29 +2288,26 @@ class ReadSet(DataSet):
         else:
             groups = [[mov] for mov in movs]
 
-        log.debug("Duplicating")
-        results = [self.copy() for _ in groups]
-
         q2m = self.qid2mov
-
-        log.debug("Modifying filters or resources")
-        for result, group in zip(results, groups):
+        log.debug("Duplicating")
+        for group in groups:
+            result = self.copy()
+            log.debug("Modifying filters or resources")
             result.filters.addRequirement(movie=[('=', q2m[mov[0]])
                                                  for mov in group])
 
-        log.debug("Generating new UUID, updating counts")
-        for result in results:
+            log.debug("Generating new UUID, updating counts")
             result.updateCounts()
             result.newUuid()
-
-        return results
+            yield result
 
     def _split_zmws(self, chunks, targetSize=None):
         """The combination of <movie>_<holenumber> is assumed to refer to a
         unique ZMW"""
 
         if chunks == 1:
-            return [self.copy()]
+            yield self.copy()
+            return
         # make sure we can pull out the movie name:
         rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
 
@@ -2363,12 +2360,11 @@ class ReadSet(DataSet):
                 # right bound):
                 hn_chunks.append(active_holenumbers[start:(end + 1)])
 
-        results = []
         log.debug("Making copies")
-        tmp_results = [self.copy() for _ in range(n_chunks)]
 
         # add filters
-        for chunk, res in zip(hn_chunks, tmp_results):
+        for chunk in hn_chunks:
+            res = self.copy()
             # check if multiple movies:
             if chunk[0]['qId'] == chunk[-1]['qId']:
                 movieName = rgIdMovieNameMap[chunk[0]['qId']]
@@ -2398,7 +2394,7 @@ class ReadSet(DataSet):
             res.numRecords = len(chunk)
             res.totalLength = sum(chunk['qEnd'] - chunk['qStart'])
             res.newUuid()
-            results.append(res)
+            yield res
 
         # we changed the sort order above, so this is dirty:
         self._index = None
@@ -2407,8 +2403,6 @@ class ReadSet(DataSet):
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
         # TODO
-        return results
-
 
     def _split_read_groups(self):
         """
@@ -2422,7 +2416,6 @@ class ReadSet(DataSet):
         To determine what read group a given dataset corresponds to, use
         np.unique(ds.index.qId) to extract the numeric ID.
         """
-        results = []
         for rg in self.readGroupTable:
             res = self.copy()
             res._filters.clearCallbacks()
@@ -2432,9 +2425,7 @@ class ReadSet(DataSet):
             res.numRecords = qlengths.size
             res.totalLength = np.sum(qlengths)
             res.newUuid()
-            results.append(res)
-        return results
-
+            yield res
 
     @property
     def readGroupTable(self):
@@ -3205,7 +3196,6 @@ class AlignmentSet(ReadSet):
         log.debug("Done defining {n} chunks".format(n=chunks))
         # duplicate
         log.debug("Making copies")
-        results = [self.copy() for _ in range(chunks)]
 
         if byRecords:
             log.debug("Respacing chunks by records")
@@ -3223,7 +3213,8 @@ class AlignmentSet(ReadSet):
 
         log.debug("Done chunking")
         log.debug("Modifying filters or resources")
-        for result, chunk in zip(results, chunks):
+        for chunk in chunks:
+            result = self.copy()
             # we don't want to updateCounts or anything right now, so we'll
             # block that functionality:
             result._filters.clearCallbacks()
@@ -3235,13 +3226,6 @@ class AlignmentSet(ReadSet):
             else:
                 result._filters.addRequirement(
                     rname=[('=', c[0]) for c in chunk])
-
-        # UniqueId was regenerated when the ExternalResource list was
-        # whole, therefore we need to regenerate it again here
-        log.debug("Generating new UUID")
-        # At this point the ID's should be corrected, so the namemap should be
-        # here:
-        for result in results:
             result.newUuid()
             # If there are so many filters that it will be really expensive, we
             # will use an approximation for the number of records and bases.
@@ -3265,11 +3249,11 @@ class AlignmentSet(ReadSet):
                 del result._index
                 del passes
                 result._index = None
+            yield result
 
         # Update the basic metadata for the new DataSets from external
         # resources, or at least mark as dirty
         # TODO
-        return results
 
     def _indexReadsInRange(self, refName, start, end, justIndices=False):
         """Return the index (pbi) records within a range.
