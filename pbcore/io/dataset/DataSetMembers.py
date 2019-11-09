@@ -985,7 +985,7 @@ class Filters(RecordWrapper):
                     lastResult &= reqResultsForRecords
                     del reqResultsForRecords
                 else:
-                    log.warn("Filter not recognized: {f}".format(f=param))
+                    log.warning("Filter not recognized: {f}".format(f=param))
             filterLastResult |= lastResult
             del lastResult
         return filterLastResult
@@ -2052,7 +2052,7 @@ class StatsMetadata(RecordWrapper):
 
         if unwrap and key in self.MERGED_DISTS:
             if len(tbr) > 1:
-                log.warn("Merging a distribution failed!")
+                log.warning("Merging a distribution failed!")
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
