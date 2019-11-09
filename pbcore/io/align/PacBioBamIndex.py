@@ -155,8 +155,8 @@ class PacBioBamIndex(PbIndexBase):
                     tbl[columnName] = peek(columnType, index_len)
 
                 # Computed columns
-                tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
-                tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
+                tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM  # pylint: disable=no-member
+                tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM  # pylint: disable=no-member
 
             # TODO: do something with these:
             # TODO: remove nReads check when the rest of this code can handle empty
