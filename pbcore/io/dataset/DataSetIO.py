@@ -4017,7 +4017,7 @@ class ContigSet(DataSet):
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(list(map(int, possibilities)))
+        return np.fromiter(map(int, possibilities), dtype=np.int64)
 
     def _updateMetadata(self):
         # update contig specific metadata:
