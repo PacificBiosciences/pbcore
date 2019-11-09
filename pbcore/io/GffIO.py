@@ -56,6 +56,7 @@ class Gff3Record(object):
     _GFF_COLUMNS = [ "seqid", "source", "type",
                      "start", "end", "score",
                      "strand", "phase", "attributes" ]
+    __slots__ = _GFF_COLUMNS
 
     def __init__(self, seqid, start, end, type,
                  score=".", strand=".", phase=".",
