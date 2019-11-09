@@ -4,12 +4,12 @@ from builtins import range, zip
 
 from functools import partial, reduce
 from future.utils import iteritems
+from future.moves.itertools import zip_longest
 import pytest
 import os
 import sys
 import re
 import logging
-import itertools
 import tempfile
 from urllib import quote
 import shutil
@@ -1343,7 +1343,7 @@ class TestDataSet(object):
         reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
                                   usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num == 28
@@ -1359,7 +1359,7 @@ class TestDataSet(object):
         reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
                                   usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num == 105
@@ -1378,7 +1378,7 @@ class TestDataSet(object):
         reads1 = aln.readsInRange(*window, usePbi=False)
         reads2 = aln.readsInRange(*window, usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num > 100
@@ -1395,7 +1395,7 @@ class TestDataSet(object):
         reads2 = list(reads2)
         assert len(reads1) == len(reads2)
         reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
 
         log.debug("Testing longest sort vs pbi")
@@ -1406,7 +1406,7 @@ class TestDataSet(object):
         reads2 = list(reads2)
         assert len(reads1) == len(reads2)
         reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
 
     # TODO: get this working again when adding manual subdatasets is good to go
@@ -2406,7 +2406,7 @@ class TestDataSet(object):
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
                           b1 + b2 for b1, b2 in
-                          itertools.izip_longest(
+                          zip_longest(
                               ss.metadata.summaryStats.readLenDist.bins,
                               ss2.metadata.summaryStats.readLenDist.bins,
                               fillvalue=0)]
@@ -2426,7 +2426,7 @@ class TestDataSet(object):
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
                           b1 + b2 for b1, b2 in
-                          itertools.izip_longest(
+                          zip_longest(
                               ss.metadata.summaryStats.readLenDist.bins,
                               ss2.metadata.summaryStats.readLenDist.bins,
                               fillvalue=0)]

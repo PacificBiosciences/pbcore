@@ -2231,7 +2231,7 @@ class ReadSet(DataSet):
             yield self.copy()
             return
         barcodes = defaultdict(int)
-        for bcTuple in itertools.izip(self.index.bcForward,
+        for bcTuple in zip(self.index.bcForward,
                                       self.index.bcReverse):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
