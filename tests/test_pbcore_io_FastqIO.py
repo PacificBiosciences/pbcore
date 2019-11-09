@@ -141,12 +141,12 @@ class TestFastqReader(object):
 
     def test_readFastq1(self):
         r1 = FastqReader(self.FASTQ1)
-        l = list(r1)
+        l = list(rec for rec in r1)
         assert [FastqRecord("seq1", "GATTACA", range(22, 29))] == l
 
     def test_readFastq2(self):
         r2 = FastqReader(self.FASTQ2)
-        l = list(r2)
+        l = list(rec for rec in r2)
         assert [FastqRecord("seq1", "GATTACA", range(22, 29)),
                 FastqRecord("seq2", "CATTAGA", [31]*7) ] == l
 
