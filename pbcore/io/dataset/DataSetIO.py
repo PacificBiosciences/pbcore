@@ -2990,7 +2990,7 @@ class AlignmentSet(ReadSet):
             refName = self.guaranteeName(refName)
             refLen = self.refLengths[refName]
         except (KeyError, AttributeError):
-            raise StopIteration
+            return
         for read in self.readsInRange(refName, 0, refLen):
             yield read
 
@@ -3448,10 +3448,9 @@ class AlignmentSet(ReadSet):
                                              longest=longest,
                                              sampleSize=sampleSize):
                 yield rec
-            raise StopIteration
 
         # merge sort before yield
-        if self.numExternalResources > 1:
+        elif self.numExternalResources > 1:
             if buffsize > 1:
                 # create read/reader caches
                 read_its = [iter(rr.readsInRange(refName, start, end))
