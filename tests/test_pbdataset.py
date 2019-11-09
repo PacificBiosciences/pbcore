@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import range, zip
 
 from functools import partial, reduce
 from future.utils import iteritems
@@ -1667,14 +1667,14 @@ class TestDataSet(object):
         readers = aln.resourceReaders()
         assert len(readers[0].referenceInfoTable) == 59
         obstbl = readers[0].referenceInfo('E.faecalis.1')
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [27],
             [27],
             ['E.faecalis.1'],
             ['E.faecalis.1'],
             [1482],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2125,14 +2125,14 @@ class TestDataSet(object):
         assert len1 + len2 == len3
         assert len3 == 65346
         obstbl = aln.referenceInfoTable
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2163,14 +2163,14 @@ class TestDataSet(object):
         assert len1 + len2 == len3
         assert len3 == 160264
         obstbl = aln.referenceInfoTable
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2207,14 +2207,14 @@ class TestDataSet(object):
         # TODO(mdsmith)(2016-01-25) I would like to be able to use the startrow
         # and endrow fields for bams someday...
         obstbl = aln.referenceInfoTable
-        exptbl0 = np.rec.fromrecords(zip(
+        exptbl0 = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2223,14 +2223,14 @@ class TestDataSet(object):
                 ('Length', '<i8'),
                 ('StartRow', '<u4'),
                 ('EndRow', '<u4')])
-        exptbl1 = np.rec.fromrecords(zip(
+        exptbl1 = np.rec.fromrecords(list(zip(
             [1],
             [1],
             ['lambda_NEB3011'],
             ['lambda_NEB3011'],
             [48502],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2268,14 +2268,14 @@ class TestDataSet(object):
         assert len1 + len2 + len3 == len4
         assert len4 == 160376
         obstbl = aln.referenceInfoTable
-        exptbl0 = np.rec.fromrecords(zip(
+        exptbl0 = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2284,14 +2284,14 @@ class TestDataSet(object):
                 ('Length', '<i8'),
                 ('StartRow', '<u4'),
                 ('EndRow', '<u4')])
-        exptbl1 = np.rec.fromrecords(zip(
+        exptbl1 = np.rec.fromrecords(list(zip(
             [1],
             [1],
             ['lambda_NEB3011'],
             ['lambda_NEB3011'],
             [48502],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),

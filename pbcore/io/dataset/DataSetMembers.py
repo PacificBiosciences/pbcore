@@ -62,7 +62,7 @@ Notes:
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range
+from builtins import map, range, zip
 import ast
 import uuid
 import copy
@@ -2419,7 +2419,7 @@ class DiscreteDistribution(RecordWrapper):
             raise BinNumberMismatchError(self.numBins, other.numBins)
         if set(self.labels) != set(other.labels):
             raise BinMismatchError
-        sBins = zip(self.labels, self.bins)
+        sBins = list(zip(self.labels, self.bins))
         oBins = dict(zip(other.labels, other.bins))
         self.bins = [value + oBins[key] for key, value in sBins]
 

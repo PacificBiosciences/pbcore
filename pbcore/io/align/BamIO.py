@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import map, range
+from builtins import map, range, zip
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -51,21 +51,21 @@ class _BamReaderBase(ReaderBase):
         nRefs = len(refRecords)
 
         if nRefs > 0:
-            self._referenceInfoTable = np.rec.fromrecords(zip(
+            self._referenceInfoTable = np.rec.fromrecords(list(zip(
                 refIds,
                 refIds,
                 refNames,
                 refNames,
                 refLengths,
                 np.zeros(nRefs, dtype=np.uint32),
-                np.zeros(nRefs, dtype=np.uint32)),
+                np.zeros(nRefs, dtype=np.uint32))),
                 dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
                        ('Name', 'O'), ('FullName', 'O'),
                        ('Length', '<i8'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
-            self._referenceDict.update(zip(refIds, self._referenceInfoTable))
-            self._referenceDict.update(zip(refNames, self._referenceInfoTable))
+            self._referenceDict.update(list(zip(refIds, self._referenceInfoTable)))
+            self._referenceDict.update(list(zip(refNames, self._referenceInfoTable)))
         else:
             self._referenceInfoTable = None
             self._referenceDict = None

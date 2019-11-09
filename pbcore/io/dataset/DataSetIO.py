@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range
+from builtins import map, range, zip
 import copy
 import errno
 import hashlib
@@ -2271,7 +2271,7 @@ class ReadSet(DataSet):
             return
 
         atoms = self.index.qId
-        movs = zip(*np.unique(atoms, return_counts=True))
+        movs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per movie.
         if chunks == 0 or chunks > len(movs):
@@ -2862,7 +2862,7 @@ class AlignmentSet(ReadSet):
             return [self.copy()]
 
         atoms = self.index.tId
-        refs = zip(*np.unique(atoms, return_counts=True))
+        refs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per reference.
         if chunks == 0 or chunks > len(refs):
@@ -3719,8 +3719,8 @@ class AlignmentSet(ReadSet):
         name. TODO(mdsmith)(2016-01-27): pick a better name for this method...
 
         """
-        return zip(self.referenceInfoTable['Name'],
-                   self.referenceInfoTable[key])
+        return list(zip(self.referenceInfoTable['Name'],
+                   self.referenceInfoTable[key]))
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
