@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import map, range
 import copy
 import errno
 import hashlib
@@ -4016,7 +4016,7 @@ class ContigSet(DataSet):
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(map(int, possibilities))
+        return np.array(list(map(int, possibilities)))
 
     def _updateMetadata(self):
         # update contig specific metadata:

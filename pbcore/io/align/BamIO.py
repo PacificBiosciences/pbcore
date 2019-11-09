@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import range
+from builtins import map, range
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -47,7 +47,7 @@ class _BamReaderBase(ReaderBase):
         refRecords = self.peer.header["SQ"]
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
-        refIds = map(self.peer.get_tid, refNames)
+        refIds = list(map(self.peer.get_tid, refNames))
         nRefs = len(refRecords)
 
         if nRefs > 0:

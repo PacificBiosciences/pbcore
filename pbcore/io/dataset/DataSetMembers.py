@@ -62,7 +62,7 @@ Notes:
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import map, range
 import ast
 import uuid
 import copy
@@ -117,7 +117,7 @@ def newUuid(record):
 
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
-        return map(func, target)
+        return list(map(func, target))
     else:
         return func(target)
 
@@ -2061,7 +2061,7 @@ class StatsMetadata(RecordWrapper):
                     dtype(chan))
             return chans
         else:
-            return map(dtype, tbr)
+            return list(map(dtype, tbr))
 
     def availableDists(self):
         return [c.metaname for c in self]
