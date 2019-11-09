@@ -301,6 +301,7 @@ do them using the API, rather than the CLI.
     # open:
     dsets = [AlignmentSet(fn) for fn in filename_list]
     # merge with + operator:
+    from functools import reduce
     dset = reduce(lambda x, y: x + y, dsets)
 
     # OR:

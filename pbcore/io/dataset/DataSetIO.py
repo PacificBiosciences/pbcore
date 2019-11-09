@@ -826,6 +826,7 @@ class DataSet(object):
             A DataSet object that is identical but for UniqueId
 
         Doctest:
+            >>> from functools import reduce
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
             >>> ds1 = DataSet(data.getXml(11))
