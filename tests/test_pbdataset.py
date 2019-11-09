@@ -11,7 +11,7 @@ import sys
 import re
 import logging
 import tempfile
-from urllib import quote
+from future.moves.urllib.parse import quote
 import shutil
 import numpy as np
 from numpy.testing import assert_array_equal

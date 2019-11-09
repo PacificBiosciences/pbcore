@@ -71,8 +71,7 @@ import os
 import operator as OP
 import numpy as np
 import re
-from urlparse import urlparse
-from urllib import unquote
+
 from functools import partial as P
 from collections import Counter, defaultdict, OrderedDict
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
@@ -80,6 +79,7 @@ from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
 from future.utils import iteritems, itervalues
+from future.moves.urllib.parse import urlparse, unquote
 
 log = logging.getLogger(__name__)
 

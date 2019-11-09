@@ -7,8 +7,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 import re
-from urlparse import urlparse
-from urllib import unquote
+from future.moves.urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
 

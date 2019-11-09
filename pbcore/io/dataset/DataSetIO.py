@@ -21,7 +21,7 @@ import uuid
 import xml.dom.minidom
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from urlparse import urlparse
+from future.moves.urllib.parse import urlparse
 from functools import wraps, partial
 from collections import defaultdict, Counter
 from pbcore.util.Process import backticks

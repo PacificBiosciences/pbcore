@@ -9,7 +9,7 @@ import pytest
 import tempfile
 import time
 import uuid
-from urlparse import urlparse
+from future.moves.urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks
