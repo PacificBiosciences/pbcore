@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import map, range, zip
 import copy
 import errno
 import hashlib
@@ -141,7 +141,7 @@ def openDataFile(*files, **kwargs):
     else:
         # peek in the files to figure out the best match
         if ReferenceSet in options:
-            log.warn("Fasta files aren't unambiguously reference vs contig, "
+            log.warning("Fasta files aren't unambiguously reference vs contig, "
                      "opening as ReferenceSet")
             return ReferenceSet(*origFiles, **kwargs)
         elif AlignmentSet in options:
@@ -195,7 +195,7 @@ def _homogenizeRecArrays(arrays):
         new_data = []
         for (field, dtype) in iteritems(dtypes):
             if not field in array_fields:
-                log.warn("%s missing in array, will populate with dummy values",
+                log.warning("%s missing in array, will populate with dummy values",
                          field)
                 new_fields.append(field)
                 new_data.append(np.full(len(array), -1, dtype=dtype))
@@ -1436,16 +1436,16 @@ class DataSet(object):
                 # We'll make an exception for now: major version number passes
                 elif (newMetadata['Version'].split('.')[0] ==
                       self.objMetadata['Version'].split('.')[0]):
-                    log.warn("Future warning: merging datasets that don't "
+                    log.warning("Future warning: merging datasets that don't "
                              "share a version number will fail.")
                     return True
                 else:
-                    log.warn("Mismatched dataset versions for merging {v1} vs "
+                    log.warning("Mismatched dataset versions for merging {v1} vs "
                                  "{v2}".format(
                                      v1=newMetadata.get('Version'),
                                      v2=self.objMetadata.get('Version')))
             else:
-                log.warn("Future warning: merging will require Version "
+                log.warning("Future warning: merging will require Version "
                          "numbers for both DataSets")
         return True
 
@@ -2110,8 +2110,8 @@ class ReadSet(DataSet):
         try:
             return self._unifyResponses(res)
         except ResourceMismatchError as e:
-            log.warn("BAM files contain a mix of barcoded and non-barcoded reads")
-            log.warn("Dataset will be treated as non-barcoded")
+            log.warning("BAM files contain a mix of barcoded and non-barcoded reads")
+            log.warning("Dataset will be treated as non-barcoded")
             return False
 
     def assertBarcoded(self):
@@ -2139,7 +2139,7 @@ class ReadSet(DataSet):
                         sharedRefs[refFile] = IndexedFastaReader(refFile)
                     except IOError:
                         if not self._strict:
-                            log.warn("Problem opening reference with"
+                            log.warning("Problem opening reference with"
                                      "IndexedFastaReader")
                             sharedRefs[refFile] = None
                         else:
@@ -2155,7 +2155,7 @@ class ReadSet(DataSet):
                     raise_unsupported_format(location)
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
-                    log.warn("pbi file missing for {f}, operating with "
+                    log.warning("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
                     resource = BamReader(location)
@@ -2207,7 +2207,7 @@ class ReadSet(DataSet):
             return self._unifyResponses(res)
         except ResourceMismatchError:
             if not self._strict:
-                log.warn("Resources inconsistently indexed")
+                log.warning("Resources inconsistently indexed")
                 return False
             else:
                 raise
@@ -2231,7 +2231,7 @@ class ReadSet(DataSet):
             yield self.copy()
             return
         barcodes = defaultdict(int)
-        for bcTuple in itertools.izip(self.index.bcForward,
+        for bcTuple in zip(self.index.bcForward,
                                       self.index.bcReverse):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
@@ -2271,7 +2271,7 @@ class ReadSet(DataSet):
             return
 
         atoms = self.index.qId
-        movs = zip(*np.unique(atoms, return_counts=True))
+        movs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per movie.
         if chunks == 0 or chunks > len(movs):
@@ -2588,7 +2588,7 @@ class ReadSet(DataSet):
         if references:
             refCounts = dict(Counter(references))
             if len(refCounts) > 1:
-                log.warn("Consolidating AlignmentSets with "
+                log.warning("Consolidating AlignmentSets with "
                          "different references, but BamReaders "
                          "can only have one. References will be "
                          "lost")
@@ -2862,7 +2862,7 @@ class AlignmentSet(ReadSet):
             return [self.copy()]
 
         atoms = self.index.tId
-        refs = zip(*np.unique(atoms, return_counts=True))
+        refs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per reference.
         if chunks == 0 or chunks > len(refs):
@@ -3568,7 +3568,7 @@ class AlignmentSet(ReadSet):
                     log.debug(".pbi mapping columns missing from mapped "
                               "bam, bam may be empty")
                 else:
-                    log.warn("File not actually mapped!")
+                    log.warning("File not actually mapped!")
                 length = 0
         return count, length
 
@@ -3719,8 +3719,8 @@ class AlignmentSet(ReadSet):
         name. TODO(mdsmith)(2016-01-27): pick a better name for this method...
 
         """
-        return zip(self.referenceInfoTable['Name'],
-                   self.referenceInfoTable[key])
+        return list(zip(self.referenceInfoTable['Name'],
+                   self.referenceInfoTable[key]))
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
@@ -3965,7 +3965,7 @@ class ContigSet(DataSet):
             self._populateMetaTypes()
             self.updateCounts()
         else:
-            log.warn("No need to write a new resource file, using current "
+            log.warning("No need to write a new resource file, using current "
                      "resource instead.")
         self._populateMetaTypes()
 
@@ -4016,7 +4016,7 @@ class ContigSet(DataSet):
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(map(int, possibilities))
+        return np.array(list(map(int, possibilities)))
 
     def _updateMetadata(self):
         # update contig specific metadata:

@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import range
+from builtins import map, range, zip
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -47,25 +47,25 @@ class _BamReaderBase(ReaderBase):
         refRecords = self.peer.header["SQ"]
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
-        refIds = map(self.peer.get_tid, refNames)
+        refIds = list(map(self.peer.get_tid, refNames))
         nRefs = len(refRecords)
 
         if nRefs > 0:
-            self._referenceInfoTable = np.rec.fromrecords(zip(
+            self._referenceInfoTable = np.rec.fromrecords(list(zip(
                 refIds,
                 refIds,
                 refNames,
                 refNames,
                 refLengths,
                 np.zeros(nRefs, dtype=np.uint32),
-                np.zeros(nRefs, dtype=np.uint32)),
+                np.zeros(nRefs, dtype=np.uint32))),
                 dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
                        ('Name', 'O'), ('FullName', 'O'),
                        ('Length', '<i8'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
-            self._referenceDict.update(zip(refIds, self._referenceInfoTable))
-            self._referenceDict.update(zip(refNames, self._referenceInfoTable))
+            self._referenceDict.update(list(zip(refIds, self._referenceInfoTable)))
+            self._referenceDict.update(list(zip(refNames, self._referenceInfoTable)))
         else:
             self._referenceInfoTable = None
             self._referenceDict = None

@@ -13,6 +13,7 @@ __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
 
+from builtins import map
 from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
@@ -84,7 +85,7 @@ class Gff3Record(object):
         columns = s.rstrip().rstrip(";").split("\t")
         try:
             assert len(columns) == len(cls._GFF_COLUMNS)
-            attributes = map(tupleFromGffAttribute, columns[-1].split(";"))
+            attributes = list(map(tupleFromGffAttribute, columns[-1].split(";")))
             (_seqid, _source, _type, _start,
              _end, _score, _strand, _phase)  = columns[:-1]
             return Gff3Record(_seqid, int(_start), int(_end), _type,
@@ -233,7 +234,8 @@ def sort_gff(file_name, output_file_name=None):
         records.sort()
         with open(output_file_name, "w") as out:
             gff_out = GffWriter(out)
-            map(gff_out.writeHeader, f.headers)
+            for h in f.headers:
+                gff_out.writeHeader(h)
             for rec in records:
                 gff_out.writeRecord(rec)
     return output_file_name
@@ -296,7 +298,7 @@ def merge_gffs_sorted(gff_files, output_file_name):
                 break
             else:
                 empty_files.append(file_name)
-    first_records.sort(lambda a,b: cmp(a.record, b.record))
+    first_records.sort(key=lambda rec: rec.record)
     gff_files = [f.file_name for f in first_records]
     gff_files.extend(empty_files)
     headers, header_keys = _merge_gff_headers(gff_files)

@@ -13,7 +13,7 @@ __all__ = [ "FastaRecord",
             "IndexedFastaReader",
             "splitFastaHeader"]
 
-from builtins import range
+from builtins import map, range
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore import sequence
@@ -263,7 +263,7 @@ def loadFastaIndex(faidxFilename, fastaView):
     # only "id" makes it into the fai.
     offsetEnd = 0
     for line in open(faidxFilename):
-        length, offset, lineWidth, blen = map(int, line.split()[-4:])
+        length, offset, lineWidth, blen = list(map(int, line.split()[-4:]))
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
         header_    = fastaView[offsetEnd:offset]
         if not (header_[0] == ">" and header_[-1] == "\n"):

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import range, zip
 
 from collections import Counter
 import numpy as np
@@ -162,20 +162,20 @@ class _BasicAlnFileReaderTests(object):
                 (984, 'C', 'C'),
                 (985, '-', 'G'),
                 (985, 'T', 'T'),
-                (986, 'T', 'T')] == zip(
+                (986, 'T', 'T')] == list(zip(
                     a.referencePositions(),
                     a.reference(),
-                    a.read())[308:316]
+                    a.read()))[308:316]
 
         ac1 = a.clippedTo(983, 985)
         assert 983 == ac1.referenceStart
         assert 985 == ac1.referenceEnd
         assert [
             (983, 'A', '-'),
-            (984, 'C', 'C')] == zip(
+            (984, 'C', 'C')] == list(zip(
                 ac1.referencePositions(),
                 ac1.reference(),
-                ac1.read())
+                ac1.read()))
 
         ac2 = a.clippedTo(982, 986)
         assert 982 == ac2.referenceStart
@@ -185,19 +185,19 @@ class _BasicAlnFileReaderTests(object):
             (983, 'A', '-'),
             (984, 'C', 'C'),
             (985, '-', 'G'),
-            (985, 'T', 'T')] == zip(
+            (985, 'T', 'T')] == list(zip(
                 ac2.referencePositions(),
                 ac2.reference(),
-                ac2.read())
+                ac2.read()))
 
         ac3 = a.clippedTo(984, 985)
         assert 984 == ac3.referenceStart
         assert 985 == ac3.referenceEnd
         assert [
-            (984, 'C', 'C')] == zip(
+            (984, 'C', 'C')] == list(zip(
                 ac3.referencePositions(),
                 ac3.reference(),
-                ac3.read())
+                ac3.read()))
 
         #         # Get a more interesting (more gappy) rev strand aln
         #         b = self.alns[3]

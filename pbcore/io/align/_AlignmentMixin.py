@@ -1,6 +1,7 @@
 # Author: David Alexander
 
 from __future__ import absolute_import, division, print_function
+from builtins import map
 
 __all__ = [ "AlignmentReaderMixin",
             "AlignmentRecordMixin",
@@ -53,8 +54,8 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             elif readName.endswith("ccs"):
                 return False
             else:
-                q = map(int, rQuery.split("_"))
-                r = map(int, readName.split("/")[-1].split("_"))
+                q = list(map(int, rQuery.split("_")))
+                r = list(map(int, readName.split("/")[-1].split("_")))
                 return rangeOverlap(q, r)
 
         fields = query.split("/")

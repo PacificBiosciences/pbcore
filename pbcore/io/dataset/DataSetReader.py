@@ -31,7 +31,7 @@ def resolveLocation(fname, possibleRelStart=None):
         return os.path.abspath(os.path.join(possibleRelStart, fname))
     if os.path.exists(fname):
         return os.path.abspath(fname)
-    log.warn("Including unresolved file: {f}".format(f=fname))
+    log.warning("Including unresolved file: {f}".format(f=fname))
     return fname
 
 def populateDataSet(dset, filenames):

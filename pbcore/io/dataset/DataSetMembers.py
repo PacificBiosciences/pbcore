@@ -62,7 +62,7 @@ Notes:
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import range
+from builtins import map, range, zip
 import ast
 import uuid
 import copy
@@ -117,7 +117,7 @@ def newUuid(record):
 
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
-        return map(func, target)
+        return list(map(func, target))
     else:
         return func(target)
 
@@ -985,7 +985,7 @@ class Filters(RecordWrapper):
                     lastResult &= reqResultsForRecords
                     del reqResultsForRecords
                 else:
-                    log.warn("Filter not recognized: {f}".format(f=param))
+                    log.warning("Filter not recognized: {f}".format(f=param))
             filterLastResult |= lastResult
             del lastResult
         return filterLastResult
@@ -2052,7 +2052,7 @@ class StatsMetadata(RecordWrapper):
 
         if unwrap and key in self.MERGED_DISTS:
             if len(tbr) > 1:
-                log.warn("Merging a distribution failed!")
+                log.warning("Merging a distribution failed!")
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
@@ -2061,7 +2061,7 @@ class StatsMetadata(RecordWrapper):
                     dtype(chan))
             return chans
         else:
-            return map(dtype, tbr)
+            return list(map(dtype, tbr))
 
     def availableDists(self):
         return [c.metaname for c in self]
@@ -2419,7 +2419,7 @@ class DiscreteDistribution(RecordWrapper):
             raise BinNumberMismatchError(self.numBins, other.numBins)
         if set(self.labels) != set(other.labels):
             raise BinMismatchError
-        sBins = zip(self.labels, self.bins)
+        sBins = list(zip(self.labels, self.bins))
         oBins = dict(zip(other.labels, other.bins))
         self.bins = [value + oBins[key] for key, value in sBins]
 

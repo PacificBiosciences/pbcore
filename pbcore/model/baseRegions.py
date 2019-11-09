@@ -20,7 +20,7 @@ def intersectRanges(r1, r2):
     return (b, e) if (b < e) else None
 
 def removeNones(lst):
-    return filter(lambda x: x!=None, lst)
+    return [x for x in lst if x!=None]
 
 
 class BaseRegionsMixin(object):
