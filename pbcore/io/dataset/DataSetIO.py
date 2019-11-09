@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range, round, zip
+from builtins import map, range, round, super, zip
 import copy
 import errno
 import hashlib
@@ -2063,7 +2063,7 @@ class ReadSet(DataSet):
     class"""
 
     def __init__(self, *files, **kwargs):
-        super(ReadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
     def induceIndices(self, force=False):
@@ -2558,7 +2558,7 @@ class ReadSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ReadSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     def consolidate(self, dataFile, numFiles=1, useTmp=True):
         """Consolidate a larger number of bam files to a smaller number of bam
@@ -2663,7 +2663,7 @@ class SubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.SUBREAD
 
     def __init__(self, *files, **kwargs):
-        super(SubreadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @staticmethod
     def _metaTypeMapping():
@@ -2704,7 +2704,7 @@ class AlignmentSet(ReadSet):
             :strict=False: see base class
             :skipCounts=False: see base class
         """
-        super(AlignmentSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
@@ -3828,7 +3828,7 @@ class ContigSet(DataSet):
 
     def __init__(self, *files, **kwargs):
         self._fastq = False
-        super(ContigSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         # weaken by permitting failure to allow BarcodeSet to have own
         # Metadata type
         try:
@@ -4071,7 +4071,7 @@ class ContigSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ContigSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     @property
     def metadata(self):
@@ -4277,7 +4277,7 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(ReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def refNames(self):
@@ -4303,7 +4303,7 @@ class GmapReferenceSet(ReferenceSet):
     datasetType = DataSetMetaTypes.GMAPREFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(GmapReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def gmap(self):
@@ -4332,7 +4332,7 @@ class BarcodeSet(ContigSet):
     datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files, **kwargs):
-        super(BarcodeSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = BarcodeSetMetadata(self._metadata.record)
         self._updateMetadata()
 
@@ -4352,7 +4352,7 @@ class BarcodeSet(ContigSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(BarcodeSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
         # Pull subtype specific values where important
         # -> No type specific merging necessary, for now

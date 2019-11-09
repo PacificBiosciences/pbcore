@@ -13,7 +13,7 @@ __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
 
-from builtins import map
+from builtins import map, super
 from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
@@ -167,7 +167,7 @@ class GffReader(ReaderBase):
         return headers, firstLine
 
     def __init__(self, f):
-        super(GffReader, self).__init__(f)
+        super().__init__(f)
         self.headers, self.firstLine = self._readHeaders()
 
     def __iter__(self):
@@ -183,7 +183,7 @@ class GffWriter(WriterBase):
     A GFF file writer class
     """
     def __init__(self, f):
-        super(GffWriter, self).__init__(f)
+        super().__init__(f)
         self.writeHeader("##gff-version 3")
 
     def writeHeader(self, headerLine):
