@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-from future.utils import iteritems
+from future.utils import iteritems, string_types
 from cStringIO import StringIO
 
 
@@ -34,7 +34,7 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
 
 def is_string_like(obj):
     'Return True if *obj* looks like a string'
-    if isinstance(obj, (str, unicode)): return True
+    if isinstance(obj, string_types): return True
     # numpy strings are subclass of str, ma strings are not
     if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':
