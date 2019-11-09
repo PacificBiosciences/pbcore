@@ -211,6 +211,14 @@ class _BamReaderBase(ReaderBase):
         raise UnavailableFeature("BAM has no alignment index")
 
     @property
+    def index(self):
+        raise UnavailableFeature("BAM has no index")
+
+    @property
+    def identity(self):
+        raise UnavailableFeature("Identity calculation requires index")
+
+    @property
     def movieNames(self):
         return set([mi.MovieName for mi in self.readGroupTable])
 
