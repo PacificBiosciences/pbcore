@@ -691,6 +691,6 @@ class TestDataSetFilters(object):
 
     def test_contigset_filter(self):
         ref = ReferenceSet(data.getXml(8))
-        assert len(list(ref)) == 59
+        assert len(list([seq for seq in ref])) == 59
         ref.filters.addRequirement(length=[('>', '1450')])
-        assert len(list(ref)) == 34
+        assert len(list([seq for seq in ref])) == 34

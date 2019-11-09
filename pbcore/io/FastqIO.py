@@ -179,10 +179,14 @@ class FastqReader(ReaderBase):
         One-shot iteration support
         """
         while True:
-            lines = [next(self.file) for i in range(4)]
-            yield FastqRecord(lines[0][1:-1],
-                              lines[1][:-1],
-                              qualityString=lines[3][:-1])
+            try:
+                lines = [next(self.file) for i in range(4)]
+            except StopIteration:
+                return
+            else:
+                yield FastqRecord(lines[0][1:-1],
+                                  lines[1][:-1],
+                                  qualityString=lines[3][:-1])
 
 
 class FastqWriter(WriterBase):

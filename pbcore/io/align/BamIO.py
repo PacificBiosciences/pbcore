@@ -4,7 +4,7 @@ from __future__ import absolute_import, division, print_function
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import map, range, zip
+from builtins import map, range, super, zip
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -211,6 +211,14 @@ class _BamReaderBase(ReaderBase):
         raise UnavailableFeature("BAM has no alignment index")
 
     @property
+    def index(self):
+        raise UnavailableFeature("BAM has no index")
+
+    @property
+    def identity(self):
+        raise UnavailableFeature("Identity calculation requires index")
+
+    @property
     def movieNames(self):
         return set([mi.MovieName for mi in self.readGroupTable])
 
@@ -338,7 +346,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     bam.pbi (PacBio) index.  Supports basic BAM operations.
     """
     def __init__(self, fname, referenceFastaFname=None):
-        super(BamReader, self).__init__(fname, referenceFastaFname)
+        super().__init__(fname, referenceFastaFname)
 
     @property
     def index(self):
@@ -372,7 +380,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     information about the BAM records
     """
     def __init__(self, fname, referenceFastaFname=None, sharedIndex=None):
-        super(IndexedBamReader, self).__init__(fname, referenceFastaFname)
+        super().__init__(fname, referenceFastaFname)
         if sharedIndex is None:
             self.pbi = None
             pbiFname = self.filename + ".pbi"

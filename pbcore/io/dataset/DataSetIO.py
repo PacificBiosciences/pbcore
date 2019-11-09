@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range, zip
+from builtins import map, range, round, super, zip
 import copy
 import errno
 import hashlib
@@ -21,7 +21,7 @@ import uuid
 import xml.dom.minidom
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from urlparse import urlparse
+from future.moves.urllib.parse import urlparse
 from functools import wraps, partial
 from collections import defaultdict, Counter
 from pbcore.util.Process import backticks
@@ -73,7 +73,7 @@ def openDataSet(*files, **kwargs):
         return _openDataSet(*files, **kwargs)
     except MissingFileError as exc:
         # Could not find a resource, so we will try using an resolved path for files[0].
-        msg = '{e}: trying again with symlinks resolved'.format(e=exc.message)
+        msg = '{e}: trying again with symlinks resolved'.format(e=exc)
         log.warning(msg)
         def maybe_resolved(fn):
             # Resolve only FOFNs and XMLs.
@@ -826,6 +826,7 @@ class DataSet(object):
             A DataSet object that is identical but for UniqueId
 
         Doctest:
+            >>> from functools import reduce
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
             >>> ds1 = DataSet(data.getXml(11))
@@ -2062,7 +2063,7 @@ class ReadSet(DataSet):
     class"""
 
     def __init__(self, *files, **kwargs):
-        super(ReadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
     def induceIndices(self, force=False):
@@ -2557,7 +2558,7 @@ class ReadSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ReadSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     def consolidate(self, dataFile, numFiles=1, useTmp=True):
         """Consolidate a larger number of bam files to a smaller number of bam
@@ -2662,7 +2663,7 @@ class SubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.SUBREAD
 
     def __init__(self, *files, **kwargs):
-        super(SubreadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @staticmethod
     def _metaTypeMapping():
@@ -2703,7 +2704,7 @@ class AlignmentSet(ReadSet):
             :strict=False: see base class
             :skipCounts=False: see base class
         """
-        super(AlignmentSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
@@ -2989,7 +2990,7 @@ class AlignmentSet(ReadSet):
             refName = self.guaranteeName(refName)
             refLen = self.refLengths[refName]
         except (KeyError, AttributeError):
-            raise StopIteration
+            return
         for read in self.readsInRange(refName, 0, refLen):
             yield read
 
@@ -3447,10 +3448,9 @@ class AlignmentSet(ReadSet):
                                              longest=longest,
                                              sampleSize=sampleSize):
                 yield rec
-            raise StopIteration
 
         # merge sort before yield
-        if self.numExternalResources > 1:
+        elif self.numExternalResources > 1:
             if buffsize > 1:
                 # create read/reader caches
                 read_its = [iter(rr.readsInRange(refName, start, end))
@@ -3827,7 +3827,7 @@ class ContigSet(DataSet):
 
     def __init__(self, *files, **kwargs):
         self._fastq = False
-        super(ContigSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         # weaken by permitting failure to allow BarcodeSet to have own
         # Metadata type
         try:
@@ -4016,7 +4016,7 @@ class ContigSet(DataSet):
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(list(map(int, possibilities)))
+        return np.fromiter(map(int, possibilities), dtype=np.int64)
 
     def _updateMetadata(self):
         # update contig specific metadata:
@@ -4070,7 +4070,7 @@ class ContigSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ContigSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     @property
     def metadata(self):
@@ -4276,7 +4276,7 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(ReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def refNames(self):
@@ -4302,7 +4302,7 @@ class GmapReferenceSet(ReferenceSet):
     datasetType = DataSetMetaTypes.GMAPREFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(GmapReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def gmap(self):
@@ -4331,7 +4331,7 @@ class BarcodeSet(ContigSet):
     datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files, **kwargs):
-        super(BarcodeSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = BarcodeSetMetadata(self._metadata.record)
         self._updateMetadata()
 
@@ -4351,7 +4351,7 @@ class BarcodeSet(ContigSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(BarcodeSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
         # Pull subtype specific values where important
         # -> No type specific merging necessary, for now

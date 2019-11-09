@@ -62,7 +62,7 @@ Notes:
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range, zip
+from builtins import map, range, super, zip
 import ast
 import uuid
 import copy
@@ -71,8 +71,7 @@ import os
 import operator as OP
 import numpy as np
 import re
-from urlparse import urlparse
-from urllib import unquote
+
 from functools import partial as P
 from collections import Counter, defaultdict, OrderedDict
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
@@ -80,6 +79,7 @@ from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
 from future.utils import iteritems, itervalues
+from future.moves.urllib.parse import urlparse, unquote
 
 log = logging.getLogger(__name__)
 
@@ -670,7 +670,7 @@ class Filters(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1136,7 +1136,7 @@ class Filter(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1194,7 +1194,7 @@ class Properties(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1212,7 +1212,7 @@ class Property(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __str__(self):
@@ -1291,7 +1291,7 @@ class ExternalResources(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
         # state tracking. Not good, but needs it:
@@ -1392,7 +1392,7 @@ class ExternalResource(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1660,7 +1660,7 @@ class FileIndices(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1677,7 +1677,7 @@ class FileIndex(RecordWrapper):
     KEEP_WITH_PARENT = True
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1695,7 +1695,7 @@ class DataSetMetadata(RecordWrapper):
 
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
-        super(DataSetMetadata, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.TAG
 
     def merge(self, other):
@@ -1855,10 +1855,10 @@ class SubreadSetMetadata(ReadSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create SubreadSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(SubreadSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     def merge(self, other):
-        super(self.__class__, self).merge(other)
+        super().merge(other)
         if other.collections and not self.collections:
             self.append(other.collections)
         else:
@@ -1891,7 +1891,7 @@ class ContigSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create ContigSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(ContigSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     organism = subaccs('Organism')
     ploidy = subaccs('Ploidy')
@@ -1909,7 +1909,7 @@ class BarcodeSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create BarcodeSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(BarcodeSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     barcodeConstruction = subaccs('BarcodeConstruction')
 
@@ -1942,7 +1942,7 @@ class AutomationParameter(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     value = accs('SimpleValue')
@@ -1952,7 +1952,7 @@ class AutomationParameters(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     automationParameter = accs('AutomationParameter', container='children',
@@ -2505,9 +2505,6 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
 
 
 class CopyFilesMetadata(RecordWrapper):
