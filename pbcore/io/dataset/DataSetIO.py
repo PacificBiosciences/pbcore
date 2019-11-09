@@ -7,7 +7,7 @@ Classes representing DataSets of various types.
 
 from __future__ import absolute_import, division, print_function
 
-from builtins import map, range, zip
+from builtins import map, range, round, zip
 import copy
 import errno
 import hashlib
