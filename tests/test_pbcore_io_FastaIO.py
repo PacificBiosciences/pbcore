@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 
 from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord
-from StringIO import StringIO
+from io import StringIO
 
 class TestFastaRecord(object):
 

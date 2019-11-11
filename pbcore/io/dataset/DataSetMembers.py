@@ -213,7 +213,7 @@ def setify(value):
     return np.unique(str2list(value))
 
 def fromFile(value):
-    with open(value, 'rU') as ifh:
+    with open(value, 'r', newline=None) as ifh:
         return np.unique([val.strip() for val in ifh])
 
 def isListString(string):

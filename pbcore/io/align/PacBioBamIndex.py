@@ -183,13 +183,10 @@ class PacBioBamIndex(PbIndexBase):
         self._chunk_start = chunk_start
         self._chunk_size = chunk_size
         pbiFilename = abspath(expanduser(pbiFilename))
-        with BgzfReader(pbiFilename) as f:
-            try:
-                self._loadHeader(f)
-                self._loadMainIndex(f, to_virtual_offset)
-                self._loadOffsets(f)
-            except Exception as e:
-                raise IOError("Malformed bam.pbi file: " + str(e))
+        with BgzfReader(pbiFilename, mode='rb') as f:
+            self._loadHeader(f)
+            self._loadMainIndex(f, to_virtual_offset)
+            self._loadOffsets(f)
 
     @property
     def version(self):
@@ -291,7 +288,7 @@ class StreamingBamIndex(PacBioBamIndex):
         self._chunk_start = None
         self._pbiFilename = abspath(expanduser(pbiFilename))
         self._get_blocks()
-        with BgzfReader(self._pbiFilename) as f:
+        with BgzfReader(self._pbiFilename, mode='rb') as f:
             self._loadHeader(f)
             holeNumbers = self._loadMainIndex(f, self._to_virtual_offset,
                                               zmw_only=True)

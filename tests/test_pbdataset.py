@@ -676,11 +676,15 @@ class TestDataSet(object):
                     ((alnFile.tId == alnFile.referenceInfo(refId).ID) &
                      (alnFile.mapQV >= minMapQV))]
 
+                # FIXME these arrays will be empty in the first iteration of
+                # the nested loop, which leads to a MemoryError when lexsort
+                # is called below.  Converting to Python lists avoids the
+                # error, but this seems seriously broken...
                 unsorted_tStart = rows.tStart
                 unsorted_tEnd = rows.tEnd
 
                 # Sort (expected by CoveredIntervals)
-                sort_order = np.lexsort((unsorted_tEnd, unsorted_tStart))
+                sort_order = np.lexsort((list(unsorted_tEnd), list(unsorted_tStart)))
                 tStart = unsorted_tStart[sort_order].tolist()
                 tEnd = unsorted_tEnd[sort_order].tolist()
 
@@ -737,11 +741,6 @@ class TestDataSet(object):
                 ds = openDataSet(linfn, strict=False)
             assert type(ds) == exp
             os.remove(linfn)
-
-    def test_openDataSet_unicode(self):
-        # Test to see if we can't open a unicode filename
-        fn = data.getXml(8)
-        aln = openDataSet(unicode(fn))
 
     def test_type_checking(self):
         bam = data.getBam()
@@ -1020,14 +1019,6 @@ class TestDataSet(object):
         with AlignmentSet(fn) as aln:
             assert len(aln) == 92
         ofh.close()
-
-        # unicode string:
-        fn = unicode(tempfile.NamedTemporaryFile(
-            suffix=".alignmentset.xml").name)
-        with AlignmentSet(data.getXml(7)) as aln:
-            aln.write(fn)
-        with AlignmentSet(fn) as aln:
-            assert len(aln) == 92
 
         # stdout:
         # This is just going to be printed into the test output, but it is good
@@ -1320,7 +1311,7 @@ class TestDataSet(object):
         read_indexes = list(ds.readsInRange(rn, 10, 100, justIndices=True))
         assert len(read_indexes) == 10
         for read in read_indexes:
-            assert isinstance(read, int)
+            assert isinstance(read, (int, np.int64))
 
         read_index_records = ds.index[read_indexes]
 

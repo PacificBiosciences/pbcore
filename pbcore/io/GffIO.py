@@ -119,7 +119,9 @@ class Gff3Record(object):
     # not found.
     #
     def __getattr__(self, name):
-        if name in self.attributes:
+        if name == "__setstate__":
+            raise AttributeError
+        elif name in self.attributes:
             return self.attributes[name]
         else:
             raise AttributeError

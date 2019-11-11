@@ -20,7 +20,8 @@ from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
 import mmap, numpy as np, re
-from collections import namedtuple, OrderedDict, Sequence
+from collections import namedtuple, OrderedDict
+from collections.abc import Sequence
 from os.path import abspath, expanduser, isfile, getsize
 
 
@@ -262,10 +263,10 @@ def loadFastaIndex(faidxFilename, fastaView):
     # NB: We have to look back in the FASTA to find the full header;
     # only "id" makes it into the fai.
     offsetEnd = 0
-    for line in open(faidxFilename):
+    for line in open(faidxFilename, mode="rt"):
         length, offset, lineWidth, blen = list(map(int, line.split()[-4:]))
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
-        header_    = fastaView[offsetEnd:offset]
+        header_    = fastaView[offsetEnd:offset].decode("utf-8")
         if not (header_[0] == ">" and header_[-1] == "\n"):
             raise IOError("Companion FASTA index (.fai) file malformatted! "
                           "Use 'samtools faidx' to generate FASTA index")
@@ -315,7 +316,7 @@ class MmappedFastaSequence(Sequence):
             raise IndexError("Out of bounds")
         startOffset = fileOffset(self.faiRecord, start)
         endOffset   = fileOffset(self.faiRecord, stop)
-        snip = self.view[startOffset:endOffset].translate(None, "\r\n")
+        snip = self.view[startOffset:endOffset].decode("utf-8").translate(str.maketrans('', '', "\r\n"))
         return snip
 
     def __len__(self):
@@ -406,7 +407,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
     """
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
-        self.file = open(self.filename, "r")
+        self.file = open(self.filename, "rt")
         self.faiFilename = faiFilename(self.filename)
         if getsize(self.filename) > 0:
             self.view = mmap.mmap(self.file.fileno(), 0,
@@ -426,7 +427,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
         return contigLookup
 
     def __getitem__(self, key):
-        if key < 0:
+        if isinstance(key, int) and key < 0:
             key = len(self) + key
 
         if isinstance(key, slice):

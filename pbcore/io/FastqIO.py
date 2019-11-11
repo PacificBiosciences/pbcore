@@ -13,6 +13,7 @@ __all__ = [ "FastqRecord",
             "asciiFromQvs" ]
 
 from builtins import range
+from future.utils import text_type
 import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
@@ -231,7 +232,9 @@ class FastqWriter(WriterBase):
 ## Utility
 ##
 def qvsFromAscii(s):
+    if isinstance(s, text_type):
+        s = s.encode("ascii")
     return (np.frombuffer(s, dtype=np.uint8) - 33)
 
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode("ascii")
