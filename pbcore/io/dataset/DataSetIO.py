@@ -22,8 +22,10 @@ import xml.dom.minidom
 import numpy as np
 from numpy.lib.recfunctions import append_fields
 from future.moves.urllib.parse import urlparse
-from functools import wraps, partial
+from future.utils import iteritems, itervalues, string_types
+from functools import wraps, partial, reduce
 from collections import defaultdict, Counter
+
 from pbcore.util.Process import backticks
 from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
@@ -54,8 +56,6 @@ from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
-from functools import reduce
-from future.utils import iteritems, itervalues, string_types
 
 
 log = logging.getLogger(__name__)
@@ -1183,7 +1183,7 @@ class DataSet(object):
             outFile = open(fileName, 'w')
 
         log.debug('Writing...')
-        outFile.write(xml_string)
+        outFile.write(xml_string.decode("utf-8"))
         outFile.flush()
         log.debug('Done writing')
 
@@ -2032,7 +2032,7 @@ class DataSet(object):
         populated by filtered reads. Only pbi filters considered, however."""
         if self._indexMap is None:
             _ = self.index
-        if isinstance(index, int):
+        if isinstance(index, (int, np.int64)):
             # support negatives
             if index < 0:
                 index = len(self.index) + index
@@ -2056,6 +2056,9 @@ class DataSet(object):
                 return self[row]
             else:
                 raise NotImplementedError()
+        else:
+            raise NotImplementedError("Index type {t} not supported".format(
+                                      t=type(index).__name__))
 
 
 class ReadSet(DataSet):

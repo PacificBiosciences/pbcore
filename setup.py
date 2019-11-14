@@ -10,17 +10,18 @@ import os
 
 test_deps = [
     'coverage',
+    'pbtestdata',
+    'pylint',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
-    'pyxb == 1.2.4',
+    'pyxb == 1.2.6',
     'sphinx',
-    'pylint == 1.6.4',
 ]
 
 setup(
     name='pbcore',
-    version='1.9.900',
+    version='2.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',

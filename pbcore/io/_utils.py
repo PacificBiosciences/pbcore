@@ -1,8 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
-from future.utils import iteritems, string_types
-from cStringIO import StringIO
+from future.utils import iteritems, string_types, text_type
+from io import StringIO
 
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):
@@ -13,6 +13,8 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
     remainder = StringIO()
     while True:
         block = f.read(BLOCKSIZE)
+        if not isinstance(block, text_type):
+            block = block.decode("utf-8")
         if not block:
             break
         parts = block.split(delimiter)

@@ -24,7 +24,7 @@ def getFileHandle(filenameOrFile, mode="r"):
     Given a file object, return it unless the mode is incorrect--in
     that case, raise an exception.
     """
-    assert mode in ("r", "w")
+    assert mode in ("r", "w", "rt", "wt")
 
     if isinstance(filenameOrFile, string_types):
         filename = abspath(expanduser(filenameOrFile))
@@ -42,7 +42,7 @@ class ReaderBase(object):
         """
         Prepare for iteration through the records in the file
         """
-        self.file = getFileHandle(f, "r")
+        self.file = getFileHandle(f, "rt")
         if hasattr(self.file, "name"):
             self.filename = self.file.name
         else:
@@ -68,7 +68,7 @@ class WriterBase(object):
         """
         Prepare for output to the file
         """
-        self.file = getFileHandle(f, "w")
+        self.file = getFileHandle(f, "wt")
         if hasattr(self.file, "name"):
             self.filename = self.file.name
         else:
@@ -88,3 +88,6 @@ class WriterBase(object):
 
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
+
+    def writeRecord(self, *args, **kwds):
+        pass

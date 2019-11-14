@@ -5,7 +5,7 @@ from builtins import range
 import tempfile
 import os
 import pytest
-from StringIO import StringIO
+from io import StringIO
 
 from pbcore.io import GffWriter, Gff3Record, GffReader
 from pbcore.io.GffIO import merge_gffs, merge_gffs_sorted, sort_gff

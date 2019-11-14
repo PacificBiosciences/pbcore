@@ -540,7 +540,7 @@ class TestDataSetSplit(object):
         dss = list(ds3.split(contigs=True, chunks=3, updateCounts=True))
         assert len(dss) == 3
         sizes = sorted([dset.numRecords for dset in dss])
-        assert sizes == [20, 24, 48]
+        assert sizes == [28, 30, 34]
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:

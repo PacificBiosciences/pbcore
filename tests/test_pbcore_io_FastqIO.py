@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 from builtins import range
 
 from numpy.testing import assert_array_equal
-from StringIO import StringIO
+from io import StringIO
 
 from pbcore import data
 from pbcore.io.FastqIO import *
