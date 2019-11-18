@@ -2,10 +2,7 @@
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-try:
-    from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
-except ImportError:
-    from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
+from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 from pbcore.io import FastaTable
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 

@@ -1158,7 +1158,6 @@ class TestDataSet(object):
         assert explen == len(aln2)
         assert not sorted(aln.toExternalFiles()) == sorted(aln2.toExternalFiles())
 
-    @pytest.mark.pbtestdata
     def test_mixed_pbi_columns(self):
         import pbtestdata
         inp1 = pbtestdata.get_file("barcoded-subreadset")

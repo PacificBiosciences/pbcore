@@ -1013,7 +1013,6 @@ class TestDataSet(object):
         ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds2.write(ds_out, validate=False)
 
-    @pytest.mark.pbtestdata
     def test_provenance_record_ordering(self):
         import pbtestdata
         ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
@@ -1030,7 +1029,6 @@ class TestDataSet(object):
         ds1 = TranscriptSet(fn, strict=True)
         assert len(ds1.resourceReaders()) == 1
 
-    @pytest.mark.pbtestdata
     def test_consensus_read_set_ref(self):
         import pbtestdata
         ds = ConsensusReadSet(pbtestdata.get_file("ccs-sequel"), strict=True)

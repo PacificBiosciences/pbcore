@@ -145,7 +145,6 @@ class TestDataSet(object):
         sset.metadata.collections.merge(orig_metadata.collections, forceUnique=True)
         assert len(sset.metadata.collections) == 1
 
-    @pytest.mark.pbtestdata
     def test_merge_biosamples(self):
         import pbtestdata
         ds1 = pbtestdata.get_file("subreads-biosample-1")

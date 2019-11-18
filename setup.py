@@ -36,4 +36,5 @@ setup(
     ],
     test_requires=test_deps,
     extras_require={'test': test_deps},
+    python_requires='>=3.7',
 )
