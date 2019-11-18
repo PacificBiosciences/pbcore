@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import map
-
 from pkg_resources import Requirement, resource_filename
 
 MOVIE_NAME_14 = "m110818_075520_42141_c100129202555500000315043109121112_s1_p0"

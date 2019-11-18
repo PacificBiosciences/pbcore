@@ -1,17 +1,12 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range, zip
-
 from functools import partial, reduce
-from future.utils import iteritems
-from future.moves.itertools import zip_longest
+from itertools import zip_longest
 import pytest
 import os
 import sys
 import re
 import logging
 import tempfile
-from future.moves.urllib.parse import quote
+from urllib.parse import quote
 import shutil
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -1475,7 +1470,7 @@ class TestDataSet(object):
         ds = AlignmentSet(data.getBam(0))
         random_few = {'B.cereus.6': 1472, 'S.agalactiae.1': 1470,
                       'B.cereus.4': 1472}
-        for (key, value) in iteritems(random_few):
+        for (key, value) in random_few.items():
             assert ds.refLengths[key] == value
 
         # this is a hack to only emit refNames that actually have records

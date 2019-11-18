@@ -60,9 +60,6 @@ Notes:
 
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import map, range, super, zip
 import ast
 import uuid
 import copy
@@ -78,8 +75,7 @@ from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
-from future.utils import iteritems, itervalues
-from future.moves.urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote
 
 log = logging.getLogger(__name__)
 
@@ -139,7 +135,7 @@ def reccheck(records, qname_tables):
     lengths (so we can use np.in1d, which operates on recarrays quite nicely)
     """
     mask = np.zeros(len(records), dtype=bool)
-    for table in itervalues(qname_tables):
+    for table in qname_tables.values():
         mask |= recordMembership(records, table)
     return mask
 
@@ -230,8 +226,8 @@ def isFile(string):
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
-        max(map(len, itervalues(qid2mov)))))
-    for (k, v) in iteritems(qid2mov):
+        max(map(len, qid2mov.values()))))
+    for (k, v) in qid2mov.items():
         movs[qId == k] = v
     return (movs, hn, qs, qe)
 
@@ -271,7 +267,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
     if len(records_by_size) == 0:
         return records_by_size
     tbr = {}
-    for (size, records) in iteritems(records_by_size):
+    for (size, records) in records_by_size.items():
         # recarray dtypes are a little hairier, we'll give normal (or manual)
         # dtypes an out:
         if isinstance(dtype, list):
@@ -1014,7 +1010,7 @@ class Filters(RecordWrapper):
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
             newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
-            for (name, options) in iteritems(kwargs):
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
                         val = option[1]
@@ -1025,7 +1021,7 @@ class Filters(RecordWrapper):
                 self.extend(filtList)
         else:
             newFilts = [Filter() for _ in list(kwargs.values())[0]]
-            for (name, options) in iteritems(kwargs):
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     val = option[1]
                     if isinstance(val, np.ndarray):
@@ -1047,7 +1043,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for (name, options) in iteritems(kwargs):
+        for (name, options) in kwargs.items():
             for option in options:
                 newFilt.addRequirement(name, *option)
         self.append(newFilt)
@@ -1115,7 +1111,7 @@ class Filters(RecordWrapper):
         # Check that this length is equal to the current number of filters:
         assert len(list(kwargs.values())[0]) == len(list(self))
 
-        for (req, opvals) in iteritems(kwargs):
+        for (req, opvals) in kwargs.items():
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, *opval)
         self._runCallbacks()
@@ -1647,7 +1643,7 @@ class ExternalResource(RecordWrapper):
             self.append(fileIndices)
         for index in list(indices):
             found = False
-            for (ext, mtype) in iteritems(FILE_INDICES):
+            for (ext, mtype) in FILE_INDICES.items():
                 if index.endswith(ext):
                     found = True
                     self._setIndResByMetaType(mtype, index)
@@ -1777,7 +1773,6 @@ class BioSamplesMetadata(RecordWrapper):
     """The metadata for the list of BioSamples
 
         Doctest:
-            >>> from __future__ import print_function
             >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
             >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)

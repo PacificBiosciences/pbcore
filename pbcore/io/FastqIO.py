@@ -4,16 +4,12 @@
 I/O support for FASTQ files
 """
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "FastqRecord",
             "FastqReader",
             "FastqWriter",
             "qvsFromAscii",
             "asciiFromQvs" ]
 
-from builtins import range
-from future.utils import text_type
 import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
@@ -232,7 +228,7 @@ class FastqWriter(WriterBase):
 ## Utility
 ##
 def qvsFromAscii(s):
-    if isinstance(s, text_type):
+    if isinstance(s, str):
         s = s.encode("ascii")
     return (np.frombuffer(s, dtype=np.uint8) - 33)
 

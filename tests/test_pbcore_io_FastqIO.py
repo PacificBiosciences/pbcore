@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 from numpy.testing import assert_array_equal
 from io import StringIO
 
@@ -12,8 +8,9 @@ from pbcore.io.FastqIO import *
 # Test QV <-> string conversion routines
 class TestQvConversion(object):
 
-    ASCII = ("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`"
-             "abcdefghijklmnopqrstuvwxyz{|}~")
+    ASCII = (r"""!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`"""
+             r"""abcdefghijklmnopqrstuvwxyz{|}~""")
+
     QVS = range(0, 94)
 
     def testAsciiFromQvs(self):

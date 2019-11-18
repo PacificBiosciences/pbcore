@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import pbcore
 from pbcore.io import M4Reader, M5Reader
 

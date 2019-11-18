@@ -5,9 +5,6 @@
 Classes representing DataSets of various types.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import map, range, round, super, zip
 import copy
 import errno
 import hashlib
@@ -21,8 +18,7 @@ import uuid
 import xml.dom.minidom
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from future.moves.urllib.parse import urlparse
-from future.utils import iteritems, itervalues, string_types
+from urllib.parse import urlparse
 from functools import wraps, partial, reduce
 from collections import defaultdict, Counter
 
@@ -183,7 +179,7 @@ def _homogenizeRecArrays(arrays):
     """
     dtypes = {}
     for array in arrays:
-        for (field, (dtype, _)) in iteritems(array.dtype.fields):
+        for (field, (dtype, _)) in array.dtype.fields.items():
             if field in dtypes:
                 assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
             else:
@@ -193,7 +189,7 @@ def _homogenizeRecArrays(arrays):
         array_fields = {field for field in array.dtype.names}
         new_fields = []
         new_data = []
-        for (field, dtype) in iteritems(dtypes):
+        for (field, dtype) in dtypes.items():
             if not field in array_fields:
                 log.warning("%s missing in array, will populate with dummy values",
                          field)
@@ -310,7 +306,7 @@ class MissingFileError(InvalidDataSetIOError):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, string_types):
+    if not isinstance(fname, str):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise MissingFileError("Resource {f} not found".format(f=fname))
@@ -1142,7 +1138,7 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths and not isinstance(outFile, string_types):
+            if relPaths and not isinstance(outFile, str):
                 raise InvalidDataSetIOError("Cannot write relative "
                     "pathnames without a filename")
             elif relPaths:
@@ -1164,14 +1160,14 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                if isinstance(outFile, string_types):
+                if isinstance(outFile, str):
                     validateString(xml_string, relTo=os.path.dirname(outFile))
                 else:
                     validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        if isinstance(outFile, string_types):
+        if isinstance(outFile, str):
             fileName = urlparse(outFile).path.strip()
             if self._strict and not isinstance(self.datasetType, tuple):
                 if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1222,7 +1218,7 @@ class DataSet(object):
         if filename is None:
             checksts(self, subdatasets=True)
         else:
-            if isinstance(filename, string_types):
+            if isinstance(filename, str):
                 statsMetadata = parseStats(str(filename))
             else:
                 statsMetadata = filename
@@ -1244,7 +1240,7 @@ class DataSet(object):
             :filename: the filename of a <moviename>.metadata.xml file
 
         """
-        if isinstance(filename, string_types):
+        if isinstance(filename, str):
             if isDataSet(filename):
                 # path to DataSet
                 metadata = openDataSet(filename).metadata
@@ -1401,7 +1397,6 @@ class DataSet(object):
             :newFilters: a Filters object or properly formatted Filters record
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import SubreadSet
             >>> from pbcore.io.dataset.DataSetMembers import Filters
@@ -1472,7 +1467,6 @@ class DataSet(object):
                      (as an attribute)
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet()
@@ -1507,7 +1501,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for (key, value) in iteritems(kwargs):
+        for (key, value) in kwargs.items():
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -1606,7 +1600,6 @@ class DataSet(object):
             A BamAlignment object
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2050,7 +2043,7 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, string_types):
+        elif isinstance(index, str):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
@@ -2724,7 +2717,6 @@ class AlignmentSet(ReadSet):
             A BamAlignment object
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2826,7 +2818,6 @@ class AlignmentSet(ReadSet):
             An open indexed alignment file
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2979,7 +2970,6 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -3066,7 +3056,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for (rname, rAtoms) in iteritems(rnames):
+        for (rname, rAtoms) in rnames.items():
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))
@@ -3182,7 +3172,7 @@ class AlignmentSet(ReadSet):
             # very long
             # We are only doing this for refLength splits for now, as those are
             # cheap (and quiver is linear in length not coverage)
-            dataSize = sum(itervalues(refLens))
+            dataSize = sum(refLens.values())
             # target size per chunk:
             target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
@@ -3423,7 +3413,6 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -3596,7 +3585,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, string_types):
+        if not isinstance(refName, str):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:
@@ -3879,7 +3868,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for (name, match_list) in iteritems(matches):
+        for (name, match_list) in matches.items():
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -3889,7 +3878,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for (n, m) in iteritems(matches)])
+            writeTemp = any([len(m) > 1 for (n, m) in matches.items()])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -3901,7 +3890,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for (name, match_list) in iteritems(matches):
+        for (name, match_list) in matches.items():
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)
