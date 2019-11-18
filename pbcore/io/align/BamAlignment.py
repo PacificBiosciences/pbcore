@@ -1,12 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 from functools import total_ordering, wraps
 from bisect import bisect_right, bisect_left
-
-from future.utils import binary_type, text_type
 
 from pbcore.sequence import reverseComplement
 from ._BamSupport import *
@@ -454,13 +449,13 @@ class BamAlignment(AlignmentRecordMixin):
         tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
-        if isinstance(data_, binary_type):
+        if isinstance(data_, bytes):
             data = np.copy(np.frombuffer(data_, dtype=dtype_))
         else:
             # This is about 300x slower than the fromstring above.
             # Unless pysam exposes  buffer or numpy interface,
             # is is going to be very slow.
-            if isinstance(data_, text_type):
+            if isinstance(data_, str):
                 data_ = data_.encode("utf-8")
             data = np.fromiter(data_, dtype=dtype_)
         del data_

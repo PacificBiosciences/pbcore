@@ -3,11 +3,9 @@
 
 """Validate DataSet XML files"""
 
-from __future__ import absolute_import, division, print_function
-
 import os
 import re
-from future.moves.urllib.parse import urlparse, unquote
+from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
 

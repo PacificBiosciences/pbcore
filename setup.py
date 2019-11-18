@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 from setuptools import setup, find_packages
-
-import sys
-import os
 
 test_deps = [
     'coverage',
@@ -36,7 +31,6 @@ setup(
     ],
     install_requires=[
         'biopython >= 1.74',
-        'future >= 0.16.0',
         'numpy >= 1.7.1',
         'pysam >= 0.15.1',
     ],

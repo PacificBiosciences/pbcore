@@ -4,8 +4,6 @@
 Streaming I/O support for FASTA files.
 """
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "FastaRecord",
             "FastaReader",
             "FastaWriter",
@@ -13,7 +11,6 @@ __all__ = [ "FastaRecord",
             "IndexedFastaReader",
             "splitFastaHeader"]
 
-from builtins import map, range
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore import sequence
@@ -170,7 +167,6 @@ class FastaReader(ReaderBase):
 
     .. doctest::
 
-        >>> from __future__ import print_function
         >>> from pbcore.io import FastaReader
         >>> from pbcore import data
         >>> filename = data.getTinyFasta()
@@ -392,7 +388,6 @@ class IndexedFastaReader(ReaderBase, Sequence):
 
     .. doctest::
 
-        >>> from __future__ import print_function
         >>> from pbcore.io import FastaTable
         >>> from pbcore import data
         >>> filename = data.getFasta()

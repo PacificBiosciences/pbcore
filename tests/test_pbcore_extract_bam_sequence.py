@@ -5,8 +5,6 @@ transcript from a BAM alignment file, specifically when the reverse complement
 is needed.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os
 import pytest
 import shutil

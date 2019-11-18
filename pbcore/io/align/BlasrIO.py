@@ -1,7 +1,5 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
 from pbcore.io.base import ReaderBase
 
 __all__ = [ "M4Record",

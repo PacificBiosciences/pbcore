@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 import itertools
 import logging
 import os
@@ -9,7 +5,7 @@ import pytest
 import tempfile
 import time
 import uuid
-from future.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks

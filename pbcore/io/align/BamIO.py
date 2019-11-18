@@ -1,10 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import map, range, super, zip
 try:
     from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 except ImportError:
@@ -22,7 +19,6 @@ from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
-from future.utils import itervalues
 
 
 def requiresBai(method):
@@ -134,9 +130,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in itervalues(self._baseFeatureNameMappings)])
+            *[set(mapping) for mapping in self._baseFeatureNameMappings.values()])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in itervalues(self._pulseFeatureNameMappings)])
+            *[set(mapping) for mapping in self._pulseFeatureNameMappings.values()])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))

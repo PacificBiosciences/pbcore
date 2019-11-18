@@ -7,17 +7,13 @@ The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
 
-from builtins import map, super
 from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
-from future.utils import iteritems
 from functools import total_ordering
 import logging
 import tempfile
@@ -105,7 +101,7 @@ class Gff3Record(object):
     def __str__(self):
         formattedAttributes = ";".join(
             ("%s=%s" % (k, self._formatField(v))
-             for (k, v) in iteritems(self.attributes)))
+             for (k, v) in self.attributes.items()))
         formattedFixedColumns = "\t".join(
             self._formatField(getattr(self, k))
             for k in self._GFF_COLUMNS[:-1])

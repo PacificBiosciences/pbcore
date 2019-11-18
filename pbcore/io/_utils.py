@@ -1,7 +1,4 @@
-from __future__ import absolute_import, division, print_function
-
 import numpy as np
-from future.utils import iteritems, string_types, text_type
 from io import StringIO
 
 
@@ -13,7 +10,7 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
     remainder = StringIO()
     while True:
         block = f.read(BLOCKSIZE)
-        if not isinstance(block, text_type):
+        if not isinstance(block, str):
             block = block.decode("utf-8")
         if not block:
             break
@@ -36,7 +33,7 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
 
 def is_string_like(obj):
     'Return True if *obj* looks like a string'
-    if isinstance(obj, string_types): return True
+    if isinstance(obj, str): return True
     # numpy strings are subclass of str, ma strings are not
     if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':
@@ -152,7 +149,7 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
 
     if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
         newrec_fields = list(newrec.dtype.fields)
-        for (k, v) in iteritems(defaults):
+        for (k, v) in defaults.items():
             if k in newrec_fields:
                 newrec[k] = v
 
