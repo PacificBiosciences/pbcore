@@ -31,7 +31,7 @@ setup(
     ],
     install_requires=[
         'biopython >= 1.74',
-        'numpy >= 1.7.1',
+        'numpy >= 1.17',
         'pysam >= 0.15.1',
     ],
     test_requires=test_deps,
