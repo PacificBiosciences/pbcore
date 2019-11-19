@@ -425,11 +425,6 @@ class RecordWrapper(object):
             return True
         return False
 
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
-
     def __deepcopy__(self, memo):
         tbr = type(self)()
         memo[id(self)] = tbr
@@ -691,11 +686,6 @@ class Filters(RecordWrapper):
                 if req.name:
                     return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __str__(self):
         buff = []
