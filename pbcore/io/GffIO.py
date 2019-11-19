@@ -21,7 +21,7 @@ import os.path
 
 
 @total_ordering
-class Gff3Record(object):
+class Gff3Record:
     """
     Class for GFF record, providing uniform access to standard
     GFF fields and attributes.
@@ -142,9 +142,6 @@ class Gff3Record(object):
 
     def __eq__(self, other):
         return ((self.seqid, self.start) == (other.seqid, other.start))
-
-    def __ne__(self, other):
-        return not (self == other)
 
     def __lt__(self, other):
         return ((self.seqid, self.start) < (other.seqid, other.start))

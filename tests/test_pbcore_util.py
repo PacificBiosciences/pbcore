@@ -5,7 +5,7 @@ from pbcore.util import Process
 from pbcore.util.statistics import accuracy_as_phred_qv
 
 
-class TestBackticks(object):
+class TestBackticks:
     def test_errCode(self):
         output, errCode, errMsg = Process.backticks("exit 42")
         assert 42 == errCode
@@ -25,7 +25,7 @@ class TestBackticks(object):
         assert output == ["/proc/cpuinfo"] and errMsg == "grep: /dev/foo/bar: No such file or directory"
 
 
-class TestStatistics(object):
+class TestStatistics:
 
     def test_accuracy_as_phred_qv(self):
         qv = accuracy_as_phred_qv(0.999)

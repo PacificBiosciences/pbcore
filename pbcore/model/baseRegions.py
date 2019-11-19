@@ -21,7 +21,7 @@ def removeNones(lst):
     return [x for x in lst if x!=None]
 
 
-class BaseRegionsMixin(object):
+class BaseRegionsMixin:
     """
     Mixin class for "ZMW" client classes providing access to base
     regions and reads sliced to those regions.

@@ -34,7 +34,7 @@ def splitFastaHeader( name ):
         comment = None
     return (id_, comment)
 
-class FastaRecord(object):
+class FastaRecord:
     """
     A FastaRecord object models a named sequence in a FASTA file.
     """
@@ -142,9 +142,6 @@ class FastaRecord(object):
                     self.sequence == other.sequence)
         else:
             return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __repr__(self):
         return "<FastaRecord: %s>" % self.header
@@ -326,7 +323,7 @@ class MmappedFastaSequence(Sequence):
         return str(self[:])
 
 
-class IndexedFastaRecord(object):
+class IndexedFastaRecord:
 
     COLUMNS   = 60
 

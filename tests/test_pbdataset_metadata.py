@@ -14,7 +14,7 @@ from pbcore.io.dataset.DataSetValidator import validateFile
 
 log = logging.getLogger(__name__)
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 

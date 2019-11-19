@@ -4,7 +4,7 @@ import argparse, cProfile, logging, pstats
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 
 
-class PBToolRunner(object):
+class PBToolRunner:
 
     #
     # Interface to be overridden in subclasses (client code)

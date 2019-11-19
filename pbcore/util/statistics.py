@@ -3,7 +3,7 @@ import math
 import numpy as np
 
 
-class Constants(object):
+class Constants:
     MAX_QV = 60
 
 

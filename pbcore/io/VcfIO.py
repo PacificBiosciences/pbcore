@@ -40,7 +40,7 @@ def _empty_then(xs):
 
 
 @total_ordering
-class Vcf4Record(object):
+class Vcf4Record:
     """
     Class for VCF record, providing uniform access to standard
     VCF fields and attributes.

@@ -16,7 +16,7 @@ from pbcore.chemistry import ChemistryLookupError
 from pbcore.io.align.BamIO import AlignmentFile
 
 
-class _BasicAlnFileReaderTests(object):
+class _BasicAlnFileReaderTests:
     """
     Abstract base class for tests of the basic reader
     functionality---functionality not requiring the bam.pbi index.
@@ -383,7 +383,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
                 assert (i2 == i1).all()
 
 
-class TestCCSBam(object):
+class TestCCSBam:
 
     @classmethod
     def setup_class(cls):
@@ -404,7 +404,7 @@ class TestCCSBam(object):
 
 
 @pytest.mark.internal_data
-class TestTranscriptBam(object):
+class TestTranscriptBam:
 
     BAM_FILE = "/pbi/dept/secondary/siv/testdata/isoseqs/TranscriptSet/unpolished.bam"
 
@@ -416,7 +416,7 @@ class TestTranscriptBam(object):
         assert len(self.f) == 12218
 
 
-class TestEmptyBam(object):
+class TestEmptyBam:
 
     def test_empty_bam_reads_in_range(self):
         with IndexedBamReader(data.getEmptyAlignedBam()) as bam:
@@ -425,7 +425,7 @@ class TestEmptyBam(object):
             assert len(reads) == 0
 
 
-class TestMultipleReadGroups(object):
+class TestMultipleReadGroups:
     """
     Verify that BAM files with multiple read groups are handled sensibly - see
     bug 26548.
@@ -467,7 +467,7 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
                 "m64012_181222_192540": "test_sample2"}
 
 
-class TestMissingHeaderM5(object):
+class TestMissingHeaderM5:
     """
     Verify that BAM files no M5 for SQ can still be processed
     """
@@ -497,7 +497,7 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
         assert movie_names == ['movie1', 'm64012_181222_192540']
 
 
-class TestUpdatedChemistryMapping(object):
+class TestUpdatedChemistryMapping:
     """
     Verify we load the mapping from the updated chemistry mapping.xml
     from SMRT_CHEMISTRY_BUNDLE_DIR

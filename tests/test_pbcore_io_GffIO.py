@@ -11,7 +11,7 @@ def rm_out(fname):
     if os.path.exists(fname):
         os.remove(fname)
 
-class TestGff3Record(object):
+class TestGff3Record:
 
     RECORD = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
 
@@ -52,7 +52,7 @@ class TestGff3Record(object):
         assert 100 == record.get("start", 100)
 
 
-class TestGffReader(object):
+class TestGffReader:
 
     RAWFILE = open(data.getGff3())
     READER = GffReader(data.getGff3())
@@ -78,7 +78,7 @@ class TestGffReader(object):
             assert rawLine.strip() == str(record)
 
 
-class TestGffWriter(object):
+class TestGffWriter:
 
     RECORD1 = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
     RECORD2 = Gff3Record("chr1", 200, 201, "substitution", attributes=[("mouse", "1"), ("moose", "2")])
@@ -100,7 +100,7 @@ class TestGffWriter(object):
         assert expected == self.outfile.getvalue()
 
 
-class TestGffSorting(object):
+class TestGffSorting:
 
     GFF_DATA = ["""\
 ##gff-version 3

@@ -279,7 +279,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
         tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
     return tbr
 
-class PbiFlags(object):
+class PbiFlags:
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
     ADAPTER_AFTER = 2
@@ -353,7 +353,7 @@ def updateNamespace(ele, ns):
         ele.namespace = ns
 
 
-class RecordWrapper(object):
+class RecordWrapper:
     """The base functionality of a metadata element.
 
     Many of the methods here are intended for use with children of
@@ -424,11 +424,6 @@ class RecordWrapper(object):
         if self.record['children'] != []:
             return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __deepcopy__(self, memo):
         tbr = type(self)()
@@ -691,11 +686,6 @@ class Filters(RecordWrapper):
                 if req.name:
                     return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __str__(self):
         buff = []

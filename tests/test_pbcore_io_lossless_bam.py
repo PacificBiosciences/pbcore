@@ -12,7 +12,7 @@ import pbcore.io.align.BamAlignment
 from pbcore.io.align.BamIO import AlignmentFile
 pbcore.io.align.BamAlignment.PBCORE_BAM_LOSSLESS_KINETICS = "1"
 
-class TestCase(object):
+class TestCase:
 
     SAM_STR = """\
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0b5

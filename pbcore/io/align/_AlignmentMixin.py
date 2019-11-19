@@ -6,7 +6,7 @@ __all__ = [ "AlignmentReaderMixin",
 
 import numpy as np
 
-class AlignmentReaderMixin(object):
+class AlignmentReaderMixin:
     """
     Mixin class for higher-level functionality of alignment file
     readers.
@@ -82,7 +82,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             return self.readsByName(movieNames[0] + "/" + str(hn))
 
 
-class AlignmentRecordMixin(object):
+class AlignmentRecordMixin:
     """
     Mixin class providing some higher-level functionality for
     alignment records.

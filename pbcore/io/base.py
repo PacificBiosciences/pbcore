@@ -33,7 +33,7 @@ def getFileHandle(filenameOrFile, mode="r"):
     else:
         raise Exception("Invalid type to getFileHandle")
 
-class ReaderBase(object):
+class ReaderBase:
     def __init__(self, f):
         """
         Prepare for iteration through the records in the file
@@ -59,7 +59,7 @@ class ReaderBase(object):
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
 
-class WriterBase(object):
+class WriterBase:
     def __init__(self, f):
         """
         Prepare for output to the file
