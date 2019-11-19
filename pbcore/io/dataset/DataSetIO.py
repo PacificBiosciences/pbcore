@@ -4002,7 +4002,7 @@ class ContigSet(DataSet):
         """Chunking and quivering appends a window to the contig ID, which
         allows us to consolidate the contig chunks."""
         name, _ = self._popSuffix(name)
-        if re.search("_\d+_\d+$", name) is None:
+        if re.search(r"_\d+_\d+$", name) is None:
             return None
         possibilities = name.split('_')[-2:]
         for pos in possibilities:

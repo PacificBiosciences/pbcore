@@ -38,7 +38,7 @@ def validateResources(xmlroot, relTo='.'):
                                                     rfn)) and
                         not os.path.exists(os.path.join('.',
                                                         rfn))):
-                    tag_name = re.sub("\{.*\}", "", element.tag)
+                    tag_name = re.sub(r"\{.*\}", "", element.tag)
                     if tag_name in IGNORE_RESOURCES:
                         log.warning("{f} not found".format(f=rfn))
                     else:

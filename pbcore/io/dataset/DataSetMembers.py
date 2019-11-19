@@ -216,7 +216,7 @@ def isListString(string):
     """Detect if string is actually a representation a stringified list"""
 
     listver = str2list(string)
-    if len(listver) > 1 or re.search('[\[\(\{].+[\}\)\]]', string):
+    if len(listver) > 1 or re.search(r'[\[\(\{].+[\}\)\]]', string):
         return True
 
 def isFile(string):

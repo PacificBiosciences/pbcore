@@ -26,7 +26,7 @@ def splitFastaHeader( name ):
     """
     Split a FASTA/FASTQ header into its id and comment components
     """
-    nameParts = re.split('\s', name, maxsplit=1)
+    nameParts = re.split(r'\s', name, maxsplit=1)
     id_ = nameParts[0]
     if len(nameParts) > 1:
         comment = nameParts[1].strip()
