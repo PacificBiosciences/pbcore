@@ -279,7 +279,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
         tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
     return tbr
 
-class PbiFlags(object):
+class PbiFlags:
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
     ADAPTER_AFTER = 2
@@ -353,7 +353,7 @@ def updateNamespace(ele, ns):
         ele.namespace = ns
 
 
-class RecordWrapper(object):
+class RecordWrapper:
     """The base functionality of a metadata element.
 
     Many of the methods here are intended for use with children of

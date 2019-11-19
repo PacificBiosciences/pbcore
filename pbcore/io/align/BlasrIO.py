@@ -9,7 +9,7 @@ __all__ = [ "M4Record",
 
 class MalformattedRecord(Exception): pass
 
-class M4Record(object):
+class M4Record:
     """
     Record for alignment summary record output from BLASR -m 4 option
     """
@@ -45,7 +45,7 @@ class M4Reader(ReaderBase):
 
 
 
-class M5Record(object):
+class M5Record:
     """
     Record for alignment summary record output from BLASR -m 5 option
     """

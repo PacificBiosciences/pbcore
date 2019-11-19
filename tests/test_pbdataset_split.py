@@ -14,7 +14,7 @@ import pbcore.data as upstreamdata
 log = logging.getLogger(__name__)
 
 
-class TestDataSetSplit(object):
+class TestDataSetSplit:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 

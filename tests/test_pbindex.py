@@ -4,7 +4,7 @@ import pbcore.data
 from pbcore.io.align import BamReader
 from pbcore.io.align.PacBioBamIndex import PacBioBamIndex, StreamingBamIndex
 
-class TestPbIndex(object):
+class TestPbIndex:
 
     BAM_FILE_NAME = pbcore.data.getUnalignedBam()
 

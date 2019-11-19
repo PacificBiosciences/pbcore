@@ -349,7 +349,7 @@ def _yield_chunks(chunk_generator):
         yield chunk
     return
 
-class DataSet(object):
+class DataSet:
     """The record containing the DataSet information, with possible type
     specific subclasses"""
 

@@ -16,7 +16,7 @@ from .FastaIO import splitFastaHeader
 from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
-class FastqRecord(object):
+class FastqRecord:
     """
     A ``FastqRecord`` object models a named sequence and its quality
     values in a FASTQ file.  For reference consult `Wikipedia's FASTQ

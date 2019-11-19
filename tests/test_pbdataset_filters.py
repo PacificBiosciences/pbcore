@@ -13,7 +13,7 @@ import pbcore.data as upstreamdata
 log = logging.getLogger(__name__)
 
 
-class TestDataSetFilters(object):
+class TestDataSetFilters:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 

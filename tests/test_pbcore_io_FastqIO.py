@@ -6,7 +6,7 @@ from pbcore.io.FastqIO import *
 
 
 # Test QV <-> string conversion routines
-class TestQvConversion(object):
+class TestQvConversion:
 
     ASCII = (r"""!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`"""
              r"""abcdefghijklmnopqrstuvwxyz{|}~""")
@@ -20,7 +20,7 @@ class TestQvConversion(object):
         assert_array_equal(self.QVS, qvsFromAscii(self.ASCII))
 
 
-class TestFastqRecord(object):
+class TestFastqRecord:
 
     HEADER = "chr1|blah|blah\tblah blah"
     RC_HEADER = "chr1|blah|blah\tblah blah [revcomp]"
@@ -122,7 +122,7 @@ class TestFastqRecord(object):
         assert r1 != r2
 
 
-class TestFastqReader(object):
+class TestFastqReader:
 
     FASTQ1 = StringIO(
         "@seq1\n"
@@ -148,7 +148,7 @@ class TestFastqReader(object):
                 FastqRecord("seq2", "CATTAGA", [31]*7) ] == l
 
 
-class TestFastqWriter(object):
+class TestFastqWriter:
 
     def setup_method(self):
         self.fastq1 = StringIO(

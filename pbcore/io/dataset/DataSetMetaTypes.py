@@ -9,7 +9,7 @@ def toDsId(name):
     """Translate a class name into a MetaType/ID"""
     return "PacBio.DataSet.{x}".format(x=name)
 
-class DataSetMetaTypes(object):
+class DataSetMetaTypes:
     """
     This mirrors the PacBioSecondaryDataModel.xsd definitions and be used
     to reference a specific dataset type.

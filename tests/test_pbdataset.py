@@ -44,7 +44,7 @@ def twodots(fn):
     return bn[dot1:]
 
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 

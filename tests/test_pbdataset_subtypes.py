@@ -23,7 +23,7 @@ from pbcore.io.dataset.DataSetValidator import validateXml
 log = logging.getLogger(__name__)
 
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integration tests for the DataSet class and
     associated module functions"""
 

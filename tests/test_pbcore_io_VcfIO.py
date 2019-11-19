@@ -9,7 +9,7 @@ def rm_out(fname):
     if os.path.exists(fname):
         os.remove(fname)
 
-class TestVcfSorting(object):
+class TestVcfSorting:
 
     VCF_META = dedent("""\
             ##fileformat=VCFv4.3

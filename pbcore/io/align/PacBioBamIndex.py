@@ -22,7 +22,7 @@ PBI_FLAGS_COORDINATE_SORTED = 2
 PBI_FLAGS_BARCODE = 4
 
 
-class PbIndexBase(object):
+class PbIndexBase:
 
     def _loadHeader(self, f):
         buf = f.read(PBI_HEADER_LEN)

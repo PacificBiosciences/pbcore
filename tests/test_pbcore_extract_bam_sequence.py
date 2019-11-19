@@ -24,7 +24,7 @@ FASTA_STR = ">genome\nAAAATGASGAGATCARAATGASGAGATC"
 FAI_STR = "genome  28      8       28      29"
 
 
-class TestCase(object):
+class TestCase:
 
     def setup_method(self):
         self.tmp_dir = tempfile.mkdtemp()

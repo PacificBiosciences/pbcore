@@ -21,7 +21,7 @@ import os.path
 
 
 @total_ordering
-class Gff3Record(object):
+class Gff3Record:
     """
     Class for GFF record, providing uniform access to standard
     GFF fields and attributes.
