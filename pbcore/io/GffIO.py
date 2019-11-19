@@ -143,9 +143,6 @@ class Gff3Record(object):
     def __eq__(self, other):
         return ((self.seqid, self.start) == (other.seqid, other.start))
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def __lt__(self, other):
         return ((self.seqid, self.start) < (other.seqid, other.start))
 
