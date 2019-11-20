@@ -33,9 +33,10 @@ class TestCase:
         f.write(SAM_STR)
         f.close()
         # convert to bam using pysam
-        sam_in = AlignmentFile(os.path.join(self.tmp_dir, "tst_pbcore.sam"), "r")
+        sam_in = AlignmentFile(os.path.join(
+            self.tmp_dir, "tst_pbcore.sam"), "r")
         bam_out = AlignmentFile(os.path.join(self.tmp_dir, "tst_pbcore.bam"), "wb",
-            template=sam_in)
+                                template=sam_in)
         for s in sam_in:
             bam_out.write(s)
         bam_out.close()
@@ -47,6 +48,6 @@ class TestCase:
 
     def test_reverse_complement(self):
         bam_file = pbcore.io.BamReader(os.path.join(self.tmp_dir, "tst_pbcore.bam"),
-            referenceFastaFname=os.path.join(self.tmp_dir, "tst_pbcore.fa"))
+                                       referenceFastaFname=os.path.join(self.tmp_dir, "tst_pbcore.fa"))
         for aln in bam_file:
             seq = aln.transcript()

@@ -2,6 +2,7 @@ import pytest
 
 from pbcore import sequence
 
+
 class TestReverseComplement:
 
     SEQUENCE = "GATTACA" * 20
@@ -14,7 +15,8 @@ class TestReverseComplement:
     BAD_SEQUENCE = "AGCTQ" * 20  # contains non-IUPAC char
 
     def test_reverse(self):
-        assert self.SEQUENCE == sequence.reverse(sequence.reverse(self.SEQUENCE))
+        assert self.SEQUENCE == sequence.reverse(
+            sequence.reverse(self.SEQUENCE))
         assert self.REVERSE == sequence.reverse(self.SEQUENCE)
         assert self.COMPLEMENT == sequence.reverse(self.REVERSE_COMPLEMENT)
 
@@ -24,12 +26,16 @@ class TestReverseComplement:
         assert self.REVERSE == sequence.complement(self.REVERSE_COMPLEMENT)
 
     def test_reverseComplement(self):
-        assert self.REVERSE_COMPLEMENT == sequence.reverseComplement(self.SEQUENCE)
-        assert self.SEQUENCE == sequence.reverseComplement(self.REVERSE_COMPLEMENT)
+        assert self.REVERSE_COMPLEMENT == sequence.reverseComplement(
+            self.SEQUENCE)
+        assert self.SEQUENCE == sequence.reverseComplement(
+            self.REVERSE_COMPLEMENT)
 
     def test_iupac(self):
-        assert self.IUPAC_COMPLEMENT == sequence.complement(self.IUPAC_SEQUENCE)
-        assert self.IUPAC_REVERSE_COMPLEMENT == sequence.reverseComplement(self.IUPAC_SEQUENCE)
+        assert self.IUPAC_COMPLEMENT == sequence.complement(
+            self.IUPAC_SEQUENCE)
+        assert self.IUPAC_REVERSE_COMPLEMENT == sequence.reverseComplement(
+            self.IUPAC_SEQUENCE)
 
     def test_complement_error(self):
         with pytest.raises(ValueError):

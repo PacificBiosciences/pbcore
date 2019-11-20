@@ -77,15 +77,17 @@ class TestDataSet:
         ds1 = DataSet(data.getFofn())
         assert ds1.numExternalResources == 2
         assert type(SubreadSet(data.getSubreadSet(),
-                    skipMissing=True)).__name__ == 'SubreadSet'
+                               skipMissing=True)).__name__ == 'SubreadSet'
         # Even with untyped inputs
         assert str(SubreadSet(data.getBam())).startswith('<SubreadSet')
         assert type(SubreadSet(data.getBam())).__name__ == 'SubreadSet'
         assert type(DataSet(data.getBam())).__name__ == 'DataSet'
         # You can also cast up and down, but casting between siblings
         # is limited (abuse at your own risk)
-        assert type(DataSet(data.getBam()).copy(asType='SubreadSet')).__name__ == 'SubreadSet'
-        assert type(SubreadSet(data.getBam()).copy(asType='DataSet')).__name__ == 'DataSet'
+        assert type(DataSet(data.getBam()).copy(
+            asType='SubreadSet')).__name__ == 'SubreadSet'
+        assert type(SubreadSet(data.getBam()).copy(
+            asType='DataSet')).__name__ == 'DataSet'
         # Add external Resources:
         ds = DataSet()
         ds.externalResources.addResources(["IdontExist.bam"])
@@ -364,9 +366,11 @@ class TestDataSet:
         assert len(ds1.subdatasets) == 0
         merged = ds1 + ds2
         assert len(merged.subdatasets) == 2
-        assert merged.subdatasets[0].toExternalFiles() == AlignmentSet(data.getBam(0)).toExternalFiles()
+        assert merged.subdatasets[0].toExternalFiles(
+        ) == AlignmentSet(data.getBam(0)).toExternalFiles()
         assert len(merged.subdatasets[0].toExternalFiles()) == 1
-        assert merged.subdatasets[1].toExternalFiles() == AlignmentSet(data.getBam(1)).toExternalFiles()
+        assert merged.subdatasets[1].toExternalFiles(
+        ) == AlignmentSet(data.getBam(1)).toExternalFiles()
         assert len(merged.subdatasets[1].toExternalFiles()) == 1
 
         # from data set
@@ -376,18 +380,22 @@ class TestDataSet:
         assert len(ds2.subdatasets) == 0
         merged = ds1 + ds2
         assert len(merged.subdatasets) == 2
-        assert merged.subdatasets[0].toExternalFiles() == AlignmentSet(data.getXml(7)).toExternalFiles()
+        assert merged.subdatasets[0].toExternalFiles(
+        ) == AlignmentSet(data.getXml(7)).toExternalFiles()
         assert len(merged.subdatasets[0].toExternalFiles()) == 1
-        assert merged.subdatasets[1].toExternalFiles() == AlignmentSet(data.getXml(10)).toExternalFiles()
+        assert merged.subdatasets[1].toExternalFiles() == AlignmentSet(
+            data.getXml(10)).toExternalFiles()
         assert len(merged.subdatasets[1].toExternalFiles()) == 1
 
         # combined data set
         merged = AlignmentSet(data.getXml(7), data.getXml(10))
         assert len(merged.subdatasets) == 2
         assert len(merged.subdatasets[0].toExternalFiles()) == 1
-        assert merged.subdatasets[0].toExternalFiles() == AlignmentSet(data.getXml(7)).toExternalFiles()
+        assert merged.subdatasets[0].toExternalFiles(
+        ) == AlignmentSet(data.getXml(7)).toExternalFiles()
         assert len(merged.subdatasets[1].toExternalFiles()) == 1
-        assert merged.subdatasets[1].toExternalFiles() == AlignmentSet(data.getXml(10)).toExternalFiles()
+        assert merged.subdatasets[1].toExternalFiles() == AlignmentSet(
+            data.getXml(10)).toExternalFiles()
 
         # No filters, 3 files:
         ds1 = AlignmentSet(data.getXml(7))
@@ -477,7 +485,8 @@ class TestDataSet:
         dset.index
         assert len(dset.resourceReaders()) == 1
         # there is a minimum chunk size here:
-        assert len(list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
+        assert len(
+            list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
 
         # empty and full:
         dset = AlignmentSet(upstreamdata.getEmptyAlignedBam(), data.getBam())
@@ -541,7 +550,8 @@ class TestDataSet:
         assert len(list(dset)) == 0
         dset.updateCounts()
         assert len(dset.resourceReaders()) == 1
-        assert len(list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
+        assert len(
+            list(dset.split(contigs=True, maxChunks=12, breakContigs=True))) == 1
 
         # empty and full:
         dset = AlignmentSet(alnoutpath, data.getBam())
@@ -680,7 +690,8 @@ class TestDataSet:
                 unsorted_tEnd = rows.tEnd
 
                 # Sort (expected by CoveredIntervals)
-                sort_order = np.lexsort((list(unsorted_tEnd), list(unsorted_tStart)))
+                sort_order = np.lexsort(
+                    (list(unsorted_tEnd), list(unsorted_tStart)))
                 tStart = unsorted_tStart[sort_order].tolist()
                 tEnd = unsorted_tEnd[sort_order].tolist()
 
@@ -1113,7 +1124,8 @@ class TestDataSet:
     def test_addMetadata(self):
         ds = DataSet()
         ds.addMetadata(None, Name='LongReadsRock')
-        assert ds._metadata.getV(container='attrib', tag='Name') == 'LongReadsRock'
+        assert ds._metadata.getV(
+            container='attrib', tag='Name') == 'LongReadsRock'
         ds2 = DataSet(data.getXml(7))
         assert ds2._metadata.totalLength == 123588
         ds2._metadata.totalLength = 100000
@@ -1157,7 +1169,8 @@ class TestDataSet:
         aln2 = AlignmentSet(fn2, strict=True)
         assert explen == len(aln)
         assert explen == len(aln2)
-        assert not sorted(aln.toExternalFiles()) == sorted(aln2.toExternalFiles())
+        assert not sorted(aln.toExternalFiles()) == sorted(
+            aln2.toExternalFiles())
 
     def test_mixed_pbi_columns(self):
         import pbtestdata
@@ -1231,7 +1244,8 @@ class TestDataSet:
         assert len(list(ds.records)) == 92
 
     def test_toFofn(self):
-        assert DataSet("bam1.bam", "bam2.bam", strict=False, skipMissing=True).toFofn() == ['bam1.bam', 'bam2.bam']
+        assert DataSet("bam1.bam", "bam2.bam", strict=False,
+                       skipMissing=True).toFofn() == ['bam1.bam', 'bam2.bam']
         realDS = DataSet(data.getXml(8))
         files = realDS.toFofn()
         assert len(files) == 1
@@ -1246,7 +1260,8 @@ class TestDataSet:
         bogusDS = DataSet("bam1.bam", "bam2.bam", strict=False,
                           skipMissing=True)
         assert ['bam1.bam', 'bam2.bam'] == bogusDS.externalResources.resourceIds
-        assert DataSet("bam1.bam", "bam2.bam", strict=False, skipMissing=True).toExternalFiles() == ['bam1.bam', 'bam2.bam']
+        assert DataSet("bam1.bam", "bam2.bam", strict=False,
+                       skipMissing=True).toExternalFiles() == ['bam1.bam', 'bam2.bam']
         realDS = DataSet(data.getXml(8))
         files = realDS.toExternalFiles()
         assert len(files) == 1
@@ -1295,8 +1310,10 @@ class TestDataSet:
             rn = ds._idToRname(rId)
             assert rname == rn
             rlen = lengths[rn]
-            assert len(list(ds.readsInReference(rn))) == len(list(ds.readsInReference(rId)))
-            assert len(list(ds.readsInRange(rn, 0, rlen))) == len(list(ds.readsInRange(rId, 0, rlen)))
+            assert len(list(ds.readsInReference(rn))) == len(
+                list(ds.readsInReference(rId)))
+            assert len(list(ds.readsInRange(rn, 0, rlen))) == len(
+                list(ds.readsInRange(rId, 0, rlen)))
 
     def test_reads_in_range_indices(self):
         ds = AlignmentSet(data.getBam())
@@ -1370,6 +1387,7 @@ class TestDataSet:
         assert num > 100
 
         winId, winStart, winEnd = window
+
         def lengthInWindow(hit):
             return min(hit.tEnd, winEnd) - max(hit.tStart, winStart)
 
@@ -1401,7 +1419,7 @@ class TestDataSet:
         ds = DataSet(data.getXml(8))
         #refs = ['E.faecalis.1', 'E.faecalis.2']
         #readRefs = ['E.faecalis.1'] * 2 + ['E.faecalis.2'] * 9
-        #ds.filters.removeRequirement('rname')
+        # ds.filters.removeRequirement('rname')
         dss = list(ds.split(contigs=True))
         assert len(dss) == 12
         assert ['B.vulgatus.4', 'B.vulgatus.5',
@@ -1414,7 +1432,7 @@ class TestDataSet:
         assert len(list(dss[1].readsInSubDatasets())) == 20
 
         #ds2 = DataSet(data.getXml(13))
-        #ds2._makePerContigSubDatasets()
+        # ds2._makePerContigSubDatasets()
         #assert sorted([read.referenceName for read in ds2.readsInSubDatasets()]) == sorted(readRefs)
         #ds3 = DataSet(data.getXml(13))
         #assert len(list(ds3.readsInSubDatasets())) == 2
@@ -1477,18 +1495,18 @@ class TestDataSet:
         # associated with them:
         dss = list(ds.split(contigs=True, chunks=1))[0]
         assert dss.refLengths == {
-                'B.vulgatus.4': 1449,
-                'B.vulgatus.5': 1449,
-                'C.beijerinckii.13': 1433,
-                'C.beijerinckii.14': 1433,
-                'C.beijerinckii.9': 1433,
-                'E.coli.6': 1463,
-                'E.faecalis.1': 1482,
-                'E.faecalis.2': 1482,
-                'R.sphaeroides.1': 1386,
-                'S.epidermidis.2': 1472,
-                'S.epidermidis.3': 1472,
-                'S.epidermidis.4': 1472,
+            'B.vulgatus.4': 1449,
+            'B.vulgatus.5': 1449,
+            'C.beijerinckii.13': 1433,
+            'C.beijerinckii.14': 1433,
+            'C.beijerinckii.9': 1433,
+            'E.coli.6': 1463,
+            'E.faecalis.1': 1482,
+            'E.faecalis.2': 1482,
+            'R.sphaeroides.1': 1386,
+            'S.epidermidis.2': 1472,
+            'S.epidermidis.3': 1472,
+            'S.epidermidis.4': 1472,
         }
 
     def test_reads_in_contig(self):
@@ -1720,17 +1738,20 @@ class TestDataSet:
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 0
         ds1.metadata.summaryStats.readLenDist.binWidth = 0
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 0
         ds2.metadata.summaryStats.readLenDist.binWidth = 0
         ds3 = ds1 + ds2
         assert len(ds3.metadata.summaryStats.readLenDists) == 1
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         # one zero
         ds1 = DataSet(data.getXml(8))
@@ -1739,17 +1760,20 @@ class TestDataSet:
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 0
         ds1.metadata.summaryStats.readLenDist.binWidth = 0
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 20
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
         ds3 = ds1 + ds2
         assert len(ds3.metadata.summaryStats.readLenDists) == 1
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
 
         # other zero
         ds1 = DataSet(data.getXml(8))
@@ -1758,17 +1782,20 @@ class TestDataSet:
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 10
         ds1.metadata.summaryStats.readLenDist.binWidth = 10
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 0
         ds2.metadata.summaryStats.readLenDist.binWidth = 0
         ds3 = ds1 + ds2
         assert len(ds3.metadata.summaryStats.readLenDists) == 1
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
 
         # one zero more zero
         ds1 = DataSet(data.getXml(8))
@@ -1779,22 +1806,26 @@ class TestDataSet:
         ds3.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 0
         ds1.metadata.summaryStats.readLenDist.binWidth = 0
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 20
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
         ds3.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds3.metadata.summaryStats.readLenDist.minBinValue = 0
         ds3.metadata.summaryStats.readLenDist.binWidth = 0
         ds4 = ds1 + ds2 + ds3
         assert len(ds3.metadata.summaryStats.readLenDists) == 1
-        assert ds4.metadata.summaryStats.readLenDist.bins == [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
+        assert ds4.metadata.summaryStats.readLenDist.bins == [
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
 
         # other zero
         ds1 = DataSet(data.getXml(8))
@@ -1805,22 +1836,26 @@ class TestDataSet:
         ds3.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 10
         ds1.metadata.summaryStats.readLenDist.binWidth = 10
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 0
         ds2.metadata.summaryStats.readLenDist.binWidth = 0
         ds3.metadata.summaryStats.readLenDist.bins = (
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ds3.metadata.summaryStats.readLenDist.minBinValue = 0
         ds3.metadata.summaryStats.readLenDist.binWidth = 0
         ds4 = ds1 + ds2 + ds3
         assert len(ds3.metadata.summaryStats.readLenDists) == 1
-        assert ds4.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds4.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
 
     def test_multi_channel_dists(self):
         ds = DataSet(data.getBam())
@@ -1838,11 +1873,12 @@ class TestDataSet:
 
         # unmerged dists should increase in length:
         assert len(ds3.metadata.summaryStats.channelDists['HqBasPkMidDist']['G']) == 2 * len(
-                    ds.metadata.summaryStats.channelDists['HqBasPkMidDist']['G'])
+            ds.metadata.summaryStats.channelDists['HqBasPkMidDist']['G'])
         assert len(ds3.metadata.summaryStats.otherDists['PausinessDist']) == 2 * len(
-                    ds.metadata.summaryStats.otherDists['PausinessDist'])
+            ds.metadata.summaryStats.otherDists['PausinessDist'])
         # merged dists should not:
-        assert len(ds3.metadata.summaryStats.readLenDist) == len(ds.metadata.summaryStats.readLenDist)
+        assert len(ds3.metadata.summaryStats.readLenDist) == len(
+            ds.metadata.summaryStats.readLenDist)
 
     def test_distribution_name_accessor(self):
         exp = ['MovieName', 'MovieLength', 'NumFramesDropped',
@@ -1992,20 +2028,20 @@ class TestDataSet:
         assert ds2.metadata.summaryStats.prodDist.bins == [1576, 901, 399, 0]
         assert ds3.metadata.summaryStats.prodDist.bins == [3152, 1802, 798, 0]
         assert ds1.metadata.summaryStats.readLenDist.bins == [
-                            0, 62, 39, 36, 29, 37, 19, 29, 37, 32, 32, 40, 45,
-                            54, 73, 77, 97, 95, 49, 17, 2, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0]
+            0, 62, 39, 36, 29, 37, 19, 29, 37, 32, 32, 40, 45,
+            54, 73, 77, 97, 95, 49, 17, 2, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0]
         assert ds2.metadata.summaryStats.readLenDist.bins == [
-                            0, 62, 39, 36, 29, 37, 19, 29, 37, 32, 32, 40, 45,
-                            54, 73, 77, 97, 95, 49, 17, 2, 0, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0]
+            0, 62, 39, 36, 29, 37, 19, 29, 37, 32, 32, 40, 45,
+            54, 73, 77, 97, 95, 49, 17, 2, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0]
         assert ds3.metadata.summaryStats.readLenDist.bins == [
-                            0, 124, 78, 72, 58, 74, 38, 58, 74, 64, 64, 80, 90,
-                            108, 146, 154, 194, 190, 98, 34, 4, 0, 0, 0, 0, 0,
-                            0, 0, 0, 0, 0, 0]
+            0, 124, 78, 72, 58, 74, 38, 58, 74, 64, 64, 80, 90,
+            108, 146, 154, 194, 190, 98, 34, 4, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0]
         assert ds3.metadata.summaryStats.readLenDist.sampleSize == (
-                            ds1.metadata.summaryStats.readLenDist.sampleSize +
-                            ds2.metadata.summaryStats.readLenDist.sampleSize)
+            ds1.metadata.summaryStats.readLenDist.sampleSize +
+            ds2.metadata.summaryStats.readLenDist.sampleSize)
         # Lets check some manual values
         ds1 = DataSet(data.getXml(8))
         ds1.loadStats(data.getStats())
@@ -2013,37 +2049,49 @@ class TestDataSet:
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 10
         ds1.metadata.summaryStats.readLenDist.binWidth = 10
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 20
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
         assert ds1.metadata.summaryStats.readLenDist.sampleStd == 2322.805559802698
         assert ds2.metadata.summaryStats.readLenDist.sampleStd == 2322.805559802698
-        assert 4528.69384766 == pytest.approx(ds1.metadata.summaryStats.readLenDist.sampleMean)
-        assert 4528.69384766 == pytest.approx(ds2.metadata.summaryStats.readLenDist.sampleMean)
+        assert 4528.69384766 == pytest.approx(
+            ds1.metadata.summaryStats.readLenDist.sampleMean)
+        assert 4528.69384766 == pytest.approx(
+            ds2.metadata.summaryStats.readLenDist.sampleMean)
         assert ds1.metadata.summaryStats.readLenDist.sampleSize == 901
         assert ds2.metadata.summaryStats.readLenDist.sampleSize == 901
         ds3 = ds1 + ds2
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 10, 10, 9, 8, 7, 5, 3, 2, 1, 0, 1, 1]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 10, 9, 8, 7, 5, 3, 2, 1, 0, 1, 1]
         assert ds1.metadata.summaryStats.readLenDist.sampleSize == 901
         assert ds2.metadata.summaryStats.readLenDist.sampleSize == 901
         assert ds3.metadata.summaryStats.readLenDist.sampleSize == (
-                            ds1.metadata.summaryStats.readLenDist.sampleSize +
-                            ds2.metadata.summaryStats.readLenDist.sampleSize)
-        assert 4528.69384766 == pytest.approx(ds1.metadata.summaryStats.readLenDist.sampleMean)
-        assert 4528.69384766 == pytest.approx(ds2.metadata.summaryStats.readLenDist.sampleMean)
-        assert 4528.69384766 == pytest.approx(ds3.metadata.summaryStats.readLenDist.sampleMean)
+            ds1.metadata.summaryStats.readLenDist.sampleSize +
+            ds2.metadata.summaryStats.readLenDist.sampleSize)
+        assert 4528.69384766 == pytest.approx(
+            ds1.metadata.summaryStats.readLenDist.sampleMean)
+        assert 4528.69384766 == pytest.approx(
+            ds2.metadata.summaryStats.readLenDist.sampleMean)
+        assert 4528.69384766 == pytest.approx(
+            ds3.metadata.summaryStats.readLenDist.sampleMean)
 
-        assert 2322.805559802698 == pytest.approx(ds1.metadata.summaryStats.readLenDist.sampleStd)
-        assert 2322.805559802698 == pytest.approx(ds2.metadata.summaryStats.readLenDist.sampleStd)
-        assert 2322.16060475 == pytest.approx(ds3.metadata.summaryStats.readLenDist.sampleStd)
+        assert 2322.805559802698 == pytest.approx(
+            ds1.metadata.summaryStats.readLenDist.sampleStd)
+        assert 2322.805559802698 == pytest.approx(
+            ds2.metadata.summaryStats.readLenDist.sampleStd)
+        assert 2322.16060475 == pytest.approx(
+            ds3.metadata.summaryStats.readLenDist.sampleStd)
         # uses the bins, not the previous values for mean, std, etc.:
         assert ds3.metadata.summaryStats.readLenDist.sampleMed == 45
-        assert 105.0 == pytest.approx(ds3.metadata.summaryStats.readLenDist.sample95thPct)
+        assert 105.0 == pytest.approx(
+            ds3.metadata.summaryStats.readLenDist.sample95thPct)
 
         # now lets swap
         ds1 = DataSet(data.getXml(8))
@@ -2052,16 +2100,19 @@ class TestDataSet:
         ds2.loadStats(data.getStats())
         ds1.metadata.summaryStats.readLenDist.bins = (
             [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1])
-        assert ds1.metadata.summaryStats.readLenDist.bins == [0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
+        assert ds1.metadata.summaryStats.readLenDist.bins == [
+            0, 10, 9, 8, 7, 6, 4, 2, 1, 0, 0, 1]
         ds1.metadata.summaryStats.readLenDist.minBinValue = 20
         ds1.metadata.summaryStats.readLenDist.binWidth = 10
         ds2.metadata.summaryStats.readLenDist.bins = (
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1])
-        assert ds2.metadata.summaryStats.readLenDist.bins == [0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
+        assert ds2.metadata.summaryStats.readLenDist.bins == [
+            0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1]
         ds2.metadata.summaryStats.readLenDist.minBinValue = 10
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
         ds3 = ds1 + ds2
-        assert ds3.metadata.summaryStats.readLenDist.bins == [0, 1, 11, 10, 9, 8, 7, 5, 3, 1, 0, 1, 1]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            0, 1, 11, 10, 9, 8, 7, 5, 3, 1, 0, 1, 1]
 
         # now lets do some non-overlapping
         ds1 = DataSet(data.getXml(8))
@@ -2079,7 +2130,8 @@ class TestDataSet:
         ds2.metadata.summaryStats.readLenDist.minBinValue = 50
         ds2.metadata.summaryStats.readLenDist.binWidth = 10
         ds3 = ds1 + ds2
-        assert ds3.metadata.summaryStats.readLenDist.bins == [1, 1, 1, 0, 2, 2, 2]
+        assert ds3.metadata.summaryStats.readLenDist.bins == [
+            1, 1, 1, 0, 2, 2, 2]
         assert ds3.metadata.summaryStats.readLenDist.sampleMed == 55
         assert ds3.metadata.summaryStats.readLenDist.sample95thPct == 75
 
@@ -2088,8 +2140,8 @@ class TestDataSet:
         # TODO: make this fast again, then re-enable. Copying that much was
         # killer
         #ss = SubreadSet(data.getXml(10))
-        #ss.loadStats(data.getStats(0))
-        #ss.loadStats(data.getStats(1))
+        # ss.loadStats(data.getStats(0))
+        # ss.loadStats(data.getStats(1))
         #assert 153168.0 == ss.metadata.summaryStats.numSequencingZmws
         #assert 2876.0 == ss.subdatasets[0].metadata.summaryStats.numSequencingZmws
         #assert 150292.0 == ss.subdatasets[1].metadata.summaryStats.numSequencingZmws
@@ -2130,7 +2182,8 @@ class TestDataSet:
 
         assert obstbl == exptbl
         assert set(aln.tId) == {0}
-        assert aln.referenceInfo('ecoliK12_pbi_March2013') == aln.referenceInfo(0)
+        assert aln.referenceInfo(
+            'ecoliK12_pbi_March2013') == aln.referenceInfo(0)
 
     @pytest.mark.internal_data
     def test_two_xml(self):
@@ -2168,7 +2221,8 @@ class TestDataSet:
 
         assert obstbl == exptbl
         assert set(aln.tId) == {0}
-        assert aln.referenceInfo('ecoliK12_pbi_March2013') == aln.referenceInfo(0)
+        assert aln.referenceInfo(
+            'ecoliK12_pbi_March2013') == aln.referenceInfo(0)
 
     def assertListOfTuplesEqual(self, obslot, explot):
         assert len(obslot) == len(explot)
@@ -2229,7 +2283,8 @@ class TestDataSet:
         assert obstbl[0] == exptbl0
         assert obstbl[1] == exptbl1
         assert set(aln.tId) == {0, 1}
-        assert aln.referenceInfo('ecoliK12_pbi_March2013') == aln.referenceInfo(0)
+        assert aln.referenceInfo(
+            'ecoliK12_pbi_March2013') == aln.referenceInfo(0)
         assert aln.referenceInfo('lambda_NEB3011') == aln.referenceInfo(1)
 
     @pytest.mark.internal_data
@@ -2290,7 +2345,8 @@ class TestDataSet:
         assert obstbl[0] == exptbl0
         assert obstbl[1] == exptbl1
         assert set(aln.tId) == {0, 1}
-        assert aln.referenceInfo('ecoliK12_pbi_March2013') == aln.referenceInfo(0)
+        assert aln.referenceInfo(
+            'ecoliK12_pbi_March2013') == aln.referenceInfo(0)
         assert aln.referenceInfo('lambda_NEB3011') == aln.referenceInfo(1)
 
     def test_exceptions(self):
@@ -2308,8 +2364,8 @@ class TestDataSet:
         # fabricate one here:
         ss = SubreadSet(data.getXml(9))
         ss.externalResources[0].sts = ('/pbi/dept/secondary/siv/testdata/'
-                                         'SA3-Sequel/lambda/roche_SAT/'
-                                         'm54013_151205_032353.sts.xml')
+                                       'SA3-Sequel/lambda/roche_SAT/'
+                                       'm54013_151205_032353.sts.xml')
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         outXml = os.path.join(outdir, 'tempfile.xml')
         ss.write(outXml)
@@ -2339,9 +2395,9 @@ class TestDataSet:
         ss2 = SubreadSet(outXml2)
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
-                          b1 + b2 for b1, b2 in
-                          zip(ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins)]
+            b1 + b2 for b1, b2 in
+            zip(ss.metadata.summaryStats.readLenDist.bins,
+                ss2.metadata.summaryStats.readLenDist.bins)]
 
         # smoke tests
         ss3.metadata.summaryStats.insertReadLenDists
@@ -2373,9 +2429,9 @@ class TestDataSet:
         ss2 = SubreadSet(outXml2)
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
-                          b1 + b2 for b1, b2 in
-                          zip(ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins)]
+            b1 + b2 for b1, b2 in
+            zip(ss.metadata.summaryStats.readLenDist.bins,
+                ss2.metadata.summaryStats.readLenDist.bins)]
         ss4 = SubreadSet(outXml, outXml2)
 
         # one partial one full
@@ -2391,11 +2447,11 @@ class TestDataSet:
         ss2 = SubreadSet(outXml2)
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
-                          b1 + b2 for b1, b2 in
-                          zip_longest(
-                              ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins,
-                              fillvalue=0)]
+            b1 + b2 for b1, b2 in
+            zip_longest(
+                ss.metadata.summaryStats.readLenDist.bins,
+                ss2.metadata.summaryStats.readLenDist.bins,
+                fillvalue=0)]
         ss4 = SubreadSet(outXml, outXml2)
 
         # one full one partial
@@ -2411,11 +2467,11 @@ class TestDataSet:
         ss2 = SubreadSet(outXml2)
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
-                          b1 + b2 for b1, b2 in
-                          zip_longest(
-                              ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins,
-                              fillvalue=0)]
+            b1 + b2 for b1, b2 in
+            zip_longest(
+                ss.metadata.summaryStats.readLenDist.bins,
+                ss2.metadata.summaryStats.readLenDist.bins,
+                fillvalue=0)]
         ss4 = SubreadSet(outXml, outXml2)
 
         # two full
@@ -2430,9 +2486,9 @@ class TestDataSet:
         ss2 = SubreadSet(outXml2)
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
-                          b1 + b2 for b1, b2 in
-                          zip(ss.metadata.summaryStats.readLenDist.bins,
-                              ss2.metadata.summaryStats.readLenDist.bins)]
+            b1 + b2 for b1, b2 in
+            zip(ss.metadata.summaryStats.readLenDist.bins,
+                ss2.metadata.summaryStats.readLenDist.bins)]
         ss4 = SubreadSet(outXml, outXml2)
 
     @pytest.mark.internal_data
@@ -2448,7 +2504,8 @@ class TestDataSet:
 
         # record the original paths:
         path_map = {}
-        recorder = lambda x, m=path_map: m.setdefault(os.path.split(x)[1], x)
+        def recorder(x, m=path_map): return m.setdefault(
+            os.path.split(x)[1], x)
         sset._changePaths(recorder)
 
         # make the paths relative and write out dataset with all missing:
@@ -2460,7 +2517,7 @@ class TestDataSet:
             sset = SubreadSet(outXml)
 
         # check that rescuing fixes it:
-        replacer = lambda x, m=path_map: m[x]
+        def replacer(x, m=path_map): return m[x]
         sset = SubreadSet(outXml, skipMissing=True)
         sset._changePaths(replacer)
         sset.write(resXml, validate=False)
@@ -2474,7 +2531,7 @@ class TestDataSet:
             mod_pmap.pop(key)
             log.debug(key)
             # use dict.get to maintain the breakage:
-            replacer = lambda x, m=mod_pmap: m.get(x, x)
+            def replacer(x, m=mod_pmap): return m.get(x, x)
             sset = SubreadSet(outXml, skipMissing=True)
             sset._changePaths(replacer)
             sset.write(resXml, validate=False)

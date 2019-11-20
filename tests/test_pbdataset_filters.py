@@ -51,7 +51,8 @@ class TestDataSetFilters:
         assert str(ds1.filters) == '( rq > 0.85 AND rq < 0.99 )'
 
         ds1.filters.addFilter(length=[('>', '1000')])
-        assert  str(ds1.filters) == '( rq > 0.85 AND rq < 0.99 ) OR ( length > 1000 )'
+        assert str(
+            ds1.filters) == '( rq > 0.85 AND rq < 0.99 ) OR ( length > 1000 )'
 
         ds1.filters.removeFilter(0)
         assert str(ds1.filters) == '( length > 1000 )'
@@ -139,7 +140,8 @@ class TestDataSetFilters:
 
         ds0 = AlignmentSet(data.getXml(7))
         ds0.filters.broadcastFilters(filt2)
-        assert str(ds0.filters) == '( zm < 1000 AND zm > 0 ) OR ( zm < 2000 AND zm > 1000 )'
+        assert str(
+            ds0.filters) == '( zm < 1000 AND zm > 0 ) OR ( zm < 2000 AND zm > 1000 )'
 
         # one filter:
         ds1 = AlignmentSet(data.getXml(7))
@@ -147,14 +149,15 @@ class TestDataSetFilters:
         assert len(list(ds1.records)) == 20
 
         ds1.filters.broadcastFilters(filt1)
-        assert str(ds1.filters) == '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 )'
+        assert str(
+            ds1.filters) == '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 )'
 
         ds1 = AlignmentSet(data.getXml(7))
         ds1.filters.addRequirement(rname=[('=', 'E.faecalis.1')])
         ds1.filters.broadcastFilters(filt2)
         assert str(ds1.filters) == (
-             '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
-             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 )')
+            '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+            '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 )')
 
         # two filters:
         ds2 = AlignmentSet(data.getXml(7))
@@ -164,18 +167,18 @@ class TestDataSetFilters:
 
         ds2.filters.broadcastFilters(filt1)
         assert str(ds2.filters) == (
-             '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
-             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 )')
+            '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+            '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 )')
 
         ds2 = AlignmentSet(data.getXml(7))
         ds2.filters.addRequirement(rname=[('=', 'E.faecalis.1'),
                                           ('=', 'E.faecalis.2')])
         ds2.filters.broadcastFilters(filt2)
         assert str(ds2.filters) == (
-             '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
-             '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 ) OR '
-             '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 ) OR '
-             '( rname = E.faecalis.2 AND zm < 2000 AND zm > 1000 )')
+            '( rname = E.faecalis.1 AND zm < 1000 AND zm > 0 ) OR '
+            '( rname = E.faecalis.2 AND zm < 1000 AND zm > 0 ) OR '
+            '( rname = E.faecalis.1 AND zm < 2000 AND zm > 1000 ) OR '
+            '( rname = E.faecalis.2 AND zm < 2000 AND zm > 1000 )')
 
     def test_context_filters(self):
         ss = SubreadSet(upstreamdata.getUnalignedBam())
@@ -309,9 +312,9 @@ class TestDataSetFilters:
         whitelist = ['c1/0/10_20', 'c1/1/0_10']
         blacklist = ['c1/1/0_10']
 
-        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
-        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[4]
-        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[4]
+        records = qnames2recarrays_by_size(records, {'c1': 1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1': 1}, dtype)[4]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1': 1}, dtype)[4]
 
         assert np.count_nonzero(recordMembership(records, whitelist)) == 2
         assert np.count_nonzero(recordMembership(records, blacklist)) == 1
@@ -323,9 +326,9 @@ class TestDataSetFilters:
         whitelist = ['c1/0']
         blacklist = ['c1/1']
 
-        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
-        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)[2]
-        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)[2]
+        records = qnames2recarrays_by_size(records, {'c1': 1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1': 1}, dtype)[2]
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1': 1}, dtype)[2]
 
         assert np.count_nonzero(recordMembership(records, whitelist)) == 2
         assert np.count_nonzero(recordMembership(records, blacklist)) == 2
@@ -337,9 +340,9 @@ class TestDataSetFilters:
         whitelist = ['c1/0', 'c1/1/0_10']
         blacklist = ['c1/0/0_10', 'c1/1']
 
-        records = qnames2recarrays_by_size(records, {'c1':1}, dtype)[4]
-        whitelist = qnames2recarrays_by_size(whitelist, {'c1':1}, dtype)
-        blacklist = qnames2recarrays_by_size(blacklist, {'c1':1}, dtype)
+        records = qnames2recarrays_by_size(records, {'c1': 1}, dtype)[4]
+        whitelist = qnames2recarrays_by_size(whitelist, {'c1': 1}, dtype)
+        blacklist = qnames2recarrays_by_size(blacklist, {'c1': 1}, dtype)
 
         whitelist_mask = recordMembership(records, whitelist[2])
         blacklist_mask = recordMembership(records, blacklist[2])
@@ -528,7 +531,8 @@ class TestDataSetFilters:
                 "Analysis_Results/m140913_005018_42139_c10071"
                 "3652400000001823152404301534_s1_p0.all.subreadset.xml")
         aln = SubreadSet(bam0, bam1)
-        assert len(set(aln.readGroupTable['ID'])) == len(aln.readGroupTable['ID'])
+        assert len(set(aln.readGroupTable['ID'])) == len(
+            aln.readGroupTable['ID'])
         assert len(set(aln.readGroupTable['ID'])) == 2
         assert len(set(aln.readGroupTable['ID'])) == len(set(aln.index.qId))
         assert len(aln) == 178570
@@ -538,7 +542,7 @@ class TestDataSetFilters:
         assert len(SubreadSet(bam1)) == len(aln)
 
         # aligned bam
-        #bam0 = ("/pbi/dept/secondary/siv/testdata/"
+        # bam0 = ("/pbi/dept/secondary/siv/testdata/"
         #        "SA3-DS/ecoli/2590956/0003/Alignment_Results/"
         #        "m140913_222218_42240_c1006999524000000018231"
         #        "39203261564_s1_p0.all.alignmentset.xml")
@@ -548,7 +552,8 @@ class TestDataSetFilters:
                 "m140913_005018_42139_c1007136524000000018231"
                 "52404301534_s1_p0.all.alignmentset.xml")
         aln = AlignmentSet(bam0, bam1)
-        assert len(set(aln.readGroupTable['ID'])) == len(aln.readGroupTable['ID'])
+        assert len(set(aln.readGroupTable['ID'])) == len(
+            aln.readGroupTable['ID'])
         assert len(set(aln.readGroupTable['ID'])) == 2
         assert len(set(aln.readGroupTable['ID'])) == len(set(aln.index.qId))
         assert len(aln) == 103144

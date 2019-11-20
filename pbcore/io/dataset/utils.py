@@ -15,6 +15,7 @@ import pysam
 
 log = logging.getLogger(__name__)
 
+
 def getTimeStampedName(mType):
     """Generate a timestamped name using the given metatype 'mType' and the
     current UTC time"""
@@ -23,9 +24,11 @@ def getTimeStampedName(mType):
     time = datetime.datetime.utcnow().strftime("%y%m%d_%H%M%S%f")[:-3]
     return "{m}-{t}".format(m=mType, t=time)
 
+
 def getCreatedAt():
     """Generate a CreatedAt string using the current UTC time"""
     return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S%f")[:-6]
+
 
 def which(exe):
     if os.path.exists(exe) and os.access(exe, os.X_OK):
@@ -36,6 +39,7 @@ def which(exe):
         if os.path.exists(this_path) and os.access(this_path, os.X_OK):
             return this_path
     return None
+
 
 def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
     log.debug("Consolidating to {o}".format(o=outbam))
@@ -52,7 +56,7 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
                                o=os.path.split(outbam)[0],
                                p=projected_size * 1.05,
                                a=final_free_space
-                               ))
+                           ))
     # indset is a dataset, not a filename. So we need to write the dataset out
     # to a file anyway. We'll use tmp for that, but we won't go so far as to
     # copy the actual resources:
@@ -82,6 +86,7 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
         shutil.rmtree(tmpout)
     return outbam
 
+
 def _tmpFiles(inFiles, tmpout=None):
     tmpInFiles = []
     if tmpout is None:
@@ -92,14 +97,17 @@ def _tmpFiles(inFiles, tmpout=None):
         tmpInFiles.append(newfn)
     return tmpInFiles
 
+
 def disk_free(path):
     if path == '':
         path = os.getcwd()
     space = os.statvfs(path)
     return space.f_bavail * space.f_frsize
 
+
 def file_size(path):
     return os.stat(path).st_size
+
 
 def _pbindexBam(fname):
     args = ["pbindex", fname]
@@ -107,13 +115,16 @@ def _pbindexBam(fname):
     subprocess.check_call(args)
     return fname + ".pbi"
 
+
 def _indexBam(fname):
     pysam.samtools.index(fname, catch_stdout=False)
     return fname + ".bai"
 
+
 def _indexFasta(fname):
     pysam.samtools.faidx(fname, catch_stdout=False)
     return fname + ".fai"
+
 
 def _pbmergeXML(indset, outbam):
     args = ["pbmerge", "-o", outbam, indset]
@@ -121,9 +132,11 @@ def _pbmergeXML(indset, outbam):
     subprocess.check_call(args)
     return outbam
 
+
 def _infixFname(fname, infix):
     prefix, extension = os.path.splitext(fname)
     return prefix + str(infix) + extension
+
 
 def _earlyInfixFname(fname, infix):
     path, name = os.path.split(fname)
@@ -131,8 +144,10 @@ def _earlyInfixFname(fname, infix):
     tokens.insert(1, str(infix))
     return os.path.join(path, '.'.join(tokens))
 
+
 def _swapPath(dest, infile):
     return os.path.join(dest, os.path.split(infile)[1])
+
 
 def _fileCopy(dest, infile, uuid=None):
     fn = _swapPath(dest, infile)
@@ -151,6 +166,8 @@ def _fileCopy(dest, infile, uuid=None):
 # FIXME this is *not* numerically identical to the pbbam result!
 # FIXME also it would be better to use numpy array ops, but the code below
 # does not work for ndarray as written.
+
+
 def hash_combine_zmw(zmw):
     """
     Generate a unique hash for a ZMW, for use in downsampling filter.

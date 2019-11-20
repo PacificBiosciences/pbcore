@@ -14,6 +14,7 @@ from pbcore.io.dataset.DataSetValidator import validateFile
 
 log = logging.getLogger(__name__)
 
+
 class TestDataSet:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
@@ -28,9 +29,11 @@ class TestDataSet:
 
         assert ds.metadata.collections[0].getV('children', 'Automation')
         assert ds.metadata.collections[0].automation
-        ds.metadata.collections[0].automation.automationParameters.addParameter('foo', 'bar')
+        ds.metadata.collections[0].automation.automationParameters.addParameter(
+            'foo', 'bar')
         assert ds.metadata.collections[0].automation.automationParameters['foo'].value == 'bar'
-        assert ds.metadata.collections[0].automation.automationParameters.parameterNames == [None, 'foo']
+        assert ds.metadata.collections[0].automation.automationParameters.parameterNames == [
+            None, 'foo']
 
     def test_de_novo(self):
         ofn = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
@@ -89,8 +92,8 @@ class TestDataSet:
                          'm54013_151205_032353.run.metadata.xml')
         assert aln.metadata.collections
         sset_fn = ('/pbi/dept/secondary/siv/testdata/'
-                'SA3-Sequel/lambda/roche_SAT/'
-                'm54013_151205_032353.subreadset.xml')
+                   'SA3-Sequel/lambda/roche_SAT/'
+                   'm54013_151205_032353.subreadset.xml')
         sset = SubreadSet(sset_fn)
         orig_metadata = copy.deepcopy(sset.metadata)
         sset.metadata.collections = None
@@ -106,8 +109,8 @@ class TestDataSet:
 
         # load the wrong thing...
         sset_fn = ('/pbi/dept/secondary/siv/testdata/'
-                'SA3-Sequel/lambda/roche_SAT/'
-                'm54013_151205_032353.subreadset.xml')
+                   'SA3-Sequel/lambda/roche_SAT/'
+                   'm54013_151205_032353.subreadset.xml')
         sset = SubreadSet(sset_fn)
         orig_metadata = copy.deepcopy(sset.metadata)
         sset.metadata.collections = None
@@ -134,15 +137,16 @@ class TestDataSet:
     @pytest.mark.internal_data
     def test_merge(self):
         sset_fn = ('/pbi/dept/secondary/siv/testdata/'
-                'SA3-Sequel/lambda/roche_SAT/'
-                'm54013_151205_032353.subreadset.xml')
+                   'SA3-Sequel/lambda/roche_SAT/'
+                   'm54013_151205_032353.subreadset.xml')
         sset = SubreadSet(sset_fn)
         orig_metadata = copy.deepcopy(sset.metadata)
         assert len(sset.metadata.collections) == 1
         sset.metadata.collections.merge(orig_metadata.collections)
         assert len(sset.metadata.collections) == 2
         sset = SubreadSet(sset_fn)
-        sset.metadata.collections.merge(orig_metadata.collections, forceUnique=True)
+        sset.metadata.collections.merge(
+            orig_metadata.collections, forceUnique=True)
         assert len(sset.metadata.collections) == 1
 
     def test_merge_biosamples(self):

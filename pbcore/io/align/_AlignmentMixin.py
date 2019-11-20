@@ -1,16 +1,18 @@
 # Author: David Alexander
 
-__all__ = [ "AlignmentReaderMixin",
-            "AlignmentRecordMixin",
-            "IndexedAlignmentReaderMixin" ]
+__all__ = ["AlignmentReaderMixin",
+           "AlignmentRecordMixin",
+           "IndexedAlignmentReaderMixin"]
 
 import numpy as np
+
 
 class AlignmentReaderMixin:
     """
     Mixin class for higher-level functionality of alignment file
     readers.
     """
+
     def attach(self, fofnFilename):
         raise NotImplementedError()
 
@@ -24,6 +26,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
     Mixin class for alignment readers that have access to an alignment
     index.
     """
+
     def readsByName(self, query):
         """
         Identifies reads by name query.  The name query is interpreted as follows:
@@ -36,7 +39,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         """
         def rgIDs(movieName):
             return self.readGroupTable.ID[self.readGroupTable.MovieName == movieName]
-            #return self.movieInfoTable.ID[self.movieInfoTable.Name == movieName]
+            # return self.movieInfoTable.ID[self.movieInfoTable.Name == movieName]
 
         def rangeOverlap(w1, w2):
             s1, e1 = w1
@@ -58,16 +61,17 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         fields = query.split("/")
         movieName = fields[0]
         holeNumber = int(fields[1])
-        if len(fields) > 2: rQuery = fields[2]
-        else:               rQuery = "*"
+        if len(fields) > 2:
+            rQuery = fields[2]
+        else:
+            rQuery = "*"
 
         rgs = rgIDs(movieName)
         rns = np.flatnonzero(np.in1d(self.qId, rgs) &
                              (self.holeNumber == holeNumber))
-        alns = [ a for a in self[rns]
-                 if rQueryMatch(a.readName, rQuery) ]
+        alns = [a for a in self[rns]
+                if rQueryMatch(a.readName, rQuery)]
         return sorted(alns, key=lambda a: a.readStart)
-
 
     def readsByHoleNumber(self, hn):
         """

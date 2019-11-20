@@ -7,17 +7,21 @@ MOVIE_NAME_23 = "m140912_020930_00114_c100702482550000001823141103261590_s1_p0"
 MOVIE_NAME_CCS = "m130727_114215_42211_c100569412550000001823090301191423_s1_p0"
 MOVIE_NAME_BC = "m140307_221913_42203_c100626172550000001823119008061414_s1_p0"
 
+
 def _getAbsPath(fname):
-    return resource_filename(Requirement.parse('pbcore'),'pbcore/data/%s' % fname)
+    return resource_filename(Requirement.parse('pbcore'), 'pbcore/data/%s' % fname)
+
 
 def getCCSBAM():
     return _getAbsPath(MOVIE_NAME_CCS + '.ccs.bam')
+
 
 def getGff3():
     '''
     Returns the filename of an example GFFv3 file
     '''
     return _getAbsPath("variants.gff")
+
 
 def getFasta():
     '''
@@ -32,11 +36,13 @@ def getTinyFasta():
     """
     return _getAbsPath('Fluidigm_human_amplicons_tiny.fasta')
 
+
 def getLambdaFasta():
     """
     Returns the filename of the FASTA of the lambda phage reference.
     """
     return _getAbsPath('lambdaNEB.fa')
+
 
 def getDosFormattedFasta():
     """
@@ -44,18 +50,22 @@ def getDosFormattedFasta():
     """
     return _getAbsPath('barcodes-ed65-450.fasta')
 
+
 def getBlasrM4():
     return _getAbsPath('blasr-output.m4')
 
+
 def getBlasrM5():
     return _getAbsPath('blasr-output.m5')
+
 
 def getFofns():
     """
     Returns a list of FOFN files
     """
     return list(map(_getAbsPath,
-               ["datasets/fofn.fofn"]))
+                    ["datasets/fofn.fofn"]))
+
 
 def getBcFofn():
     return _getAbsPath("bc_files.fofn")
@@ -67,23 +77,29 @@ def getAlignedBam():
     """
     return _getAbsPath("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.aligned_subreads.bam")
 
+
 def getUnalignedBam():
     """
     Get the unaligned BAM file, corresponding to the same bax above
     """
     return _getAbsPath("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0.subreads.bam")
 
+
 def getEmptyBam():
     return _getAbsPath("empty.ccs.bam")
+
 
 def getEmptyAlignedBam():
     return _getAbsPath("empty.aligned_subreads.bam")
 
+
 def getMappingXml():
     return _getAbsPath("chemistry.xml")
 
+
 def getWeird():
     return _getAbsPath("weird.fa")
+
 
 def getEmptyBam2():
     return _getAbsPath("empty2.bam")

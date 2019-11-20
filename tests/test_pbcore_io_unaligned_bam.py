@@ -4,6 +4,7 @@ from pbcore import data
 from pbcore.io import BamReader
 from pbcore.io.align._BamSupport import UnavailableFeature
 
+
 class TestUnalignedBam:
 
     @classmethod

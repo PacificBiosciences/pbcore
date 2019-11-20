@@ -29,8 +29,8 @@ class TestFastqRecord:
     SEQUENCE = "GATTACA" * 20
     RC_SEQUENCE = "TGTAATC" * 20
     LENGTH = 140
-    QUALITY  = [10,11,12,13,14,15,16] * 20
-    RC_QUALITY = [16,15,14,13,12,11,10] * 20
+    QUALITY = [10, 11, 12, 13, 14, 15, 16] * 20
+    RC_QUALITY = [16, 15, 14, 13, 12, 11, 10] * 20
     QUALITYSTRING = "+,-./01" * 20
     RC_QUALITYSTRING = "10/.-,+" * 20
     EXPECTED__STR__ = (
@@ -64,7 +64,8 @@ class TestFastqRecord:
     @classmethod
     def setup_class(cls):
         cls.record = FastqRecord(cls.HEADER, cls.SEQUENCE, cls.QUALITY)
-        cls.record2 = FastqRecord(cls.HEADER, cls.SEQUENCE, qualityString=cls.QUALITYSTRING)
+        cls.record2 = FastqRecord(
+            cls.HEADER, cls.SEQUENCE, qualityString=cls.QUALITYSTRING)
         cls.rc1_record = cls.record.reverseComplement()
         cls.rc2_record = cls.record.reverseComplement(True)
 
@@ -145,7 +146,7 @@ class TestFastqReader:
         r2 = FastqReader(self.FASTQ2)
         l = list(rec for rec in r2)
         assert [FastqRecord("seq1", "GATTACA", range(22, 29)),
-                FastqRecord("seq2", "CATTAGA", [31]*7) ] == l
+                FastqRecord("seq2", "CATTAGA", [31]*7)] == l
 
 
 class TestFastqWriter:

@@ -93,11 +93,14 @@ FILE_INDICES = OrderedDict([('.fai', 'PacBio.Index.SamIndex'),
                             ('.index', 'PacBio.Index.Indexer'),
                             ('.sa', 'PacBio.Index.SaWriterIndex')])
 
+
 def uri2fn(fn):
     return unquote(urlparse(fn).path.strip())
 
+
 def uri2scheme(fn):
     return urlparse(fn).scheme
+
 
 def newUuid(record):
     # At some point the uuid may need to be a digest
@@ -105,12 +108,13 @@ def newUuid(record):
     #newId = str(hashlib.md5(str(record)).hexdigest())
 
     # Group appropriately
-    #newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
+    # newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
     #                  newId[20:]])
-    #return newId
+    # return newId
 
     # Today is not that day
     return str(uuid.uuid4())
+
 
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
@@ -118,12 +122,14 @@ def map_val_or_vec(func, target):
     else:
         return func(target)
 
+
 def recordMembership(records, constraints):
     # constraints might contain fewer columns than records, but you cannot skip
     # columns. So we can slice the first columns of records to match
     # constraints. Both are recarrays
     subarrs1 = records[list(records.dtype.names[:len(constraints.dtype)])]
     return np.in1d(subarrs1, constraints)
+
 
 def reccheck(records, qname_tables):
     """Create a mask for those records present in qname_tables. qname_tables is
@@ -139,6 +145,7 @@ def reccheck(records, qname_tables):
     for table in qname_tables.values():
         mask |= recordMembership(records, table)
     return mask
+
 
 def inOp(ar1, ar2):
     # Special case: ar2 can be a dictionary of {num_fields: qname_recarray},
@@ -171,7 +178,7 @@ OPMAP = {'==': OP.eq,
          'not_in': lambda x, y: ~inOp(x, y),
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
-        }
+         }
 
 # These functions should take np.ndarrays that are already a reasonable type
 # (e.g. from dset.index.holeNumber, which is already in 32bit int)
@@ -185,14 +192,18 @@ HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
            'BoostHashCombine': lambda x: hash_combine_zmws(x),
            }
 
+
 def mapOp(op):
     return OPMAP[op]
 
+
 def make_mod_hash_acc(accessor, mod, hashname):
     hashfunc = HASHMAP[hashname]
+
     def accNmod(records):
         return hashfunc(accessor(records)) % mod
     return accNmod
+
 
 def str2list(value):
     value = value.strip('set')
@@ -206,12 +217,15 @@ def str2list(value):
     value = [v.strip("'") for v in value]
     return value
 
+
 def setify(value):
     return np.unique(str2list(value))
+
 
 def fromFile(value):
     with open(value, 'r', newline=None) as ifh:
         return np.unique([val.strip() for val in ifh])
+
 
 def isListString(string):
     """Detect if string is actually a representation a stringified list"""
@@ -220,10 +234,12 @@ def isListString(string):
     if len(listver) > 1 or re.search(r'[\[\(\{].+[\}\)\]]', string):
         return True
 
+
 def isFile(string):
     if isinstance(string, str) and os.path.exists(string):
         return True
     return False
+
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
@@ -231,6 +247,7 @@ def qnamer(qid2mov, qId, hn, qs, qe):
     for (k, v) in qid2mov.items():
         movs[qId == k] = v
     return (movs, hn, qs, qe)
+
 
 def breakqname(qname):
     tbr = []
@@ -249,6 +266,7 @@ def breakqname(qname):
             tbr.append(int(span[1]))
     return tbr
 
+
 def qname2vec(qnames, movie_map):
     """Break a list of qname strings into a list of qname field tuples"""
     if isinstance(qnames, str):
@@ -259,6 +277,7 @@ def qname2vec(qnames, movie_map):
         parts[0] = movie_map[parts[0]]
         sizes[len(parts)].append(tuple(parts))
     return sizes
+
 
 def qnames2recarrays_by_size(qnames, movie_map, dtype):
     """Note that qname filters can be specified as partial qnames. Therefore we
@@ -280,6 +299,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
         tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
     return tbr
 
+
 class PbiFlags:
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
@@ -296,6 +316,7 @@ class PbiFlags:
         return reduce(OP.or_,
                       (getattr(cls, fl.strip()) for fl in flag.split('|')))
 
+
 def subgetter(key, container='text', default=None, asType=(lambda x: x),
               attrib=None):
     def get(self):
@@ -303,11 +324,13 @@ def subgetter(key, container='text', default=None, asType=(lambda x: x),
                                asType=asType, attrib=attrib)
     return property(get)
 
+
 def subsetter(key, container='text', attrib=None):
     def set(self, value):
         self._runCallbacks()
         self.setMemberV(key, str(value), container=container, attrib=attrib)
     return set
+
 
 def subaccs(key, container='text', default=None, asType=(lambda x: x),
             attrib=None):
@@ -315,6 +338,7 @@ def subaccs(key, container='text', default=None, asType=(lambda x: x),
                     attrib=attrib)
     get = get.setter(subsetter(key, container=container, attrib=attrib))
     return get
+
 
 def getter(key, container='attrib', asType=(lambda x: x), parent=False):
     def get(self):
@@ -324,16 +348,19 @@ def getter(key, container='attrib', asType=(lambda x: x), parent=False):
             return asType(self.getV(container, key))
     return property(get)
 
+
 def setter(key, container='attrib'):
     def set(self, value):
         self._runCallbacks()
         self.setV(str(value), container, key)
     return set
 
+
 def accs(key, container='attrib', asType=(lambda x: x), parent=False):
     get = getter(key, container, asType, parent=parent)
     get = get.setter(setter(key, container))
     return get
+
 
 def runonce(func):
     def runner():
@@ -345,9 +372,11 @@ def runonce(func):
     runner.hasrun = False
     return runner
 
+
 def updateTag(ele, tag):
     if ele.metaname == '':
         ele.metaname = tag
+
 
 def updateNamespace(ele, ns):
     if ele.namespace == '':
@@ -398,7 +427,6 @@ class RecordWrapper:
         # we can just update it:
         if not self.record.get('namespace', ''):
             self.record['namespace'] = NAMESPACES[self.NS]
-
 
     def registerCallback(self, func):
         if func not in self._callbacks:
@@ -650,13 +678,16 @@ class RecordWrapper:
     uniqueId = accs('UniqueId')
     createdAt = accs('CreatedAt')
 
+
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
+
 
 def n_subreads(index):
     _, inverse, counts = np.unique(index.holeNumber, return_inverse=True,
                                    return_counts=True)
     return counts[inverse]
+
 
 class Filters(RecordWrapper):
     NS = 'pbds'
@@ -727,7 +758,7 @@ class Filters(RecordWrapper):
             for req in filt:
                 if req.name == param:
                     if not mapOp(oper)(testType(value),
-                                            testType(req.value)):
+                                       testType(req.value)):
                         options[i] = False
         return any(options)
 
@@ -752,7 +783,7 @@ class Filters(RecordWrapper):
                 'movie': (lambda x: x.movieName),
                 'zm': (lambda x: int(x.HoleNumber)),
                 # not implemented yet:
-                #'bc': (lambda x: x.barcode),
+                # 'bc': (lambda x: x.barcode),
                 # pbi mediated alt:
                 'bc': (lambda x: (x.bam.pbi[x.rowNumber]['bcForward'],
                                   x.bam.pbi[x.rowNumber]['bcReverse'])),
@@ -765,21 +796,21 @@ class Filters(RecordWrapper):
                 'tstart': (lambda x: int(x.tStart)),
                 'tend': (lambda x: int(x.tEnd)),
                 'n_subreads': (lambda x: len(np.flatnonzero(
-                                            x.reader.holeNumber ==
-                                            x.HoleNumber))),
-               }
+                    x.reader.holeNumber ==
+                    x.HoleNumber))),
+                }
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
                 'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
-                                      'qEnd']]),
+                                       'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
                 'readstart': (lambda x: int(x.aStart)),
                 'tstart': (lambda x: int(x.tStart)),
                 'tend': (lambda x: int(x.tEnd)),
-               }
+                }
 
     def _pbiMappedVecAccMap(self):
         plus = {'rname': (lambda x: x.tId),
@@ -796,9 +827,9 @@ class Filters(RecordWrapper):
                 'mapqv': (lambda x: x.mapQV),
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
-                               (x.nMM + x.nIns + x.nDel).astype(np.float)/
+                               (x.nMM + x.nIns + x.nDel).astype(np.float) /
                                (x.nM + x.nMM + x.nIns)))
-               }
+                }
         base = self._pbiVecAccMap()
         base.update(plus)
         return base
@@ -808,7 +839,7 @@ class Filters(RecordWrapper):
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
                 'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
-                                      'qEnd']]),
+                                       'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -820,7 +851,7 @@ class Filters(RecordWrapper):
                 'bc': (lambda x: x['bcForward', 'bcReverse']),
                 'cx': (lambda x: x.contextFlag),
                 'n_subreads': n_subreads,
-               }
+                }
 
     @property
     def _bamTypeMap(self):
@@ -847,7 +878,7 @@ class Filters(RecordWrapper):
                 'cx': PbiFlags.flagMap,
                 'n_subreads': int,
                 'mapqv': int,
-               }
+                }
 
     def tests(self, readType="bam", tIdMap=None):
         # Allows us to not process all of the filters each time. This is marked
@@ -860,10 +891,10 @@ class Filters(RecordWrapper):
         elif readType.lower() == "fasta":
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(len(x))),
-                     }
+                      }
             typeMap = {'id': str,
                        'length': int,
-                      }
+                       }
         elif readType.lower() == "pbi":
             accMap = self._pbiAccMap()
             typeMap = self._bamTypeMap
@@ -901,10 +932,10 @@ class Filters(RecordWrapper):
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: x.length.astype(int)),
-                     }
+                      }
             typeMap = {'id': str,
                        'length': int,
-                      }
+                       }
 
         filterLastResult = np.zeros(len(indexRecords), dtype=np.bool_)
         for filt in self:
@@ -940,9 +971,9 @@ class Filters(RecordWrapper):
                         value = map_val_or_vec(movieMap.get, value)
                     elif param == 'qname':
                         value = qnames2recarrays_by_size(
-                                value, movieMap,
-                                dtype=indexRecords[['qId', 'holeNumber',
-                                                    'qStart', 'qEnd']].dtype)
+                            value, movieMap,
+                            dtype=indexRecords[['qId', 'holeNumber',
+                                                'qStart', 'qEnd']].dtype)
 
                     if param == 'bc':
                         # convert string to list:
@@ -966,7 +997,7 @@ class Filters(RecordWrapper):
                         accessor = accMap[param]
                         if req.modulo is not None:
                             accessor = make_mod_hash_acc(accessor, req.modulo,
-                                                          req.hashfunc)
+                                                         req.hashfunc)
                         reqResultsForRecords = operator(
                             accessor(indexRecords), value)
                     lastResult &= reqResultsForRecords
@@ -1000,7 +1031,8 @@ class Filters(RecordWrapper):
         if self.submetadata:
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
-            newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
+            newFilts = [copy.deepcopy(origFilts)
+                        for _ in list(kwargs.values())[0]]
             for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
@@ -1177,6 +1209,7 @@ class Filter(RecordWrapper):
     def merge(self, other):
         pass
 
+
 class Properties(RecordWrapper):
     NS = 'pbbase'
 
@@ -1214,7 +1247,7 @@ class Property(RecordWrapper):
 
     @property
     def modulo(self):
-        #optional:
+        # optional:
         if 'Modulo' not in self.metadata:
             return None
         value = self.metadata['Modulo']
@@ -1231,7 +1264,7 @@ class Property(RecordWrapper):
 
     @property
     def hashfunc(self):
-        #optional:
+        # optional:
         if 'Hash' not in self.metadata:
             return None
         return self.metadata['Hash']
@@ -1328,7 +1361,6 @@ class ExternalResources(RecordWrapper):
         if not self.namespace:
             self.namespace = other.namespace
             self.attrib.update(other.attrib)
-
 
     def addResources(self, resourceIds):
         """Add a new external reference with the given uris. If you're looking
@@ -1487,7 +1519,8 @@ class ExternalResource(RecordWrapper):
 
     @control.setter
     def control(self, value):
-        self._setSubResByMetaType('PacBio.SubreadFile.Control.SubreadBamFile', value)
+        self._setSubResByMetaType(
+            'PacBio.SubreadFile.Control.SubreadBamFile', value)
 
     @property
     def barcodes(self):
@@ -1642,6 +1675,7 @@ class ExternalResource(RecordWrapper):
                 temp = FileIndex()
                 temp.resourceId = index
                 fileIndices.append(temp)
+
 
 class FileIndices(RecordWrapper):
     NS = 'pbbase'
@@ -1798,11 +1832,12 @@ class BioSamplesMetadata(RecordWrapper):
         self._runCallbacks()
 
     def merge(self, other):
-        bio_samples = {bs.name:bs for bs in self}
+        bio_samples = {bs.name: bs for bs in self}
         for bio_sample in other:
             if bio_sample.name in bio_samples:
                 current = bio_samples[bio_sample.name]
-                dna_bcs = {(bc.name, bc.uniqueId) for bc in current.DNABarcodes}
+                dna_bcs = {(bc.name, bc.uniqueId)
+                           for bc in current.DNABarcodes}
                 for dna_bc in bio_sample.DNABarcodes:
                     if (dna_bc.name, dna_bc.uniqueId) in dna_bcs:
                         continue
@@ -1992,7 +2027,8 @@ class Provenance(RecordWrapper):
 
     createdBy = accs('CreatedBy')
     parentTool = accs('ParentTool', container='children', asType=ParentTool)
-    parentDataSet = accs("ParentDataSet", container="children", asType=ParentDataSet)
+    parentDataSet = accs(
+        "ParentDataSet", container="children", asType=ParentDataSet)
 
     def addParentDataSet(self, uniqueId, metaType, timeStampedName):
         new = ParentDataSet()
@@ -2166,6 +2202,7 @@ class StatsMetadata(RecordWrapper):
     def insertReadLenDist(self):
         return ContinuousDistribution(self.getV('children',
                                                 'InsertReadLenDist'))
+
     @property
     def insertReadQualDists(self):
         return [ContinuousDistribution(child) for child in
@@ -2185,6 +2222,7 @@ class StatsMetadata(RecordWrapper):
     def medianInsertDist(self):
         return ContinuousDistribution(self.getV('children',
                                                 'MedianInsertDist'))
+
     @property
     def medianInsertDists(self):
         return [ContinuousDistribution(child)
@@ -2237,6 +2275,7 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
     for scrap in bins1 or bins2:
         yield scrap
 
+
 def histogram_percentile(counts, labels, percentile):
     thresh = np.true_divide(percentile * sum(counts), 100.0)
     passed = 0
@@ -2245,6 +2284,7 @@ def histogram_percentile(counts, labels, percentile):
         if passed >= thresh:
             return l
     return labels[-1]
+
 
 class ContinuousDistribution(RecordWrapper):
 
@@ -2327,7 +2367,6 @@ class ContinuousDistribution(RecordWrapper):
     minBinValue = subaccs('MinBinValue', asType=float)
     maxBinValue = subaccs('MaxBinValue', asType=float)
 
-
     @property
     def description(self):
         return self.getMemberV('MetricDescription')
@@ -2355,6 +2394,7 @@ class ContinuousDistribution(RecordWrapper):
         return [self.minBinValue + i * self.binWidth for i in
                 range(len(self.bins))]
 
+
 class ZeroBinWidthError(Exception):
 
     def __init__(self, width1, width2):
@@ -2365,8 +2405,10 @@ class ZeroBinWidthError(Exception):
         return "Zero bin width: {w1}, {w2}".format(w1=self.width1,
                                                    w2=self.width2)
 
+
 class BinMismatchError(Exception):
     pass
+
 
 class BinWidthMismatchError(BinMismatchError):
 
@@ -2378,6 +2420,7 @@ class BinWidthMismatchError(BinMismatchError):
         return "Bin width mismatch: {w1} != {w2}".format(w1=self.width1,
                                                          w2=self.width2)
 
+
 class BinNumberMismatchError(BinMismatchError):
 
     def __init__(self, num1, num2):
@@ -2388,6 +2431,7 @@ class BinNumberMismatchError(BinMismatchError):
         return "Bin number mismatch: {w1} != {w2}".format(w1=self.num1,
                                                           w2=self.num2)
 
+
 class BinBoundaryMismatchError(BinMismatchError):
 
     def __init__(self, min1, min2):
@@ -2397,6 +2441,7 @@ class BinBoundaryMismatchError(BinMismatchError):
     def __str__(self):
         return "Bin boundary offset mismatch, minVals: {w1} != {w2}".format(
             w1=self.min1, w2=self.min2)
+
 
 class DiscreteDistribution(RecordWrapper):
 
@@ -2544,14 +2589,17 @@ class PrimaryMetadata(RecordWrapper):
     outputOptions = accs('OutputOptions', container='children',
                          asType=OutputOptions)
 
+
 class Kit(RecordWrapper):
     partNumber = accs('PartNumber')
     lotNumber = accs('LotNumber')
     barcode = accs('Barcode')
     expirationDate = accs('ExpirationDate')
 
+
 class CellPac(Kit):
     NS = 'pbmeta'
+
 
 class TemplatePrepKit(Kit):
     """TemplatePrepKit metadata"""
@@ -2559,8 +2607,10 @@ class TemplatePrepKit(Kit):
     rightAdaptorSequence = subaccs('RightAdaptorSequence')
     leftAdaptorSequence = subaccs('LeftAdaptorSequence')
 
+
 class BindingKit(Kit):
     pass
+
 
 class SequencingKitPlate(Kit):
     pass
@@ -2592,7 +2642,8 @@ class CollectionMetadata(RecordWrapper):
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
     secondary = accs('Secondary', 'children', SecondaryMetadata)
-    consensusReadSetRef = accs("ConsensusReadSetRef", 'children', ConsensusReadSetRef)
+    consensusReadSetRef = accs(
+        "ConsensusReadSetRef", 'children', ConsensusReadSetRef)
 
     @property
     def runDetails(self):
