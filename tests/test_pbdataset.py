@@ -1,5 +1,6 @@
 from functools import partial, reduce
 from itertools import zip_longest
+import subprocess
 import pytest
 import os
 import sys
@@ -8,6 +9,7 @@ import logging
 import tempfile
 from urllib.parse import quote
 import shutil
+
 import numpy as np
 from numpy.testing import assert_array_equal
 
@@ -24,7 +26,6 @@ from pbcore.io.dataset.DataSetMembers import (ExternalResource, Filters,
 from pbcore.io.dataset.DataSetIO import _pathChanger
 from pbcore.io.dataset.DataSetValidator import validateFile
 from pbcore.io.dataset.DataSetUtils import loadMockCollectionMetadata
-from pbcore.util.Process import backticks
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
@@ -761,7 +762,7 @@ class TestDataSet:
         data_fname = data.getBam(0)
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
         tempout = os.path.join(outdir, os.path.basename(data_fname))
-        backticks('cp {i} {o}'.format(i=data_fname, o=tempout))
+        subprocess.check_call(["cp", data_fname, tempout])
         aln = AlignmentSet(tempout, strict=False)
         assert aln.totalLength == 0
         assert aln.numRecords == 0

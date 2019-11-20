@@ -5,6 +5,7 @@
 Classes representing DataSets of various types.
 """
 
+import subprocess
 import copy
 import errno
 import hashlib
@@ -22,7 +23,6 @@ from urllib.parse import urlparse
 from functools import wraps, partial, reduce
 from collections import defaultdict, Counter
 
-from pbcore.util.Process import backticks
 from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
@@ -1373,8 +1373,8 @@ class DataSet:
     def copyFiles(self, outdir):
         """Copy all of the top level ExternalResources to an output
         directory 'outdir'"""
-        backticks('cp {i} {o}'.format(i=' '.join(self.toExternalFiles()),
-                                      o=outdir))
+        args = ["cp"] + list(self.toExternalFiles()) + [outdir]
+        return subprocess.check_call(args)
 
     def disableFilters(self):
         """Disable read filtering for this object"""
