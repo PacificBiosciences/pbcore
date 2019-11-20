@@ -2,19 +2,25 @@
 
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
-from pbcore.io import FastaTable
-from pbcore.chemistry import decodeTriple, ChemistryLookupError
-
-import numpy as np
-from itertools import groupby
 from functools import wraps
 from os.path import abspath, expanduser, exists
 
+import numpy as np
+from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
+
+
+from pbcore.io import FastaTable
+from pbcore.chemistry import decodeTriple
 from ..base import ReaderBase
 from .PacBioBamIndex import PacBioBamIndex
-from .BamAlignment import *
-from ._BamSupport import *
+from .BamAlignment import BamAlignment
+from ._BamSupport import (BASE_FEATURE_TAGS,
+                          PULSE_FEATURE_TAGS,
+                          rgAsInt,
+                          UnavailableFeature,
+                          Unimplemented,
+                          IncompatibleFile,
+                          ReferenceMismatch)
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
 
 

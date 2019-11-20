@@ -11,14 +11,13 @@ __all__ = [ "Gff3Record",
             "GffReader",
             "GffWriter" ]
 
-from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
 from functools import total_ordering
 import logging
-import tempfile
 import os.path
 
+from .base import ReaderBase, WriterBase
 
 @total_ordering
 class Gff3Record:
@@ -198,13 +197,13 @@ class GffWriter(WriterBase):
 def floatValue(s):
     try:
         return float(s)
-    except:
+    except ValueError:
         return None
 
 def integerValue(s):
     try:
         return int(s)
-    except:
+    except ValueError:
         return None
 
 def grok(s):

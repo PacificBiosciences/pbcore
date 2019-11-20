@@ -2,13 +2,10 @@
 
 from os.path import abspath, expanduser
 from struct import unpack
-import math
-import gc
 
 import numpy as np
-import numpy.lib.recfunctions as nlr
-
 from Bio.bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
+
 from ._BamSupport import IncompatibleFile
 
 __all__ = ["PacBioBamIndex"]
@@ -31,7 +28,7 @@ class PbIndexBase:
          self.vMajor, self.pbiFlags, self.nReads) = header
         try:
             assert (self.vMajor, self.vMinor, self.vPatch) >= (3, 0, 1)
-        except:
+        except AssertionError:
             raise IncompatibleFile(
                 "This PBI file is incompatible with this API "
                 "(only PacBio PBI files version >= 3.0.1 are supported)")

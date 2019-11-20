@@ -3,9 +3,10 @@
 
 """ Input and output functions for DataSet XML files"""
 
-import copy, time
 import xml.etree.ElementTree as ET
 import logging
+import copy
+import time
 
 log = logging.getLogger(__name__)
 

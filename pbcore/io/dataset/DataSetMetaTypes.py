@@ -1,6 +1,7 @@
 # Author: Martin D. Smith
 
 import logging
+
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,)
 
 log = logging.getLogger(__name__)

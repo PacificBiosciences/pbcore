@@ -1,9 +1,9 @@
 # Authors: David Alexander
 
-from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser
 import xml.etree.ElementTree as ET
 
+from pbcore.io.base import getFileHandle
 
 __all__ = [ "readFofn",
             "readInputXML",

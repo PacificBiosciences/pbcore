@@ -11,10 +11,11 @@ __all__ = [ "FastqRecord",
             "asciiFromQvs" ]
 
 import numpy as np
+
+from pbcore.util.decorators import deprecated
+from pbcore import sequence
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
-from pbcore import sequence
-from pbcore.util.decorators import deprecated
 
 class FastqRecord:
     """

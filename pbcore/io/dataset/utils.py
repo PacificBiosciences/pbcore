@@ -9,7 +9,6 @@ import subprocess
 import os
 import tempfile
 import logging
-import json
 import shutil
 import datetime
 import pysam

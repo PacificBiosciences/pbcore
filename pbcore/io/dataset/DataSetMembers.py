@@ -60,22 +60,23 @@ Notes:
 
 """
 
-import ast
+from collections import Counter, defaultdict, OrderedDict
+from urllib.parse import urlparse, unquote
+from functools import partial as P
+from functools import reduce
+import operator as OP
+import logging
 import uuid
 import copy
-import logging
+import ast
 import os
-import operator as OP
-import numpy as np
 import re
 
-from functools import partial as P
-from collections import Counter, defaultdict, OrderedDict
+import numpy as np
+
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
-from functools import reduce
-from urllib.parse import urlparse, unquote
 
 log = logging.getLogger(__name__)
 

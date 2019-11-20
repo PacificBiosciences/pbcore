@@ -3,11 +3,11 @@
 
 """Validate DataSet XML files"""
 
-import os
-import re
 from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
+import os
+import re
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 

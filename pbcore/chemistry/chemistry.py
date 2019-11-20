@@ -2,9 +2,10 @@ __all__ = ["tripleFromMetadataXML",
            "decodeTriple",
            "ChemistryLookupError" ]
 
-import xml.etree.ElementTree as ET, os.path
-from pkg_resources import Requirement, resource_filename
 from collections import OrderedDict
+import xml.etree.ElementTree as ET, os.path
+
+from pkg_resources import Requirement, resource_filename
 
 class ChemistryLookupError(Exception): pass
 
@@ -22,7 +23,7 @@ def _loadBarcodeMappingsFromFile(mapFile):
             sequencingChemistry = mapElement.find("SequencingChemistry").text
             mappings[(bindingKit, sequencingKit, softwareVersion)] = sequencingChemistry
         return mappings
-    except:
+    except Exception:
         raise ChemistryLookupError("Error loading chemistry mapping xml")
 
 def _loadBarcodeMappings():

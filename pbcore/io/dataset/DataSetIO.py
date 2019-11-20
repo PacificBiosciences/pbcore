@@ -5,25 +5,24 @@
 Classes representing DataSets of various types.
 """
 
+from collections import defaultdict, Counter
+from functools import wraps, partial, reduce
+from urllib.parse import urlparse
+import xml.dom.minidom
 import subprocess
-import copy
-import errno
-import hashlib
 import itertools
+import tempfile
+import hashlib
 import logging
+import errno
+import uuid
+import copy
 import os
 import re
-import shutil
-import tempfile
-import uuid
-import xml.dom.minidom
+
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from urllib.parse import urlparse
-from functools import wraps, partial, reduce
-from collections import defaultdict, Counter
 
-from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
@@ -37,7 +36,6 @@ from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
-                                              ReadSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
@@ -45,7 +43,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (_infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     _swapPath, which, consolidateXml,
+                                     consolidateXml,
                                      getTimeStampedName, getCreatedAt)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)

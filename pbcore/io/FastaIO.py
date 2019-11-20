@@ -11,15 +11,16 @@ __all__ = [ "FastaRecord",
             "IndexedFastaReader",
             "splitFastaHeader"]
 
+from os.path import abspath, expanduser, isfile, getsize
+from collections import namedtuple
+from collections.abc import Sequence
+import mmap
+import re
+
+from pbcore.util.decorators import deprecated
+from pbcore import sequence
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
-from pbcore import sequence
-from pbcore.util.decorators import deprecated
-
-import mmap, numpy as np, re
-from collections import namedtuple, OrderedDict
-from collections.abc import Sequence
-from os.path import abspath, expanduser, isfile, getsize
 
 
 def splitFastaHeader( name ):

@@ -3,11 +3,23 @@
 from functools import total_ordering, wraps
 from bisect import bisect_right, bisect_left
 
+import numpy as np
+
 from pbcore.sequence import reverseComplement
-from ._BamSupport import *
+from ._BamSupport import (UnavailableFeature,
+                          Unimplemented,
+                          IncompatibleFile,
+                          BASE_FEATURE_TAGS,
+                          rgAsInt,
+                          BAM_CMATCH,
+                          BAM_CINS,
+                          BAM_CDEL,
+                          BAM_CSOFT_CLIP,
+                          BAM_CHARD_CLIP,
+                          codeToFrames,
+                          reverseComplementAscii)
 from ._AlignmentMixin import AlignmentRecordMixin
 
-import os
 
 __all__ = [ "BamAlignment" ]
 

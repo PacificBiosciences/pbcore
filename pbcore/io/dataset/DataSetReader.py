@@ -3,18 +3,18 @@
 
 """ Input and output functions for DataSet XML files"""
 
-import os.path
-import functools
 import xml.etree.ElementTree as ET
+import functools
 import logging
+import os.path
+
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
                                               DataSetMetadata,
                                               CollectionMetadata,
-                                              Filters, AutomationParameters,
+                                              Filters,
                                               StatsMetadata, uri2fn,
                                               uri2scheme, FILE_INDICES)
-from pbcore.io.dataset.DataSetWriter import _eleFromDictList
 from pbcore.io.dataset.DataSetErrors import InvalidDataSetIOError
 
 log = logging.getLogger(__name__)

@@ -32,7 +32,7 @@ class M4Record:
             obj.tLength           = int(columns[11])
             obj.mapQV             = int(columns[12])
             return obj
-        except:
+        except Exception:
             raise MalformattedRecord(s)
 
 class M4Reader(ReaderBase):
@@ -74,7 +74,7 @@ class M5Record:
             obj.matchPattern = columns[17]
             obj.tAlignedSeq  = columns[18]
             return obj
-        except:
+        except Exception:
             raise MalformattedRecord(s)
 
 class M5Reader(ReaderBase):

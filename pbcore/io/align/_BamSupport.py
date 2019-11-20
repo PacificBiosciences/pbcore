@@ -2,10 +2,10 @@
 
 import numpy as np
 
-class UnavailableFeature(Exception): pass
-class Unimplemented(Exception):      pass
-class ReferenceMismatch(Exception):  pass
-class IncompatibleFile(Exception):   pass
+class UnavailableFeature(Exception):           pass
+class Unimplemented(NotImplementedError):      pass
+class ReferenceMismatch(Exception):            pass
+class IncompatibleFile(Exception):             pass
 
 
 BASE_FEATURE_TAGS =  { "InsertionQV"        : ("iq", "qv",      np.uint8),

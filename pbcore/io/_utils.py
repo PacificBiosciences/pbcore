@@ -1,5 +1,6 @@
-import numpy as np
 from io import StringIO
+
+import numpy as np
 
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):
@@ -41,7 +42,7 @@ def is_string_like(obj):
         else:
             return False
     try: obj + ''
-    except: return False
+    except TypeError: return False
     return True
 
 def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2postfix='2'):
