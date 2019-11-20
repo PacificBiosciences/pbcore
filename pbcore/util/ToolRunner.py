@@ -1,12 +1,10 @@
-from __future__ import absolute_import, division, print_function
-
 import argparse, cProfile, logging, pstats
 
 
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 
 
-class PBToolRunner(object):
+class PBToolRunner:
 
     #
     # Interface to be overridden in subclasses (client code)

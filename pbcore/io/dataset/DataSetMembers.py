@@ -60,9 +60,6 @@ Notes:
 
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 import ast
 import uuid
 import copy
@@ -71,15 +68,14 @@ import os
 import operator as OP
 import numpy as np
 import re
-from urlparse import urlparse
-from urllib import unquote
+
 from functools import partial as P
 from collections import Counter, defaultdict, OrderedDict
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
 from functools import reduce
-from future.utils import iteritems, itervalues
+from urllib.parse import urlparse, unquote
 
 log = logging.getLogger(__name__)
 
@@ -117,7 +113,7 @@ def newUuid(record):
 
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
-        return map(func, target)
+        return list(map(func, target))
     else:
         return func(target)
 
@@ -139,7 +135,7 @@ def reccheck(records, qname_tables):
     lengths (so we can use np.in1d, which operates on recarrays quite nicely)
     """
     mask = np.zeros(len(records), dtype=bool)
-    for table in itervalues(qname_tables):
+    for table in qname_tables.values():
         mask |= recordMembership(records, table)
     return mask
 
@@ -213,14 +209,14 @@ def setify(value):
     return np.unique(str2list(value))
 
 def fromFile(value):
-    with open(value, 'rU') as ifh:
+    with open(value, 'r', newline=None) as ifh:
         return np.unique([val.strip() for val in ifh])
 
 def isListString(string):
     """Detect if string is actually a representation a stringified list"""
 
     listver = str2list(string)
-    if len(listver) > 1 or re.search('[\[\(\{].+[\}\)\]]', string):
+    if len(listver) > 1 or re.search(r'[\[\(\{].+[\}\)\]]', string):
         return True
 
 def isFile(string):
@@ -230,8 +226,8 @@ def isFile(string):
 
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
-        max(map(len, itervalues(qid2mov)))))
-    for (k, v) in iteritems(qid2mov):
+        max(map(len, qid2mov.values()))))
+    for (k, v) in qid2mov.items():
         movs[qId == k] = v
     return (movs, hn, qs, qe)
 
@@ -271,7 +267,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
     if len(records_by_size) == 0:
         return records_by_size
     tbr = {}
-    for (size, records) in iteritems(records_by_size):
+    for (size, records) in records_by_size.items():
         # recarray dtypes are a little hairier, we'll give normal (or manual)
         # dtypes an out:
         if isinstance(dtype, list):
@@ -283,7 +279,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
         tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
     return tbr
 
-class PbiFlags(object):
+class PbiFlags:
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
     ADAPTER_AFTER = 2
@@ -357,7 +353,7 @@ def updateNamespace(ele, ns):
         ele.namespace = ns
 
 
-class RecordWrapper(object):
+class RecordWrapper:
     """The base functionality of a metadata element.
 
     Many of the methods here are intended for use with children of
@@ -428,11 +424,6 @@ class RecordWrapper(object):
         if self.record['children'] != []:
             return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __deepcopy__(self, memo):
         tbr = type(self)()
@@ -670,7 +661,7 @@ class Filters(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -695,11 +686,6 @@ class Filters(RecordWrapper):
                 if req.name:
                     return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __str__(self):
         buff = []
@@ -985,7 +971,7 @@ class Filters(RecordWrapper):
                     lastResult &= reqResultsForRecords
                     del reqResultsForRecords
                 else:
-                    log.warn("Filter not recognized: {f}".format(f=param))
+                    log.warning("Filter not recognized: {f}".format(f=param))
             filterLastResult |= lastResult
             del lastResult
         return filterLastResult
@@ -1014,7 +1000,7 @@ class Filters(RecordWrapper):
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
             newFilts = [copy.deepcopy(origFilts) for _ in list(kwargs.values())[0]]
-            for (name, options) in iteritems(kwargs):
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
                         val = option[1]
@@ -1025,7 +1011,7 @@ class Filters(RecordWrapper):
                 self.extend(filtList)
         else:
             newFilts = [Filter() for _ in list(kwargs.values())[0]]
-            for (name, options) in iteritems(kwargs):
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     val = option[1]
                     if isinstance(val, np.ndarray):
@@ -1047,7 +1033,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for (name, options) in iteritems(kwargs):
+        for (name, options) in kwargs.items():
             for option in options:
                 newFilt.addRequirement(name, *option)
         self.append(newFilt)
@@ -1115,7 +1101,7 @@ class Filters(RecordWrapper):
         # Check that this length is equal to the current number of filters:
         assert len(list(kwargs.values())[0]) == len(list(self))
 
-        for (req, opvals) in iteritems(kwargs):
+        for (req, opvals) in kwargs.items():
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, *opval)
         self._runCallbacks()
@@ -1136,7 +1122,7 @@ class Filter(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1194,7 +1180,7 @@ class Properties(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1212,7 +1198,7 @@ class Property(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __str__(self):
@@ -1291,7 +1277,7 @@ class ExternalResources(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
         # state tracking. Not good, but needs it:
@@ -1392,7 +1378,7 @@ class ExternalResource(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1647,7 +1633,7 @@ class ExternalResource(RecordWrapper):
             self.append(fileIndices)
         for index in list(indices):
             found = False
-            for (ext, mtype) in iteritems(FILE_INDICES):
+            for (ext, mtype) in FILE_INDICES.items():
                 if index.endswith(ext):
                     found = True
                     self._setIndResByMetaType(mtype, index)
@@ -1660,7 +1646,7 @@ class FileIndices(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1677,7 +1663,7 @@ class FileIndex(RecordWrapper):
     KEEP_WITH_PARENT = True
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1695,7 +1681,7 @@ class DataSetMetadata(RecordWrapper):
 
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
-        super(DataSetMetadata, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.TAG
 
     def merge(self, other):
@@ -1777,7 +1763,6 @@ class BioSamplesMetadata(RecordWrapper):
     """The metadata for the list of BioSamples
 
         Doctest:
-            >>> from __future__ import print_function
             >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
             >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
@@ -1855,10 +1840,10 @@ class SubreadSetMetadata(ReadSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create SubreadSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(SubreadSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     def merge(self, other):
-        super(self.__class__, self).merge(other)
+        super().merge(other)
         if other.collections and not self.collections:
             self.append(other.collections)
         else:
@@ -1891,7 +1876,7 @@ class ContigSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create ContigSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(ContigSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     organism = subaccs('Organism')
     ploidy = subaccs('Ploidy')
@@ -1909,7 +1894,7 @@ class BarcodeSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create BarcodeSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(BarcodeSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     barcodeConstruction = subaccs('BarcodeConstruction')
 
@@ -1942,7 +1927,7 @@ class AutomationParameter(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     value = accs('SimpleValue')
@@ -1952,7 +1937,7 @@ class AutomationParameters(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     automationParameter = accs('AutomationParameter', container='children',
@@ -2052,7 +2037,7 @@ class StatsMetadata(RecordWrapper):
 
         if unwrap and key in self.MERGED_DISTS:
             if len(tbr) > 1:
-                log.warn("Merging a distribution failed!")
+                log.warning("Merging a distribution failed!")
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
@@ -2061,7 +2046,7 @@ class StatsMetadata(RecordWrapper):
                     dtype(chan))
             return chans
         else:
-            return map(dtype, tbr)
+            return list(map(dtype, tbr))
 
     def availableDists(self):
         return [c.metaname for c in self]
@@ -2419,7 +2404,7 @@ class DiscreteDistribution(RecordWrapper):
             raise BinNumberMismatchError(self.numBins, other.numBins)
         if set(self.labels) != set(other.labels):
             raise BinMismatchError
-        sBins = zip(self.labels, self.bins)
+        sBins = list(zip(self.labels, self.bins))
         oBins = dict(zip(other.labels, other.bins))
         self.bins = [value + oBins[key] for key, value in sBins]
 
@@ -2505,9 +2490,6 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
 
 
 class CopyFilesMetadata(RecordWrapper):

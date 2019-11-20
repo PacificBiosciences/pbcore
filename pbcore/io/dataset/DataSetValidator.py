@@ -3,12 +3,9 @@
 
 """Validate DataSet XML files"""
 
-from __future__ import absolute_import, division, print_function
-
 import os
 import re
-from urlparse import urlparse
-from urllib import unquote
+from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
 
@@ -41,9 +38,9 @@ def validateResources(xmlroot, relTo='.'):
                                                     rfn)) and
                         not os.path.exists(os.path.join('.',
                                                         rfn))):
-                    tag_name = re.sub("\{.*\}", "", element.tag)
+                    tag_name = re.sub(r"\{.*\}", "", element.tag)
                     if tag_name in IGNORE_RESOURCES:
-                        log.warn("{f} not found".format(f=rfn))
+                        log.warning("{f} not found".format(f=rfn))
                     else:
                         raise IOError("{f} not found".format(f=rfn))
 

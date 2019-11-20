@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 from functools import reduce
 import logging
 import numpy as np
@@ -16,7 +14,7 @@ import pbcore.data as upstreamdata
 log = logging.getLogger(__name__)
 
 
-class TestDataSetSplit(object):
+class TestDataSetSplit:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 
@@ -540,7 +538,7 @@ class TestDataSetSplit(object):
         dss = list(ds3.split(contigs=True, chunks=3, updateCounts=True))
         assert len(dss) == 3
         sizes = sorted([dset.numRecords for dset in dss])
-        assert sizes == [20, 24, 48]
+        assert sizes == [28, 30, 34]
         refWindows = sorted(reduce(lambda x, y: x + y,
                                    [ds.refWindows for ds in dss]))
         for ref in random_few:

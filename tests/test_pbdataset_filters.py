@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 import logging
 import numpy as np
 import pytest
@@ -17,7 +13,7 @@ import pbcore.data as upstreamdata
 log = logging.getLogger(__name__)
 
 
-class TestDataSetFilters(object):
+class TestDataSetFilters:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 
@@ -691,6 +687,6 @@ class TestDataSetFilters(object):
 
     def test_contigset_filter(self):
         ref = ReferenceSet(data.getXml(8))
-        assert len(list(ref)) == 59
+        assert len(list([seq for seq in ref])) == 59
         ref.filters.addRequirement(length=[('>', '1450')])
-        assert len(list(ref)) == 34
+        assert len(list([seq for seq in ref])) == 34

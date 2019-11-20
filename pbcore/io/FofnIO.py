@@ -1,9 +1,5 @@
 # Authors: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
-from future.utils import string_types
-
 from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser
 import xml.etree.ElementTree as ET
@@ -22,7 +18,7 @@ def readFofn(f):
     FOFN that are relative (i.e., do not contain a leading '/') will
     be reckoned from the directory containing the FOFN.
     """
-    if isinstance(f, string_types):
+    if isinstance(f, str):
         fofnRoot = dirname(abspath(expanduser(f)))
     else:
         fofnRoot = None

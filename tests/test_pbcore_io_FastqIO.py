@@ -1,19 +1,16 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 from numpy.testing import assert_array_equal
-from StringIO import StringIO
+from io import StringIO
 
 from pbcore import data
 from pbcore.io.FastqIO import *
 
 
 # Test QV <-> string conversion routines
-class TestQvConversion(object):
+class TestQvConversion:
 
-    ASCII = ("!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`"
-             "abcdefghijklmnopqrstuvwxyz{|}~")
+    ASCII = (r"""!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`"""
+             r"""abcdefghijklmnopqrstuvwxyz{|}~""")
+
     QVS = range(0, 94)
 
     def testAsciiFromQvs(self):
@@ -23,7 +20,7 @@ class TestQvConversion(object):
         assert_array_equal(self.QVS, qvsFromAscii(self.ASCII))
 
 
-class TestFastqRecord(object):
+class TestFastqRecord:
 
     HEADER = "chr1|blah|blah\tblah blah"
     RC_HEADER = "chr1|blah|blah\tblah blah [revcomp]"
@@ -125,7 +122,7 @@ class TestFastqRecord(object):
         assert r1 != r2
 
 
-class TestFastqReader(object):
+class TestFastqReader:
 
     FASTQ1 = StringIO(
         "@seq1\n"
@@ -141,17 +138,17 @@ class TestFastqReader(object):
 
     def test_readFastq1(self):
         r1 = FastqReader(self.FASTQ1)
-        l = list(r1)
+        l = list(rec for rec in r1)
         assert [FastqRecord("seq1", "GATTACA", range(22, 29))] == l
 
     def test_readFastq2(self):
         r2 = FastqReader(self.FASTQ2)
-        l = list(r2)
+        l = list(rec for rec in r2)
         assert [FastqRecord("seq1", "GATTACA", range(22, 29)),
                 FastqRecord("seq2", "CATTAGA", [31]*7) ] == l
 
 
-class TestFastqWriter(object):
+class TestFastqWriter:
 
     def setup_method(self):
         self.fastq1 = StringIO(

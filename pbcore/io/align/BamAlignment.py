@@ -1,12 +1,7 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 from functools import total_ordering, wraps
 from bisect import bisect_right, bisect_left
-
-from future.utils import binary_type
 
 from pbcore.sequence import reverseComplement
 from ._BamSupport import *
@@ -326,15 +321,19 @@ class BamAlignment(AlignmentRecordMixin):
         """
         uc = self.unrolledCigar(orientation)
         #                                    MIDNSHP=X
-        _exoneratePlusTrans = np.frombuffer("Z  ZZZZ|*", dtype=np.int8)
-        _exonerateTrans     = np.frombuffer("Z  ZZZZ| ", dtype=np.int8)
-        _cigarTrans         = np.frombuffer("ZIDZZZZMM", dtype=np.int8)
-        _gusfieldTrans      = np.frombuffer("ZIDZZZZMR", dtype=np.int8)
+        _exoneratePlusTrans = np.frombuffer(b"Z  ZZZZ|*", dtype=np.int8)
+        _exonerateTrans     = np.frombuffer(b"Z  ZZZZ| ", dtype=np.int8)
+        _cigarTrans         = np.frombuffer(b"ZIDZZZZMM", dtype=np.int8)
+        _gusfieldTrans      = np.frombuffer(b"ZIDZZZZMR", dtype=np.int8)
 
-        if   style == "exonerate+": return _exoneratePlusTrans [uc].tostring()
-        elif style == "exonerate":  return _exonerateTrans     [uc].tostring()
-        elif style == "cigar":      return _cigarTrans         [uc].tostring()
-        else:                       return _gusfieldTrans      [uc].tostring()
+        if   style == "exonerate+":
+            return _exoneratePlusTrans[uc].tostring().decode("ascii")
+        elif style == "exonerate":
+            return _exonerateTrans[uc].tostring().decode("ascii")
+        elif style == "cigar":
+            return _cigarTrans[uc].tostring().decode("ascii")
+        else:
+            return _gusfieldTrans[uc].tostring().decode("ascii")
 
 
     @requiresReference
@@ -345,9 +344,9 @@ class BamAlignment(AlignmentRecordMixin):
         shouldRC = orientation == "native" and self.isReverseStrand
         tSeqOriented = reverseComplement(tSeq) if shouldRC else tSeq
         if aligned:
-            x = np.frombuffer(tSeqOriented, dtype=np.int8)
+            x = np.frombuffer(tSeqOriented.encode("utf-8"), dtype=np.int8)
             y = self._gapifyRef(x, orientation)
-            return y.tostring()
+            return y.tostring().decode("ascii")
         else:
             return tSeqOriented
 
@@ -450,12 +449,14 @@ class BamAlignment(AlignmentRecordMixin):
         tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
-        if isinstance(data_, binary_type):
+        if isinstance(data_, bytes):
             data = np.copy(np.frombuffer(data_, dtype=dtype_))
         else:
             # This is about 300x slower than the fromstring above.
             # Unless pysam exposes  buffer or numpy interface,
             # is is going to be very slow.
+            if isinstance(data_, str):
+                data_ = data_.encode("utf-8")
             data = np.fromiter(data_, dtype=dtype_)
         del data_
         assert len(data) == self.peer.rlen
@@ -529,7 +530,7 @@ class BamAlignment(AlignmentRecordMixin):
         seq = self.peer.seq
         if seq is None:
             seq = ''
-        data = np.frombuffer(seq, dtype=np.int8)
+        data = np.frombuffer(seq.encode("utf-8"), dtype=np.int8)
         if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd
@@ -547,7 +548,7 @@ class BamAlignment(AlignmentRecordMixin):
         # gapify
         if aligned: r = self._gapifyRead(ungapped, orientation)
         else:       r = ungapped
-        return r.tostring()
+        return r.tostring().decode("ascii")
 
     def __repr__(self):
         if self.isUnmapped:
@@ -585,9 +586,6 @@ class BamAlignment(AlignmentRecordMixin):
 
     def __eq__(self, other):
         return ((self.referenceId, self.tStart, self.tEnd) == (other.referenceId, other.tStart, other.tEnd))
-
-    def __ne__(self, other):
-        return not (self == other)
 
     def __lt__(self, other):
         return ((self.referenceId, self.tStart, self.tEnd) < (other.referenceId, other.tStart, other.tEnd))

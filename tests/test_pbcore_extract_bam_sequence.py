@@ -5,8 +5,6 @@ transcript from a BAM alignment file, specifically when the reverse complement
 is needed.
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os
 import pytest
 import shutil
@@ -26,7 +24,7 @@ FASTA_STR = ">genome\nAAAATGASGAGATCARAATGASGAGATC"
 FAI_STR = "genome  28      8       28      29"
 
 
-class TestCase(object):
+class TestCase:
 
     def setup_method(self):
         self.tmp_dir = tempfile.mkdtemp()

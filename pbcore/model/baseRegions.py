@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "BaseRegionsMixin",
             "ExtraBaseRegionsMixin",
             "ADAPTER_REGION",
@@ -20,10 +18,10 @@ def intersectRanges(r1, r2):
     return (b, e) if (b < e) else None
 
 def removeNones(lst):
-    return filter(lambda x: x!=None, lst)
+    return [x for x in lst if x!=None]
 
 
-class BaseRegionsMixin(object):
+class BaseRegionsMixin:
     """
     Mixin class for "ZMW" client classes providing access to base
     regions and reads sliced to those regions.

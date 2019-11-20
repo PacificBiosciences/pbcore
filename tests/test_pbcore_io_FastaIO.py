@@ -1,10 +1,8 @@
-from __future__ import absolute_import, division, print_function
-
 from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord
-from StringIO import StringIO
+from io import StringIO
 
-class TestFastaRecord(object):
+class TestFastaRecord:
 
     HEADER = "chr1|blah|blah\tblah blah"
     RC_HEADER = "chr1|blah|blah\tblah blah [revcomp]"
@@ -79,7 +77,7 @@ class TestFastaRecord(object):
         assert not r1 != r3
 
 
-class TestFastaReader(object):
+class TestFastaReader:
 
     def test_readFasta(self):
         f = FastaReader(data.getFasta())
@@ -99,7 +97,7 @@ class TestFastaReader(object):
             assert 16 == len(e.sequence)
 
 
-class TestFastaWriter(object):
+class TestFastaWriter:
 
     def setup_method(self):
         self.fasta1 = StringIO(

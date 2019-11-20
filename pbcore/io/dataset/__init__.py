@@ -1,7 +1,5 @@
 # Author: Martin D. Smith
 
-from __future__ import absolute_import, division, print_function
-
 from .DataSetIO import *
 from .DataSetUtils import *
 

@@ -1,10 +1,6 @@
 # Base classes for readers and writers.
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
-from future.utils import string_types
-
 import gzip
 from os.path import abspath, expanduser
 
@@ -24,9 +20,9 @@ def getFileHandle(filenameOrFile, mode="r"):
     Given a file object, return it unless the mode is incorrect--in
     that case, raise an exception.
     """
-    assert mode in ("r", "w")
+    assert mode in ("r", "w", "rt", "wt")
 
-    if isinstance(filenameOrFile, string_types):
+    if isinstance(filenameOrFile, str):
         filename = abspath(expanduser(filenameOrFile))
         if filename.endswith(".gz"):
             return gzip.open(filename, mode)
@@ -37,12 +33,12 @@ def getFileHandle(filenameOrFile, mode="r"):
     else:
         raise Exception("Invalid type to getFileHandle")
 
-class ReaderBase(object):
+class ReaderBase:
     def __init__(self, f):
         """
         Prepare for iteration through the records in the file
         """
-        self.file = getFileHandle(f, "r")
+        self.file = getFileHandle(f, "rt")
         if hasattr(self.file, "name"):
             self.filename = self.file.name
         else:
@@ -63,12 +59,12 @@ class ReaderBase(object):
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
 
-class WriterBase(object):
+class WriterBase:
     def __init__(self, f):
         """
         Prepare for output to the file
         """
-        self.file = getFileHandle(f, "w")
+        self.file = getFileHandle(f, "wt")
         if hasattr(self.file, "name"):
             self.filename = self.file.name
         else:
@@ -88,3 +84,6 @@ class WriterBase(object):
 
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
+
+    def writeRecord(self, *args, **kwds):
+        pass

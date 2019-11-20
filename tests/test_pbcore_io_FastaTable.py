@@ -1,10 +1,8 @@
-from __future__ import absolute_import, division, print_function
-
 from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, IndexedFastaReader
 
 
-class TestIndexedFastaReader(object):
+class TestIndexedFastaReader:
 
     FASTAPATH = data.getFasta()
 

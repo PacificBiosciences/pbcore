@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 from pkg_resources import Requirement, resource_filename
 
 MOVIE_NAME_14 = "m110818_075520_42141_c100129202555500000315043109121112_s1_p0"
@@ -56,8 +54,8 @@ def getFofns():
     """
     Returns a list of FOFN files
     """
-    return map(_getAbsPath,
-               ["datasets/fofn.fofn"])
+    return list(map(_getAbsPath,
+               ["datasets/fofn.fofn"]))
 
 def getBcFofn():
     return _getAbsPath("bc_files.fofn")

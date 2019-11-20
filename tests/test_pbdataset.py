@@ -1,17 +1,12 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 from functools import partial, reduce
-from future.utils import iteritems
+from itertools import zip_longest
 import pytest
 import os
 import sys
 import re
 import logging
-import itertools
 import tempfile
-from urllib import quote
+from urllib.parse import quote
 import shutil
 import numpy as np
 from numpy.testing import assert_array_equal
@@ -49,7 +44,7 @@ def twodots(fn):
     return bn[dot1:]
 
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 
@@ -676,11 +671,15 @@ class TestDataSet(object):
                     ((alnFile.tId == alnFile.referenceInfo(refId).ID) &
                      (alnFile.mapQV >= minMapQV))]
 
+                # FIXME these arrays will be empty in the first iteration of
+                # the nested loop, which leads to a MemoryError when lexsort
+                # is called below.  Converting to Python lists avoids the
+                # error, but this seems seriously broken...
                 unsorted_tStart = rows.tStart
                 unsorted_tEnd = rows.tEnd
 
                 # Sort (expected by CoveredIntervals)
-                sort_order = np.lexsort((unsorted_tEnd, unsorted_tStart))
+                sort_order = np.lexsort((list(unsorted_tEnd), list(unsorted_tStart)))
                 tStart = unsorted_tStart[sort_order].tolist()
                 tEnd = unsorted_tEnd[sort_order].tolist()
 
@@ -737,11 +736,6 @@ class TestDataSet(object):
                 ds = openDataSet(linfn, strict=False)
             assert type(ds) == exp
             os.remove(linfn)
-
-    def test_openDataSet_unicode(self):
-        # Test to see if we can't open a unicode filename
-        fn = data.getXml(8)
-        aln = openDataSet(unicode(fn))
 
     def test_type_checking(self):
         bam = data.getBam()
@@ -1021,14 +1015,6 @@ class TestDataSet(object):
             assert len(aln) == 92
         ofh.close()
 
-        # unicode string:
-        fn = unicode(tempfile.NamedTemporaryFile(
-            suffix=".alignmentset.xml").name)
-        with AlignmentSet(data.getXml(7)) as aln:
-            aln.write(fn)
-        with AlignmentSet(fn) as aln:
-            assert len(aln) == 92
-
         # stdout:
         # This is just going to be printed into the test output, but it is good
         # to show that this doesn't error out
@@ -1172,7 +1158,6 @@ class TestDataSet(object):
         assert explen == len(aln2)
         assert not sorted(aln.toExternalFiles()) == sorted(aln2.toExternalFiles())
 
-    @pytest.mark.pbtestdata
     def test_mixed_pbi_columns(self):
         import pbtestdata
         inp1 = pbtestdata.get_file("barcoded-subreadset")
@@ -1320,7 +1305,7 @@ class TestDataSet(object):
         read_indexes = list(ds.readsInRange(rn, 10, 100, justIndices=True))
         assert len(read_indexes) == 10
         for read in read_indexes:
-            assert isinstance(read, int)
+            assert isinstance(read, (int, np.int64))
 
         read_index_records = ds.index[read_indexes]
 
@@ -1343,7 +1328,7 @@ class TestDataSet(object):
         reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
                                   usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num == 28
@@ -1359,7 +1344,7 @@ class TestDataSet(object):
         reads2 = aln.readsInRange(aln.refNames[0], 0, 400,
                                   usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num == 105
@@ -1378,7 +1363,7 @@ class TestDataSet(object):
         reads1 = aln.readsInRange(*window, usePbi=False)
         reads2 = aln.readsInRange(*window, usePbi=True)
         num = 0
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
             num += 1
         assert num > 100
@@ -1395,7 +1380,7 @@ class TestDataSet(object):
         reads2 = list(reads2)
         assert len(reads1) == len(reads2)
         reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
 
         log.debug("Testing longest sort vs pbi")
@@ -1406,7 +1391,7 @@ class TestDataSet(object):
         reads2 = list(reads2)
         assert len(reads1) == len(reads2)
         reads1 = sorted(reads1, key=lengthInWindow, reverse=True)
-        for r1, r2 in itertools.izip(reads1, reads2):
+        for r1, r2 in zip(reads1, reads2):
             assert r1 == r2
 
     # TODO: get this working again when adding manual subdatasets is good to go
@@ -1484,7 +1469,7 @@ class TestDataSet(object):
         ds = AlignmentSet(data.getBam(0))
         random_few = {'B.cereus.6': 1472, 'S.agalactiae.1': 1470,
                       'B.cereus.4': 1472}
-        for (key, value) in iteritems(random_few):
+        for (key, value) in random_few.items():
             assert ds.refLengths[key] == value
 
         # this is a hack to only emit refNames that actually have records
@@ -1667,14 +1652,14 @@ class TestDataSet(object):
         readers = aln.resourceReaders()
         assert len(readers[0].referenceInfoTable) == 59
         obstbl = readers[0].referenceInfo('E.faecalis.1')
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [27],
             [27],
             ['E.faecalis.1'],
             ['E.faecalis.1'],
             [1482],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2125,14 +2110,14 @@ class TestDataSet(object):
         assert len1 + len2 == len3
         assert len3 == 65346
         obstbl = aln.referenceInfoTable
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2163,14 +2148,14 @@ class TestDataSet(object):
         assert len1 + len2 == len3
         assert len3 == 160264
         obstbl = aln.referenceInfoTable
-        exptbl = np.rec.fromrecords(zip(
+        exptbl = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2207,14 +2192,14 @@ class TestDataSet(object):
         # TODO(mdsmith)(2016-01-25) I would like to be able to use the startrow
         # and endrow fields for bams someday...
         obstbl = aln.referenceInfoTable
-        exptbl0 = np.rec.fromrecords(zip(
+        exptbl0 = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2223,14 +2208,14 @@ class TestDataSet(object):
                 ('Length', '<i8'),
                 ('StartRow', '<u4'),
                 ('EndRow', '<u4')])
-        exptbl1 = np.rec.fromrecords(zip(
+        exptbl1 = np.rec.fromrecords(list(zip(
             [1],
             [1],
             ['lambda_NEB3011'],
             ['lambda_NEB3011'],
             [48502],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2268,14 +2253,14 @@ class TestDataSet(object):
         assert len1 + len2 + len3 == len4
         assert len4 == 160376
         obstbl = aln.referenceInfoTable
-        exptbl0 = np.rec.fromrecords(zip(
+        exptbl0 = np.rec.fromrecords(list(zip(
             [0],
             [0],
             ['ecoliK12_pbi_March2013'],
             ['ecoliK12_pbi_March2013'],
             [4642522],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2284,14 +2269,14 @@ class TestDataSet(object):
                 ('Length', '<i8'),
                 ('StartRow', '<u4'),
                 ('EndRow', '<u4')])
-        exptbl1 = np.rec.fromrecords(zip(
+        exptbl1 = np.rec.fromrecords(list(zip(
             [1],
             [1],
             ['lambda_NEB3011'],
             ['lambda_NEB3011'],
             [48502],
             np.zeros(1, dtype=np.uint32),
-            np.zeros(1, dtype=np.uint32)),
+            np.zeros(1, dtype=np.uint32))),
             dtype=[
                 ('ID', '<i8'),
                 ('RefInfoID', '<i8'),
@@ -2406,7 +2391,7 @@ class TestDataSet(object):
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
                           b1 + b2 for b1, b2 in
-                          itertools.izip_longest(
+                          zip_longest(
                               ss.metadata.summaryStats.readLenDist.bins,
                               ss2.metadata.summaryStats.readLenDist.bins,
                               fillvalue=0)]
@@ -2426,7 +2411,7 @@ class TestDataSet(object):
         ss3 = ss + ss2
         assert ss3.metadata.summaryStats.readLenDist.bins == [
                           b1 + b2 for b1, b2 in
-                          itertools.izip_longest(
+                          zip_longest(
                               ss.metadata.summaryStats.readLenDist.bins,
                               ss2.metadata.summaryStats.readLenDist.bins,
                               fillvalue=0)]

@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 import os.path
 import tempfile
 from textwrap import dedent
@@ -13,7 +9,7 @@ def rm_out(fname):
     if os.path.exists(fname):
         os.remove(fname)
 
-class TestVcfSorting(object):
+class TestVcfSorting:
 
     VCF_META = dedent("""\
             ##fileformat=VCFv4.3

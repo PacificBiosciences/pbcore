@@ -4,22 +4,19 @@
 I/O support for FASTQ files
 """
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "FastqRecord",
             "FastqReader",
             "FastqWriter",
             "qvsFromAscii",
             "asciiFromQvs" ]
 
-from builtins import range
 import numpy as np
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
 from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
-class FastqRecord(object):
+class FastqRecord:
     """
     A ``FastqRecord`` object models a named sequence and its quality
     values in a FASTQ file.  For reference consult `Wikipedia's FASTQ
@@ -155,9 +152,6 @@ class FastqRecord(object):
         else:
             return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __str__(self):
         """
         Output a string representation of this FASTQ record, in
@@ -179,10 +173,14 @@ class FastqReader(ReaderBase):
         One-shot iteration support
         """
         while True:
-            lines = [next(self.file) for i in range(4)]
-            yield FastqRecord(lines[0][1:-1],
-                              lines[1][:-1],
-                              qualityString=lines[3][:-1])
+            try:
+                lines = [next(self.file) for i in range(4)]
+            except StopIteration:
+                return
+            else:
+                yield FastqRecord(lines[0][1:-1],
+                                  lines[1][:-1],
+                                  qualityString=lines[3][:-1])
 
 
 class FastqWriter(WriterBase):
@@ -227,7 +225,9 @@ class FastqWriter(WriterBase):
 ## Utility
 ##
 def qvsFromAscii(s):
+    if isinstance(s, str):
+        s = s.encode("ascii")
     return (np.frombuffer(s, dtype=np.uint8) - 33)
 
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode("ascii")

@@ -4,8 +4,6 @@
 # XXX this should be kept in some form, but the hope is that changes in pysam
 # will make the environment variable hack unnecessary in the future.
 
-from __future__ import absolute_import, division, print_function
-
 import pytest
 import os
 os.environ["PBCORE_BAM_LOSSLESS_KINETICS"] = "1"
@@ -14,7 +12,7 @@ import pbcore.io.align.BamAlignment
 from pbcore.io.align.BamIO import AlignmentFile
 pbcore.io.align.BamAlignment.PBCORE_BAM_LOSSLESS_KINETICS = "1"
 
-class TestCase(object):
+class TestCase:
 
     SAM_STR = """\
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0b5

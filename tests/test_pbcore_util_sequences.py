@@ -1,10 +1,8 @@
-from __future__ import absolute_import, division, print_function
-
 import pytest
 
 from pbcore import sequence
 
-class TestReverseComplement(object):
+class TestReverseComplement:
 
     SEQUENCE = "GATTACA" * 20
     REVERSE = "ACATTAG" * 20

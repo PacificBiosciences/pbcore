@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import logging
 import tempfile
 
@@ -15,7 +13,7 @@ def keysToRanges(keys):
     key_ranges = [[min(k), max(k)] for k in keys]
     return key_ranges
 
-class TestDataSetUtils(object):
+class TestDataSetUtils:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 

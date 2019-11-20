@@ -1,7 +1,5 @@
 # Author: Martin D. Smith
 
-from __future__ import absolute_import, division, print_function
-
 class InvalidDataSetIOError(Exception):
     """The base class for all DataSetIO related custom exceptions
     """
@@ -10,7 +8,7 @@ class InvalidDataSetIOError(Exception):
 class ResourceMismatchError(InvalidDataSetIOError):
 
     def __init__(self, responses):
-        super(ResourceMismatchError, self).__init__()
+        super().__init__()
         self.responses = responses
 
     def __str__(self):

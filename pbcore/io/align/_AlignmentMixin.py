@@ -1,14 +1,12 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "AlignmentReaderMixin",
             "AlignmentRecordMixin",
             "IndexedAlignmentReaderMixin" ]
 
 import numpy as np
 
-class AlignmentReaderMixin(object):
+class AlignmentReaderMixin:
     """
     Mixin class for higher-level functionality of alignment file
     readers.
@@ -53,8 +51,8 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             elif readName.endswith("ccs"):
                 return False
             else:
-                q = map(int, rQuery.split("_"))
-                r = map(int, readName.split("/")[-1].split("_"))
+                q = list(map(int, rQuery.split("_")))
+                r = list(map(int, readName.split("/")[-1].split("_")))
                 return rangeOverlap(q, r)
 
         fields = query.split("/")
@@ -84,7 +82,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             return self.readsByName(movieNames[0] + "/" + str(hn))
 
 
-class AlignmentRecordMixin(object):
+class AlignmentRecordMixin:
     """
     Mixin class providing some higher-level functionality for
     alignment records.

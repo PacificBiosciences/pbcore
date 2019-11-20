@@ -1,7 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
-
 import itertools
 import logging
 import os
@@ -9,7 +5,7 @@ import pytest
 import tempfile
 import time
 import uuid
-from urlparse import urlparse
+from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
 from pbcore.util.Process import backticks
@@ -27,7 +23,7 @@ from pbcore.io.dataset.DataSetValidator import validateXml
 log = logging.getLogger(__name__)
 
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integration tests for the DataSet class and
     associated module functions"""
 
@@ -1017,7 +1013,6 @@ class TestDataSet(object):
         ds_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds2.write(ds_out, validate=False)
 
-    @pytest.mark.pbtestdata
     def test_provenance_record_ordering(self):
         import pbtestdata
         ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
@@ -1034,7 +1029,6 @@ class TestDataSet(object):
         ds1 = TranscriptSet(fn, strict=True)
         assert len(ds1.resourceReaders()) == 1
 
-    @pytest.mark.pbtestdata
     def test_consensus_read_set_ref(self):
         import pbtestdata
         ds = ConsensusReadSet(pbtestdata.get_file("ccs-sequel"), strict=True)

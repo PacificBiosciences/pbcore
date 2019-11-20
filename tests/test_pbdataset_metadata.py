@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import pytest
 
 import logging
@@ -16,7 +14,7 @@ from pbcore.io.dataset.DataSetValidator import validateFile
 
 log = logging.getLogger(__name__)
 
-class TestDataSet(object):
+class TestDataSet:
     """Unit and integrationt tests for the DataSet class and \
     associated module functions"""
 
@@ -147,7 +145,6 @@ class TestDataSet(object):
         sset.metadata.collections.merge(orig_metadata.collections, forceUnique=True)
         assert len(sset.metadata.collections) == 1
 
-    @pytest.mark.pbtestdata
     def test_merge_biosamples(self):
         import pbtestdata
         ds1 = pbtestdata.get_file("subreads-biosample-1")

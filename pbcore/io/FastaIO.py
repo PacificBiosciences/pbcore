@@ -4,8 +4,6 @@
 Streaming I/O support for FASTA files.
 """
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "FastaRecord",
             "FastaReader",
             "FastaWriter",
@@ -13,14 +11,14 @@ __all__ = [ "FastaRecord",
             "IndexedFastaReader",
             "splitFastaHeader"]
 
-from builtins import range
 from .base import ReaderBase, WriterBase
 from ._utils import splitFileContents
 from pbcore import sequence
 from pbcore.util.decorators import deprecated
 
 import mmap, numpy as np, re
-from collections import namedtuple, OrderedDict, Sequence
+from collections import namedtuple, OrderedDict
+from collections.abc import Sequence
 from os.path import abspath, expanduser, isfile, getsize
 
 
@@ -28,7 +26,7 @@ def splitFastaHeader( name ):
     """
     Split a FASTA/FASTQ header into its id and comment components
     """
-    nameParts = re.split('\s', name, maxsplit=1)
+    nameParts = re.split(r'\s', name, maxsplit=1)
     id_ = nameParts[0]
     if len(nameParts) > 1:
         comment = nameParts[1].strip()
@@ -36,7 +34,7 @@ def splitFastaHeader( name ):
         comment = None
     return (id_, comment)
 
-class FastaRecord(object):
+class FastaRecord:
     """
     A FastaRecord object models a named sequence in a FASTA file.
     """
@@ -145,9 +143,6 @@ class FastaRecord(object):
         else:
             return False
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
     def __repr__(self):
         return "<FastaRecord: %s>" % self.header
 
@@ -169,7 +164,6 @@ class FastaReader(ReaderBase):
 
     .. doctest::
 
-        >>> from __future__ import print_function
         >>> from pbcore.io import FastaReader
         >>> from pbcore import data
         >>> filename = data.getTinyFasta()
@@ -262,10 +256,10 @@ def loadFastaIndex(faidxFilename, fastaView):
     # NB: We have to look back in the FASTA to find the full header;
     # only "id" makes it into the fai.
     offsetEnd = 0
-    for line in open(faidxFilename):
-        length, offset, lineWidth, blen = map(int, line.split()[-4:])
+    for line in open(faidxFilename, mode="rt"):
+        length, offset, lineWidth, blen = list(map(int, line.split()[-4:]))
         newlineWidth = blen - lineWidth                                # 2 for DOS, 1 for UNIX
-        header_    = fastaView[offsetEnd:offset]
+        header_    = fastaView[offsetEnd:offset].decode("utf-8")
         if not (header_[0] == ">" and header_[-1] == "\n"):
             raise IOError("Companion FASTA index (.fai) file malformatted! "
                           "Use 'samtools faidx' to generate FASTA index")
@@ -315,7 +309,7 @@ class MmappedFastaSequence(Sequence):
             raise IndexError("Out of bounds")
         startOffset = fileOffset(self.faiRecord, start)
         endOffset   = fileOffset(self.faiRecord, stop)
-        snip = self.view[startOffset:endOffset].translate(None, "\r\n")
+        snip = self.view[startOffset:endOffset].decode("utf-8").translate(str.maketrans('', '', "\r\n"))
         return snip
 
     def __len__(self):
@@ -329,7 +323,7 @@ class MmappedFastaSequence(Sequence):
         return str(self[:])
 
 
-class IndexedFastaRecord(object):
+class IndexedFastaRecord:
 
     COLUMNS   = 60
 
@@ -391,7 +385,6 @@ class IndexedFastaReader(ReaderBase, Sequence):
 
     .. doctest::
 
-        >>> from __future__ import print_function
         >>> from pbcore.io import FastaTable
         >>> from pbcore import data
         >>> filename = data.getFasta()
@@ -406,7 +399,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
     """
     def __init__(self, filename):
         self.filename = abspath(expanduser(filename))
-        self.file = open(self.filename, "r")
+        self.file = open(self.filename, "rt")
         self.faiFilename = faiFilename(self.filename)
         if getsize(self.filename) > 0:
             self.view = mmap.mmap(self.file.fileno(), 0,
@@ -426,7 +419,7 @@ class IndexedFastaReader(ReaderBase, Sequence):
         return contigLookup
 
     def __getitem__(self, key):
-        if key < 0:
+        if isinstance(key, int) and key < 0:
             key = len(self) + key
 
         if isinstance(key, slice):

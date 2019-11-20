@@ -5,9 +5,6 @@
 Classes representing DataSets of various types.
 """
 
-from __future__ import absolute_import, division, print_function
-
-from builtins import range
 import copy
 import errno
 import hashlib
@@ -21,9 +18,10 @@ import uuid
 import xml.dom.minidom
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from urlparse import urlparse
-from functools import wraps, partial
+from urllib.parse import urlparse
+from functools import wraps, partial, reduce
 from collections import defaultdict, Counter
+
 from pbcore.util.Process import backticks
 from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
@@ -54,8 +52,6 @@ from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
                                                 dsIdToSuffix)
 from pbcore.io.dataset.DataSetUtils import fileType
-from functools import reduce
-from future.utils import iteritems, itervalues, string_types
 
 
 log = logging.getLogger(__name__)
@@ -73,7 +69,7 @@ def openDataSet(*files, **kwargs):
         return _openDataSet(*files, **kwargs)
     except MissingFileError as exc:
         # Could not find a resource, so we will try using an resolved path for files[0].
-        msg = '{e}: trying again with symlinks resolved'.format(e=exc.message)
+        msg = '{e}: trying again with symlinks resolved'.format(e=exc)
         log.warning(msg)
         def maybe_resolved(fn):
             # Resolve only FOFNs and XMLs.
@@ -141,7 +137,7 @@ def openDataFile(*files, **kwargs):
     else:
         # peek in the files to figure out the best match
         if ReferenceSet in options:
-            log.warn("Fasta files aren't unambiguously reference vs contig, "
+            log.warning("Fasta files aren't unambiguously reference vs contig, "
                      "opening as ReferenceSet")
             return ReferenceSet(*origFiles, **kwargs)
         elif AlignmentSet in options:
@@ -183,7 +179,7 @@ def _homogenizeRecArrays(arrays):
     """
     dtypes = {}
     for array in arrays:
-        for (field, (dtype, _)) in iteritems(array.dtype.fields):
+        for (field, (dtype, _)) in array.dtype.fields.items():
             if field in dtypes:
                 assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
             else:
@@ -193,9 +189,9 @@ def _homogenizeRecArrays(arrays):
         array_fields = {field for field in array.dtype.names}
         new_fields = []
         new_data = []
-        for (field, dtype) in iteritems(dtypes):
+        for (field, dtype) in dtypes.items():
             if not field in array_fields:
-                log.warn("%s missing in array, will populate with dummy values",
+                log.warning("%s missing in array, will populate with dummy values",
                          field)
                 new_fields.append(field)
                 new_data.append(np.full(len(array), -1, dtype=dtype))
@@ -310,7 +306,7 @@ class MissingFileError(InvalidDataSetIOError):
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
-    if not isinstance(fname, string_types):
+    if not isinstance(fname, str):
         fname = fname.resourceId
     if not os.path.exists(fname):
         raise MissingFileError("Resource {f} not found".format(f=fname))
@@ -353,7 +349,7 @@ def _yield_chunks(chunk_generator):
         yield chunk
     return
 
-class DataSet(object):
+class DataSet:
     """The record containing the DataSet information, with possible type
     specific subclasses"""
 
@@ -826,6 +822,7 @@ class DataSet(object):
             A DataSet object that is identical but for UniqueId
 
         Doctest:
+            >>> from functools import reduce
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet, SubreadSet
             >>> ds1 = DataSet(data.getXml(11))
@@ -1141,7 +1138,7 @@ class DataSet(object):
 
         # fix paths if validate:
         if validate and not relPaths is None:
-            if relPaths and not isinstance(outFile, string_types):
+            if relPaths and not isinstance(outFile, str):
                 raise InvalidDataSetIOError("Cannot write relative "
                     "pathnames without a filename")
             elif relPaths:
@@ -1163,14 +1160,14 @@ class DataSet(object):
         if validate:
             log.debug('Validating...')
             try:
-                if isinstance(outFile, string_types):
+                if isinstance(outFile, str):
                     validateString(xml_string, relTo=os.path.dirname(outFile))
                 else:
                     validateString(xml_string)
             except Exception as e:
                 validation_errors.append(e)
             log.debug('Done validating')
-        if isinstance(outFile, string_types):
+        if isinstance(outFile, str):
             fileName = urlparse(outFile).path.strip()
             if self._strict and not isinstance(self.datasetType, tuple):
                 if not fileName.endswith(dsIdToSuffix(self.datasetType)):
@@ -1182,7 +1179,7 @@ class DataSet(object):
             outFile = open(fileName, 'w')
 
         log.debug('Writing...')
-        outFile.write(xml_string)
+        outFile.write(xml_string.decode("utf-8"))
         outFile.flush()
         log.debug('Done writing')
 
@@ -1221,7 +1218,7 @@ class DataSet(object):
         if filename is None:
             checksts(self, subdatasets=True)
         else:
-            if isinstance(filename, string_types):
+            if isinstance(filename, str):
                 statsMetadata = parseStats(str(filename))
             else:
                 statsMetadata = filename
@@ -1243,7 +1240,7 @@ class DataSet(object):
             :filename: the filename of a <moviename>.metadata.xml file
 
         """
-        if isinstance(filename, string_types):
+        if isinstance(filename, str):
             if isDataSet(filename):
                 # path to DataSet
                 metadata = openDataSet(filename).metadata
@@ -1400,7 +1397,6 @@ class DataSet(object):
             :newFilters: a Filters object or properly formatted Filters record
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import SubreadSet
             >>> from pbcore.io.dataset.DataSetMembers import Filters
@@ -1436,16 +1432,16 @@ class DataSet(object):
                 # We'll make an exception for now: major version number passes
                 elif (newMetadata['Version'].split('.')[0] ==
                       self.objMetadata['Version'].split('.')[0]):
-                    log.warn("Future warning: merging datasets that don't "
+                    log.warning("Future warning: merging datasets that don't "
                              "share a version number will fail.")
                     return True
                 else:
-                    log.warn("Mismatched dataset versions for merging {v1} vs "
+                    log.warning("Mismatched dataset versions for merging {v1} vs "
                                  "{v2}".format(
                                      v1=newMetadata.get('Version'),
                                      v2=self.objMetadata.get('Version')))
             else:
-                log.warn("Future warning: merging will require Version "
+                log.warning("Future warning: merging will require Version "
                          "numbers for both DataSets")
         return True
 
@@ -1471,7 +1467,6 @@ class DataSet(object):
                      (as an attribute)
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import DataSet
             >>> ds = DataSet()
@@ -1506,7 +1501,7 @@ class DataSet(object):
             else:
                 self.metadata = newMetadata
 
-        for (key, value) in iteritems(kwargs):
+        for (key, value) in kwargs.items():
             self.metadata.addMetadata(key, value)
 
     def updateCounts(self):
@@ -1605,7 +1600,6 @@ class DataSet(object):
             A BamAlignment object
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2031,7 +2025,7 @@ class DataSet(object):
         populated by filtered reads. Only pbi filters considered, however."""
         if self._indexMap is None:
             _ = self.index
-        if isinstance(index, int):
+        if isinstance(index, (int, np.int64)):
             # support negatives
             if index < 0:
                 index = len(self.index) + index
@@ -2049,12 +2043,15 @@ class DataSet(object):
             indexTuples = self._indexMap[index]
             return [self.resourceReaders()[ind[0]][ind[1]] for ind in
                     indexTuples]
-        elif isinstance(index, string_types):
+        elif isinstance(index, str):
             if 'id' in self.index.dtype.names:
                 row = np.nonzero(self.index.id == index)[0][0]
                 return self[row]
             else:
                 raise NotImplementedError()
+        else:
+            raise NotImplementedError("Index type {t} not supported".format(
+                                      t=type(index).__name__))
 
 
 class ReadSet(DataSet):
@@ -2062,7 +2059,7 @@ class ReadSet(DataSet):
     class"""
 
     def __init__(self, *files, **kwargs):
-        super(ReadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = SubreadSetMetadata(self._metadata)
 
     def induceIndices(self, force=False):
@@ -2110,8 +2107,8 @@ class ReadSet(DataSet):
         try:
             return self._unifyResponses(res)
         except ResourceMismatchError as e:
-            log.warn("BAM files contain a mix of barcoded and non-barcoded reads")
-            log.warn("Dataset will be treated as non-barcoded")
+            log.warning("BAM files contain a mix of barcoded and non-barcoded reads")
+            log.warning("Dataset will be treated as non-barcoded")
             return False
 
     def assertBarcoded(self):
@@ -2139,7 +2136,7 @@ class ReadSet(DataSet):
                         sharedRefs[refFile] = IndexedFastaReader(refFile)
                     except IOError:
                         if not self._strict:
-                            log.warn("Problem opening reference with"
+                            log.warning("Problem opening reference with"
                                      "IndexedFastaReader")
                             sharedRefs[refFile] = None
                         else:
@@ -2155,7 +2152,7 @@ class ReadSet(DataSet):
                     raise_unsupported_format(location)
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
-                    log.warn("pbi file missing for {f}, operating with "
+                    log.warning("pbi file missing for {f}, operating with "
                              "reduced speed and functionality".format(
                                  f=location))
                     resource = BamReader(location)
@@ -2207,7 +2204,7 @@ class ReadSet(DataSet):
             return self._unifyResponses(res)
         except ResourceMismatchError:
             if not self._strict:
-                log.warn("Resources inconsistently indexed")
+                log.warning("Resources inconsistently indexed")
                 return False
             else:
                 raise
@@ -2231,7 +2228,7 @@ class ReadSet(DataSet):
             yield self.copy()
             return
         barcodes = defaultdict(int)
-        for bcTuple in itertools.izip(self.index.bcForward,
+        for bcTuple in zip(self.index.bcForward,
                                       self.index.bcReverse):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
@@ -2271,7 +2268,7 @@ class ReadSet(DataSet):
             return
 
         atoms = self.index.qId
-        movs = zip(*np.unique(atoms, return_counts=True))
+        movs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per movie.
         if chunks == 0 or chunks > len(movs):
@@ -2557,7 +2554,7 @@ class ReadSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ReadSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     def consolidate(self, dataFile, numFiles=1, useTmp=True):
         """Consolidate a larger number of bam files to a smaller number of bam
@@ -2588,7 +2585,7 @@ class ReadSet(DataSet):
         if references:
             refCounts = dict(Counter(references))
             if len(refCounts) > 1:
-                log.warn("Consolidating AlignmentSets with "
+                log.warning("Consolidating AlignmentSets with "
                          "different references, but BamReaders "
                          "can only have one. References will be "
                          "lost")
@@ -2662,7 +2659,7 @@ class SubreadSet(ReadSet):
     datasetType = DataSetMetaTypes.SUBREAD
 
     def __init__(self, *files, **kwargs):
-        super(SubreadSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @staticmethod
     def _metaTypeMapping():
@@ -2703,7 +2700,7 @@ class AlignmentSet(ReadSet):
             :strict=False: see base class
             :skipCounts=False: see base class
         """
-        super(AlignmentSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         fname = kwargs.get('referenceFastaFname', None)
         if fname:
             self.addReference(fname)
@@ -2720,7 +2717,6 @@ class AlignmentSet(ReadSet):
             A BamAlignment object
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2822,7 +2818,6 @@ class AlignmentSet(ReadSet):
             An open indexed alignment file
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2862,7 +2857,7 @@ class AlignmentSet(ReadSet):
             return [self.copy()]
 
         atoms = self.index.tId
-        refs = zip(*np.unique(atoms, return_counts=True))
+        refs = list(zip(*np.unique(atoms, return_counts=True)))
 
         # Zero chunks requested == 1 chunk per reference.
         if chunks == 0 or chunks > len(refs):
@@ -2975,7 +2970,6 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -2989,7 +2983,7 @@ class AlignmentSet(ReadSet):
             refName = self.guaranteeName(refName)
             refLen = self.refLengths[refName]
         except (KeyError, AttributeError):
-            raise StopIteration
+            return
         for read in self.readsInRange(refName, 0, refLen):
             yield read
 
@@ -3062,7 +3056,7 @@ class AlignmentSet(ReadSet):
         rnames = defaultdict(list)
         for atom in atoms:
             rnames[atom[0]].append(atom)
-        for (rname, rAtoms) in iteritems(rnames):
+        for (rname, rAtoms) in rnames.items():
             if len(rAtoms) > 1:
                 contour = self.intervalContour(rname)
                 splits = self.splitContour(contour, len(rAtoms))
@@ -3178,7 +3172,7 @@ class AlignmentSet(ReadSet):
             # very long
             # We are only doing this for refLength splits for now, as those are
             # cheap (and quiver is linear in length not coverage)
-            dataSize = sum(itervalues(refLens))
+            dataSize = sum(refLens.values())
             # target size per chunk:
             target = dataSize//chunks
             log.debug("Target chunk length: {t}".format(t=target))
@@ -3419,7 +3413,6 @@ class AlignmentSet(ReadSet):
             BamAlignment objects
 
         Doctest:
-            >>> from __future__ import print_function
             >>> import pbcore.data.datasets as data
             >>> from pbcore.io import AlignmentSet
             >>> ds = AlignmentSet(data.getBam())
@@ -3447,10 +3440,9 @@ class AlignmentSet(ReadSet):
                                              longest=longest,
                                              sampleSize=sampleSize):
                 yield rec
-            raise StopIteration
 
         # merge sort before yield
-        if self.numExternalResources > 1:
+        elif self.numExternalResources > 1:
             if buffsize > 1:
                 # create read/reader caches
                 read_its = [iter(rr.readsInRange(refName, start, end))
@@ -3568,7 +3560,7 @@ class AlignmentSet(ReadSet):
                     log.debug(".pbi mapping columns missing from mapped "
                               "bam, bam may be empty")
                 else:
-                    log.warn("File not actually mapped!")
+                    log.warning("File not actually mapped!")
                 length = 0
         return count, length
 
@@ -3593,7 +3585,7 @@ class AlignmentSet(ReadSet):
         name as a unique key (or ID, if you really have to)"""
 
         # Convert it to a name if you have to:
-        if not isinstance(refName, string_types):
+        if not isinstance(refName, str):
             refName = str(refName)
         if refName.isdigit():
             if not refName in self.refNames:
@@ -3719,8 +3711,8 @@ class AlignmentSet(ReadSet):
         name. TODO(mdsmith)(2016-01-27): pick a better name for this method...
 
         """
-        return zip(self.referenceInfoTable['Name'],
-                   self.referenceInfoTable[key])
+        return list(zip(self.referenceInfoTable['Name'],
+                   self.referenceInfoTable[key]))
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
@@ -3827,7 +3819,7 @@ class ContigSet(DataSet):
 
     def __init__(self, *files, **kwargs):
         self._fastq = False
-        super(ContigSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         # weaken by permitting failure to allow BarcodeSet to have own
         # Metadata type
         try:
@@ -3876,7 +3868,7 @@ class ContigSet(DataSet):
                 matches[conId] = [con]
             else:
                 matches[conId].append(con)
-        for (name, match_list) in iteritems(matches):
+        for (name, match_list) in matches.items():
             matches[name] = np.array(match_list)
 
         writeTemp = False
@@ -3886,7 +3878,7 @@ class ContigSet(DataSet):
         if self._filters and not self.noFiltering:
             writeTemp = True
         if not writeTemp:
-            writeTemp = any([len(m) > 1 for (n, m) in iteritems(matches)])
+            writeTemp = any([len(m) > 1 for (n, m) in matches.items()])
 
         def _get_windows(match_list):
             # look for the quiver window indication scheme from quiver:
@@ -3898,7 +3890,7 @@ class ContigSet(DataSet):
                                      "matching id, consolidation aborted")
             return windows
 
-        for (name, match_list) in iteritems(matches):
+        for (name, match_list) in matches.items():
             if len(match_list) > 1:
                 try:
                     windows = _get_windows(match_list)
@@ -3965,7 +3957,7 @@ class ContigSet(DataSet):
             self._populateMetaTypes()
             self.updateCounts()
         else:
-            log.warn("No need to write a new resource file, using current "
+            log.warning("No need to write a new resource file, using current "
                      "resource instead.")
         self._populateMetaTypes()
 
@@ -4010,13 +4002,13 @@ class ContigSet(DataSet):
         """Chunking and quivering appends a window to the contig ID, which
         allows us to consolidate the contig chunks."""
         name, _ = self._popSuffix(name)
-        if re.search("_\d+_\d+$", name) is None:
+        if re.search(r"_\d+_\d+$", name) is None:
             return None
         possibilities = name.split('_')[-2:]
         for pos in possibilities:
             if not pos.isdigit():
                 return None
-        return np.array(map(int, possibilities))
+        return np.fromiter(map(int, possibilities), dtype=np.int64)
 
     def _updateMetadata(self):
         # update contig specific metadata:
@@ -4070,7 +4062,7 @@ class ContigSet(DataSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(ContigSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
     @property
     def metadata(self):
@@ -4276,7 +4268,7 @@ class ReferenceSet(ContigSet):
     datasetType = DataSetMetaTypes.REFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(ReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def refNames(self):
@@ -4302,7 +4294,7 @@ class GmapReferenceSet(ReferenceSet):
     datasetType = DataSetMetaTypes.GMAPREFERENCE
 
     def __init__(self, *files, **kwargs):
-        super(GmapReferenceSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
 
     @property
     def gmap(self):
@@ -4331,7 +4323,7 @@ class BarcodeSet(ContigSet):
     datasetType = DataSetMetaTypes.BARCODE
 
     def __init__(self, *files, **kwargs):
-        super(BarcodeSet, self).__init__(*files, **kwargs)
+        super().__init__(*files, **kwargs)
         self._metadata = BarcodeSetMetadata(self._metadata.record)
         self._updateMetadata()
 
@@ -4351,7 +4343,7 @@ class BarcodeSet(ContigSet):
                                 "{t}".format(t=type(newMetadata).__name__))
 
         # Pull generic values, kwargs, general treatment in super
-        super(BarcodeSet, self).addMetadata(newMetadata, **kwargs)
+        super().addMetadata(newMetadata, **kwargs)
 
         # Pull subtype specific values where important
         # -> No type specific merging necessary, for now

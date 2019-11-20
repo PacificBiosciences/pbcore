@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 __doc__="""Useful functions for interacting with processes."""
 import sys
 import os
@@ -19,11 +17,11 @@ def backticks( cmd, merge_stderr=True ):
                           stdout=subprocess.PIPE, stderr=_stderr,
                           close_fds=True )
 
-    out = [ l[:-1] for l in p.stdout.readlines() ]
+    out = [ l[:-1].decode("utf-8") for l in p.stdout.readlines() ]
 
     p.stdout.close()
     if not merge_stderr:
-        err = [ l[:-1] for l in p.stderr.readlines() ]
+        err = [ l[:-1].decode("utf-8") for l in p.stderr.readlines() ]
         p.stderr.close()
     else:
         err = []

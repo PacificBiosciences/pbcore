@@ -1,14 +1,8 @@
 # Author: David Alexander
 
-from __future__ import absolute_import, division, print_function
-
 __all__ = [ "BamReader", "IndexedBamReader" ]
 
-from builtins import range
-try:
-    from pysam.calignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
-except ImportError:
-    from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
+from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
 from pbcore.io import FastaTable
 from pbcore.chemistry import decodeTriple, ChemistryLookupError
 
@@ -22,7 +16,6 @@ from .PacBioBamIndex import PacBioBamIndex
 from .BamAlignment import *
 from ._BamSupport import *
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
-from future.utils import itervalues
 
 
 def requiresBai(method):
@@ -47,25 +40,25 @@ class _BamReaderBase(ReaderBase):
         refRecords = self.peer.header["SQ"]
         refNames   = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
-        refIds = map(self.peer.get_tid, refNames)
+        refIds = list(map(self.peer.get_tid, refNames))
         nRefs = len(refRecords)
 
         if nRefs > 0:
-            self._referenceInfoTable = np.rec.fromrecords(zip(
+            self._referenceInfoTable = np.rec.fromrecords(list(zip(
                 refIds,
                 refIds,
                 refNames,
                 refNames,
                 refLengths,
                 np.zeros(nRefs, dtype=np.uint32),
-                np.zeros(nRefs, dtype=np.uint32)),
+                np.zeros(nRefs, dtype=np.uint32))),
                 dtype=[('ID', '<i8'), ('RefInfoID', '<i8'),
                        ('Name', 'O'), ('FullName', 'O'),
                        ('Length', '<i8'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
-            self._referenceDict.update(zip(refIds, self._referenceInfoTable))
-            self._referenceDict.update(zip(refNames, self._referenceInfoTable))
+            self._referenceDict.update(list(zip(refIds, self._referenceInfoTable)))
+            self._referenceDict.update(list(zip(refNames, self._referenceInfoTable)))
         else:
             self._referenceInfoTable = None
             self._referenceDict = None
@@ -134,9 +127,9 @@ class _BamReaderBase(ReaderBase):
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
         self._baseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in itervalues(self._baseFeatureNameMappings)])
+            *[set(mapping) for mapping in self._baseFeatureNameMappings.values()])
         self._pulseFeaturesAvailable = set.intersection(
-            *[set(mapping) for mapping in itervalues(self._pulseFeatureNameMappings)])
+            *[set(mapping) for mapping in self._pulseFeatureNameMappings.values()])
 
     def _loadProgramInfo(self):
         pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
@@ -209,6 +202,14 @@ class _BamReaderBase(ReaderBase):
     @property
     def alignmentIndex(self):
         raise UnavailableFeature("BAM has no alignment index")
+
+    @property
+    def index(self):
+        raise UnavailableFeature("BAM has no index")
+
+    @property
+    def identity(self):
+        raise UnavailableFeature("Identity calculation requires index")
 
     @property
     def movieNames(self):
@@ -338,7 +339,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     bam.pbi (PacBio) index.  Supports basic BAM operations.
     """
     def __init__(self, fname, referenceFastaFname=None):
-        super(BamReader, self).__init__(fname, referenceFastaFname)
+        super().__init__(fname, referenceFastaFname)
 
     @property
     def index(self):
@@ -372,7 +373,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     information about the BAM records
     """
     def __init__(self, fname, referenceFastaFname=None, sharedIndex=None):
-        super(IndexedBamReader, self).__init__(fname, referenceFastaFname)
+        super().__init__(fname, referenceFastaFname)
         if sharedIndex is None:
             self.pbi = None
             pbiFname = self.filename + ".pbi"

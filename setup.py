@@ -1,26 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, division, print_function
-
 from setuptools import setup, find_packages
-
-import sys
-import os
 
 test_deps = [
     'coverage',
+    'pbtestdata',
+    'pylint',
     'pytest',
     'pytest-cov',
     'pytest-xdist',
-    'pyxb == 1.2.4',
+    'pyxb == 1.2.6',
     'sphinx',
-    'pylint == 1.6.4',
 ]
 
 setup(
     name='pbcore',
-    version='1.9.900',
+    version='2.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',
@@ -35,10 +31,10 @@ setup(
     ],
     install_requires=[
         'biopython >= 1.74',
-        'future >= 0.16.0',
-        'numpy >= 1.7.1',
+        'numpy >= 1.17',
         'pysam >= 0.15.1',
     ],
     test_requires=test_deps,
     extras_require={'test': test_deps},
+    python_requires='>=3.7',
 )
