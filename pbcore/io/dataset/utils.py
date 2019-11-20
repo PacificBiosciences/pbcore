@@ -5,6 +5,7 @@
 Utils that support fringe DataSet features.
 """
 
+import subprocess
 import os
 import tempfile
 import logging
@@ -12,7 +13,6 @@ import json
 import shutil
 import datetime
 import pysam
-from pbcore.util.Process import backticks
 
 log = logging.getLogger(__name__)
 
@@ -103,11 +103,9 @@ def file_size(path):
     return os.stat(path).st_size
 
 def _pbindexBam(fname):
-    cmd = "pbindex {i}".format(i=fname)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError(m)
+    args = ["pbindex", fname]
+    log.info(" ".join(args))
+    subprocess.check_call(args)
     return fname + ".pbi"
 
 def _indexBam(fname):
@@ -119,13 +117,9 @@ def _indexFasta(fname):
     return fname + ".fai"
 
 def _pbmergeXML(indset, outbam):
-    cmd = "pbmerge -o {o} {i} ".format(i=indset,
-                                       o=outbam)
-    log.info(cmd)
-    o, r, m = backticks(cmd)
-    if r != 0:
-        raise RuntimeError("Pbmerge command failed: {c}\n Message: "
-                           "{m}".format(c=cmd, m=m))
+    args = ["pbmerge", "-o", outbam, indset]
+    log.info(" ".join(args))
+    subprocess.check_call(args)
     return outbam
 
 def _infixFname(fname, infix):

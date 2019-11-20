@@ -22,10 +22,5 @@ def pytest_runtest_setup(item):
         elif mark.name == 'constools':
             if not _check_constools():
                 pytest.skip("need 'pbindex'/'samtools'/'pbmerge'")
-        elif mark.name == 'linux':
-            if sys.platform != "linux":
-                pytest.skip(
-                    "cannot run linux tests on platform: '{}'".format(
-                        sys.platform))
         else:
             raise LookupError("Unknown pytest mark: '{}'".format(mark.name))

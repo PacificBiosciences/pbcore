@@ -1,28 +1,7 @@
 import pytest
 import sys
 
-from pbcore.util import Process
 from pbcore.util.statistics import accuracy_as_phred_qv
-
-
-class TestBackticks:
-    def test_errCode(self):
-        output, errCode, errMsg = Process.backticks("exit 42")
-        assert 42 == errCode
-
-    def test_output(self):
-        output, errCode, errMsg = Process.backticks("echo Me stdout")
-        assert ["Me stdout"] == output
-
-    @pytest.mark.linux
-    def test_errMsg(self):
-        output, errCode, errMsg = Process.backticks("grep -l . /proc/cpuinfo /dev/foo/bar")
-        assert "/proc/cpuinfo\ngrep: /dev/foo/bar: No such file or directory" == errMsg
-
-    @pytest.mark.linux
-    def test_errMsgMerge(self):
-        output, errCode, errMsg = Process.backticks("grep -l . /proc/cpuinfo /dev/foo/bar", merge_stderr=False)
-        assert output == ["/proc/cpuinfo"] and errMsg == "grep: /dev/foo/bar: No such file or directory"
 
 
 class TestStatistics:

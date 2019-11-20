@@ -5,10 +5,10 @@ import pytest
 import tempfile
 import time
 import uuid
+import shutil
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
-from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import _infixFname, consolidateXml
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
@@ -499,9 +499,8 @@ class TestDataSet:
         outFas2 = os.path.join(outdir, 'tempfile2.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-                      o=inFas))
+        shutil.copyfile(ReferenceSet(data.getXml(8)).toExternalFiles()[0],
+                        inFas)
         rs1 = ContigSet(inFas)
 
         singletons = ['A.baumannii.1', 'A.odontolyticus.1']
@@ -557,9 +556,7 @@ class TestDataSet:
         outFas2 = os.path.join(outdir, 'tempfile2.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-                      o=inFas))
+        shutil.copyfile(ReferenceSet(data.getXml(8)).toExternalFiles()[0], inFas)
         rs1 = ContigSet(inFas)
 
         double = 'B.cereus.1'
@@ -991,9 +988,7 @@ class TestDataSet:
         inFas = os.path.join(outdir, 'infile.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-            i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-            o=inFas))
+        shutil.copyfile(ReferenceSet(data.getXml(8)).toExternalFiles()[0], inFas)
         rs1 = ContigSet(inFas)
         with pytest.raises(IOError) as cm:
             rs1.assertIndexed()
