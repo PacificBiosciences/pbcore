@@ -4,17 +4,19 @@
 I/O support for FASTQ files
 """
 
-__all__ = [ "FastqRecord",
-            "FastqReader",
-            "FastqWriter",
-            "qvsFromAscii",
-            "asciiFromQvs" ]
+__all__ = ["FastqRecord",
+           "FastqReader",
+           "FastqWriter",
+           "qvsFromAscii",
+           "asciiFromQvs"]
 
 import numpy as np
+
+from pbcore.util.decorators import deprecated
+from pbcore import sequence
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
-from pbcore import sequence
-from pbcore.util.decorators import deprecated
+
 
 class FastqRecord:
     """
@@ -146,7 +148,7 @@ class FastqRecord:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return (self.header   == other.header and
+            return (self.header == other.header and
                     self.sequence == other.sequence and
                     np.array_equiv(self.quality, other.quality))
         else:
@@ -162,12 +164,14 @@ class FastqRecord:
                           self.DELIMITER2,
                           self.qualityString])
 
+
 class FastqReader(ReaderBase):
     """
     Reader for FASTQ files, useable as a one-shot iterator over
     FastqRecord objects.  FASTQ files must follow the four-line
     convention.
     """
+
     def __iter__(self):
         """
         One-shot iteration support
@@ -203,6 +207,7 @@ class FastqWriter(WriterBase):
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
     """
+
     def writeRecord(self, *args):
         """
         Write a FASTQ record to the file.  If given one argument, it is
@@ -222,12 +227,13 @@ class FastqWriter(WriterBase):
 
 
 ##
-## Utility
+# Utility
 ##
 def qvsFromAscii(s):
     if isinstance(s, str):
         s = s.encode("ascii")
     return (np.frombuffer(s, dtype=np.uint8) - 33)
+
 
 def asciiFromQvs(a):
     return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode("ascii")

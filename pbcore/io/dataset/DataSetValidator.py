@@ -3,15 +3,16 @@
 
 """Validate DataSet XML files"""
 
-import os
-import re
 from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
+import os
+import re
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
 
 log = logging.getLogger(__name__)
+
 
 def validateResources(xmlroot, relTo='.'):
     """Validate the resources in an XML file.
@@ -44,6 +45,7 @@ def validateResources(xmlroot, relTo='.'):
                     else:
                         raise IOError("{f} not found".format(f=rfn))
 
+
 def validateLxml(xml_fn, xsd_fn):
     try:
         from lxml import etree
@@ -54,12 +56,14 @@ def validateLxml(xml_fn, xsd_fn):
     except ImportError:
         log.debug('lxml not found, validation disabled')
 
+
 def validateMiniXsv(xml_fn, xsd_fn):
     try:
         from minixsv import pyxsval
         pyxsval.parseAndValidate(xml_fn, xsd_fn)
     except ImportError:
         log.debug('minixsv not found, validation disabled')
+
 
 def validateXml(xmlroot, skipResources=False, relTo='.'):
 
@@ -82,6 +86,7 @@ def validateXml(xmlroot, skipResources=False, relTo='.'):
     except ImportError:
         log.info('PyXb not found, validation disabled')
 
+
 def validateFile(xmlfn, skipResources=False):
     if ':' in xmlfn:
         xmlfn = urlparse(xmlfn).path.strip()
@@ -89,6 +94,7 @@ def validateFile(xmlfn, skipResources=False):
         root = ET.parse(xmlfile).getroot()
         return validateXml(root, skipResources=skipResources,
                            relTo=os.path.dirname(xmlfn))
+
 
 def validateString(xmlString, skipResources=False, relTo='.'):
     validateXml(ET.fromstring(xmlString), skipResources, relTo)

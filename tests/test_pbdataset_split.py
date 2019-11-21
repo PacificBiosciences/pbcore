@@ -75,11 +75,11 @@ class TestDataSetSplit:
         assert sum([len([r for r in ds_]) for ds_ in dss]) == N_RECORDS
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert dss[0].zmwRanges == [
-                  ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
-                   1650, 32328)]
+            ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
+             1650, 32328)]
         assert dss[-1].zmwRanges == [
-                  ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
-                   32560, 54396)]
+            ('m140905_042212_sidney_c100564852550000001823085912221377_s1_X0',
+             32560, 54396)]
         ranges = sorted([c.zmwRanges[0][1:] for c in dss])
         interspans = []
         last = None
@@ -145,11 +145,11 @@ class TestDataSetSplit:
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert dss[0].zmwRanges == [
-                  ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-                   7, 14009)]
+            ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+             7, 14009)]
         assert dss[-1].zmwRanges == [
-                  ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-                   149881, 163475)]
+            ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+             149881, 163475)]
         ranges = sorted([c.zmwRanges[0][1:] for c in dss])
         interspans = []
         last = None
@@ -186,11 +186,11 @@ class TestDataSetSplit:
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert dss[0].zmwRanges == [
-                  ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-                   7, 22099)]
+            ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+             7, 22099)]
         assert dss[-1].zmwRanges == [
-                  ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
-                   127819, 163468)]
+            ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+             127819, 163468)]
 
     @pytest.mark.internal_data
     def test_multi_movie_split_zmws_existing_simple_filters(self):
@@ -226,11 +226,11 @@ class TestDataSetSplit:
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
         assert dss[0].zmwRanges == [
-                  ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-                   7, 22073)]
+            ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+             7, 22073)]
         assert dss[-1].zmwRanges == [
-                  ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
-                   127695, 163468)]
+            ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+             127695, 163468)]
 
     @pytest.mark.internal_data
     def test_multi_movie_split_zmws_existing_filters(self):
@@ -249,9 +249,9 @@ class TestDataSetSplit:
         assert len(ds1) == N_RECORDS
         ds1.filters.addRequirement(
             movie=[('=',
-                'm150404_101626_42267_c100807920800000001823174110291514_s1_p0'),
+                    'm150404_101626_42267_c100807920800000001823174110291514_s1_p0'),
                    ('=',
-                'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')],
+                    'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0')],
             zm=[('>', 10), ('>', 127900)])
         ds1.filters.mapRequirement(
             zm=[('<', 10000), ('<', 140000)])
@@ -271,11 +271,11 @@ class TestDataSetSplit:
         assert len(dss) == 12
         assert sum([len(ds_) for ds_ in dss]) == FILT_RECORDS
         assert dss[0].zmwRanges == [
-                  ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
-                   11, 1515)]
+            ('m150404_101626_42267_c100807920800000001823174110291514_s1_p0',
+             11, 1515)]
         assert dss[-1].zmwRanges == [
-                  ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
-                   137634, 139999)]
+            ('m141115_075238_ethan_c100699872550000001823139203261572_s1_p0',
+             137634, 139999)]
 
     @pytest.mark.internal_data
     def test_movie_split(self):
@@ -305,9 +305,11 @@ class TestDataSetSplit:
         assert sum([len(ds_) for ds_ in dss]) == N_RECORDS
         assert len(set(dss[0].index.qId)) == 1
         assert len(set(dss[-1].index.qId)) == 1
-        assert dss[0].qid2mov[list(set(dss[0].index.qId))[0]] == 'm150404_101626_42267_c100807920800000001823174110291514_s1_p0'
+        assert dss[0].qid2mov[list(set(dss[0].index.qId))[
+            0]] == 'm150404_101626_42267_c100807920800000001823174110291514_s1_p0'
         assert len(dss[0]) == N_RECORDS_1
-        assert dss[-1].qid2mov[list(set(dss[-1].index.qId))[0]] == 'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0'
+        assert dss[-1].qid2mov[list(set(dss[-1].index.qId))[0]
+                               ] == 'm141115_075238_ethan_c100699872550000001823139203261572_s1_p0'
         assert len(dss[-1]) == N_RECORDS_2
 
     @pytest.mark.internal_data
@@ -345,9 +347,11 @@ class TestDataSetSplit:
         assert sum([len(ds_) for ds_ in dss]) == NREC
         assert len(set(dss[0].index.tId)) == 1
         assert len(set(dss[-1].index.tId)) == 1
-        assert dss[0].tid2rname[list(set(dss[0].index.tId))[0]] == 'ecoliK12_pbi_March2013'
+        assert dss[0].tid2rname[list(set(dss[0].index.tId))[
+            0]] == 'ecoliK12_pbi_March2013'
         assert len(dss[0]) == NREC2 + NREC3
-        assert dss[-1].tid2rname[list(set(dss[-1].index.tId))[0]] == 'lambda_NEB3011'
+        assert dss[-1].tid2rname[list(set(dss[-1].index.tId))
+                                 [0]] == 'lambda_NEB3011'
         assert len(dss[-1]) == NREC1
 
     @pytest.mark.internal_data
@@ -392,6 +396,7 @@ class TestDataSetSplit:
         assert refwindows == [(0, 0, 224992)]
         res1 = openIndexedAlignmentFile(bams[0][7:])
         res2 = openIndexedAlignmentFile(bams[1][7:])
+
         def count(iterable):
             count = 0
             for _ in iterable:
@@ -416,12 +421,12 @@ class TestDataSetSplit:
         # care...
         assert not refWindows == sorted(ds3.refWindows)
         assert refWindows == [
-             ('B.vulgatus.4', 0, 1449), ('B.vulgatus.5', 0, 1449),
-             ('C.beijerinckii.13', 0, 1433), ('C.beijerinckii.14', 0, 1433),
-             ('C.beijerinckii.9', 0, 1433), ('E.coli.6', 0, 1463),
-             ('E.faecalis.1', 0, 1482), ('E.faecalis.2', 0, 1482),
-             ('R.sphaeroides.1', 0, 1386), ('S.epidermidis.2', 0, 1472),
-             ('S.epidermidis.3', 0, 1472), ('S.epidermidis.4', 0, 1472)]
+            ('B.vulgatus.4', 0, 1449), ('B.vulgatus.5', 0, 1449),
+            ('C.beijerinckii.13', 0, 1433), ('C.beijerinckii.14', 0, 1433),
+            ('C.beijerinckii.9', 0, 1433), ('E.coli.6', 0, 1463),
+            ('E.faecalis.1', 0, 1482), ('E.faecalis.2', 0, 1482),
+            ('R.sphaeroides.1', 0, 1386), ('S.epidermidis.2', 0, 1472),
+            ('S.epidermidis.3', 0, 1472), ('S.epidermidis.4', 0, 1472)]
         old_refWindows = refWindows
         random_few = [('C.beijerinckii.13', 0, 1433),
                       ('B.vulgatus.4', 0, 1449),
@@ -611,7 +616,8 @@ class TestDataSetSplit:
         assert len(dss) == 2
         log.debug(dss[0].filters)
         log.debug(dss[1].filters)
-        assert '( rname = E.faecalis.2 ' in str(dss[0].filters) or '( rname = E.faecalis.2 ' in str(dss[1].filters)
+        assert '( rname = E.faecalis.2 ' in str(
+            dss[0].filters) or '( rname = E.faecalis.2 ' in str(dss[1].filters)
         ds = AlignmentSet(data.getBam())
         ds.filters.addRequirement(rname=[('=', 'E.faecalis.2'),
                                          ('=', 'E.faecalis.2')],
@@ -620,11 +626,11 @@ class TestDataSetSplit:
                                   tEnd=[('>', '0'),
                                         ('>', '100')])
         assert str(ds.filters) == (
-                         '( rname = E.faecalis.2 AND tstart '
-                         '< 99 AND tend > 0 ) OR ( rname = '
-                         'E.faecalis.2 AND tstart < 299 AND tend > 100 )')
+            '( rname = E.faecalis.2 AND tstart '
+            '< 99 AND tend > 0 ) OR ( rname = '
+            'E.faecalis.2 AND tstart < 299 AND tend > 100 )')
         assert ds.refWindows == [('E.faecalis.2', 0, 99),
-                                         ('E.faecalis.2', 100, 299)]
+                                 ('E.faecalis.2', 100, 299)]
 
     @pytest.mark.skip(reason="Too expensive")
     def test_huge_zmw_split(self):
@@ -690,9 +696,9 @@ class TestDataSetSplit:
         sset = SubreadSet(fn, skipMissing=True)
         ssets = list(sset.split(chunks=3, barcodes=True))
         assert [str(ss.filters) for ss in ssets] == [
-                          "( bc = [0, 0] )",
-                          "( bc = [1, 1] )",
-                          "( bc = [2, 2] )"]
+            "( bc = [0, 0] )",
+            "( bc = [1, 1] )",
+            "( bc = [2, 2] )"]
         sset = SubreadSet(fn, skipMissing=True)
         assert len(sset) == 15133
         sset.filters = None
@@ -723,8 +729,8 @@ class TestDataSetSplit:
         sset = SubreadSet(fn, skipMissing=True)
         ssets = list(sset.split(maxChunks=2, barcodes=True))
         assert [str(ss.filters) for ss in ssets] == [
-                          "( bc = [0, 0] )",
-                          "( bc = [1, 1] ) OR ( bc = [2, 2] )"]
+            "( bc = [0, 0] )",
+            "( bc = [1, 1] ) OR ( bc = [2, 2] )"]
         sset = SubreadSet(fn, skipMissing=True)
         assert len(sset) == 15133
         sset.filters = None

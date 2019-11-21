@@ -1,20 +1,26 @@
 # Author: David Alexander
 
-__all__ = [ "BamReader", "IndexedBamReader" ]
+__all__ = ["BamReader", "IndexedBamReader"]
 
-from pysam.libcalignmentfile import AlignmentFile # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
-from pbcore.io import FastaTable
-from pbcore.chemistry import decodeTriple, ChemistryLookupError
-
-import numpy as np
-from itertools import groupby
 from functools import wraps
 from os.path import abspath, expanduser, exists
 
+import numpy as np
+from pysam.libcalignmentfile import AlignmentFile  # pylint: disable=no-name-in-module, import-error, fixme, line-too-long
+
+
+from pbcore.io import FastaTable
+from pbcore.chemistry import decodeTriple
 from ..base import ReaderBase
 from .PacBioBamIndex import PacBioBamIndex
-from .BamAlignment import *
-from ._BamSupport import *
+from .BamAlignment import BamAlignment
+from ._BamSupport import (BASE_FEATURE_TAGS,
+                          PULSE_FEATURE_TAGS,
+                          rgAsInt,
+                          UnavailableFeature,
+                          Unimplemented,
+                          IncompatibleFile,
+                          ReferenceMismatch)
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
 
 
@@ -22,7 +28,8 @@ def requiresBai(method):
     @wraps(method)
     def f(bamReader, *args, **kwargs):
         if not bamReader.peer.has_index():
-            raise UnavailableFeature("this feature requires an standard BAM index file (bam.bai)")
+            raise UnavailableFeature(
+                "this feature requires an standard BAM index file (bam.bai)")
         else:
             return method(bamReader, *args, **kwargs)
     return f
@@ -36,9 +43,10 @@ class _BamReaderBase(ReaderBase):
     second argument, the BamReader will provide an interface
     compatible with the now removed CmpH5Reader.
     """
+
     def _loadReferenceInfo(self):
         refRecords = self.peer.header["SQ"]
-        refNames   = [r["SN"] for r in refRecords]
+        refNames = [r["SN"] for r in refRecords]
         refLengths = [r["LN"] for r in refRecords]
         refIds = list(map(self.peer.get_tid, refNames))
         nRefs = len(refRecords)
@@ -57,8 +65,10 @@ class _BamReaderBase(ReaderBase):
                        ('Length', '<i8'),
                        ('StartRow', '<u4'), ('EndRow', '<u4')])
             self._referenceDict = {}
-            self._referenceDict.update(list(zip(refIds, self._referenceInfoTable)))
-            self._referenceDict.update(list(zip(refNames, self._referenceInfoTable)))
+            self._referenceDict.update(
+                list(zip(refIds, self._referenceInfoTable)))
+            self._referenceDict.update(
+                list(zip(refNames, self._referenceInfoTable)))
         else:
             self._referenceInfoTable = None
             self._referenceDict = None
@@ -74,7 +84,8 @@ class _BamReaderBase(ReaderBase):
         for rg in rgs:
             rgID = rgAsInt(rg["ID"])
             rgName = rg["PU"]
-            ds = dict([pair.split("=") for pair in rg["DS"].split(";") if pair != ""])
+            ds = dict([pair.split("=")
+                       for pair in rg["DS"].split(";") if pair != ""])
             # spec: we only consider first two components of basecaller version
             # in "chem" lookup
             rgReadType = ds["READTYPE"]
@@ -85,9 +96,11 @@ class _BamReaderBase(ReaderBase):
                 if set(("BASECALLERVERSION", "SEQUENCINGKIT", "BINDINGKIT")) <= set(ds):
                     pass
                 else:
-                    raise IOError("This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
+                    raise IOError(
+                        "This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
                 rgFrameRate = ds["FRAMERATEHZ"]
-                basecallerVersion = ".".join(ds["BASECALLERVERSION"].split(".")[0:2])
+                basecallerVersion = ".".join(
+                    ds["BASECALLERVERSION"].split(".")[0:2])
                 triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
                 rgChem = decodeTriple(*triple)
 
@@ -96,13 +109,13 @@ class _BamReaderBase(ReaderBase):
             # "Ipd"  to "Ipd:Frames"
             # (This is a bit messy.  Can we separate the manifest from
             # the rest of the DS content?)
-            baseFeatureNameMapping  = { key.split(":")[0] : key
-                                        for key in ds
-                                        if key in BASE_FEATURE_TAGS }
-            pulseFeatureNameMapping = { key.split(":")[0] : key
-                                        for key in ds
-                                        if key in PULSE_FEATURE_TAGS }
-            self._baseFeatureNameMappings[rgID]  = baseFeatureNameMapping
+            baseFeatureNameMapping = {key.split(":")[0]: key
+                                      for key in ds
+                                      if key in BASE_FEATURE_TAGS}
+            pulseFeatureNameMapping = {key.split(":")[0]: key
+                                       for key in ds
+                                       if key in PULSE_FEATURE_TAGS}
+            self._baseFeatureNameMappings[rgID] = baseFeatureNameMapping
             self._pulseFeatureNameMappings[rgID] = pulseFeatureNameMapping
 
             readGroupTable_.append(
@@ -111,9 +124,9 @@ class _BamReaderBase(ReaderBase):
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
-            dtype=[("ID"                 , np.int32),
-                   ("MovieName"          , "O"),
-                   ("ReadType"           , "O"),
+            dtype=[("ID", np.int32),
+                   ("MovieName", "O"),
+                   ("ReadType", "O"),
                    ("SequencingChemistry", "O"),
                    ("FrameRate",           float),
                    ("SampleName",          "O"),
@@ -121,8 +134,8 @@ class _BamReaderBase(ReaderBase):
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
 
-        self._readGroupDict = { rg.ID : rg
-                                for rg in self._readGroupTable }
+        self._readGroupDict = {rg.ID: rg
+                               for rg in self._readGroupTable}
 
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
@@ -132,13 +145,13 @@ class _BamReaderBase(ReaderBase):
             *[set(mapping) for mapping in self._pulseFeatureNameMappings.values()])
 
     def _loadProgramInfo(self):
-        pgRecords = [ (pg["ID"], pg.get("VN", None), pg.get("CL", None))
-                      for pg in self.peer.header.get("PG", []) ]
+        pgRecords = [(pg["ID"], pg.get("VN", None), pg.get("CL", None))
+                     for pg in self.peer.header.get("PG", [])]
 
         if len(pgRecords) > 0:
             self._programTable = np.rec.fromrecords(
                 pgRecords,
-                dtype=[("ID"     ,     "O"),
+                dtype=[("ID",     "O"),
                        ("Version",     "O"),
                        ("CommandLine", "O")])
         else:
@@ -149,17 +162,19 @@ class _BamReaderBase(ReaderBase):
         # Verify that this FASTA is in agreement with the BAM's
         # reference table---BAM should be a subset.
         fastaIdsAndLens = set((c.id, len(c)) for c in ft)
-        bamIdsAndLens   = set((c.Name, c.Length) for c in self.referenceInfoTable)
+        bamIdsAndLens = set((c.Name, c.Length)
+                            for c in self.referenceInfoTable)
         if not bamIdsAndLens.issubset(fastaIdsAndLens):
-            raise ReferenceMismatch("FASTA file must contain superset of reference contigs in BAM")
+            raise ReferenceMismatch(
+                "FASTA file must contain superset of reference contigs in BAM")
         self.referenceFasta = ft
 
     def _checkFileCompatibility(self):
         # Verify that this is a "pacbio" BAM file of version at least
         # 3.0.1
         badVersionException = IncompatibleFile(
-                "This BAM file is incompatible with this API " +
-                "(only PacBio BAM files version >= 3.0.1 are supported)")
+            "This BAM file is incompatible with this API " +
+            "(only PacBio BAM files version >= 3.0.1 are supported)")
         checkedVersion = self.version
         if "b" in checkedVersion:
             raise badVersionException
@@ -180,12 +195,13 @@ class _BamReaderBase(ReaderBase):
         self.referenceFasta = None
         if referenceFastaFname is not None:
             if self.isUnmapped:
-                raise ValueError("Unmapped BAM file--reference FASTA should not be given as argument to BamReader")
+                raise ValueError(
+                    "Unmapped BAM file--reference FASTA should not be given as argument to BamReader")
             self._loadReferenceFasta(referenceFastaFname)
 
     @property
     def isIndexLoaded(self):
-        return self.index is not None # pylint: disable=no-member
+        return self.index is not None  # pylint: disable=no-member
 
     @property
     def isReferenceLoaded(self):
@@ -234,7 +250,7 @@ class _BamReaderBase(ReaderBase):
     def referenceInfoTable(self):
         return self._referenceInfoTable
 
-    #TODO: standard?  how about subread instead?  why capitalize ccs?
+    # TODO: standard?  how about subread instead?  why capitalize ccs?
     # can we standardize this?  is cDNA an additional possibility
     @property
     def readType(self):
@@ -259,7 +275,8 @@ class _BamReaderBase(ReaderBase):
         try:
             return self.peer.header["HD"]["pb"]
         except KeyError:
-            raise IOError("This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
+            raise IOError(
+                "This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
 
     def versionAtLeast(self, minimalVersion):
         raise Unimplemented()
@@ -338,6 +355,7 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
     Reader for a BAM with a bam.bai (SAMtools) index, but not a
     bam.pbi (PacBio) index.  Supports basic BAM operations.
     """
+
     def __init__(self, fname, referenceFastaFname=None):
         super().__init__(fname, referenceFastaFname)
 
@@ -357,12 +375,12 @@ class BamReader(_BamReaderBase, AlignmentReaderMixin):
         if justIndices == True:
             raise UnavailableFeature("BAM is not random-access")
         else:
-            return ( BamAlignment(self, it)
-                     for it in self.peer.fetch(winId, winStart, winEnd, multiple_iterators=False) )
+            return (BamAlignment(self, it)
+                    for it in self.peer.fetch(winId, winStart, winEnd, multiple_iterators=False))
 
     def __getitem__(self, rowNumbers):
-        raise UnavailableFeature("Use IndexedBamReader to get row-number based slicing.")
-
+        raise UnavailableFeature(
+            "Use IndexedBamReader to get row-number based slicing.")
 
 
 class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
@@ -372,6 +390,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
     "row number" and to provide access to precomputed semantic
     information about the BAM records
     """
+
     def __init__(self, fname, referenceFastaFname=None, sharedIndex=None):
         super().__init__(fname, referenceFastaFname)
         if sharedIndex is None:
@@ -380,7 +399,7 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
             if exists(pbiFname):
                 self.pbi = PacBioBamIndex(pbiFname)
             else:
-                raise IOError("IndexedBamReader requires bam.pbi index file "+
+                raise IOError("IndexedBamReader requires bam.pbi index file " +
                               "to read {f}".format(f=fname))
         else:
             self.pbi = sharedIndex
@@ -413,20 +432,20 @@ class IndexedBamReader(_BamReaderBase, IndexedAlignmentReaderMixin):
 
     def __getitem__(self, rowNumbers):
         if (isinstance(rowNumbers, int) or
-            issubclass(type(rowNumbers), np.integer)):
+                issubclass(type(rowNumbers), np.integer)):
             return self.atRowNumber(rowNumbers)
         elif isinstance(rowNumbers, slice):
-            return ( self.atRowNumber(r)
-                     for r in range(*rowNumbers.indices(len(self))))
+            return (self.atRowNumber(r)
+                    for r in range(*rowNumbers.indices(len(self))))
         elif isinstance(rowNumbers, list) or isinstance(rowNumbers, np.ndarray):
             if len(rowNumbers) == 0:
                 return []
             else:
                 entryType = type(rowNumbers[0])
                 if entryType == int or issubclass(entryType, np.integer):
-                    return ( self.atRowNumber(r) for r in rowNumbers )
+                    return (self.atRowNumber(r) for r in rowNumbers)
                 elif entryType == bool or issubclass(entryType, np.bool_):
-                    return ( self.atRowNumber(r) for r in np.flatnonzero(rowNumbers) )
+                    return (self.atRowNumber(r) for r in np.flatnonzero(rowNumbers))
         raise TypeError("Invalid type for IndexedBamReader slicing")
 
     def __getattr__(self, key):

@@ -2,6 +2,7 @@ from pbcore import data
 from pbcore.io import FastaReader, FastaWriter, FastaRecord
 from io import StringIO
 
+
 class TestFastaRecord:
 
     HEADER = "chr1|blah|blah\tblah blah"
@@ -106,10 +107,10 @@ class TestFastaWriter:
             "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n"
             "ATTACAGATTACAGATTACA\n")
         self.fasta2 = StringIO(self.fasta1.getvalue() +
-            ">chr2|blah|blah\n"
-            "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n"
-            "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n"
-            "ATTACAGATTACAGATTACA\n")
+                               ">chr2|blah|blah\n"
+                               "GATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATT\n"
+                               "ACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAGATTACAG\n"
+                               "ATTACAGATTACAGATTACA\n")
 
     def test_writeFasta1(self):
         f = StringIO()

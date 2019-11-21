@@ -9,9 +9,11 @@ import pbcore.data as upstreamdata
 
 log = logging.getLogger(__name__)
 
+
 def keysToRanges(keys):
     key_ranges = [[min(k), max(k)] for k in keys]
     return key_ranges
+
 
 class TestDataSetUtils:
     """Unit and integrationt tests for the DataSet class and \

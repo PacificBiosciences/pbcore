@@ -15,7 +15,11 @@ install:
 	@pip install ./
 
 pylint:
-	pylint --errors-only --ignore=pyxb pbcore/
+	pylint --errors-only --ignore=pyxb --enable=C0411,W0702,W0401,W0611 pbcore/
+
+autopep8:
+	find pbcore -name "*.py" | xargs autopep8 -i
+	find tests -name "*.py" | xargs autopep8 -i
 
 clean: doc-clean
 	rm -rf build/;\
