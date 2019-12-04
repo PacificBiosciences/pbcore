@@ -6,7 +6,7 @@ import shutil
 import tempfile
 
 from numpy.testing import (assert_array_almost_equal as ASIM,
-                           assert_array_equal        as AEQ)
+                           assert_array_equal as AEQ)
 
 from pbcore import data
 from pbcore.io import BamReader, IndexedBamReader
@@ -26,7 +26,7 @@ class _BasicAlnFileReaderTests:
     """
 
     READER_CONSTRUCTOR = None
-    CONSTRUCTOR_ARGS   = None
+    CONSTRUCTOR_ARGS = None
 
     @classmethod
     def setup_class(cls):
@@ -63,76 +63,83 @@ class _BasicAlnFileReaderTests:
     def testUnalignedRead(self):
         expectedFwdNative = 'GCCGCGATGATGAAAACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTACAGGCTGCGGCATTTTGTCCGCGCCGGCTTCGCTCACTGTTCAGGCCGGAGCACAGACCGCCGTTGAAATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCGCTACCAGGAAGGGCGATGGGAAACACTGCCCTTTCAGCGGGCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTAATGTGGTGAAGTCTGCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTATGCCTCGTTTATAGAGCATAAGCAGCGCAACACCTTATCTGGTTGCC'
         assert expectedFwdNative == self.fwdAln.read(aligned=False)
-        assert expectedFwdNative == self.fwdAln.read(aligned=False, orientation="genomic")
+        assert expectedFwdNative == self.fwdAln.read(
+            aligned=False, orientation="genomic")
         expectedRevNative = "TAGCCACCGGATATCACCACAGGTGAGGCCGTGTAAGTTGAGGTTTTTCTACGTCAGATTCTTTTGGGATTGGGCTTGGGTTTATTTCCTGGTGCGTTTCGTTGAAGGTATTTGCAGTTTTCGCAGATTATGCCTCCGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC"
         assert expectedRevNative == self.revAln.read(aligned=False)
-        assert RC(expectedRevNative) == self.revAln.read(aligned=False, orientation="genomic")
+        assert RC(expectedRevNative) == self.revAln.read(
+            aligned=False, orientation="genomic")
 
     def testAlignedReference(self):
         expectedFwdNative = 'GCCGCGCTGGATG--AACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTAACAGGCTGCGGCATTTTGTCCGCGCCGGGCTTCGCTCACTGTTCAGGCCGGAGCCACAGACCGCCGTTG-AATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCCGCATACCAGGAAGGGCGCTGGGAAACACTGCCCTTTCAGCGGGCCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTGAATGTGGTGAAGTCTGCCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTTATGCCTAC-TTTATAGAGCATAAGCAGCGCAACACCCTTATCTGGTTGCC'
         assert expectedFwdNative == self.fwdAln.reference(aligned=True)
         assert expectedFwdNative == self.fwdAln.reference()
-        assert expectedFwdNative == self.fwdAln.reference(orientation="genomic")
+        assert expectedFwdNative == self.fwdAln.reference(
+            orientation="genomic")
         expectedRevNative = 'TAGCCACCGGATATC-CCACAGGTGA-GCCGTGT-AGTTGAAGG-TTTT-TACGTCAGATTCTTTTGGGATT-GGCTTGGGTTTATTT-CTGGTGCGTTTCGTTGGAAGGTATTTGCAGTTTTCGCAGATTATG--T-CGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC'
         assert expectedRevNative == self.revAln.reference(aligned=True)
         assert expectedRevNative == self.revAln.reference()
-        assert RC(expectedRevNative) == self.revAln.reference(orientation="genomic")
+        assert RC(expectedRevNative) == self.revAln.reference(
+            orientation="genomic")
 
     def testUnalignedReference(self):
         expectedFwdNative = "GCCGCGCTGGATGAACTGATACCGGGGTTGCTGAGTGAATATATCGAACAGTCAGGTTAACAGGCTGCGGCATTTTGTCCGCGCCGGGCTTCGCTCACTGTTCAGGCCGGAGCCACAGACCGCCGTTGAATGGGCGGATGCTAATTACTATCTCCCGAAAGAATCCGCATACCAGGAAGGGCGCTGGGAAACACTGCCCTTTCAGCGGGCCATCATGAATGCGATGGGCAGCGACTACATCCGTGAGGTGAATGTGGTGAAGTCTGCCCGTGTCGGTTATTCCAAAATGCTGCTGGGTGTTTATGCCTACTTTATAGAGCATAAGCAGCGCAACACCCTTATCTGGTTGCC"
         assert expectedFwdNative == self.fwdAln.reference(aligned=False)
-        assert expectedFwdNative == self.fwdAln.reference(aligned=False, orientation="genomic")
+        assert expectedFwdNative == self.fwdAln.reference(
+            aligned=False, orientation="genomic")
         expectedRevNative = "TAGCCACCGGATATCCCACAGGTGAGCCGTGTAGTTGAAGGTTTTTACGTCAGATTCTTTTGGGATTGGCTTGGGTTTATTTCTGGTGCGTTTCGTTGGAAGGTATTTGCAGTTTTCGCAGATTATGTCGGTGATACTTCGTCGCTGTCTCGCCACACGTCCTCCTTTTCCTGCGGTAGTGGTAACACCCC"
         assert expectedRevNative == self.revAln.reference(aligned=False)
-        assert RC(expectedRevNative) == self.revAln.reference(aligned=False, orientation="genomic")
+        assert RC(expectedRevNative) == self.revAln.reference(
+            aligned=False, orientation="genomic")
 
     def testDeletionQV(self):
         expectedFwdNative = (
-            [ 17, 17, 17, 17, 17, 17, 17, 17,255,  4, 17, 17, 17,  8, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 10,  8, 17,
-              17, 17, 17, 17, 17, 17,255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,255, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17,255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17,  6, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 11, 17, 17, 17, 17,
-              17, 17, 17, 17, 17,255, 17, 17, 17,255, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 11, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,255, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17,  7, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              255,  8, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,255,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,255, 17, 17, 17,
-              17, 17, 17, 17, 17,255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,255, 17, 17,
-              17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17] )
+            [17, 17, 17, 17, 17, 17, 17, 17, 255,  4, 17, 17, 17,  8, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 10,  8, 17,
+             17, 17, 17, 17, 17, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17,  6, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 11, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 255, 17, 17, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 11, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17,  7, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             255,  8, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 17, 17, 17,
+             17, 17, 17, 17, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17])
 
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV(aligned=True))
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV())
         AEQ(expectedFwdNative, self.fwdAln.DeletionQV(orientation="genomic"))
 
         expectedRevNative = (
-            [ 17, 17, 17, 17, 6, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 6, 17, 17, 17, 17, 17, 17, 6, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 10, 17,
-            17, 17, 17, 17, 8, 9, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 10, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 8, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 7, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 9, 17, 17, 5, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 7, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
-            17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17 ] )
+            [17, 17, 17, 17, 6, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 6, 17, 17, 17, 17, 17, 17, 6, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 255, 10, 17,
+             17, 17, 17, 17, 8, 9, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 10, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 8, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 7, 17, 255, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 9, 17, 17, 5, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 7, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17,
+             17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17])
 
         print(self.revAln.DeletionQV(aligned=True))
         AEQ(expectedRevNative, self.revAln.DeletionQV(aligned=True))
         AEQ(expectedRevNative, self.revAln.DeletionQV())
-        AEQ(expectedRevNative[::-1], self.revAln.DeletionQV(orientation="genomic"))
+        AEQ(expectedRevNative[::-1],
+            self.revAln.DeletionQV(orientation="genomic"))
 
     def testTranscript(self):
         assert ('MMMMMMRMDMMMMIIMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM'
@@ -261,10 +268,11 @@ class _BasicAlnFileReaderTests:
         wLen = 1000
         for wStart in range(0, 50000, wLen):
             wEnd = wStart + wLen
-            expectedNames = set([ a.readName for a in self.alns
-                                  if (a.referenceName == "lambda_NEB3011" and
-                                      a.overlapsReferenceRange(wStart, wEnd)) ])
-            assert expectedNames == set([a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd)])
+            expectedNames = set([a.readName for a in self.alns
+                                 if (a.referenceName == "lambda_NEB3011" and
+                                     a.overlapsReferenceRange(wStart, wEnd))])
+            assert expectedNames == set(
+                [a.readName for a in self.f.readsInRange("lambda_NEB3011", wStart, wEnd)])
 
     def testReadGroupTable(self):
         rgFwd = self.fwdAln.readGroupInfo
@@ -297,7 +305,7 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
         assert Counter({254: 112}) == c
 
     def testHoleNumbers(self):
-        c  = Counter([a.holeNumber for a in self.f])   # from records
+        c = Counter([a.holeNumber for a in self.f])   # from records
         c2 = Counter(self.f.holeNumber)                # from index
         expected = Counter({37134: 14, 6251: 10, 32861: 8, 14743: 4,
                             35858: 3, 39571: 3, 13473: 3, 32560: 3, 46835: 3, 47698: 3,
@@ -320,9 +328,12 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
             assert counts["D"] == aln.nDel
 
     def testReadsByName(self):
-        reads2771_1 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/*")
-        reads2771_2 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771")
-        reads2771_3 = self.f.readsByName("m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/")
+        reads2771_1 = self.f.readsByName(
+            "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/*")
+        reads2771_2 = self.f.readsByName(
+            "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771")
+        reads2771_3 = self.f.readsByName(
+            "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/")
 
         expectedReadNames = ["m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8741_8874",
                              "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0/2771/8942_9480"]
@@ -335,7 +346,7 @@ class _IndexedAlnFileReaderTests(_BasicAlnFileReaderTests):
 class TestBasicBam(_BasicAlnFileReaderTests):
 
     READER_CONSTRUCTOR = BamReader
-    CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
+    CONSTRUCTOR_ARGS = (data.getAlignedBam(), data.getLambdaFasta())
 
     def testSpecVersion(self):
         assert "3.0.1" == self.f.version
@@ -350,7 +361,7 @@ class TestBasicBam(_BasicAlnFileReaderTests):
 class TestIndexedBam(_IndexedAlnFileReaderTests):
 
     READER_CONSTRUCTOR = IndexedBamReader
-    CONSTRUCTOR_ARGS   = (data.getAlignedBam(), data.getLambdaFasta())
+    CONSTRUCTOR_ARGS = (data.getAlignedBam(), data.getLambdaFasta())
 
     def test_empty_bam(self):
         fn = data.getEmptyBam()
@@ -365,7 +376,7 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         fn = data.getAlignedBam()
         with IndexedBamReader(fn) as bam_in:
             i1 = bam_in.identity
-            i2 = np.array([ rec.identity for rec in bam_in ])
+            i2 = np.array([rec.identity for rec in bam_in])
             assert (i2 == i1).all()
 
     def test_alignment_identity_unindexed(self):
@@ -378,8 +389,8 @@ class TestIndexedBam(_IndexedAlnFileReaderTests):
         shutil.copyfile(fn1, fn2)
         with IndexedBamReader(fn1) as bam_pbi:
             with BamReader(fn2) as bam_noindex:
-                i1 = np.array([ rec.identity for rec in bam_pbi ])
-                i2 = np.array([ rec.identity for rec in bam_noindex ])
+                i1 = np.array([rec.identity for rec in bam_pbi])
+                i2 = np.array([rec.identity for rec in bam_noindex])
                 assert (i2 == i1).all()
 
 
@@ -421,7 +432,7 @@ class TestEmptyBam:
     def test_empty_bam_reads_in_range(self):
         with IndexedBamReader(data.getEmptyAlignedBam()) as bam:
             reads = bam.readsInRange("lambda_NEB3011", 0, 50000,
-                justIndices=True)
+                                     justIndices=True)
             assert len(reads) == 0
 
 
@@ -461,7 +472,7 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
 
     def test_sample_names(self):
         with BamReader(self.bam_file) as bam:
-            samples = {rg.MovieName:rg.SampleName for rg in bam.readGroupTable}
+            samples = {rg.MovieName: rg.SampleName for rg in bam.readGroupTable}
             assert samples == {
                 "movie1": "test_sample1",
                 "m64012_181222_192540": "test_sample2"}

@@ -1,13 +1,14 @@
 # Authors: David Alexander
 
-from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser
 import xml.etree.ElementTree as ET
 
+from pbcore.io.base import getFileHandle
 
-__all__ = [ "readFofn",
-            "readInputXML",
-            "enumeratePulseFiles" ]
+__all__ = ["readFofn",
+           "readInputXML",
+           "enumeratePulseFiles"]
+
 
 def readFofn(f):
     """
@@ -34,12 +35,14 @@ def readFofn(f):
         else:
             raise IOError("Cannot handle relative paths in StringIO FOFN")
 
+
 def readInputXML(fname):
     tree = ET.parse(fname)
     root = tree.getroot()
     for elt in root.iter():
-        if elt.tag=="location":
+        if elt.tag == "location":
             yield elt.text
+
 
 def enumeratePulseFiles(fname):
     """

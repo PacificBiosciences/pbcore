@@ -7,16 +7,20 @@ from pbcore.io import GffWriter, Gff3Record, GffReader
 from pbcore.io.GffIO import merge_gffs, merge_gffs_sorted, sort_gff
 from pbcore import data
 
+
 def rm_out(fname):
     if os.path.exists(fname):
         os.remove(fname)
 
+
 class TestGff3Record:
 
-    RECORD = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
+    RECORD = Gff3Record("chr1", 10, 11, "insertion",
+                        attributes=[("cat", "1"), ("dog", "2")])
 
     def test_str(self):
-        assert "chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2" == str(self.RECORD)
+        assert "chr1\t.\tinsertion\t10\t11\t.\t.\t.\tcat=1;dog=2" == str(
+            self.RECORD)
 
     def test_modification(self):
         record = self.RECORD.copy()
@@ -25,7 +29,8 @@ class TestGff3Record:
         record.mouse = 5
         record.start = 100
         record.end = 110
-        assert "chr1\t.\tinsertion\t100\t110\t.\t.\t.\tcat=4;dog=3;mouse=5" == str(record)
+        assert "chr1\t.\tinsertion\t100\t110\t.\t.\t.\tcat=4;dog=3;mouse=5" == str(
+            record)
 
     def test_fromString(self):
         newRecord = Gff3Record.fromString(str(self.RECORD))
@@ -59,14 +64,14 @@ class TestGffReader:
 
     def test_headers(self):
         assert ["##gff-version 3",
-                      "##pacbio-variant-version 2.1",
-                      "##date Sat Mar 22 12:16:13 2014",
-                      "##feature-ontology http://song.cvs.sourceforge.net/*checkout*/song/ontology/sofa.obo?revision=1.12",
-                      "##source GenomicConsensus 0.8.0",
-                      "##source-commandline /Users/dalexander/.virtualenvs/VE/bin/variantCaller.py --algorithm=plurality -q20 -x5 pbcore/data/aligned_reads_1.cmp.h5 -r /Users/dalexander/Data/lambdaNEB.fa -o /tmp/v.gff",
-                      "##source-alignment-file /Users/dalexander/Dropbox/Sources/git/pbcore/pbcore/data/aligned_reads_1.cmp.h5",
-                      "##source-reference-file /Users/dalexander/Data/lambdaNEB.fa",
-                      "##sequence-region lambda_NEB3011 1 48502"] == self.READER.headers
+                "##pacbio-variant-version 2.1",
+                "##date Sat Mar 22 12:16:13 2014",
+                "##feature-ontology http://song.cvs.sourceforge.net/*checkout*/song/ontology/sofa.obo?revision=1.12",
+                "##source GenomicConsensus 0.8.0",
+                "##source-commandline /Users/dalexander/.virtualenvs/VE/bin/variantCaller.py --algorithm=plurality -q20 -x5 pbcore/data/aligned_reads_1.cmp.h5 -r /Users/dalexander/Data/lambdaNEB.fa -o /tmp/v.gff",
+                "##source-alignment-file /Users/dalexander/Dropbox/Sources/git/pbcore/pbcore/data/aligned_reads_1.cmp.h5",
+                "##source-reference-file /Users/dalexander/Data/lambdaNEB.fa",
+                "##sequence-region lambda_NEB3011 1 48502"] == self.READER.headers
 
     def test__iter__(self):
         records = list(self.READER)
@@ -80,8 +85,10 @@ class TestGffReader:
 
 class TestGffWriter:
 
-    RECORD1 = Gff3Record("chr1", 10, 11, "insertion", attributes=[("cat", "1"), ("dog", "2")])
-    RECORD2 = Gff3Record("chr1", 200, 201, "substitution", attributes=[("mouse", "1"), ("moose", "2")])
+    RECORD1 = Gff3Record("chr1", 10, 11, "insertion",
+                         attributes=[("cat", "1"), ("dog", "2")])
+    RECORD2 = Gff3Record("chr1", 200, 201, "substitution",
+                         attributes=[("mouse", "1"), ("moose", "2")])
 
     def setup_method(self):
         self.outfile = StringIO()
@@ -119,7 +126,7 @@ chr2\tkinModCall\tmodified_base\t1786\t1786\t36\t-\t.\tcoverage=153;context=TCCC
 chr2\tkinModCall\tmodified_base\t1953\t1953\t39\t+\t.\tcoverage=148;context=AATGCGCGTATGGGGATGGGGGCCGGGTGAGGAAAGCTGGC;IPDRatio=1.86""", """\
 chr1\tkinModCall\tmodified_base\t16204\t16204\t31\t-\t.\tcoverage=119;context=CCCGCGCAGATGATAATTACGGCTCACCTGCTGGCTGCCGA;IPDRatio=1.80
 chr1\tkinModCall\tmodified_base\t16302\t16302\t33\t+\t.\tcoverage=108;context=TGGGACGGAACGTTTAAACCGGCATACAGCAACAACATGGC;IPDRatio=1.81
-chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CCCCATGCCGTAGCGCGGATGGGTCAGCATATCCCACAGAC;IPDRatio=1.82""",]
+chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CCCCATGCCGTAGCGCGGATGGGTCAGCATATCCCACAGAC;IPDRatio=1.82""", ]
     SORTED_START = [
         ('chr1', 16204), ('chr1', 16302), ('chr1', 16348),
         ('chr1', 32580), ('chr1', 32766), ('chr1', 32773),
@@ -157,14 +164,14 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
         n_rec = 0
         for fn in self.files:
             with GffReader(fn) as f:
-                n_rec += len([ rec for rec in f ])
+                n_rec += len([rec for rec in f])
         with GffReader(gff_out) as f:
             assert f.headers == [
                 "##gff-version 3",
                 "##source ipdSummary",
                 "##sequence-region lambda_NEB3011 1 48502",
             ]
-            n_rec_merged = len([ rec for rec in f ])
+            n_rec_merged = len([rec for rec in f])
             assert n_rec == n_rec_merged
         rm_out(gff_out)
 
@@ -172,14 +179,14 @@ chr1\tkinModCall\tmodified_base\t16348\t16348\t42\t-\t.\tcoverage=115;context=CC
         gff_out = "tmp_pbcore_merged_sorted.gff"
         merge_gffs_sorted(self.files, gff_out)
         with GffReader(gff_out) as f:
-            start = [ (rec.seqid, rec.start) for rec in f ]
+            start = [(rec.seqid, rec.start) for rec in f]
             assert start == self.SORTED_START
         rm_out(gff_out)
 
     def test_sort_gff(self):
         gff_out = sort_gff(self.combined)
         with GffReader(gff_out) as f:
-            start = [ (rec.seqid, rec.start) for rec in f ]
+            start = [(rec.seqid, rec.start) for rec in f]
             assert start == self.SORTED_START
         rm_out(gff_out)
 

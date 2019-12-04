@@ -5,25 +5,24 @@
 Classes representing DataSets of various types.
 """
 
-import copy
-import errno
-import hashlib
+from collections import defaultdict, Counter
+from functools import wraps, partial, reduce
+from urllib.parse import urlparse
+import xml.dom.minidom
+import subprocess
 import itertools
+import tempfile
+import hashlib
 import logging
+import errno
+import uuid
+import copy
 import os
 import re
-import shutil
-import tempfile
-import uuid
-import xml.dom.minidom
+
 import numpy as np
 from numpy.lib.recfunctions import append_fields
-from urllib.parse import urlparse
-from functools import wraps, partial, reduce
-from collections import defaultdict, Counter
 
-from pbcore.util.Process import backticks
-from pbcore.chemistry.chemistry import ChemistryLookupError
 from pbcore.io.align.PacBioBamIndex import PBI_FLAGS_BARCODE
 from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
@@ -37,7 +36,6 @@ from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
 from pbcore.io.dataset.DataSetWriter import toXml
 from pbcore.io.dataset.DataSetValidator import validateString
 from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
-                                              ReadSetMetadata,
                                               SubreadSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
@@ -45,7 +43,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (_infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     _swapPath, which, consolidateXml,
+                                     consolidateXml,
                                      getTimeStampedName, getCreatedAt)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
@@ -58,7 +56,9 @@ log = logging.getLogger(__name__)
 
 
 def raise_unsupported_format(file_name):
-    raise NotImplementedError("Data files of this type are not supported: '{f}'".format(f=file_name))
+    raise NotImplementedError(
+        "Data files of this type are not supported: '{f}'".format(f=file_name))
+
 
 def openDataSet(*files, **kwargs):
     """Return a DataSet, based on the named "files".
@@ -71,12 +71,14 @@ def openDataSet(*files, **kwargs):
         # Could not find a resource, so we will try using an resolved path for files[0].
         msg = '{e}: trying again with symlinks resolved'.format(e=exc)
         log.warning(msg)
+
         def maybe_resolved(fn):
             # Resolve only FOFNs and XMLs.
             return os.path.realpath(fn) if (fn.endswith('.xml') or fn.endswith('.fofn')) else fn
         rfiles = [maybe_resolved(fn) for fn in files]
         rfiles = tuple(rfiles)
         return _openDataSet(*rfiles, **kwargs)
+
 
 def _openDataSet(*files, **kwargs):
     """Factory function for DataSet types as suggested by the first file"""
@@ -85,12 +87,14 @@ def _openDataSet(*files, **kwargs):
         return tbrType(*files, **kwargs)
     return openDataFile(*files, **kwargs)
 
+
 def _dsIdToName(dsId):
     """Translate a MetaType/ID into a class name"""
     if DataSetMetaTypes.isValid(dsId):
         return dsId.split('.')[-1]
     else:
         raise InvalidDataSetIOError("Invalid DataSet MetaType")
+
 
 def _dsIdToType(dsId):
     """Translate a MetaType/ID into a type"""
@@ -100,12 +104,14 @@ def _dsIdToType(dsId):
     else:
         raise InvalidDataSetIOError("Invalid DataSet MetaType")
 
+
 def _typeDataSet(dset):
     """Determine the type of a dataset from the xml file without opening it"""
     xml_rt = xmlRootType(dset)
     dsId = toDsId(xml_rt)
     tbrType = _dsIdToType(dsId)
     return tbrType
+
 
 def isDataSet(xmlfile):
     """Determine if a file is a DataSet before opening it"""
@@ -114,6 +120,7 @@ def isDataSet(xmlfile):
         return True
     except Exception:
         return False
+
 
 def openDataFile(*files, **kwargs):
     """Factory function for DataSet types determined by the first data file"""
@@ -138,7 +145,7 @@ def openDataFile(*files, **kwargs):
         # peek in the files to figure out the best match
         if ReferenceSet in options:
             log.warning("Fasta files aren't unambiguously reference vs contig, "
-                     "opening as ReferenceSet")
+                        "opening as ReferenceSet")
             return ReferenceSet(*origFiles, **kwargs)
         elif AlignmentSet in options:
             # it is a bam file
@@ -157,6 +164,7 @@ def openDataFile(*files, **kwargs):
                 else:
                     return SubreadSet(*origFiles, **kwargs)
 
+
 def filtered(generator):
     """Wrap a generator with postfiltering"""
     @wraps(generator)
@@ -172,6 +180,7 @@ def filtered(generator):
                     yield read
     return wrapper
 
+
 def _homogenizeRecArrays(arrays):
     """
     Ensure that all indices have the same columns, filling in with -1 values
@@ -181,7 +190,8 @@ def _homogenizeRecArrays(arrays):
     for array in arrays:
         for (field, (dtype, _)) in array.dtype.fields.items():
             if field in dtypes:
-                assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(f=field, t=dtype, u=dtypes[field])
+                assert dtypes[field] == dtype, "Indices do not agree on the data type for {f} ({t}, {u})".format(
+                    f=field, t=dtype, u=dtypes[field])
             else:
                 dtypes[field] = dtype
     arrays_out = []
@@ -192,15 +202,16 @@ def _homogenizeRecArrays(arrays):
         for (field, dtype) in dtypes.items():
             if not field in array_fields:
                 log.warning("%s missing in array, will populate with dummy values",
-                         field)
+                            field)
                 new_fields.append(field)
                 new_data.append(np.full(len(array), -1, dtype=dtype))
         if len(new_fields) > 0:
             arrays_out.append(append_fields(array, new_fields, new_data,
-                              usemask=False))
+                                            usemask=False))
         else:
             arrays_out.append(array)
     return arrays_out
+
 
 def _checkFields(fieldNames):
     """Check for identical PBI field names"""
@@ -211,6 +222,7 @@ def _checkFields(fieldNames):
             raise InvalidDataSetIOError(
                 "Mismatched bam.pbi columns. Mixing mapped/unmapped or "
                 "barcoded/non-barcoded bam files isn't allowed.")
+
 
 def _stackRecArrays(recArrays):
     """Stack recarrays into a single larger recarray"""
@@ -233,6 +245,7 @@ def _stackRecArrays(recArrays):
         tbr = tbr.view(np.recarray)
         return tbr
 
+
 def _uniqueRecords(recArray):
     """Remove duplicate records"""
     unique = set()
@@ -244,9 +257,11 @@ def _uniqueRecords(recArray):
             unique_i.append(i)
     return recArray[unique_i]
 
+
 def _fieldsView(recArray, fields):
-    vdtype = np.dtype({fi:recArray.dtype.fields[fi] for fi in fields})
+    vdtype = np.dtype({fi: recArray.dtype.fields[fi] for fi in fields})
     return np.ndarray(recArray.shape, vdtype, recArray, 0, recArray.strides)
+
 
 def _renameField(recArray, current, new):
     ind = recArray.dtype.names.index(current)
@@ -254,17 +269,20 @@ def _renameField(recArray, current, new):
     names[ind] = new
     recArray.dtype.names = names
 
+
 def _flatten(lol, times=1):
     """This wont do well with mixed nesting"""
     for _ in range(times):
         lol = np.concatenate(lol)
     return lol
 
+
 def _ranges_in_list(alist):
     """Takes a sorted list, finds the boundaries of runs of each value"""
     unique, indices, counts = np.unique(np.array(alist), return_index=True,
                                         return_counts=True)
     return {u: (i, i + c) for u, i, c in zip(unique, indices, counts)}
+
 
 def divideKeys(keys, chunks):
     """Returns all of the keys in a list of lists, corresponding to evenly
@@ -278,6 +296,7 @@ def divideKeys(keys, chunks):
                   range(chunks-1)]
     key_chunks.append(keys[((chunks - 1) * chunksize):])
     return key_chunks
+
 
 def splitKeys(keys, chunks):
     """Returns key pairs for each chunk defining the bounds of each chunk"""
@@ -299,10 +318,12 @@ def splitKeys(keys, chunks):
         start += cs
     return key_chunks
 
+
 class MissingFileError(InvalidDataSetIOError):
     """Specifically thrown by _fileExists(),
     and trapped in openDataSet().
     """
+
 
 def _fileExists(fname):
     """Assert that a file exists with a useful failure mode"""
@@ -312,6 +333,7 @@ def _fileExists(fname):
         raise MissingFileError("Resource {f} not found".format(f=fname))
     return True
 
+
 def checkAndResolve(fname, possibleRelStart=None):
     """Try and skip resolveLocation if possible"""
     tbr = fname
@@ -319,6 +341,7 @@ def checkAndResolve(fname, possibleRelStart=None):
         log.debug('Unable to assume path is already absolute')
         tbr = resolveLocation(fname, possibleRelStart)
     return tbr
+
 
 def _pathChanger(osPathFunc, metaTypeFunc, resource):
     """Apply these two functions to the resource or ResourceId"""
@@ -329,6 +352,7 @@ def _pathChanger(osPathFunc, metaTypeFunc, resource):
         currentPath = osPathFunc(currentPath)
         resource.resourceId = currentPath
         metaTypeFunc(resource)
+
 
 def _copier(dest, resource, subfolder=None):
     if subfolder is None:
@@ -344,10 +368,12 @@ def _copier(dest, resource, subfolder=None):
             subfolder[0] = resource.uniqueId
         resource.resourceId = currentPath
 
+
 def _yield_chunks(chunk_generator):
     for chunk in chunk_generator:
         yield chunk
     return
+
 
 class DataSet:
     """The record containing the DataSet information, with possible type
@@ -498,9 +524,9 @@ class DataSet:
                     raise IOError(errno.EIO,
                                   "Cannot create {c} with resource of type "
                                   "'{t}' ({f}), only {a}".format(c=dsType,
-                                                           t=extension,
-                                                           f=fname,
-                                                           a=allowed))
+                                                                 t=extension,
+                                                                 f=fname,
+                                                                 a=allowed))
 
         # State tracking:
         self._cachedFilters = []
@@ -674,7 +700,6 @@ class DataSet:
         else:
             raise TypeError('DataSets can only be merged with records of the '
                             'same type or of type DataSet')
-
 
     def __deepcopy__(self, memo):
         """Deep copy this Dataset by recursively deep copying the members
@@ -986,9 +1011,9 @@ class DataSet:
             return self._split_single()
         if contigs:
             return _yield_chunks(self._split_contigs(chunks, maxChunks, breakContigs,
-                                              targetSize=targetSize,
-                                              byRecords=byRecords,
-                                              updateCounts=updateCounts))
+                                                     targetSize=targetSize,
+                                                     byRecords=byRecords,
+                                                     updateCounts=updateCounts))
 
         elif zmws:
             if chunks == 0:
@@ -1140,7 +1165,7 @@ class DataSet:
         if validate and not relPaths is None:
             if relPaths and not isinstance(outFile, str):
                 raise InvalidDataSetIOError("Cannot write relative "
-                    "pathnames without a filename")
+                                            "pathnames without a filename")
             elif relPaths:
                 self.makePathsRelative(os.path.dirname(outFile))
             else:
@@ -1373,8 +1398,8 @@ class DataSet:
     def copyFiles(self, outdir):
         """Copy all of the top level ExternalResources to an output
         directory 'outdir'"""
-        backticks('cp {i} {o}'.format(i=' '.join(self.toExternalFiles()),
-                                      o=outdir))
+        args = ["cp"] + list(self.toExternalFiles()) + [outdir]
+        return subprocess.check_call(args)
 
     def disableFilters(self):
         """Disable read filtering for this object"""
@@ -1433,18 +1458,17 @@ class DataSet:
                 elif (newMetadata['Version'].split('.')[0] ==
                       self.objMetadata['Version'].split('.')[0]):
                     log.warning("Future warning: merging datasets that don't "
-                             "share a version number will fail.")
+                                "share a version number will fail.")
                     return True
                 else:
                     log.warning("Mismatched dataset versions for merging {v1} vs "
-                                 "{v2}".format(
-                                     v1=newMetadata.get('Version'),
-                                     v2=self.objMetadata.get('Version')))
+                                "{v2}".format(
+                                    v1=newMetadata.get('Version'),
+                                    v2=self.objMetadata.get('Version')))
             else:
                 log.warning("Future warning: merging will require Version "
-                         "numbers for both DataSets")
+                            "numbers for both DataSets")
         return True
-
 
     def addMetadata(self, newMetadata, **kwargs):
         """Add dataset metadata.
@@ -2103,11 +2127,12 @@ class ReadSet(DataSet):
         # ignore empty bam files, which don't have barcoding information:
         if not self.isEmpty:
             res = [r for r, reader in zip(res, self.resourceReaders()) if
-                    len(reader)]
+                   len(reader)]
         try:
             return self._unifyResponses(res)
         except ResourceMismatchError as e:
-            log.warning("BAM files contain a mix of barcoded and non-barcoded reads")
+            log.warning(
+                "BAM files contain a mix of barcoded and non-barcoded reads")
             log.warning("Dataset will be treated as non-barcoded")
             return False
 
@@ -2137,7 +2162,7 @@ class ReadSet(DataSet):
                     except IOError:
                         if not self._strict:
                             log.warning("Problem opening reference with"
-                                     "IndexedFastaReader")
+                                        "IndexedFastaReader")
                             sharedRefs[refFile] = None
                         else:
                             raise
@@ -2153,8 +2178,8 @@ class ReadSet(DataSet):
             except (IOError, ValueError):
                 if not self._strict and not extRes.pbi:
                     log.warning("pbi file missing for {f}, operating with "
-                             "reduced speed and functionality".format(
-                                 f=location))
+                                "reduced speed and functionality".format(
+                                    f=location))
                     resource = BamReader(location)
                     if refFile:
                         resource.referenceFasta = sharedRefs[refFile]
@@ -2183,14 +2208,13 @@ class ReadSet(DataSet):
                 if resource.isEmpty:
                     log.debug("{f} contains no reads!".format(
                         f=extRes.resourceId))
-            except UnavailableFeature: # isEmpty requires bai
+            except UnavailableFeature:  # isEmpty requires bai
                 if not list(itertools.islice(resource, 1)):
                     log.debug("{f} contains no reads!".format(
                         f=extRes.resourceId))
         if len(self._openReaders) == 0 and len(self.toExternalFiles()) != 0:
             raise IOError("No files were openable")
         log.debug("Done opening resources")
-
 
     def _filterType(self):
         return 'bam'
@@ -2229,7 +2253,7 @@ class ReadSet(DataSet):
             return
         barcodes = defaultdict(int)
         for bcTuple in zip(self.index.bcForward,
-                                      self.index.bcReverse):
+                           self.index.bcReverse):
             if bcTuple != (-1, -1):
                 barcodes[bcTuple] += 1
 
@@ -2238,7 +2262,7 @@ class ReadSet(DataSet):
         atoms = list(barcodes.items())
 
         # The number of reads per barcode is used for balancing
-        balanceKey = lambda x: x[1]
+        def balanceKey(x): return x[1]
 
         # Find the appropriate number of chunks
         if chunks <= 0 or chunks > len(atoms):
@@ -2278,7 +2302,7 @@ class ReadSet(DataSet):
             yield self.copy()
             return
 
-        balanceKey = lambda x: x[1]
+        def balanceKey(x): return x[1]
         log.debug("Starting chunking")
         if chunks < len(movs):
             groups = self._chunkList(movs, chunks, balanceKey)
@@ -2369,8 +2393,8 @@ class ReadSet(DataSet):
                 zmwEnd = chunk[-1]['holeNumber']
                 res._filters.clearCallbacks()
                 newfilt = [[('movie', '=', movieName),
-                             ('zm', '<', zmwEnd + 1),
-                             ('zm', '>', zmwStart - 1)]]
+                            ('zm', '<', zmwEnd + 1),
+                            ('zm', '>', zmwStart - 1)]]
                 res._filters.broadcastFilters(newfilt)
             else:
                 movieNames = []
@@ -2459,7 +2483,7 @@ class ReadSet(DataSet):
         self._assertIndexed(IndexedBamReader)
 
     def _fixQIds(self, indices, resourceReader):
-        qId_acc = lambda x: x.qId
+        def qId_acc(x): return x.qId
 
         rr = resourceReader
         if self._readGroupTableIsRemapped:
@@ -2470,7 +2494,6 @@ class ReadSet(DataSet):
             for qId in qIdMap:
                 qId_acc(indices)[qId_acc(indices) == qId] = nameMap[
                     qIdMap[qId]]
-
 
     def _indexRecords(self):
         """Returns index recarray summarizing all of the records in all of
@@ -2488,7 +2511,7 @@ class ReadSet(DataSet):
             if not self._filters or self.noFiltering:
                 recArrays.append(indices._tbl)
                 _indexMap.extend([(rrNum, i) for i in
-                                       range(len(indices._tbl))])
+                                  range(len(indices._tbl))])
             else:
                 # Filtration will be necessary:
                 nameMap = {}
@@ -2502,7 +2525,7 @@ class ReadSet(DataSet):
                 newInds = indices._tbl[passes]
                 recArrays.append(newInds)
                 _indexMap.extend([(rrNum, i) for i in
-                                       np.flatnonzero(passes)])
+                                  np.flatnonzero(passes)])
         self._indexMap = np.array(_indexMap, dtype=[('reader', 'uint64'),
                                                     ('index', 'uint64')])
         if recArrays == []:
@@ -2586,9 +2609,9 @@ class ReadSet(DataSet):
             refCounts = dict(Counter(references))
             if len(refCounts) > 1:
                 log.warning("Consolidating AlignmentSets with "
-                         "different references, but BamReaders "
-                         "can only have one. References will be "
-                         "lost")
+                            "different references, but BamReaders "
+                            "can only have one. References will be "
+                            "lost")
             else:
                 for extres in self.externalResources:
                     extres.reference = list(refCounts)[0]
@@ -2664,9 +2687,9 @@ class SubreadSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.SubreadFile.SubreadBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
+        return {'bam': 'PacBio.SubreadFile.SubreadBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
     def getMovieSampleNames(self):
@@ -2750,8 +2773,8 @@ class AlignmentSet(ReadSet):
             self._openFiles()
 
     def _fixTIds(self, indices, rr, correctIds=True):
-        tId_acc = lambda x: x.tId
-        rName = lambda x: x['Name']
+        def tId_acc(x): return x.tId
+        def rName(x): return x['Name']
 
         if correctIds and self._stackedReferenceInfoTable:
             log.debug("Must correct index tId's")
@@ -2759,7 +2782,7 @@ class AlignmentSet(ReadSet):
                               rName(rr.referenceInfoTable)))
             unfilteredRefTable = self._buildRefInfoTable(filterMissing=False)
             rname2tid = dict(zip(unfilteredRefTable['Name'],
-                            unfilteredRefTable['ID']))
+                                 unfilteredRefTable['ID']))
             #nameMap = self.refIds
             for tId in tIdMap:
                 tId_acc(indices)[tId_acc(indices) == tId] = rname2tid[
@@ -2866,7 +2889,7 @@ class AlignmentSet(ReadSet):
         if chunks == 1:
             return [self.copy()]
 
-        balanceKey = lambda x: x[1]
+        def balanceKey(x): return x[1]
         log.debug("Starting chunking")
         if chunks < len(refs):
             groups = self._chunkList(refs, chunks, balanceKey)
@@ -2889,7 +2912,6 @@ class AlignmentSet(ReadSet):
             result.newUuid()
 
         return results
-
 
     def _indexReadsInReference(self, refName):
         # This can probably be deprecated for all but the official reads in
@@ -3098,7 +3120,8 @@ class AlignmentSet(ReadSet):
                      for rn, count in zip(refNames, map(self.countRecords,
                                                         refNames))
                      if count != 0]
-            balanceKey = lambda x: self.countRecords(*x)
+
+            def balanceKey(x): return self.countRecords(*x)
         else:
             # if there are that many references, on average they will probably
             # be distributed pretty evenly. Checking the counts will also be
@@ -3108,7 +3131,8 @@ class AlignmentSet(ReadSet):
                          self.countRecords(rn) != 0]
             else:
                 atoms = [(rn, 0, refLens[rn]) for rn in refNames]
-            balanceKey = lambda x: x[2] - x[1]
+
+            def balanceKey(x): return x[2] - x[1]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
         # By providing maxChunks and not chunks, this combination will set
@@ -3197,7 +3221,7 @@ class AlignmentSet(ReadSet):
         # indicates byRecords with no sub atom splits: (the fourth spot is
         # countrecords in that window)
         if len(atoms[0]) == 4:
-            balanceKey = lambda x: x[3]
+            def balanceKey(x): return x[3]
         log.debug("Distributing chunks")
         # if we didn't have to split atoms and are doing it byRecords, the
         # original counts are still valid:
@@ -3229,10 +3253,10 @@ class AlignmentSet(ReadSet):
             if len(result._filters) > 100:
                 meanNum = self.numRecords//len(chunks)
                 result.numRecords = int(round(meanNum,
-                                               (-1 * len(str(meanNum))) + 3))
+                                              (-1 * len(str(meanNum))) + 3))
                 meanLen = self.totalLength//len(chunks)
                 result.totalLength = int(round(meanLen,
-                                                (-1 * len(str(meanLen))) + 3))
+                                               (-1 * len(str(meanLen))) + 3))
             elif updateCounts:
                 result._openReaders = self._openReaders
                 passes = result._filters.filterIndexRecords(self.index,
@@ -3261,7 +3285,7 @@ class AlignmentSet(ReadSet):
                   (self.index.tEnd > start))
         if justIndices:
             return np.nonzero(passes)[0]
-            #return passes
+            # return passes
         return self.index[passes]
 
     def _pbiReadsInRange(self, refName, start, end, longest=False,
@@ -3635,8 +3659,8 @@ class AlignmentSet(ReadSet):
             if not self.noFiltering and self._filters:
                 passes = self._filters.testField('rname', table['Name'])
                 table = table[passes]
-        #TODO: Turn on when needed (expensive)
-        #self._referenceDict.update(zip(self.refIds.values(),
+        # TODO: Turn on when needed (expensive)
+        # self._referenceDict.update(zip(self.refIds.values(),
         #                               self._referenceInfoTable))
         return table
 
@@ -3712,7 +3736,7 @@ class AlignmentSet(ReadSet):
 
         """
         return list(zip(self.referenceInfoTable['Name'],
-                   self.referenceInfoTable[key]))
+                        self.referenceInfoTable[key]))
 
     def _idToRname(self, rId):
         """Map the DataSet.referenceInfoTable.ID to the superior unique
@@ -3730,10 +3754,10 @@ class AlignmentSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.AlignmentFile.AlignmentBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
-               }
+        return {'bam': 'PacBio.AlignmentFile.AlignmentBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
+                }
 
 
 class ConsensusReadSet(ReadSet):
@@ -3757,9 +3781,9 @@ class ConsensusReadSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
+        return {'bam': 'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
 
@@ -3773,9 +3797,9 @@ class ConsensusAlignmentSet(AlignmentSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.ConsensusReadFile.ConsensusReadBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
+        return {'bam': 'PacBio.ConsensusReadFile.ConsensusReadBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
 
@@ -3790,9 +3814,9 @@ class TranscriptSet(ReadSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.TranscriptFile.TranscriptBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
+        return {'bam': 'PacBio.TranscriptFile.TranscriptBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
 
@@ -3806,9 +3830,9 @@ class TranscriptAlignmentSet(AlignmentSet):
     @staticmethod
     def _metaTypeMapping():
         # This doesn't work for scraps.bam, whenever that is implemented
-        return {'bam':'PacBio.AlignmentFile.TranscriptAlignmentBamFile',
-                'bai':'PacBio.Index.BamIndex',
-                'pbi':'PacBio.Index.PacBioIndex',
+        return {'bam': 'PacBio.AlignmentFile.TranscriptAlignmentBamFile',
+                'bai': 'PacBio.Index.BamIndex',
+                'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
 
@@ -3915,14 +3939,15 @@ class ContigSet(DataSet):
                 seq = ''.join([match.sequence[:] for match in match_list])
                 quality = None
                 if self._fastq:
-                    quality = ''.join([match.qualityString for match in match_list])
+                    quality = ''.join(
+                        [match.qualityString for match in match_list])
                 return (seq, match_list[0].comment, quality)
             else:
                 log.debug("One match found for {i}".format(i=name))
                 seq = match_list[0].sequence[:]
                 quality = None
                 if self._fastq:
-                   quality = match_list[0].qualityString
+                    quality = match_list[0].qualityString
                 return (seq, match_list[0].comment, quality)
         if writeTemp:
             log.debug("Writing a new file is necessary")
@@ -3958,7 +3983,7 @@ class ContigSet(DataSet):
             self.updateCounts()
         else:
             log.warning("No need to write a new resource file, using current "
-                     "resource instead.")
+                        "resource instead.")
         self._populateMetaTypes()
 
     @property
@@ -4067,7 +4092,7 @@ class ContigSet(DataSet):
     @property
     def metadata(self):
         if not isinstance(self._metadata, ContigSetMetadata):
-           self._metadata = ContigSetMetadata(self._metadata)
+            self._metadata = ContigSetMetadata(self._metadata)
         return self._metadata
 
     @metadata.setter
@@ -4204,15 +4229,15 @@ class ContigSet(DataSet):
 
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
-                'fastq':'PacBio.ContigFile.ContigFastqFile',
-                'fa':'PacBio.ContigFile.ContigFastaFile',
-                'fas':'PacBio.ContigFile.ContigFastaFile',
-                'fai':'PacBio.Index.SamIndex',
-                'contig.index':'PacBio.Index.FastaContigIndex',
-                'index':'PacBio.Index.Indexer',
-                'sa':'PacBio.Index.SaWriterIndex',
-               }
+        return {'fasta': 'PacBio.ContigFile.ContigFastaFile',
+                'fastq': 'PacBio.ContigFile.ContigFastqFile',
+                'fa': 'PacBio.ContigFile.ContigFastaFile',
+                'fas': 'PacBio.ContigFile.ContigFastaFile',
+                'fai': 'PacBio.Index.SamIndex',
+                'contig.index': 'PacBio.Index.FastaContigIndex',
+                'index': 'PacBio.Index.Indexer',
+                'sa': 'PacBio.Index.SaWriterIndex',
+                }
 
     def _indexRecords(self):
         """Returns index records summarizing all of the records in all of
@@ -4278,14 +4303,14 @@ class ReferenceSet(ContigSet):
 
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
-                'fa':'PacBio.ContigFile.ContigFastaFile',
-                'fas':'PacBio.ContigFile.ContigFastaFile',
-                'fai':'PacBio.Index.SamIndex',
-                'contig.index':'PacBio.Index.FastaContigIndex',
-                'index':'PacBio.Index.Indexer',
-                'sa':'PacBio.Index.SaWriterIndex',
-               }
+        return {'fasta': 'PacBio.ContigFile.ContigFastaFile',
+                'fa': 'PacBio.ContigFile.ContigFastaFile',
+                'fas': 'PacBio.ContigFile.ContigFastaFile',
+                'fai': 'PacBio.Index.SamIndex',
+                'contig.index': 'PacBio.Index.FastaContigIndex',
+                'index': 'PacBio.Index.Indexer',
+                'sa': 'PacBio.Index.SaWriterIndex',
+                }
 
 
 class GmapReferenceSet(ReferenceSet):
@@ -4306,15 +4331,15 @@ class GmapReferenceSet(ReferenceSet):
 
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta':'PacBio.ContigFile.ContigFastaFile',
-                'fa':'PacBio.ContigFile.ContigFastaFile',
-                'fas':'PacBio.ContigFile.ContigFastaFile',
-                'fai':'PacBio.Index.SamIndex',
-                'contig.index':'PacBio.Index.FastaContigIndex',
-                'index':'PacBio.Index.Indexer',
-                'sa':'PacBio.Index.SaWriterIndex',
+        return {'fasta': 'PacBio.ContigFile.ContigFastaFile',
+                'fa': 'PacBio.ContigFile.ContigFastaFile',
+                'fas': 'PacBio.ContigFile.ContigFastaFile',
+                'fai': 'PacBio.Index.SamIndex',
+                'contig.index': 'PacBio.Index.FastaContigIndex',
+                'index': 'PacBio.Index.Indexer',
+                'sa': 'PacBio.Index.SaWriterIndex',
                 'gmap': 'PacBio.GmapDB.GmapDBPath',
-               }
+                }
 
 
 class BarcodeSet(ContigSet):
@@ -4351,7 +4376,7 @@ class BarcodeSet(ContigSet):
     @property
     def metadata(self):
         if not isinstance(self._metadata, BarcodeSetMetadata):
-           self._metadata = BarcodeSetMetadata(self._metadata)
+            self._metadata = BarcodeSetMetadata(self._metadata)
         return self._metadata
 
     @metadata.setter
@@ -4365,12 +4390,9 @@ class BarcodeSet(ContigSet):
         if not self._metadata.barcodeConstruction:
             self._metadata.barcodeConstruction = ''
 
-
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta':'PacBio.BarcodeFile.BarcodeFastaFile',
-                'fai':'PacBio.Index.SamIndex',
-                'sa':'PacBio.Index.SaWriterIndex',
-               }
-
-
+        return {'fasta': 'PacBio.BarcodeFile.BarcodeFastaFile',
+                'fai': 'PacBio.Index.SamIndex',
+                'sa': 'PacBio.Index.SaWriterIndex',
+                }

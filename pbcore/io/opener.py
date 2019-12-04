@@ -1,14 +1,16 @@
-__all__ = [ "openAlignmentFile",
-            "openIndexedAlignmentFile",
-            "entryPoint" ]
+__all__ = ["openAlignmentFile",
+           "openIndexedAlignmentFile",
+           "entryPoint"]
 
 from pbcore.io import (IndexedFastaReader, FastaReader,
                        BamReader, IndexedBamReader,
                        GffReader, FastqReader,
                        PacBioBamIndex, openDataSet)
 
+
 def raise_no_h5():
     raise NotImplementedError("hdf5 file support has been removed")
+
 
 def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
@@ -25,6 +27,7 @@ def openIndexedAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     else:
         raise ValueError("Invalid alignment file suffix")
 
+
 def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     """
     Factory function to get a handle to a reader for an alignment file (BAM),
@@ -35,19 +38,31 @@ def openAlignmentFile(fname, referenceFastaFname=None, sharedIndex=None):
     elif fname.endswith("bam"):
         return BamReader(fname, referenceFastaFname)
 
+
 def _openersFor(ext):
-    if   ext == "gff":           return (GffReader,)
-    elif ext in ("fq", "fastq"): return (FastqReader,)
-    elif ext in ("fa", "fasta"): return (IndexedFastaReader, FastaReader)
-    elif ext == "cmp.h5":        raise_no_h5()
-    elif ext == "bas.h5":        raise_no_h5()
-    elif ext == "bax.h5":        raise_no_h5()
-    elif ext == "fofn":          raise_no_h5()
-    elif ext == "bam":           return (IndexedBamReader, BamReader)
-    elif ext == "pbi":           return (PacBioBamIndex,)
-    elif ext == "xml":           return (openDataSet,)
+    if ext == "gff":
+        return (GffReader,)
+    elif ext in ("fq", "fastq"):
+        return (FastqReader,)
+    elif ext in ("fa", "fasta"):
+        return (IndexedFastaReader, FastaReader)
+    elif ext == "cmp.h5":
+        raise_no_h5()
+    elif ext == "bas.h5":
+        raise_no_h5()
+    elif ext == "bax.h5":
+        raise_no_h5()
+    elif ext == "fofn":
+        raise_no_h5()
+    elif ext == "bam":
+        return (IndexedBamReader, BamReader)
+    elif ext == "pbi":
+        return (PacBioBamIndex,)
+    elif ext == "xml":
+        return (openDataSet,)
     else:
         raise ValueError("No known opener class for extension %s" % ext)
+
 
 def _extension(fname):
     parts = fname.split(".")
@@ -55,6 +70,7 @@ def _extension(fname):
         raise_no_h5()
     else:
         return parts[-1]
+
 
 def _openAny(fname, *extraArgs):
     ext = _extension(fname)
@@ -68,14 +84,17 @@ def _openAny(fname, *extraArgs):
             lastException = e
     else:
         assert lastException is not None
-        raise lastException # pylint: disable=raising-bad-type
+        raise lastException  # pylint: disable=raising-bad-type
+
 
 def entryPoint():
     """
     This entry point (callable from the command line as ".open")
     provides a convenient way to load up a data file for inspection.
     """
-    import sys, code, numpy as np
+    import sys
+    import code
+    import numpy as np
 
     if len(sys.argv) < 2:
         print("Requires at least one argument!")

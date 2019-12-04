@@ -4,13 +4,14 @@
 # XXX this should be kept in some form, but the hope is that changes in pysam
 # will make the environment variable hack unnecessary in the future.
 
+from pbcore.io.align.BamIO import AlignmentFile
+import pbcore.io.align.BamAlignment
 import pytest
 import os
 os.environ["PBCORE_BAM_LOSSLESS_KINETICS"] = "1"
 
-import pbcore.io.align.BamAlignment
-from pbcore.io.align.BamIO import AlignmentFile
 pbcore.io.align.BamAlignment.PBCORE_BAM_LOSSLESS_KINETICS = "1"
+
 
 class TestCase:
 
@@ -29,7 +30,7 @@ movie1/54130/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10M\t*
             f.write(cls.SAM_STR)
         sam_in = AlignmentFile(sam_file, "r")
         bam_out = AlignmentFile(sam_file[:-3]+"bam", "wb",
-            template=sam_in)
+                                template=sam_in)
         for s in sam_in:
             bam_out.write(s)
         bam_out.close()
@@ -45,11 +46,11 @@ movie1/54130/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10M\t*
         os.environ
         with pbcore.io.BamReader(file_name) as f:
             expected = [
-                [275,2,0,10,22,349,0,2,3,16],
-                [285,2,0,10,22,340,0,2,3,16],
+                [275, 2, 0, 10, 22, 349, 0, 2, 3, 16],
+                [285, 2, 0, 10, 22, 340, 0, 2, 3, 16],
             ]
             k = 0
             for a in f:
-                ipd = list(a.IPD()) # we don't want the numpy array
+                ipd = list(a.IPD())  # we don't want the numpy array
                 assert ipd == expected[k]
                 k += 1

@@ -1,12 +1,17 @@
 __all__ = ["tripleFromMetadataXML",
            "decodeTriple",
-           "ChemistryLookupError" ]
+           "ChemistryLookupError"]
 
-import xml.etree.ElementTree as ET, os.path
-from pkg_resources import Requirement, resource_filename
 from collections import OrderedDict
+import xml.etree.ElementTree as ET
+import os.path
 
-class ChemistryLookupError(Exception): pass
+from pkg_resources import Requirement, resource_filename
+
+
+class ChemistryLookupError(Exception):
+    pass
+
 
 def _loadBarcodeMappingsFromFile(mapFile):
     try:
@@ -14,29 +19,37 @@ def _loadBarcodeMappingsFromFile(mapFile):
         root = tree.getroot()
         mappingElements = root.findall("Mapping")
         mappings = OrderedDict()
-        mapKeys = ["BindingKit", "SequencingKit", "SoftwareVersion", "SequencingChemistry"]
+        mapKeys = ["BindingKit", "SequencingKit",
+                   "SoftwareVersion", "SequencingChemistry"]
         for mapElement in mappingElements:
-            bindingKit          = mapElement.find("BindingKit").text
-            sequencingKit       = mapElement.find("SequencingKit").text
-            softwareVersion     = mapElement.find("SoftwareVersion").text
+            bindingKit = mapElement.find("BindingKit").text
+            sequencingKit = mapElement.find("SequencingKit").text
+            softwareVersion = mapElement.find("SoftwareVersion").text
             sequencingChemistry = mapElement.find("SequencingChemistry").text
-            mappings[(bindingKit, sequencingKit, softwareVersion)] = sequencingChemistry
+            mappings[(bindingKit, sequencingKit, softwareVersion)
+                     ] = sequencingChemistry
         return mappings
-    except:
+    except Exception:
         raise ChemistryLookupError("Error loading chemistry mapping xml")
 
+
 def _loadBarcodeMappings():
-    mappingFname = resource_filename(Requirement.parse('pbcore'),'pbcore/chemistry/resources/mapping.xml')
+    mappingFname = resource_filename(Requirement.parse(
+        'pbcore'), 'pbcore/chemistry/resources/mapping.xml')
     mappings = _loadBarcodeMappingsFromFile(mappingFname)
     updMappingDir = os.getenv("SMRT_CHEMISTRY_BUNDLE_DIR")
     if updMappingDir:
         import logging
         from os.path import join
-        logging.info("Loading updated chemistry mapping XML from {}".format(updMappingDir))
-        mappings.update(_loadBarcodeMappingsFromFile(join(updMappingDir, 'chemistry.xml')))
+        logging.info(
+            "Loading updated chemistry mapping XML from {}".format(updMappingDir))
+        mappings.update(_loadBarcodeMappingsFromFile(
+            join(updMappingDir, 'chemistry.xml')))
     return mappings
 
+
 _BARCODE_MAPPINGS = _loadBarcodeMappings()
+
 
 def tripleFromMetadataXML(metadataXmlPath):
     """
@@ -48,15 +61,20 @@ def tripleFromMetadataXML(metadataXmlPath):
     try:
         tree = ET.parse(metadataXmlPath)
         root = tree.getroot()
-        bindingKit = root.find("pb:BindingKit/pb:PartNumber", namespaces=nsd).text
-        sequencingKit = root.find("pb:SequencingKit/pb:PartNumber", namespaces=nsd).text
+        bindingKit = root.find(
+            "pb:BindingKit/pb:PartNumber", namespaces=nsd).text
+        sequencingKit = root.find(
+            "pb:SequencingKit/pb:PartNumber", namespaces=nsd).text
         # The instrument version is truncated to the first 2 dot delimited components
-        instrumentControlVersion = root.find("pb:InstCtrlVer", namespaces=nsd).text
+        instrumentControlVersion = root.find(
+            "pb:InstCtrlVer", namespaces=nsd).text
         verComponents = instrumentControlVersion.split(".")[0:2]
         instrumentControlVersion = ".".join(verComponents)
         return (bindingKit, sequencingKit, instrumentControlVersion)
     except Exception as e:
-        raise ChemistryLookupError("Could not find, or extract chemistry information from, %s" % (metadataXmlPath,))
+        raise ChemistryLookupError(
+            "Could not find, or extract chemistry information from, %s" % (metadataXmlPath,))
+
 
 def decodeTriple(bindingKit, sequencingKit, softwareVersion):
     """

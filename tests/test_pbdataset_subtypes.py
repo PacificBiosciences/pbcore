@@ -5,10 +5,10 @@ import pytest
 import tempfile
 import time
 import uuid
+import shutil
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
-from pbcore.util.Process import backticks
 from pbcore.io.dataset.utils import _infixFname, consolidateXml
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
@@ -491,7 +491,7 @@ class TestDataSet:
         assert len(aln) == len(nonCons)
 
     def test_contigset_consolidate(self):
-        #build set to merge
+        # build set to merge
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
 
         inFas = os.path.join(outdir, 'infile.fasta')
@@ -499,9 +499,8 @@ class TestDataSet:
         outFas2 = os.path.join(outdir, 'tempfile2.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-                      o=inFas))
+        shutil.copyfile(ReferenceSet(data.getXml(8)).toExternalFiles()[0],
+                        inFas)
         rs1 = ContigSet(inFas)
 
         singletons = ['A.baumannii.1', 'A.odontolyticus.1']
@@ -549,7 +548,7 @@ class TestDataSet:
         acc3 = acc1 + acc2
 
     def test_contigset_consolidate_int_names(self):
-        #build set to merge
+        # build set to merge
         outdir = tempfile.mkdtemp(suffix="dataset-unittest")
 
         inFas = os.path.join(outdir, 'infile.fasta')
@@ -557,9 +556,8 @@ class TestDataSet:
         outFas2 = os.path.join(outdir, 'tempfile2.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-                      i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-                      o=inFas))
+        shutil.copyfile(ReferenceSet(
+            data.getXml(8)).toExternalFiles()[0], inFas)
         rs1 = ContigSet(inFas)
 
         double = 'B.cereus.1'
@@ -589,11 +587,11 @@ class TestDataSet:
         be consolidated.
         """
         FASTA1 = ("lambda_NEB3011_0_60",
-            "GGGCGGCGACCTCGCGGGTTTTCGCTATTTATGAAAATTTTCCGGTTTAAGGCGTTTCCG")
+                  "GGGCGGCGACCTCGCGGGTTTTCGCTATTTATGAAAATTTTCCGGTTTAAGGCGTTTCCG")
         FASTA2 = ("lambda_NEB3011_120_180",
-            "CACTGAATCATGGCTTTATGACGTAACATCCGTTTGGGATGCGACTGCCACGGCCCCGTG")
+                  "CACTGAATCATGGCTTTATGACGTAACATCCGTTTGGGATGCGACTGCCACGGCCCCGTG")
         FASTA3 = ("lambda_NEB3011_60_120",
-            "GTGGACTCGGAGCAGTTCGGCAGCCAGCAGGTGAGCCGTAATTATCATCTGCGCGGGCGT")
+                  "GTGGACTCGGAGCAGTTCGGCAGCCAGCAGGTGAGCCGTAATTATCATCTGCGCGGGCGT")
         files = []
         for i, (header, seq) in enumerate([FASTA1, FASTA2, FASTA3]):
             _files = []
@@ -849,15 +847,15 @@ class TestDataSet:
         assert ds1.resourceReaders()[0].referenceFasta.filename == fasta_file
 
         # Re-enable when referenceset is acceptable reference
-        #ds1 = AlignmentSet(data.getXml(7),
+        # ds1 = AlignmentSet(data.getXml(7),
         #                   referenceFastaFname=rfn)
         #aln_ref = None
-        #for aln in ds1:
+        # for aln in ds1:
         #    aln_ref = aln.reference()
         #    break
         #assert aln_ref is not None
         #assert isinstance(aln_ref, basestring)
-        #assert ds1.externalResources[0]._getSubExtResByMetaType(
+        # assert ds1.externalResources[0]._getSubExtResByMetaType(
         #            'PacBio.ReferenceFile.ReferenceFastaFile').uniqueId == rs1.uuid
 
     @pytest.mark.internal_data
@@ -866,13 +864,13 @@ class TestDataSet:
                "m54075_161031_164015.subreadset.xml")
         s = SubreadSet(ifn)
         assert s.externalResources[0].adapters.endswith(
-                'm54075_161031_164015_adapter.fasta')
+            'm54075_161031_164015_adapter.fasta')
         ifn = ("/pbi/dept/secondary/siv/testdata/SA3-Sequel/ecoli/315/"
                "3150319/r54011_20160727_213451/1_A01/"
                "m54011_160727_213918.subreads.bam")
         s = SubreadSet(ifn)
         assert s.externalResources[0].adapters.endswith(
-                'm54011_160727_213918.adapters.fasta')
+            'm54011_160727_213918.adapters.fasta')
 
     def test_nested_external_resources(self):
         log.debug("Testing nested externalResources in AlignmentSets")
@@ -914,19 +912,19 @@ class TestDataSet:
 
         # Disabling until this feature is considered valuable. At the moment I
         # think it might cause accidental pollution.
-        #log.debug("Testing adding nested externalResources to AlignmetnSet "
+        # log.debug("Testing adding nested externalResources to AlignmetnSet "
         #          "on construction")
         #aln = AlignmentSet(data.getXml(7), referenceFastaFname=data.getXml(8))
         #assert aln.externalResources[0].bai
         #assert aln.externalResources[0].pbi
         #assert aln.externalResources[0].reference
-        #assert aln.externalResources[0].externalResources[0].metaType == 'PacBio.ReferenceFile.ReferenceFastaFile')
+        # assert aln.externalResources[0].externalResources[0].metaType == 'PacBio.ReferenceFile.ReferenceFastaFile')
 
-        #log.debug("Testing adding nested externalResources to "
+        # log.debug("Testing adding nested externalResources to "
         #          "AlignmentSets with multiple external resources "
         #          "on construction")
         #aln = AlignmentSet(data.getXml(11), referenceFastaFname=data.getXml(8))
-        #for i in range(1):
+        # for i in range(1):
         #    assert aln.externalResources[i].bai
         #    assert aln.externalResources[i].pbi
         #    assert aln.externalResources[i].reference
@@ -943,14 +941,14 @@ class TestDataSet:
             f.write(">bc1\nAAAAAAAAAAAAAAAA\n>bc2\nCCCCCCCCCCCCCCCC")
         ds = BarcodeSet(fa_out)
         ds.induceIndices()
-        assert [r.id for r in ds] == ["bc1","bc2"]
+        assert [r.id for r in ds] == ["bc1", "bc2"]
         ds_out = tempfile.NamedTemporaryFile(suffix=".barcodeset.xml").name
         ds.write(ds_out)
 
     def test_merged_contigset(self):
         fn = tempfile.NamedTemporaryFile(suffix=".contigset.xml").name
         with ContigSet(upstreamData.getLambdaFasta(),
-                upstreamData.getFasta()) as cset:
+                       upstreamData.getFasta()) as cset:
             assert len(list(cset)) == 49
             assert len(cset) == 49
             cset.consolidate()
@@ -966,7 +964,7 @@ class TestDataSet:
         types = [AlignmentSet(data.getXml(7)),
                  ReferenceSet(data.getXml(8)),
                  SubreadSet(data.getXml(9)),
-                ]
+                 ]
         for ds in types:
             assert ds[0]
 
@@ -991,9 +989,8 @@ class TestDataSet:
         inFas = os.path.join(outdir, 'infile.fasta')
 
         # copy fasta reference to hide fai and ensure FastaReader is used
-        backticks('cp {i} {o}'.format(
-            i=ReferenceSet(data.getXml(8)).toExternalFiles()[0],
-            o=inFas))
+        shutil.copyfile(ReferenceSet(
+            data.getXml(8)).toExternalFiles()[0], inFas)
         rs1 = ContigSet(inFas)
         with pytest.raises(IOError) as cm:
             rs1.assertIndexed()
@@ -1016,12 +1013,14 @@ class TestDataSet:
     def test_provenance_record_ordering(self):
         import pbtestdata
         ds = SubreadSet(pbtestdata.get_file("subreads-sequel"), strict=True)
-        ds.metadata.addParentDataSet(uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
+        ds.metadata.addParentDataSet(
+            uuid.uuid4(), ds.datasetType, createdBy="AnalysisJob", timeStampedName="")
         tmp_out = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
         ds.write(tmp_out)
         ds = SubreadSet(tmp_out, strict=True)
         tags = [r['tag'] for r in ds.metadata.record['children']]
-        assert tags == ['TotalLength', 'NumRecords', 'Provenance', 'Collections', 'SummaryStats']
+        assert tags == ['TotalLength', 'NumRecords',
+                        'Provenance', 'Collections', 'SummaryStats']
 
     @pytest.mark.internal_data
     def test_transcriptset(self):

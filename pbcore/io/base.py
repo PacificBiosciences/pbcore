@@ -4,10 +4,12 @@
 import gzip
 from os.path import abspath, expanduser
 
-__all__ = [ "ReaderBase", "WriterBase" ]
+__all__ = ["ReaderBase", "WriterBase"]
+
 
 def isFileLikeObject(o):
     return hasattr(o, "read") and hasattr(o, "write")
+
 
 def getFileHandle(filenameOrFile, mode="r"):
     """
@@ -32,6 +34,7 @@ def getFileHandle(filenameOrFile, mode="r"):
         return filenameOrFile
     else:
         raise Exception("Invalid type to getFileHandle")
+
 
 class ReaderBase:
     def __init__(self, f):
@@ -58,6 +61,7 @@ class ReaderBase:
 
     def __repr__(self):
         return "<%s for %s>" % (type(self).__name__, self.filename)
+
 
 class WriterBase:
     def __init__(self, f):

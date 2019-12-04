@@ -1,13 +1,16 @@
 # Author: Martin D. Smith
 
 import logging
+
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,)
 
 log = logging.getLogger(__name__)
 
+
 def toDsId(name):
     """Translate a class name into a MetaType/ID"""
     return "PacBio.DataSet.{x}".format(x=name)
+
 
 class DataSetMetaTypes:
     """
@@ -33,12 +36,14 @@ class DataSetMetaTypes:
     def isValid(cls, dsId):
         return dsId in cls.ALL
 
+
 def dsIdToName(dsId):
     """Translate a MetaType/ID into a class name"""
     if DataSetMetaTypes.isValid(dsId):
         return dsId.split('.')[-1]
     else:
         raise InvalidDataSetIOError("Invalid DataSet MetaType")
+
 
 def dsIdToSuffix(dsId):
     """Translate a MetaType/ID into a file suffix"""
@@ -52,4 +57,3 @@ def dsIdToSuffix(dsId):
         return suffix
     else:
         raise InvalidDataSetIOError("Invalid DataSet MetaType")
-
