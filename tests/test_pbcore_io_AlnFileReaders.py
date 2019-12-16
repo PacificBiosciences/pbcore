@@ -524,3 +524,12 @@ class TestUpdatedChemistryMapping:
         del os.environ["SMRT_CHEMISTRY_BUNDLE_DIR"]
         mappings = _loadBarcodeMappings()
         assert mappings.get(("1", "2", "3.4"), None) is None
+
+
+class TestBarcodedBam:
+
+    @pytest.mark.internal_data
+    def test_read_lima_demultiplexed_bam(self):
+        fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/demultiplex.lbc1--lbc1.bam"
+        bam = IndexedBamReader(fn)
+        assert str(bam[0]) == "Unmapped BAM record: m54008_160219_003234/74056024/1184_3910"
