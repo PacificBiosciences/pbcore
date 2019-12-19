@@ -83,7 +83,10 @@ def consolidateXml(indset, outbam, useTmp=True, cleanup=True):
         shutil.copy(outbam, origOutBam)
         shutil.copy(outbam + ".pbi", origOutBam + ".pbi")
     if cleanup:
-        shutil.rmtree(tmpout)
+        def _handle_error(function, path, excinfo):
+            log.error("Can't remove %s", path)
+            log.error(excinfo)
+        shutil.rmtree(tmpout, ignore_errors=True, onerror=_handle_error)
     return outbam
 
 
