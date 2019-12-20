@@ -2692,19 +2692,6 @@ class SubreadSet(ReadSet):
                 'pbi': 'PacBio.Index.PacBioIndex',
                 }
 
-    def getMovieSampleNames(self):
-        """
-        Map the BioSample names in Collection metadata to "context" ID, i.e.
-        movie names.  Used for deconvoluting multi-sample
-        inputs.  This function will raise a KeyError if a movie name is not
-        unique, or a ValueError if there is not a 1-to-1 mapping of sample to
-        to movie.
-        """
-        import warnings
-        warnings.warn("SubreadSet.getMovieSampleNames is deprecated, " +
-                      "use DataSet.metadata.getMovieSampleNames instead.")
-        return self.metadata.getMovieSampleNames()  # pylint: disable=no-member
-
 
 class AlignmentSet(ReadSet):
     """DataSet type specific to Alignments. No type specific Metadata exists,
