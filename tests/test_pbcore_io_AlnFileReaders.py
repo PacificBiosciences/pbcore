@@ -283,6 +283,7 @@ class _BasicAlnFileReaderTests:
             ('SequencingChemistry', 'O'),
             ('FrameRate', '<f8'),
             ('SampleName', 'O'),
+            ('LibraryName', 'O'),
             ('BaseFeatures', 'O')] == rgFwd.dtype
         assert isinstance(rgFwd.BaseFeatures, frozenset)
         assert 'S/P4-C2/5.0-8M' == rgFwd.SequencingChemistry
@@ -356,6 +357,9 @@ class TestBasicBam(_BasicAlnFileReaderTests):
 
     def test_sample_name_default(self):
         assert "UnnamedSample" == self.f.readGroupTable[0].SampleName
+
+    def test_library_name_default(self):
+        assert "UnnamedLibrary" == self.f.readGroupTable[0].LibraryName
 
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
