@@ -283,6 +283,7 @@ class _BasicAlnFileReaderTests:
             ('SequencingChemistry', 'O'),
             ('FrameRate', '<f8'),
             ('SampleName', 'O'),
+            ('LibraryName', 'O'),
             ('BaseFeatures', 'O')] == rgFwd.dtype
         assert isinstance(rgFwd.BaseFeatures, frozenset)
         assert 'S/P4-C2/5.0-8M' == rgFwd.SequencingChemistry
