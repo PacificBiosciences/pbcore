@@ -357,6 +357,9 @@ class TestBasicBam(_BasicAlnFileReaderTests):
     def test_sample_name_default(self):
         assert "UnnamedSample" == self.f.readGroupTable[0].SampleName
 
+    def test_library_name_default(self):
+        assert "UnnamedLibrary" == self.f.readGroupTable[0].LibraryName
+
 
 class TestIndexedBam(_IndexedAlnFileReaderTests):
 
