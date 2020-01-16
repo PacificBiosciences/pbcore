@@ -92,6 +92,7 @@ class _BamReaderBase(ReaderBase):
             rgChem = "unknown"
             rgFrameRate = 0.0
             rgSample = rg.get("SM", "UnnamedSample")
+            rgLibrary = rg.get("LB", "UnnamedLibrary")
             if rgReadType != "TRANSCRIPT":
                 if set(("BASECALLERVERSION", "SEQUENCINGKIT", "BINDINGKIT")) <= set(ds):
                     pass
@@ -120,7 +121,7 @@ class _BamReaderBase(ReaderBase):
 
             readGroupTable_.append(
                 (rgID, rgName, rgReadType, rgChem, rgFrameRate, rgSample,
-                 frozenset(baseFeatureNameMapping)))
+                 rgLibrary, frozenset(baseFeatureNameMapping)))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -130,6 +131,7 @@ class _BamReaderBase(ReaderBase):
                    ("SequencingChemistry", "O"),
                    ("FrameRate",           float),
                    ("SampleName",          "O"),
+                   ("LibraryName",         "O"),
                    ("BaseFeatures",        "O")])
         assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
             "First 8 chars of read group IDs must be unique!"
