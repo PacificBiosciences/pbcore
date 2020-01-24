@@ -200,4 +200,28 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0 (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>101-826-100</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0EA (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>101-789-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0 (4 rxn) - QC -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>101-820-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
 </MappingTable>
