@@ -2536,6 +2536,7 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata, parent=True)
 
 
 class CopyFilesMetadata(RecordWrapper):
