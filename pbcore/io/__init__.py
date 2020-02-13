@@ -1,15 +1,12 @@
-from __future__ import absolute_import
-
-from .BasH5IO import *
 from .FastaIO import *
 from .FastqIO import *
-from .FofnIO  import *
-from .GffIO   import *
-from .VcfIO   import *
-from .base    import *
+from .FofnIO import *
+from .GffIO import *
+from .VcfIO import *
+from .base import *
 
-from .align   import *
+from .align import *
 
 from .dataset import *
 
-from .opener  import *
+from .opener import *

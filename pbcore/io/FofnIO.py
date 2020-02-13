@@ -1,15 +1,14 @@
 # Authors: David Alexander
 
-from __future__ import absolute_import
-
-from pbcore.io.base import getFileHandle
 from os.path import dirname, isabs, join, abspath, expanduser
 import xml.etree.ElementTree as ET
 
+from pbcore.io.base import getFileHandle
 
-__all__ = [ "readFofn",
-            "readInputXML",
-            "enumeratePulseFiles" ]
+__all__ = ["readFofn",
+           "readInputXML",
+           "enumeratePulseFiles"]
+
 
 def readFofn(f):
     """
@@ -20,7 +19,7 @@ def readFofn(f):
     FOFN that are relative (i.e., do not contain a leading '/') will
     be reckoned from the directory containing the FOFN.
     """
-    if isinstance(f, basestring):
+    if isinstance(f, str):
         fofnRoot = dirname(abspath(expanduser(f)))
     else:
         fofnRoot = None
@@ -36,12 +35,14 @@ def readFofn(f):
         else:
             raise IOError("Cannot handle relative paths in StringIO FOFN")
 
+
 def readInputXML(fname):
     tree = ET.parse(fname)
     root = tree.getroot()
     for elt in root.iter():
-        if elt.tag=="location":
+        if elt.tag == "location":
             yield elt.text
+
 
 def enumeratePulseFiles(fname):
     """

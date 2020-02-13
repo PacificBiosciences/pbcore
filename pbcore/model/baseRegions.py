@@ -1,15 +1,13 @@
-from __future__ import absolute_import
-
-__all__ = [ "BaseRegionsMixin",
-            "ExtraBaseRegionsMixin",
-            "ADAPTER_REGION",
-            "INSERT_REGION",
-            "HQ_REGION" ]
+__all__ = ["BaseRegionsMixin",
+           "ExtraBaseRegionsMixin",
+           "ADAPTER_REGION",
+           "INSERT_REGION",
+           "HQ_REGION"]
 
 # Region types
 ADAPTER_REGION = 0
-INSERT_REGION  = 1
-HQ_REGION      = 2
+INSERT_REGION = 1
+HQ_REGION = 2
 
 
 # Interval arithmetic
@@ -19,11 +17,12 @@ def intersectRanges(r1, r2):
     b, e = max(b1, b2), min(e1, e2)
     return (b, e) if (b < e) else None
 
+
 def removeNones(lst):
-    return filter(lambda x: x!=None, lst)
+    return [x for x in lst if x != None]
 
 
-class BaseRegionsMixin(object):
+class BaseRegionsMixin:
     """
     Mixin class for "ZMW" client classes providing access to base
     regions and reads sliced to those regions.
@@ -55,9 +54,9 @@ class BaseRegionsMixin(object):
         return hqRow.regionStart, hqRow.regionEnd
 
     def _unclippedInsertRegions(self):
-        return [ (region.regionStart, region.regionEnd)
-                 for region in self.regionTable
-                 if region.regionType == INSERT_REGION ]
+        return [(region.regionStart, region.regionEnd)
+                for region in self.regionTable
+                if region.regionType == INSERT_REGION]
 
     @property
     def insertRegions(self):
@@ -65,8 +64,8 @@ class BaseRegionsMixin(object):
         Get insert regions as intervals, clipped to the HQ region
         """
         hqRegion = self.hqRegion
-        return removeNones([ intersectRanges(hqRegion, region)
-                             for region in self._unclippedInsertRegions() ])
+        return removeNones([intersectRanges(hqRegion, region)
+                            for region in self._unclippedInsertRegions()])
 
     @property
     def subreads(self):
@@ -75,13 +74,13 @@ class BaseRegionsMixin(object):
         and clips to, the HQ region.  This method can be used by
         production code.
         """
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.insertRegions ]
+        return [self.read(readStart, readEnd)
+                for (readStart, readEnd) in self.insertRegions]
 
     def _unclippedAdapterRegions(self):
-        return [ (region.regionStart, region.regionEnd)
-                 for region in self.regionTable
-                 if region.regionType == ADAPTER_REGION ]
+        return [(region.regionStart, region.regionEnd)
+                for region in self.regionTable
+                if region.regionType == ADAPTER_REGION]
 
     @property
     def adapterRegions(self):
@@ -89,9 +88,8 @@ class BaseRegionsMixin(object):
         Get adapter regions as intervals, performing clipping to the HQ region
         """
         hqRegion = self.hqRegion
-        return removeNones([ intersectRanges(hqRegion, region)
-                             for region in self._unclippedAdapterRegions() ])
-
+        return removeNones([intersectRanges(hqRegion, region)
+                            for region in self._unclippedAdapterRegions()])
 
     @property
     def adapters(self):
@@ -100,9 +98,8 @@ class BaseRegionsMixin(object):
         focus, and clips to, the HQ region.  This method can be used
         by production code.
         """
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.adapterRegions ]
-
+        return [self.read(readStart, readEnd)
+                for (readStart, readEnd) in self.adapterRegions]
 
 
 class ExtraBaseRegionsMixin(BaseRegionsMixin):
@@ -138,8 +135,8 @@ class ExtraBaseRegionsMixin(BaseRegionsMixin):
             as we make no guarantees about what happens outside of the
             HQ region.
         """
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.adapterRegionsNoQC ]
+        return [self.read(readStart, readEnd)
+                for (readStart, readEnd) in self.adapterRegionsNoQC]
 
     @property
     def insertRegionsNoQC(self):
@@ -160,5 +157,5 @@ class ExtraBaseRegionsMixin(BaseRegionsMixin):
             as we make no guarantees about what happens outside of the
             HQ region.
         """
-        return [ self.read(readStart, readEnd)
-                 for (readStart, readEnd) in self.insertRegionsNoQC ]
+        return [self.read(readStart, readEnd)
+                for (readStart, readEnd) in self.insertRegionsNoQC]

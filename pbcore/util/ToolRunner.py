@@ -1,13 +1,13 @@
-from __future__ import absolute_import
-from __future__ import print_function
-
-import argparse, cProfile, logging, pstats
+import argparse
+import cProfile
+import logging
+import pstats
 
 
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
 
 
-class PBToolRunner(object):
+class PBToolRunner:
 
     #
     # Interface to be overridden in subclasses (client code)
@@ -38,7 +38,7 @@ class PBToolRunner(object):
             help="Set the verbosity level")
         self.parser.add_argument(
             '--version',
-            action='version', version= '%(prog)s ' + self.getVersion())
+            action='version', version='%(prog)s ' + self.getVersion())
         self.parser.add_argument(
             "--profile", action="store_true",
             help="Print runtime profile at exit")
@@ -83,6 +83,7 @@ class PBToolRunner(object):
             return l["_rv"]
         else:
             return self.run()
+
 
 class PBMultiToolRunner(PBToolRunner):
     def _setupParsers(self, description):

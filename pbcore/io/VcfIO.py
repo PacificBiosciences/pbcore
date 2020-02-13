@@ -1,8 +1,5 @@
 # Author: Lance Hepler
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 """
 I/O support for VCF4 files.
 
@@ -43,7 +40,7 @@ def _empty_then(xs):
 
 
 @total_ordering
-class Vcf4Record(object):
+class Vcf4Record:
     """
     Class for VCF record, providing uniform access to standard
     VCF fields and attributes.
@@ -65,7 +62,8 @@ class Vcf4Record(object):
 
     """
 
-    __slots__ = ("chrom", "pos", "id", "ref", "alt", "qual", "filter", "info", "fields")
+    __slots__ = ("chrom", "pos", "id", "ref", "alt",
+                 "qual", "filter", "info", "fields")
 
     def __init__(self, chrom, pos, id, ref, alt, qual, filt, info, *fields):
         self.chrom = chrom
@@ -86,27 +84,29 @@ class Vcf4Record(object):
             fields[5] = _int_float_or_string(fields[5])
             fields[7] = OrderedDict((k.strip(), _int_float_or_string(v.strip()))
                                     for k, v in (x.strip().split('=')
-                                                for x in fields[7].split(';')))
+                                                 for x in fields[7].split(';')))
             return Vcf4Record(*fields)
         except TypeError:
-            raise ValueError("Could not interpret string as a Vcf4Record: '{0}'".format(s))
+            raise ValueError(
+                "Could not interpret string as a Vcf4Record: '{0}'".format(s))
 
     def __lt__(self, other):
         return (self.chrom, self.pos) < (other.chrom, other.pos)
 
     def __eq__(self, other):
-        return (self.chrom == other.chrom and self.pos == other.pos and self.id == other.id and \
-                self.ref == other.ref and self.alt == other.alt and self.qual == other.qual and \
-                self.filter == other.filter and self.info == other.info and \
+        return (self.chrom == other.chrom and self.pos == other.pos and self.id == other.id and
+                self.ref == other.ref and self.alt == other.alt and self.qual == other.qual and
+                self.filter == other.filter and self.info == other.info and
                 self.fields == other.fields)
 
     def __str__(self):
         return "{chrom}\t{pos}\t{id}\t{ref}\t{alt}\t{qual}\t{filter}\t{info}{fields}".format(
-                chrom=self.chrom, pos=self.pos, id=self.id,
-                ref=self.ref, alt=self.alt, qual=_fmt(self.qual),
-                filter=self.filter,
-                info=";".join("{0}={1}".format(k, _fmt(v)) for k, v in self.info.iteritems()),
-                fields="\t".join(_empty_then(self.fields)))
+            chrom=self.chrom, pos=self.pos, id=self.id,
+            ref=self.ref, alt=self.alt, qual=_fmt(self.qual),
+            filter=self.filter,
+            info=";".join("{0}={1}".format(k, _fmt(v))
+                          for (k, v) in self.info.items()),
+            fields="\t".join(_empty_then(self.fields)))
 
 
 def merge_vcfs_sorted(vcf_files, output_file_name):
@@ -135,9 +135,9 @@ def merge_vcfs_sorted(vcf_files, output_file_name):
     sorted_files = sorted(fst_recs, key=lambda x: x[0])
     nrec = 0
     with open(output_file_name, "w") as oh:
-        for m, _ in meta.iteritems():
+        for m in meta:
             print(m, file=oh)
-        print("#{0}".format("\t".join(h for h, _ in hdr.iteritems())), file=oh)
+        print("#{0}".format("\t".join(h for h in hdr)), file=oh)
         for _, f in sorted_files:
             with open(f) as h:
                 for line in h:

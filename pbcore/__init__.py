@@ -1,4 +1,6 @@
-from __future__ import absolute_import
+import pkg_resources
 
-# don't forget to update setup.py and doc/conf.py too
-__VERSION__ = "1.8.0"
+try:
+    __VERSION__ = pkg_resources.get_distribution('pbcore').version
+except Exception:
+    __VERSION__ = 'unknown'

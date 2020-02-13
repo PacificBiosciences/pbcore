@@ -1,303 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <MappingTable>
-  <DefaultSequencingChemistry>XL-C2</DefaultSequencingChemistry>
-  <Mapping>
-    <SequencingChemistry>C2</SequencingChemistry>
-    <BindingKit>001672551</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>1.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>C2</SequencingChemistry>
-    <BindingKit>001672551</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>C2</SequencingChemistry>
-    <BindingKit>001672551</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>C2</SequencingChemistry>
-    <BindingKit>001672551</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-C2</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>1.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-C2</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-C2</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-C2</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-XL</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>1.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-XL</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-XL</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>XL-XL</SequencingChemistry>
-    <BindingKit>100150800</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-C2</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>1.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-C2</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-C2</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-C2</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>001558034</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-XL</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-XL</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P4-XL</SequencingChemistry>
-    <BindingKit>100236500</BindingKit>
-    <SequencingKit>100180800</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P5-C3</SequencingChemistry>
-    <BindingKit>100256000</BindingKit>
-    <SequencingKit>100254800</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P5-C3</SequencingChemistry>
-    <BindingKit>100256000</BindingKit>
-    <SequencingKit>100254800</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100356300</BindingKit>
-    <SequencingKit>100356200</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100356300</BindingKit>
-    <SequencingKit>100356200</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100372700</BindingKit>
-    <SequencingKit>100356200</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100372700</BindingKit>
-    <SequencingKit>100356200</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100356300</BindingKit>
-    <SequencingKit>100612400</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100356300</BindingKit>
-    <SequencingKit>100612400</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100372700</BindingKit>
-    <SequencingKit>100612400</SequencingKit>
-    <SoftwareVersion>2.1</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>P6-C4</SequencingChemistry>
-    <BindingKit>100372700</BindingKit>
-    <SequencingKit>100612400</SequencingKit>
-    <SoftwareVersion>2.3</SoftwareVersion>
-  </Mapping>
-
-  <!-- 3.0 ("Dromedary") chemistry -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1/beta</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-620-000</SequencingKit>
-    <SoftwareVersion>3.0</SoftwareVersion>
-  </Mapping>
-  <Mapping>
-    <SequencingChemistry>S/P1-C1/beta</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-620-000</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <!-- 3.1 ("Echidna") chemistry -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.1</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.1</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.1</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-867-300</SequencingKit>
-    <SoftwareVersion>3.3</SoftwareVersion>
-  </Mapping>
-
-  <!-- 3.1.1 ("Flea") chemistry -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-902-100</SequencingKit>
-    <SoftwareVersion>3.1</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-902-100</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-902-100</SequencingKit>
-    <SoftwareVersion>3.3</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-902-100</SequencingKit>
-    <SoftwareVersion>4.0</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.2</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-902-100</SequencingKit>
-    <SoftwareVersion>4.1</SoftwareVersion>
-  </Mapping>
-
-  <!---3.2 ("Goat") chemistry (a.k.a "Mimosa") -->
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>3.2</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>3.3</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>4.0</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P1-C1.3</SequencingChemistry>
-    <BindingKit>100-619-300</BindingKit>
-    <SequencingKit>100-972-200</SequencingKit>
-    <SoftwareVersion>4.1</SoftwareVersion>
-  </Mapping>
-
-  <!-- "Seabiscuit" chemistry, accompanied 4.0 SW -->
-  <Mapping>
-    <SequencingChemistry>S/P2-C2</SequencingChemistry>
-    <BindingKit>100-862-200</BindingKit>
-    <SequencingKit>100-861-800</SequencingKit>
-    <SoftwareVersion>4.0</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P2-C2</SequencingChemistry>
-    <BindingKit>100-862-200</BindingKit>
-    <SequencingKit>100-861-800</SequencingKit>
-    <SoftwareVersion>4.1</SoftwareVersion>
-  </Mapping>
-
-  <Mapping>
-    <SequencingChemistry>S/P2-C2</SequencingChemistry>
-    <BindingKit>100-862-200</BindingKit>
-    <SequencingKit>101-093-700</SequencingKit>
-    <SoftwareVersion>4.1</SoftwareVersion>
-  </Mapping>
+  <DefaultSequencingChemistry>S/P3-C1/5.0-8M</DefaultSequencingChemistry>
 
   <Mapping>
     <SequencingChemistry>S/P2-C2/5.0</SequencingChemistry>
@@ -493,6 +196,30 @@
   <Mapping>
     <SequencingChemistry>S/P4.1-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-820-500</BindingKit>
+    <SequencingKit>101-820-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0 (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>101-826-100</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0EA (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>101-789-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Sequel® II Binding Kit 2.2; Sequel® II Sequencing Plate 2.0 (4 rxn) - QC -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
     <SequencingKit>101-820-300</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>

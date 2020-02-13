@@ -2,11 +2,11 @@
 
 
 """ Input and output functions for DataSet XML files"""
-from __future__ import absolute_import
 
-import copy, time
 import xml.etree.ElementTree as ET
 import logging
+import copy
+import time
 
 log = logging.getLogger(__name__)
 
@@ -15,6 +15,7 @@ XML_VERSION = "3.0.1"
 __all__ = ['toXml']
 
 # XML Writer:
+
 
 def toXml(dataset, core=False):
     """Generate an XML representation of this object. This is a function
@@ -35,6 +36,7 @@ def toXml(dataset, core=False):
     log.debug('Done converting ElementTree to string')
     return xmlstring
 
+
 NAMESPACES = {
     'pbbase': 'http://pacificbiosciences.com/PacBioBaseDataModel.xsd',
     'pbsample': 'http://pacificbiosciences.com/PacBioSampleInfo.xsd',
@@ -43,7 +45,7 @@ NAMESPACES = {
     '': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
     'pbds': 'http://pacificbiosciences.com/PacBioDatasets.xsd',
     'pbrk': 'http://pacificbiosciences.com/PacBioReagentKit.xsd'
-    }
+}
 
 # These are either deep in the weeds and don't have their own class, or way up
 # in the hierarchy and aren't part of the DataSetMetadata tree
@@ -80,7 +82,6 @@ TAGS = [
     ":ReadQualDist",
     ":ReadTypeDist",
     ":ShortInsertFraction",
-    ":HdfSubreadSet",
     ":SubreadSet",
     ":SummaryStats",
     ":TotalLength",
@@ -118,9 +119,11 @@ TAGS = [
     ":Contigs"
 ]
 
+
 def register_namespaces():
-    for prefix, uri in NAMESPACES.items():
+    for (prefix, uri) in NAMESPACES.items():
         ET.register_namespace(prefix, uri)
+
 
 def _toElementTree(dataSet, root=None, core=False):
     """Generate an ElementTree representation of this object. This is a
@@ -162,6 +165,7 @@ def _toElementTree(dataSet, root=None, core=False):
                                           "/PacBioDataModel.xsd"))
     return root
 
+
 def _coreClean(attribs):
     """Remove the non-core elements from any attributes dictionary. This will
     allow the same toXml function to serve as both the XML output
@@ -184,7 +188,7 @@ def _coreClean(attribs):
     if 'TimeStampedName' in attribs:
         del attribs['TimeStampedName']
     # Whether or not the hash should salt future hashes is up for debate
-    #if 'UniqueId' in attribs:
+    # if 'UniqueId' in attribs:
         #del attribs['UniqueId']
     return attribs
 
@@ -200,6 +204,7 @@ def _addExternalResourcesElement(dataSet, root, core=False):
     if dataSet.externalResources:
         root.append(_eleFromDictList(dataSet.externalResources.record, core))
 
+
 def _addDataSetMetadataElement(dataSet, root, core=False):
     """Add DataSetMetadata Elements to the root ElementTree object. Full
     depth serialization will be both difficult and necessary.
@@ -212,7 +217,8 @@ def _addDataSetMetadataElement(dataSet, root, core=False):
         for i, record in enumerate(dataSet.metadata.record['children']):
             if record['tag'] == "NumRecords":
                 for k, value in enumerate(provenance):
-                    dataSet.metadata.record['children'].insert(i + k + 1, value)
+                    dataSet.metadata.record['children'].insert(
+                        i + k + 1, value)
                 break
         else:
             dataSet.metadata.extend([p.record for p in provenance])
@@ -238,6 +244,7 @@ def _guessNs(tag):
             return NAMESPACES[nsprefix]
     return ''
 
+
 def _eleFromDictList(eleAsDict, core=False):
     """Create an ElementTree Element from a DictList"""
     # Elements should have namespaces from the XML file. If you add new
@@ -261,6 +268,7 @@ def _eleFromDictList(eleAsDict, core=False):
         ele.append(_eleFromDictList(child))
     return ele
 
+
 def _addFiltersElement(dataset, root, core=False):
     """Add Filter Elements to root, which are deep but uncluttered. Core
     option not really necessary, as filter names are fundamentally
@@ -272,6 +280,7 @@ def _addFiltersElement(dataset, root, core=False):
     if dataset.filters:
         root.append(_eleFromDictList(dataset.filters.record, core=core))
 
+
 def _addDataSetsElement(dataset, root, core=False):
     """Add DataSet Elements to root, which essentially nests ElementTrees.
 
@@ -280,7 +289,7 @@ def _addDataSetsElement(dataset, root, core=False):
     """
     if dataset.subdatasets:
         rootType = '{{{n}}}{t}'.format(n=NAMESPACES[''],
-                                   t='DataSets')
+                                       t='DataSets')
         dse = ET.SubElement(root, rootType)
         for subSet in dataset.subdatasets:
             rootType = '{{{n}}}{t}'.format(n=NAMESPACES[''],
@@ -289,13 +298,14 @@ def _addDataSetsElement(dataset, root, core=False):
                                        subSet.objMetadata)
             _toElementTree(subSet, subSetRoot, core=core)
 
+
 def _extResToXMLAttribs(extRes):
     """Clean the members of the ExternalResource dictionary into XML
     appropriate objects. This shouldn't be a method of ExternalResource,
     as it requires knowledge of which members are appropriate for XML
     attributes and which are not."""
     attr = {}
-    for key, value in extRes.toDict().items():
+    for (key, value) in extRes.toDict().items():
         if value and not (key == 'PacBioIndex' or key == 'PacBioMetadata'):
             attr[key] = value
     return attr

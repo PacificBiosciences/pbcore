@@ -3,20 +3,22 @@
 """
 I/O support for FASTQ files
 """
-from __future__ import absolute_import
 
-__all__ = [ "FastqRecord",
-            "FastqReader",
-            "FastqWriter",
-            "qvsFromAscii",
-            "asciiFromQvs" ]
+__all__ = ["FastqRecord",
+           "FastqReader",
+           "FastqWriter",
+           "qvsFromAscii",
+           "asciiFromQvs"]
+
 import numpy as np
+
+from pbcore.util.decorators import deprecated
+from pbcore import sequence
 from .base import ReaderBase, WriterBase
 from .FastaIO import splitFastaHeader
-from pbcore import sequence
-from pbcore.util.decorators import deprecated
 
-class FastqRecord(object):
+
+class FastqRecord:
     """
     A ``FastqRecord`` object models a named sequence and its quality
     values in a FASTQ file.  For reference consult `Wikipedia's FASTQ
@@ -146,14 +148,11 @@ class FastqRecord(object):
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return (self.header   == other.header and
+            return (self.header == other.header and
                     self.sequence == other.sequence and
                     np.array_equiv(self.quality, other.quality))
         else:
             return False
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
 
     def __str__(self):
         """
@@ -165,21 +164,27 @@ class FastqRecord(object):
                           self.DELIMITER2,
                           self.qualityString])
 
+
 class FastqReader(ReaderBase):
     """
     Reader for FASTQ files, useable as a one-shot iterator over
     FastqRecord objects.  FASTQ files must follow the four-line
     convention.
     """
+
     def __iter__(self):
         """
         One-shot iteration support
         """
         while True:
-            lines = [next(self.file) for i in xrange(4)]
-            yield FastqRecord(lines[0][1:-1],
-                              lines[1][:-1],
-                              qualityString=lines[3][:-1])
+            try:
+                lines = [next(self.file) for i in range(4)]
+            except StopIteration:
+                return
+            else:
+                yield FastqRecord(lines[0][1:-1],
+                                  lines[1][:-1],
+                                  qualityString=lines[3][:-1])
 
 
 class FastqWriter(WriterBase):
@@ -202,6 +207,7 @@ class FastqWriter(WriterBase):
     (Notice that underlying file will be automatically closed after
     exit from the `with` block.)
     """
+
     def writeRecord(self, *args):
         """
         Write a FASTQ record to the file.  If given one argument, it is
@@ -221,10 +227,13 @@ class FastqWriter(WriterBase):
 
 
 ##
-## Utility
+# Utility
 ##
 def qvsFromAscii(s):
+    if isinstance(s, str):
+        s = s.encode("ascii")
     return (np.frombuffer(s, dtype=np.uint8) - 33)
 
+
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring()
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode("ascii")

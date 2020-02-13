@@ -60,25 +60,23 @@ Notes:
 
 """
 
-from __future__ import absolute_import
-from __future__ import division
-
-import ast
+from collections import Counter, defaultdict, OrderedDict
+from urllib.parse import urlparse, unquote
+from functools import partial as P
+from functools import reduce
+import operator as OP
+import logging
 import uuid
 import copy
-import logging
+import ast
 import os
-import operator as OP
-import numpy as np
 import re
-from urlparse import urlparse
-from urllib import unquote
-from functools import partial as P
-from collections import Counter, defaultdict, OrderedDict
+
+import numpy as np
+
 from pbcore.io.dataset.utils import getTimeStampedName, hash_combine_zmws
 from pbcore.io.dataset.DataSetUtils import getDataSetUuid
 from pbcore.io.dataset.DataSetWriter import NAMESPACES
-from functools import reduce
 
 log = logging.getLogger(__name__)
 
@@ -95,11 +93,14 @@ FILE_INDICES = OrderedDict([('.fai', 'PacBio.Index.SamIndex'),
                             ('.index', 'PacBio.Index.Indexer'),
                             ('.sa', 'PacBio.Index.SaWriterIndex')])
 
+
 def uri2fn(fn):
     return unquote(urlparse(fn).path.strip())
 
+
 def uri2scheme(fn):
     return urlparse(fn).scheme
+
 
 def newUuid(record):
     # At some point the uuid may need to be a digest
@@ -107,18 +108,20 @@ def newUuid(record):
     #newId = str(hashlib.md5(str(record)).hexdigest())
 
     # Group appropriately
-    #newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
+    # newId = '-'.join([newId[:8], newId[8:12], newId[12:16], newId[16:20],
     #                  newId[20:]])
-    #return newId
+    # return newId
 
     # Today is not that day
     return str(uuid.uuid4())
 
+
 def map_val_or_vec(func, target):
     if isinstance(target, (list, tuple, np.ndarray)):
-        return map(func, target)
+        return list(map(func, target))
     else:
         return func(target)
+
 
 def recordMembership(records, constraints):
     # constraints might contain fewer columns than records, but you cannot skip
@@ -126,6 +129,7 @@ def recordMembership(records, constraints):
     # constraints. Both are recarrays
     subarrs1 = records[list(records.dtype.names[:len(constraints.dtype)])]
     return np.in1d(subarrs1, constraints)
+
 
 def reccheck(records, qname_tables):
     """Create a mask for those records present in qname_tables. qname_tables is
@@ -141,6 +145,7 @@ def reccheck(records, qname_tables):
     for table in qname_tables.values():
         mask |= recordMembership(records, table)
     return mask
+
 
 def inOp(ar1, ar2):
     # Special case: ar2 can be a dictionary of {num_fields: qname_recarray},
@@ -173,7 +178,7 @@ OPMAP = {'==': OP.eq,
          'not_in': lambda x, y: ~inOp(x, y),
          '&': lambda x, y: OP.and_(x, y).view(np.bool_),
          '~': lambda x, y: np.logical_not(OP.and_(x, y).view(np.bool_)),
-        }
+         }
 
 # These functions should take np.ndarrays that are already a reasonable type
 # (e.g. from dset.index.holeNumber, which is already in 32bit int)
@@ -187,14 +192,18 @@ HASHMAP = {'UnsignedLongCast': lambda x: x.astype(np.uint32),
            'BoostHashCombine': lambda x: hash_combine_zmws(x),
            }
 
+
 def mapOp(op):
     return OPMAP[op]
 
+
 def make_mod_hash_acc(accessor, mod, hashname):
     hashfunc = HASHMAP[hashname]
+
     def accNmod(records):
         return hashfunc(accessor(records)) % mod
     return accNmod
+
 
 def str2list(value):
     value = value.strip('set')
@@ -208,31 +217,37 @@ def str2list(value):
     value = [v.strip("'") for v in value]
     return value
 
+
 def setify(value):
     return np.unique(str2list(value))
 
+
 def fromFile(value):
-    with open(value, 'rU') as ifh:
+    with open(value, 'r', newline=None) as ifh:
         return np.unique([val.strip() for val in ifh])
+
 
 def isListString(string):
     """Detect if string is actually a representation a stringified list"""
 
     listver = str2list(string)
-    if len(listver) > 1 or re.search('[\[\(\{].+[\}\)\]]', string):
+    if len(listver) > 1 or re.search(r'[\[\(\{].+[\}\)\]]', string):
         return True
+
 
 def isFile(string):
     if isinstance(string, str) and os.path.exists(string):
         return True
     return False
 
+
 def qnamer(qid2mov, qId, hn, qs, qe):
     movs = np.empty_like(qId, dtype='S{}'.format(
         max(map(len, qid2mov.values()))))
-    for k, v in qid2mov.items():
+    for (k, v) in qid2mov.items():
         movs[qId == k] = v
     return (movs, hn, qs, qe)
+
 
 def breakqname(qname):
     tbr = []
@@ -251,6 +266,7 @@ def breakqname(qname):
             tbr.append(int(span[1]))
     return tbr
 
+
 def qname2vec(qnames, movie_map):
     """Break a list of qname strings into a list of qname field tuples"""
     if isinstance(qnames, str):
@@ -262,6 +278,7 @@ def qname2vec(qnames, movie_map):
         sizes[len(parts)].append(tuple(parts))
     return sizes
 
+
 def qnames2recarrays_by_size(qnames, movie_map, dtype):
     """Note that qname filters can be specified as partial qnames. Therefore we
     return a recarray for each size in qnames, in a dictionary
@@ -270,7 +287,7 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
     if len(records_by_size) == 0:
         return records_by_size
     tbr = {}
-    for size, records in records_by_size.iteritems():
+    for (size, records) in records_by_size.items():
         # recarray dtypes are a little hairier, we'll give normal (or manual)
         # dtypes an out:
         if isinstance(dtype, list):
@@ -282,7 +299,8 @@ def qnames2recarrays_by_size(qnames, movie_map, dtype):
         tbr[size] = np.rec.fromrecords(records, dtype=dtype_buildup)
     return tbr
 
-class PbiFlags(object):
+
+class PbiFlags:
     NO_LOCAL_CONTEXT = 0
     ADAPTER_BEFORE = 1
     ADAPTER_AFTER = 2
@@ -298,6 +316,7 @@ class PbiFlags(object):
         return reduce(OP.or_,
                       (getattr(cls, fl.strip()) for fl in flag.split('|')))
 
+
 def subgetter(key, container='text', default=None, asType=(lambda x: x),
               attrib=None):
     def get(self):
@@ -305,11 +324,13 @@ def subgetter(key, container='text', default=None, asType=(lambda x: x),
                                asType=asType, attrib=attrib)
     return property(get)
 
+
 def subsetter(key, container='text', attrib=None):
     def set(self, value):
         self._runCallbacks()
         self.setMemberV(key, str(value), container=container, attrib=attrib)
     return set
+
 
 def subaccs(key, container='text', default=None, asType=(lambda x: x),
             attrib=None):
@@ -317,6 +338,7 @@ def subaccs(key, container='text', default=None, asType=(lambda x: x),
                     attrib=attrib)
     get = get.setter(subsetter(key, container=container, attrib=attrib))
     return get
+
 
 def getter(key, container='attrib', asType=(lambda x: x), parent=False):
     def get(self):
@@ -326,16 +348,19 @@ def getter(key, container='attrib', asType=(lambda x: x), parent=False):
             return asType(self.getV(container, key))
     return property(get)
 
+
 def setter(key, container='attrib'):
     def set(self, value):
         self._runCallbacks()
         self.setV(str(value), container, key)
     return set
 
+
 def accs(key, container='attrib', asType=(lambda x: x), parent=False):
     get = getter(key, container, asType, parent=parent)
     get = get.setter(setter(key, container))
     return get
+
 
 def runonce(func):
     def runner():
@@ -347,16 +372,18 @@ def runonce(func):
     runner.hasrun = False
     return runner
 
+
 def updateTag(ele, tag):
     if ele.metaname == '':
         ele.metaname = tag
+
 
 def updateNamespace(ele, ns):
     if ele.namespace == '':
         ele.namespace = ns
 
 
-class RecordWrapper(object):
+class RecordWrapper:
     """The base functionality of a metadata element.
 
     Many of the methods here are intended for use with children of
@@ -394,13 +421,12 @@ class RecordWrapper(object):
                 # register a callback to append this object to the parent, so
                 # that it will be added to the XML file
                 self.registerCallback(runonce(P(parent.append, self.record)))
-        assert 'tag' in self.record.keys()
+        assert 'tag' in self.record
 
         # we could do the same with namespace, but it isn't used in nonzero, so
         # we can just update it:
         if not self.record.get('namespace', ''):
             self.record['namespace'] = NAMESPACES[self.NS]
-
 
     def registerCallback(self, func):
         if func not in self._callbacks:
@@ -427,11 +453,6 @@ class RecordWrapper(object):
         if self.record['children'] != []:
             return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __deepcopy__(self, memo):
         tbr = type(self)()
@@ -657,19 +678,22 @@ class RecordWrapper(object):
     uniqueId = accs('UniqueId')
     createdAt = accs('CreatedAt')
 
+
 def filter_read(accessor, operator, value, read):
     return operator(accessor(read), value)
+
 
 def n_subreads(index):
     _, inverse, counts = np.unique(index.holeNumber, return_inverse=True,
                                    return_counts=True)
     return counts[inverse]
 
+
 class Filters(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -694,11 +718,6 @@ class Filters(RecordWrapper):
                 if req.name:
                     return True
         return False
-
-    def __nonzero__(self):
-        # py2 compatibility
-        # https://docs.djangoproject.com/en/1.11/topics/python3/
-        return type(self).__bool__(self)
 
     def __str__(self):
         buff = []
@@ -739,7 +758,7 @@ class Filters(RecordWrapper):
             for req in filt:
                 if req.name == param:
                     if not mapOp(oper)(testType(value),
-                                            testType(req.value)):
+                                       testType(req.value)):
                         options[i] = False
         return any(options)
 
@@ -764,7 +783,7 @@ class Filters(RecordWrapper):
                 'movie': (lambda x: x.movieName),
                 'zm': (lambda x: int(x.HoleNumber)),
                 # not implemented yet:
-                #'bc': (lambda x: x.barcode),
+                # 'bc': (lambda x: x.barcode),
                 # pbi mediated alt:
                 'bc': (lambda x: (x.bam.pbi[x.rowNumber]['bcForward'],
                                   x.bam.pbi[x.rowNumber]['bcReverse'])),
@@ -777,21 +796,21 @@ class Filters(RecordWrapper):
                 'tstart': (lambda x: int(x.tStart)),
                 'tend': (lambda x: int(x.tEnd)),
                 'n_subreads': (lambda x: len(np.flatnonzero(
-                                            x.reader.holeNumber ==
-                                            x.HoleNumber))),
-               }
+                    x.reader.holeNumber ==
+                    x.HoleNumber))),
+                }
 
     def _pbiAccMap(self):
         return {'length': (lambda x: int(x.aEnd)-int(x.aStart)),
                 'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
-                                      'qEnd']]),
+                                       'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'zm': (lambda x: int(x.holeNumber)),
                 'pos': (lambda x: int(x.tStart)),
                 'readstart': (lambda x: int(x.aStart)),
                 'tstart': (lambda x: int(x.tStart)),
                 'tend': (lambda x: int(x.tEnd)),
-               }
+                }
 
     def _pbiMappedVecAccMap(self):
         plus = {'rname': (lambda x: x.tId),
@@ -808,9 +827,9 @@ class Filters(RecordWrapper):
                 'mapqv': (lambda x: x.mapQV),
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
-                               (x.nMM + x.nIns + x.nDel).astype(np.float)/
+                               (x.nMM + x.nIns + x.nDel).astype(np.float) /
                                (x.nM + x.nMM + x.nIns)))
-               }
+                }
         base = self._pbiVecAccMap()
         base.update(plus)
         return base
@@ -820,7 +839,7 @@ class Filters(RecordWrapper):
                 'qstart': (lambda x: x.qStart),
                 'qend': (lambda x: x.qEnd),
                 'qname': (lambda x: x[['qId', 'holeNumber', 'qStart',
-                                      'qEnd']]),
+                                       'qEnd']]),
                 'qid': (lambda x: x.qId),
                 'movie': (lambda x: x.qId),
                 'zm': (lambda x: x.holeNumber),
@@ -832,7 +851,7 @@ class Filters(RecordWrapper):
                 'bc': (lambda x: x['bcForward', 'bcReverse']),
                 'cx': (lambda x: x.contextFlag),
                 'n_subreads': n_subreads,
-               }
+                }
 
     @property
     def _bamTypeMap(self):
@@ -859,7 +878,7 @@ class Filters(RecordWrapper):
                 'cx': PbiFlags.flagMap,
                 'n_subreads': int,
                 'mapqv': int,
-               }
+                }
 
     def tests(self, readType="bam", tIdMap=None):
         # Allows us to not process all of the filters each time. This is marked
@@ -872,10 +891,10 @@ class Filters(RecordWrapper):
         elif readType.lower() == "fasta":
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: int(len(x))),
-                     }
+                      }
             typeMap = {'id': str,
                        'length': int,
-                      }
+                       }
         elif readType.lower() == "pbi":
             accMap = self._pbiAccMap()
             typeMap = self._bamTypeMap
@@ -913,10 +932,10 @@ class Filters(RecordWrapper):
         elif readType == 'fasta':
             accMap = {'id': (lambda x: x.id),
                       'length': (lambda x: x.length.astype(int)),
-                     }
+                      }
             typeMap = {'id': str,
                        'length': int,
-                      }
+                       }
 
         filterLastResult = np.zeros(len(indexRecords), dtype=np.bool_)
         for filt in self:
@@ -925,7 +944,7 @@ class Filters(RecordWrapper):
                 param = req.name
                 if param == 'qname_file':
                     param = 'qname'
-                if param in accMap.keys():
+                if param in accMap:
                     # Treat "value" as a string of a list of potential values
                     # if operator is 'in', or 'in' masquerading as '=='.
                     # Have to be careful with bc and other values that are
@@ -952,9 +971,9 @@ class Filters(RecordWrapper):
                         value = map_val_or_vec(movieMap.get, value)
                     elif param == 'qname':
                         value = qnames2recarrays_by_size(
-                                value, movieMap,
-                                dtype=indexRecords[['qId', 'holeNumber',
-                                                    'qStart', 'qEnd']].dtype)
+                            value, movieMap,
+                            dtype=indexRecords[['qId', 'holeNumber',
+                                                'qStart', 'qEnd']].dtype)
 
                     if param == 'bc':
                         # convert string to list:
@@ -978,13 +997,13 @@ class Filters(RecordWrapper):
                         accessor = accMap[param]
                         if req.modulo is not None:
                             accessor = make_mod_hash_acc(accessor, req.modulo,
-                                                          req.hashfunc)
+                                                         req.hashfunc)
                         reqResultsForRecords = operator(
                             accessor(indexRecords), value)
                     lastResult &= reqResultsForRecords
                     del reqResultsForRecords
                 else:
-                    log.warn("Filter not recognized: {f}".format(f=param))
+                    log.warning("Filter not recognized: {f}".format(f=param))
             filterLastResult |= lastResult
             del lastResult
         return filterLastResult
@@ -1012,8 +1031,9 @@ class Filters(RecordWrapper):
         if self.submetadata:
             origFilts = copy.deepcopy(list(self))
             self.record['children'] = []
-            newFilts = [copy.deepcopy(origFilts) for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [copy.deepcopy(origFilts)
+                        for _ in list(kwargs.values())[0]]
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     for filt in newFilts[i]:
                         val = option[1]
@@ -1023,8 +1043,8 @@ class Filters(RecordWrapper):
             for filtList in newFilts:
                 self.extend(filtList)
         else:
-            newFilts = [Filter() for _ in kwargs.values()[0]]
-            for name, options in kwargs.items():
+            newFilts = [Filter() for _ in list(kwargs.values())[0]]
+            for (name, options) in kwargs.items():
                 for i, option in enumerate(options):
                     val = option[1]
                     if isinstance(val, np.ndarray):
@@ -1046,7 +1066,7 @@ class Filters(RecordWrapper):
         if not kwargs:
             return
         newFilt = Filter()
-        for name, options in kwargs.items():
+        for (name, options) in kwargs.items():
             for option in options:
                 newFilt.addRequirement(name, *option)
         self.append(newFilt)
@@ -1106,15 +1126,15 @@ class Filters(RecordWrapper):
         """Add requirements to each of the existing requirements, mapped one
         to one"""
         # Check that all lists of values are the same length:
-        values = kwargs.values()
+        values = list(kwargs.values())
         if len(values) > 1:
             for v in values[1:]:
                 assert len(v) == len(values[0])
 
         # Check that this length is equal to the current number of filters:
-        assert len(kwargs.values()[0]) == len(list(self))
+        assert len(list(kwargs.values())[0]) == len(list(self))
 
-        for req, opvals in kwargs.items():
+        for (req, opvals) in kwargs.items():
             for filt, opval in zip(self, opvals):
                 filt.addRequirement(req, *opval)
         self._runCallbacks()
@@ -1135,7 +1155,7 @@ class Filter(RecordWrapper):
     NS = 'pbds'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1189,11 +1209,12 @@ class Filter(RecordWrapper):
     def merge(self, other):
         pass
 
+
 class Properties(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1211,7 +1232,7 @@ class Property(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __str__(self):
@@ -1226,7 +1247,7 @@ class Property(RecordWrapper):
 
     @property
     def modulo(self):
-        #optional:
+        # optional:
         if 'Modulo' not in self.metadata:
             return None
         value = self.metadata['Modulo']
@@ -1243,7 +1264,7 @@ class Property(RecordWrapper):
 
     @property
     def hashfunc(self):
-        #optional:
+        # optional:
         if 'Hash' not in self.metadata:
             return None
         return self.metadata['Hash']
@@ -1290,7 +1311,7 @@ class ExternalResources(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
         # state tracking. Not good, but needs it:
@@ -1341,7 +1362,6 @@ class ExternalResources(RecordWrapper):
             self.namespace = other.namespace
             self.attrib.update(other.attrib)
 
-
     def addResources(self, resourceIds):
         """Add a new external reference with the given uris. If you're looking
         to add ExternalResource objects, append() or extend() them instead.
@@ -1391,7 +1411,7 @@ class ExternalResource(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1499,7 +1519,8 @@ class ExternalResource(RecordWrapper):
 
     @control.setter
     def control(self, value):
-        self._setSubResByMetaType('PacBio.SubreadFile.Control.SubreadBamFile', value)
+        self._setSubResByMetaType(
+            'PacBio.SubreadFile.Control.SubreadBamFile', value)
 
     @property
     def barcodes(self):
@@ -1646,7 +1667,7 @@ class ExternalResource(RecordWrapper):
             self.append(fileIndices)
         for index in list(indices):
             found = False
-            for ext, mtype in FILE_INDICES.iteritems():
+            for (ext, mtype) in FILE_INDICES.items():
                 if index.endswith(ext):
                     found = True
                     self._setIndResByMetaType(mtype, index)
@@ -1655,11 +1676,12 @@ class ExternalResource(RecordWrapper):
                 temp.resourceId = index
                 fileIndices.append(temp)
 
+
 class FileIndices(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     def __getitem__(self, index):
@@ -1676,7 +1698,7 @@ class FileIndex(RecordWrapper):
     KEEP_WITH_PARENT = True
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
         self.attrib.setdefault('UniqueId', newUuid(self.record))
         self.attrib.setdefault('TimeStampedName', '')
@@ -1694,7 +1716,7 @@ class DataSetMetadata(RecordWrapper):
 
     def __init__(self, record=None):
         """Here, record is the root element of the Metadata Element tree"""
-        super(DataSetMetadata, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.TAG
 
     def merge(self, other):
@@ -1776,7 +1798,6 @@ class BioSamplesMetadata(RecordWrapper):
     """The metadata for the list of BioSamples
 
         Doctest:
-            >>> from __future__ import print_function
             >>> from pbcore.io import SubreadSet
             >>> import pbcore.data.datasets as data
             >>> ds = SubreadSet(data.getSubreadSet(), skipMissing=True)
@@ -1811,11 +1832,12 @@ class BioSamplesMetadata(RecordWrapper):
         self._runCallbacks()
 
     def merge(self, other):
-        bio_samples = {bs.name:bs for bs in self}
+        bio_samples = {bs.name: bs for bs in self}
         for bio_sample in other:
             if bio_sample.name in bio_samples:
                 current = bio_samples[bio_sample.name]
-                dna_bcs = {(bc.name, bc.uniqueId) for bc in current.DNABarcodes}
+                dna_bcs = {(bc.name, bc.uniqueId)
+                           for bc in current.DNABarcodes}
                 for dna_bc in bio_sample.DNABarcodes:
                     if (dna_bc.name, dna_bc.uniqueId) in dna_bcs:
                         continue
@@ -1854,10 +1876,10 @@ class SubreadSetMetadata(ReadSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create SubreadSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(SubreadSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     def merge(self, other):
-        super(self.__class__, self).merge(other)
+        super().merge(other)
         if other.collections and not self.collections:
             self.append(other.collections)
         else:
@@ -1890,7 +1912,7 @@ class ContigSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create ContigSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(ContigSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     organism = subaccs('Organism')
     ploidy = subaccs('Ploidy')
@@ -1908,7 +1930,7 @@ class BarcodeSetMetadata(DataSetMetadata):
                     type(record).__name__ != 'DataSetMetadata'):
                 raise TypeError("Cannot create BarcodeSetMetadata from "
                                 "{t}".format(t=type(record).__name__))
-        super(BarcodeSetMetadata, self).__init__(record)
+        super().__init__(record)
 
     barcodeConstruction = subaccs('BarcodeConstruction')
 
@@ -1941,7 +1963,7 @@ class AutomationParameter(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     value = accs('SimpleValue')
@@ -1951,7 +1973,7 @@ class AutomationParameters(RecordWrapper):
     NS = 'pbbase'
 
     def __init__(self, record=None):
-        super(self.__class__, self).__init__(record)
+        super().__init__(record)
         self.record['tag'] = self.__class__.__name__
 
     automationParameter = accs('AutomationParameter', container='children',
@@ -2005,7 +2027,8 @@ class Provenance(RecordWrapper):
 
     createdBy = accs('CreatedBy')
     parentTool = accs('ParentTool', container='children', asType=ParentTool)
-    parentDataSet = accs("ParentDataSet", container="children", asType=ParentDataSet)
+    parentDataSet = accs(
+        "ParentDataSet", container="children", asType=ParentDataSet)
 
     def addParentDataSet(self, uniqueId, metaType, timeStampedName):
         new = ParentDataSet()
@@ -2051,7 +2074,7 @@ class StatsMetadata(RecordWrapper):
 
         if unwrap and key in self.MERGED_DISTS:
             if len(tbr) > 1:
-                log.warn("Merging a distribution failed!")
+                log.warning("Merging a distribution failed!")
             return dtype(tbr[0])
         elif 'Channel' in tbr[0].attrib:
             chans = defaultdict(list)
@@ -2060,7 +2083,7 @@ class StatsMetadata(RecordWrapper):
                     dtype(chan))
             return chans
         else:
-            return map(dtype, tbr)
+            return list(map(dtype, tbr))
 
     def availableDists(self):
         return [c.metaname for c in self]
@@ -2179,6 +2202,7 @@ class StatsMetadata(RecordWrapper):
     def insertReadLenDist(self):
         return ContinuousDistribution(self.getV('children',
                                                 'InsertReadLenDist'))
+
     @property
     def insertReadQualDists(self):
         return [ContinuousDistribution(child) for child in
@@ -2198,6 +2222,7 @@ class StatsMetadata(RecordWrapper):
     def medianInsertDist(self):
         return ContinuousDistribution(self.getV('children',
                                                 'MedianInsertDist'))
+
     @property
     def medianInsertDists(self):
         return [ContinuousDistribution(child)
@@ -2250,6 +2275,7 @@ def _staggeredZip(binWidth, start1, start2, bins1, bins2):
     for scrap in bins1 or bins2:
         yield scrap
 
+
 def histogram_percentile(counts, labels, percentile):
     thresh = np.true_divide(percentile * sum(counts), 100.0)
     passed = 0
@@ -2258,6 +2284,7 @@ def histogram_percentile(counts, labels, percentile):
         if passed >= thresh:
             return l
     return labels[-1]
+
 
 class ContinuousDistribution(RecordWrapper):
 
@@ -2340,7 +2367,6 @@ class ContinuousDistribution(RecordWrapper):
     minBinValue = subaccs('MinBinValue', asType=float)
     maxBinValue = subaccs('MaxBinValue', asType=float)
 
-
     @property
     def description(self):
         return self.getMemberV('MetricDescription')
@@ -2368,6 +2394,7 @@ class ContinuousDistribution(RecordWrapper):
         return [self.minBinValue + i * self.binWidth for i in
                 range(len(self.bins))]
 
+
 class ZeroBinWidthError(Exception):
 
     def __init__(self, width1, width2):
@@ -2378,8 +2405,10 @@ class ZeroBinWidthError(Exception):
         return "Zero bin width: {w1}, {w2}".format(w1=self.width1,
                                                    w2=self.width2)
 
+
 class BinMismatchError(Exception):
     pass
+
 
 class BinWidthMismatchError(BinMismatchError):
 
@@ -2391,6 +2420,7 @@ class BinWidthMismatchError(BinMismatchError):
         return "Bin width mismatch: {w1} != {w2}".format(w1=self.width1,
                                                          w2=self.width2)
 
+
 class BinNumberMismatchError(BinMismatchError):
 
     def __init__(self, num1, num2):
@@ -2400,6 +2430,7 @@ class BinNumberMismatchError(BinMismatchError):
     def __str__(self):
         return "Bin number mismatch: {w1} != {w2}".format(w1=self.num1,
                                                           w2=self.num2)
+
 
 class BinBoundaryMismatchError(BinMismatchError):
 
@@ -2411,6 +2442,7 @@ class BinBoundaryMismatchError(BinMismatchError):
         return "Bin boundary offset mismatch, minVals: {w1} != {w2}".format(
             w1=self.min1, w2=self.min2)
 
+
 class DiscreteDistribution(RecordWrapper):
 
     def merge(self, other):
@@ -2418,7 +2450,7 @@ class DiscreteDistribution(RecordWrapper):
             raise BinNumberMismatchError(self.numBins, other.numBins)
         if set(self.labels) != set(other.labels):
             raise BinMismatchError
-        sBins = zip(self.labels, self.bins)
+        sBins = list(zip(self.labels, self.bins))
         oBins = dict(zip(other.labels, other.bins))
         self.bins = [value + oBins[key] for key, value in sBins]
 
@@ -2504,9 +2536,7 @@ class WellSampleMetadata(RecordWrapper):
     sizeSelectionEnabled = subgetter('SizeSelectionEnabled')
     useCount = subaccs('UseCount')
     comments = subaccs('Comments')
-
-    def __init__(self, *args, **kwargs):
-        super(self.__class__, self).__init__(*args, **kwargs)
+    bioSamples = accs('BioSamples', 'children', BioSamplesMetadata, parent=True)
 
 
 class CopyFilesMetadata(RecordWrapper):
@@ -2560,14 +2590,17 @@ class PrimaryMetadata(RecordWrapper):
     outputOptions = accs('OutputOptions', container='children',
                          asType=OutputOptions)
 
+
 class Kit(RecordWrapper):
     partNumber = accs('PartNumber')
     lotNumber = accs('LotNumber')
     barcode = accs('Barcode')
     expirationDate = accs('ExpirationDate')
 
+
 class CellPac(Kit):
     NS = 'pbmeta'
+
 
 class TemplatePrepKit(Kit):
     """TemplatePrepKit metadata"""
@@ -2575,8 +2608,10 @@ class TemplatePrepKit(Kit):
     rightAdaptorSequence = subaccs('RightAdaptorSequence')
     leftAdaptorSequence = subaccs('LeftAdaptorSequence')
 
+
 class BindingKit(Kit):
     pass
+
 
 class SequencingKitPlate(Kit):
     pass
@@ -2608,7 +2643,8 @@ class CollectionMetadata(RecordWrapper):
     automation = accs('Automation', 'children', Automation)
     primary = accs('Primary', 'children', PrimaryMetadata)
     secondary = accs('Secondary', 'children', SecondaryMetadata)
-    consensusReadSetRef = accs("ConsensusReadSetRef", 'children', ConsensusReadSetRef)
+    consensusReadSetRef = accs(
+        "ConsensusReadSetRef", 'children', ConsensusReadSetRef)
 
     @property
     def runDetails(self):

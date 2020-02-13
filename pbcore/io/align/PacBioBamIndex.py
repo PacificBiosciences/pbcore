@@ -1,16 +1,11 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-
 from os.path import abspath, expanduser
 from struct import unpack
-import math
-import gc
 
 import numpy as np
-import numpy.lib.recfunctions as nlr
+from Bio.bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
 
-from ._bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
 from ._BamSupport import IncompatibleFile
 
 __all__ = ["PacBioBamIndex"]
@@ -24,7 +19,7 @@ PBI_FLAGS_COORDINATE_SORTED = 2
 PBI_FLAGS_BARCODE = 4
 
 
-class PbIndexBase(object):
+class PbIndexBase:
 
     def _loadHeader(self, f):
         buf = f.read(PBI_HEADER_LEN)
@@ -33,7 +28,7 @@ class PbIndexBase(object):
          self.vMajor, self.pbiFlags, self.nReads) = header
         try:
             assert (self.vMajor, self.vMinor, self.vPatch) >= (3, 0, 1)
-        except:
+        except AssertionError:
             raise IncompatibleFile(
                 "This PBI file is incompatible with this API "
                 "(only PacBio PBI files version >= 3.0.1 are supported)")
@@ -138,7 +133,7 @@ class PacBioBamIndex(PbIndexBase):
             # skip creating the combined table and return the extracted array
             # instead
             assert not self.isChunk
-            start_pos = self._array_start + index_len * 12 # qId+qStart+qEnd
+            start_pos = self._array_start + index_len * 12  # qId+qStart+qEnd
             virtual_offset = to_virtual_offset(start_pos)
             f.seek(virtual_offset)
             return peek("i4", index_len)
@@ -154,8 +149,8 @@ class PacBioBamIndex(PbIndexBase):
                     tbl[columnName] = peek(columnType, index_len)
 
                 # Computed columns
-                tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM
-                tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM
+                tbl.nIns = tbl.aEnd - tbl.aStart - tbl.nM - tbl.nMM  # pylint: disable=no-member
+                tbl.nDel = tbl.tEnd - tbl.tStart - tbl.nM - tbl.nMM  # pylint: disable=no-member
 
             # TODO: do something with these:
             # TODO: remove nReads check when the rest of this code can handle empty
@@ -182,13 +177,10 @@ class PacBioBamIndex(PbIndexBase):
         self._chunk_start = chunk_start
         self._chunk_size = chunk_size
         pbiFilename = abspath(expanduser(pbiFilename))
-        with BgzfReader(pbiFilename) as f:
-            try:
-                self._loadHeader(f)
-                self._loadMainIndex(f, to_virtual_offset)
-                self._loadOffsets(f)
-            except Exception as e:
-                raise IOError("Malformed bam.pbi file: " + str(e))
+        with BgzfReader(pbiFilename, mode='rb') as f:
+            self._loadHeader(f)
+            self._loadMainIndex(f, to_virtual_offset)
+            self._loadOffsets(f)
 
     @property
     def version(self):
@@ -221,7 +213,7 @@ class PacBioBamIndex(PbIndexBase):
         return len(self._tbl)
 
     def __iter__(self):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             yield self[i]
 
     def rangeQuery(self, winId, winStart, winEnd):
@@ -290,7 +282,7 @@ class StreamingBamIndex(PacBioBamIndex):
         self._chunk_start = None
         self._pbiFilename = abspath(expanduser(pbiFilename))
         self._get_blocks()
-        with BgzfReader(self._pbiFilename) as f:
+        with BgzfReader(self._pbiFilename, mode='rb') as f:
             self._loadHeader(f)
             holeNumbers = self._loadMainIndex(f, self._to_virtual_offset,
                                               zmw_only=True)

@@ -6,14 +6,17 @@ In order to avoid extra work with mobs, we will call this via
 
     python2 -m pbcore.io.dataset.run_split -h
 """
-from pbcore.io import (SubreadSet, ExternalResource) # pylint: disable=import-error
+
 import argparse
 import logging
 import os
 import sys
 import copy
 
+from pbcore.io import SubreadSet
+
 log = logging.getLogger(__name__)
+
 
 def split_dataset(subreadset, out_prefix):
     """
@@ -43,6 +46,7 @@ def split_dataset(subreadset, out_prefix):
 
     return split_fns
 
+
 def run_split_dataset(subreadset, out_prefix):
     out_prefix_abs = os.path.abspath(out_prefix)
 
@@ -54,6 +58,7 @@ def run_split_dataset(subreadset, out_prefix):
             ofs.write('{}\n'.format(fn))
 
     log.info('Wrote {} chunks into "{}"'.format(len(split_fns), out_fofn_fn))
+
 
 def main(argv=sys.argv):
     description = """Scatter subreadsets from one input subreadset.
@@ -67,12 +72,13 @@ need to read the bam-files at all. The number of "chunks" is the number of bam-f
         epilog=epilog,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('subreadset',
-        help='Input subreadset XML filename. Can be filtered.')
+                        help='Input subreadset XML filename. Can be filtered.')
     parser.add_argument('out_prefix',
-        help='Prefix of the output sub-datasets "{output_prefix}.?????.subreadset.xml, plus "{output_prefix}.fofn".')
+                        help='Prefix of the output sub-datasets "{output_prefix}.?????.subreadset.xml, plus "{output_prefix}.fofn".')
     args = parser.parse_args(argv[1:])
 
     run_split_dataset(args.subreadset, args.out_prefix)
+
 
 if __name__ == "__main__":
     logging.basicConfig()

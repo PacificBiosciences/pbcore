@@ -1,18 +1,28 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
-from __future__ import division
-
-from functools import wraps
+from functools import total_ordering, wraps
 from bisect import bisect_right, bisect_left
 
+import numpy as np
+
 from pbcore.sequence import reverseComplement
-from ._BamSupport import *
+from ._BamSupport import (UnavailableFeature,
+                          Unimplemented,
+                          IncompatibleFile,
+                          BASE_FEATURE_TAGS,
+                          rgAsInt,
+                          BAM_CMATCH,
+                          BAM_CINS,
+                          BAM_CDEL,
+                          BAM_CSOFT_CLIP,
+                          BAM_CHARD_CLIP,
+                          codeToFrames,
+                          reverseComplementAscii)
 from ._AlignmentMixin import AlignmentRecordMixin
 
-import os
 
-__all__ = [ "BamAlignment" ]
+__all__ = ["BamAlignment"]
+
 
 def _unrollCigar(cigar, exciseSoftClips=False):
     """
@@ -21,64 +31,72 @@ def _unrollCigar(cigar, exciseSoftClips=False):
     Removes hard clip ops from the output.  Remove all?
     """
     cigarArray = np.array(cigar, dtype=int)
-    hasHardClipAtLeft = cigarArray[0,0] == BAM_CHARD_CLIP
-    hasHardClipAtRight = cigarArray[-1,0] == BAM_CHARD_CLIP
+    hasHardClipAtLeft = cigarArray[0, 0] == BAM_CHARD_CLIP
+    hasHardClipAtRight = cigarArray[-1, 0] == BAM_CHARD_CLIP
     ncigar = len(cigarArray)
-    x = np.s_[int(hasHardClipAtLeft) : ncigar - int(hasHardClipAtRight)]
-    ops = np.repeat(cigarArray[x,0], cigarArray[x,1])
+    x = np.s_[int(hasHardClipAtLeft): ncigar - int(hasHardClipAtRight)]
+    ops = np.repeat(cigarArray[x, 0], cigarArray[x, 1])
     if exciseSoftClips:
         return ops[ops != BAM_CSOFT_CLIP]
     else:
         return ops
+
 
 def _makeBaseFeatureAccessor(featureName):
     def f(self, aligned=True, orientation="native"):
         return self.baseFeature(featureName, aligned, orientation)
     return f
 
+
 def requiresReference(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.bam.isReferenceLoaded:
-            raise UnavailableFeature("this feature requires loaded reference sequence")
+            raise UnavailableFeature(
+                "this feature requires loaded reference sequence")
         else:
             return method(bamAln, *args, **kwargs)
     return f
+
 
 def requiresPbi(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if not bamAln.hasPbi:
-            raise UnavailableFeature("this feature requires a PacBio BAM index")
+            raise UnavailableFeature(
+                "this feature requires a PacBio BAM index")
         else:
             return method(bamAln, *args, **kwargs)
     return f
+
 
 def requiresMapping(method):
     @wraps(method)
     def f(bamAln, *args, **kwargs):
         if bamAln.isUnmapped:
-            raise UnavailableFeature("this feature requires a *mapped* BAM record")
+            raise UnavailableFeature(
+                "this feature requires a *mapped* BAM record")
         else:
             return method(bamAln, *args, **kwargs)
     return f
 
 
+@total_ordering
 class BamAlignment(AlignmentRecordMixin):
     def __init__(self, bamReader, pysamAlignedRead, rowNumber=None):
-        #TODO: make these __slot__
-        self.peer        = pysamAlignedRead
-        self.bam         = bamReader
-        self.rowNumber   = rowNumber
-        self.tStart      = self.peer.pos
-        self.tEnd        = self.peer.aend
+        # TODO: make these __slot__
+        self.peer = pysamAlignedRead
+        self.bam = bamReader
+        self.rowNumber = rowNumber
+        self.tStart = self.peer.pos
+        self.tEnd = self.peer.aend
         # Our terminology doesn't agree with pysam's terminology for
         # "query", "read".  This makes this code confusing.
         if self.peer.is_reverse:
-            clipLeft  = self.peer.rlen - self.peer.qend
+            clipLeft = self.peer.rlen - self.peer.qend
             clipRight = self.peer.qstart
         else:
-            clipLeft  = self.peer.qstart
+            clipLeft = self.peer.qstart
             clipRight = self.peer.rlen - self.peer.qend
         # handle virtual qStart/qEnd for CCS READTYPE
         if self.isCCS or self.isTranscript:
@@ -87,7 +105,7 @@ class BamAlignment(AlignmentRecordMixin):
             qs, qe = self.qStart, self.qEnd
         # alignment start/end (aStart/aEnd)
         self.aStart = qs + clipLeft
-        self.aEnd   = qe - clipRight
+        self.aEnd = qe - clipRight
         # Cache of unrolled cigar, in genomic orientation
         self._unrolledCigar = None
 
@@ -172,30 +190,30 @@ class BamAlignment(AlignmentRecordMixin):
         assert type(self) is BamAlignment
         if (refStart >= refEnd or
             refStart >= self.tEnd or
-            refEnd   <= self.tStart):
+                refEnd <= self.tStart):
             raise IndexError("Clipping query does not overlap alignment")
 
         # The clipping region must intersect the alignment, though it
         # does not have to be contained wholly within it.
         refStart = max(self.referenceStart, refStart)
-        refEnd   = min(self.referenceEnd,   refEnd)
+        refEnd = min(self.referenceEnd,   refEnd)
         refPositions = self.referencePositions(orientation="genomic")
         readPositions = self.readPositions(orientation="genomic")
         uc = self.unrolledCigar(orientation="genomic")
 
         # Clipping positions within the alignment array
         clipStart = bisect_right(refPositions, refStart) - 1
-        clipEnd   = bisect_left(refPositions, refEnd)
+        clipEnd = bisect_left(refPositions, refEnd)
 
         tStart = refStart
-        tEnd   = refEnd
+        tEnd = refEnd
         cUc = uc[clipStart:clipEnd]
         readLength = np.count_nonzero(cUc != BAM_CDEL)
         if self.isForwardStrand:
             aStart = readPositions[clipStart]
             aEnd = aStart + readLength
         else:
-            aEnd   = readPositions[clipStart] + 1
+            aEnd = readPositions[clipStart] + 1
             aStart = aEnd - readLength
         return ClippedBamAlignment(self, tStart, tEnd, aStart, aEnd, cUc)
 
@@ -271,7 +289,7 @@ class BamAlignment(AlignmentRecordMixin):
     def queryEnd(self):
         return self.qEnd
 
-    #TODO: provide this in cmp.h5 but throw "unsupported"
+    # TODO: provide this in cmp.h5 but throw "unsupported"
     @property
     def queryName(self):
         return self.peer.qname
@@ -291,7 +309,7 @@ class BamAlignment(AlignmentRecordMixin):
                 return 0.
             else:
                 x = self.transcript()
-                nMM  = x.count("R")
+                nMM = x.count("R")
                 nIns = x.count("I")
                 nDel = x.count("D")
                 return 1. - (nMM + nIns + nDel)/self.readLength
@@ -323,16 +341,19 @@ class BamAlignment(AlignmentRecordMixin):
         """
         uc = self.unrolledCigar(orientation)
         #                                    MIDNSHP=X
-        _exoneratePlusTrans = np.frombuffer("Z  ZZZZ|*", dtype=np.int8)
-        _exonerateTrans     = np.frombuffer("Z  ZZZZ| ", dtype=np.int8)
-        _cigarTrans         = np.frombuffer("ZIDZZZZMM", dtype=np.int8)
-        _gusfieldTrans      = np.frombuffer("ZIDZZZZMR", dtype=np.int8)
+        _exoneratePlusTrans = np.frombuffer(b"Z  ZZZZ|*", dtype=np.int8)
+        _exonerateTrans = np.frombuffer(b"Z  ZZZZ| ", dtype=np.int8)
+        _cigarTrans = np.frombuffer(b"ZIDZZZZMM", dtype=np.int8)
+        _gusfieldTrans = np.frombuffer(b"ZIDZZZZMR", dtype=np.int8)
 
-        if   style == "exonerate+": return _exoneratePlusTrans [uc].tostring()
-        elif style == "exonerate":  return _exonerateTrans     [uc].tostring()
-        elif style == "cigar":      return _cigarTrans         [uc].tostring()
-        else:                       return _gusfieldTrans      [uc].tostring()
-
+        if style == "exonerate+":
+            return _exoneratePlusTrans[uc].tostring().decode("ascii")
+        elif style == "exonerate":
+            return _exonerateTrans[uc].tostring().decode("ascii")
+        elif style == "cigar":
+            return _cigarTrans[uc].tostring().decode("ascii")
+        else:
+            return _gusfieldTrans[uc].tostring().decode("ascii")
 
     @requiresReference
     def reference(self, aligned=True, orientation="native"):
@@ -342,9 +363,9 @@ class BamAlignment(AlignmentRecordMixin):
         shouldRC = orientation == "native" and self.isReverseStrand
         tSeqOriented = reverseComplement(tSeq) if shouldRC else tSeq
         if aligned:
-            x = np.frombuffer(tSeqOriented, dtype=np.int8)
+            x = np.frombuffer(tSeqOriented.encode("utf-8"), dtype=np.int8)
             y = self._gapifyRef(x, orientation)
-            return y.tostring()
+            return y.tostring().decode("ascii")
         else:
             return tSeqOriented
 
@@ -353,12 +374,15 @@ class BamAlignment(AlignmentRecordMixin):
         """
         Run-length decode the CIGAR encoding, and orient.  Clipping ops are removed.
         """
-        if self.isUnmapped: return None
+        if self.isUnmapped:
+            return None
 
         if self._unrolledCigar is None:
-            self._unrolledCigar = _unrollCigar(self.peer.cigar, exciseSoftClips=True)
+            self._unrolledCigar = _unrollCigar(
+                self.peer.cigar, exciseSoftClips=True)
             if BAM_CMATCH in self._unrolledCigar:
-                raise IncompatibleFile("CIGAR op 'M' illegal in PacBio BAM files")
+                raise IncompatibleFile(
+                    "CIGAR op 'M' illegal in PacBio BAM files")
 
         if (orientation == "native" and self.isReverseStrand):
             return self._unrolledCigar[::-1]
@@ -413,7 +437,8 @@ class BamAlignment(AlignmentRecordMixin):
         readNonGapMask = (ucOriented != BAM_CDEL)
 
         if self.isReverseStrand and orientation == "genomic":
-            pos = self.aEnd - 1 - np.hstack([0, np.cumsum(readNonGapMask[:-1])])
+            pos = self.aEnd - 1 - \
+                np.hstack([0, np.cumsum(readNonGapMask[:-1])])
         else:
             pos = self.aStart + np.hstack([0, np.cumsum(readNonGapMask[:-1])])
 
@@ -421,7 +446,6 @@ class BamAlignment(AlignmentRecordMixin):
             return pos
         else:
             return pos[ucOriented != BAM_CINS]
-
 
     def baseFeature(self, featureName, aligned=True, orientation="native"):
         """
@@ -437,7 +461,8 @@ class BamAlignment(AlignmentRecordMixin):
         if not (orientation == "native" or orientation == "genomic"):
             raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
+            raise UnavailableFeature(
+                "Cannot get genome oriented/aligned features from unmapped BAM record")
 
         # 0. Get the "concrete" feature name.  (Example: Ipd could be
         # Ipd:Frames or Ipd:CodecV1)
@@ -447,19 +472,22 @@ class BamAlignment(AlignmentRecordMixin):
         tag, kind_, dtype_ = BASE_FEATURE_TAGS[concreteFeatureName]
         data_ = self.peer.opt(tag)
 
-        if isinstance(data_, str):
-            data = np.fromstring(data_, dtype=dtype_)
+        if isinstance(data_, bytes):
+            data = np.copy(np.frombuffer(data_, dtype=dtype_))
         else:
             # This is about 300x slower than the fromstring above.
             # Unless pysam exposes  buffer or numpy interface,
             # is is going to be very slow.
+            if isinstance(data_, str):
+                data_ = data_.encode("utf-8")
             data = np.fromiter(data_, dtype=dtype_)
         del data_
         assert len(data) == self.peer.rlen
 
         # 2. Decode
         if kind_ == "qv":
-            data -= 33 # Because of this, we cannot use frombuffer() instead of fromstring() above.
+            # Because of this, we cannot use frombuffer() instead of fromstring() above.
+            data -= 33
         elif kind_ == "codecV1":
             data = codeToFrames(data)
 
@@ -472,14 +500,15 @@ class BamAlignment(AlignmentRecordMixin):
             e = self.aEnd
         else:
             s = self.aStart - self.qStart
-            e = self.aEnd   - self.qStart
+            e = self.aEnd - self.qStart
         assert s >= 0 and e <= len(data)
         clipped = data[s:e]
 
         # 4. Orient
         shouldReverse = self.isReverseStrand and orientation == "genomic"
         if kind_ == "base":
-            ungapped = reverseComplementAscii(clipped) if shouldReverse else clipped
+            ungapped = reverseComplementAscii(
+                clipped) if shouldReverse else clipped
         else:
             ungapped = clipped[::-1] if shouldReverse else clipped
 
@@ -496,7 +525,8 @@ class BamAlignment(AlignmentRecordMixin):
         return self._gapify(data, orientation, BAM_CINS)
 
     def _gapify(self, data, orientation, gapOp):
-        if self.isUnmapped: return data
+        if self.isUnmapped:
+            return data
 
         # Precondition: data must already be *in* the specified orientation
         if data.dtype == np.int8:
@@ -509,59 +539,65 @@ class BamAlignment(AlignmentRecordMixin):
         alnData[~gapMask] = data
         return alnData
 
-    IPD            = _makeBaseFeatureAccessor("Ipd")
-    PulseWidth     = _makeBaseFeatureAccessor("PulseWidth")
+    IPD = _makeBaseFeatureAccessor("Ipd")
+    PulseWidth = _makeBaseFeatureAccessor("PulseWidth")
     #QualityValue   = _makeBaseFeatureAccessor("QualityValue")
-    InsertionQV    = _makeBaseFeatureAccessor("InsertionQV")
-    DeletionQV     = _makeBaseFeatureAccessor("DeletionQV")
-    DeletionTag    = _makeBaseFeatureAccessor("DeletionTag")
-    MergeQV        = _makeBaseFeatureAccessor("MergeQV")
+    InsertionQV = _makeBaseFeatureAccessor("InsertionQV")
+    DeletionQV = _makeBaseFeatureAccessor("DeletionQV")
+    DeletionTag = _makeBaseFeatureAccessor("DeletionTag")
+    MergeQV = _makeBaseFeatureAccessor("MergeQV")
     SubstitutionQV = _makeBaseFeatureAccessor("SubstitutionQV")
 
     def read(self, aligned=True, orientation="native"):
         if not (orientation == "native" or orientation == "genomic"):
             raise ValueError("Bad `orientation` value")
         if self.isUnmapped and (orientation != "native" or aligned == True):
-            raise UnavailableFeature("Cannot get genome oriented/aligned features from unmapped BAM record")
+            raise UnavailableFeature(
+                "Cannot get genome oriented/aligned features from unmapped BAM record")
         seq = self.peer.seq
         if seq is None:
             seq = ''
-        data = np.frombuffer(seq, dtype=np.int8)
+        data = np.frombuffer(seq.encode("utf-8"), dtype=np.int8)
         if self.isCCS or self.isTranscript:
             s = self.aStart
             e = self.aEnd
         else:
             s = self.aStart - self.qStart
-            e = self.aEnd   - self.qStart
+            e = self.aEnd - self.qStart
         l = self.qLen
         # clip
         assert l == len(data) and s >= 0 and e <= l
-        if self.isForwardStrand: clipped = data[s:e]
-        else:                    clipped = data[(l-e):(l-s)]
+        if self.isForwardStrand:
+            clipped = data[s:e]
+        else:
+            clipped = data[(l-e):(l-s)]
         # orient
         shouldReverse = self.isReverseStrand and orientation == "native"
-        ungapped = reverseComplementAscii(clipped) if shouldReverse else clipped
+        ungapped = reverseComplementAscii(
+            clipped) if shouldReverse else clipped
         # gapify
-        if aligned: r = self._gapifyRead(ungapped, orientation)
-        else:       r = ungapped
-        return r.tostring()
+        if aligned:
+            r = self._gapifyRead(ungapped, orientation)
+        else:
+            r = ungapped
+        return r.tostring().decode("ascii")
 
     def __repr__(self):
         if self.isUnmapped:
             return "Unmapped BAM record: " + self.queryName
         else:
             return "BAM alignment: %s @ %s  %3d  %9d  %9d" \
-            % (self.queryName, ("+" if self.isForwardStrand else "-"),
-               self.referenceId, self.tStart, self.tEnd)
+                % (self.queryName, ("+" if self.isForwardStrand else "-"),
+                   self.referenceId, self.tStart, self.tEnd)
 
     def __str__(self):
         if self.bam.isReferenceLoaded:
             COLUMNS = 80
             val = ""
             val += repr(self) + "\n\n"
-            val += "Read:        " + self.readName           + "\n"
-            val += "Reference:   " + self.referenceName      + "\n\n"
-            val += "Read length: " + str(self.readLength)    + "\n"
+            val += "Read:        " + self.readName + "\n"
+            val += "Reference:   " + self.referenceName + "\n\n"
+            val += "Read length: " + str(self.readLength) + "\n"
             val += "Identity:    " + "%0.3f" % self.identity + "\n"
 
             alignedRead = self.read()
@@ -569,20 +605,22 @@ class BamAlignment(AlignmentRecordMixin):
             transcript = self.transcript(style="exonerate+")
             refPos = self.referencePositions()
             refPosString = "".join([str(pos % 10) for pos in refPos])
-            for i in xrange(0, len(alignedRef), COLUMNS):
+            for i in range(0, len(alignedRef), COLUMNS):
                 val += "\n"
                 val += "  " + refPosString[i:i+COLUMNS] + "\n"
-                val += "  " + alignedRef  [i:i+COLUMNS] + "\n"
-                val += "  " + transcript  [i:i+COLUMNS] + "\n"
-                val += "  " + alignedRead [i:i+COLUMNS] + "\n"
+                val += "  " + alignedRef[i:i+COLUMNS] + "\n"
+                val += "  " + transcript[i:i+COLUMNS] + "\n"
+                val += "  " + alignedRead[i:i+COLUMNS] + "\n"
                 val += "\n"
             return val
         else:
             return repr(self)
 
-    def __cmp__(self, other):
-        return cmp((self.referenceId, self.tStart, self.tEnd),
-                   (other.referenceId, other.tStart, other.tEnd))
+    def __eq__(self, other):
+        return ((self.referenceId, self.tStart, self.tEnd) == (other.referenceId, other.tStart, other.tEnd))
+
+    def __lt__(self, other):
+        return ((self.referenceId, self.tStart, self.tEnd) < (other.referenceId, other.tStart, other.tEnd))
 
     @requiresPbi
     def __getattr__(self, key):
@@ -598,6 +636,7 @@ class BamAlignment(AlignmentRecordMixin):
         else:
             return basicDir
 
+
 class ClippedBamAlignment(BamAlignment):
     def __init__(self, aln, tStart, tEnd, aStart, aEnd, unrolledCigar):
         # Self-consistency checks
@@ -607,17 +646,17 @@ class ClippedBamAlignment(BamAlignment):
         assert np.count_nonzero(unrolledCigar != BAM_CDEL) == (aEnd - aStart)
 
         # Assigment
-        self.peer           = aln.peer
-        self.bam            = aln.bam
-        self.rowNumber      = aln.rowNumber
-        self.tStart         = tStart
-        self.tEnd           = tEnd
-        self.aStart         = aStart
-        self.aEnd           = aEnd
+        self.peer = aln.peer
+        self.bam = aln.bam
+        self.rowNumber = aln.rowNumber
+        self.tStart = tStart
+        self.tEnd = tEnd
+        self.aStart = aStart
+        self.aEnd = aEnd
         self._unrolledCigar = unrolledCigar  # genomic orientation
 
     def unrolledCigar(self, orientation="native"):
-        if orientation=="native" and self.isReverseStrand:
+        if orientation == "native" and self.isReverseStrand:
             return self._unrolledCigar[::-1]
         else:
             return self._unrolledCigar

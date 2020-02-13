@@ -6,21 +6,22 @@ I/O support for GFF3 files.
 The specification for the GFF format is available at
     http://www.sequenceontology.org/gff3.shtml
 """
-from __future__ import absolute_import
 
-__all__ = [ "Gff3Record",
-            "GffReader",
-            "GffWriter" ]
+__all__ = ["Gff3Record",
+           "GffReader",
+           "GffWriter"]
 
-from .base import ReaderBase, WriterBase
 from collections import OrderedDict, defaultdict, namedtuple
 from copy import copy as shallow_copy
+from functools import total_ordering
 import logging
-import tempfile
 import os.path
 
+from .base import ReaderBase, WriterBase
 
-class Gff3Record(object):
+
+@total_ordering
+class Gff3Record:
     """
     Class for GFF record, providing uniform access to standard
     GFF fields and attributes.
@@ -48,21 +49,22 @@ class Gff3Record(object):
 
     to fetch the field or attribute with a custom default.
     """
-    _GFF_COLUMNS = [ "seqid", "source", "type",
-                     "start", "end", "score",
-                     "strand", "phase", "attributes" ]
+    _GFF_COLUMNS = ["seqid", "source", "type",
+                    "start", "end", "score",
+                    "strand", "phase", "attributes"]
+    __slots__ = _GFF_COLUMNS
 
     def __init__(self, seqid, start, end, type,
                  score=".", strand=".", phase=".",
                  source=".", attributes=()):
-        self.seqid  = seqid
+        self.seqid = seqid
         self.source = source
-        self.type   = type
-        self.start  = start
-        self.end    = end
-        self.score  = score
+        self.type = type
+        self.start = start
+        self.end = end
+        self.score = score
         self.strand = strand
-        self.phase  = phase
+        self.phase = phase
         self.attributes = OrderedDict(attributes)
 
     def copy(self):
@@ -80,14 +82,15 @@ class Gff3Record(object):
         columns = s.rstrip().rstrip(";").split("\t")
         try:
             assert len(columns) == len(cls._GFF_COLUMNS)
-            attributes = map(tupleFromGffAttribute, columns[-1].split(";"))
+            attributes = list(
+                map(tupleFromGffAttribute, columns[-1].split(";")))
             (_seqid, _source, _type, _start,
-             _end, _score, _strand, _phase)  = columns[:-1]
+             _end, _score, _strand, _phase) = columns[:-1]
             return Gff3Record(_seqid, int(_start), int(_end), _type,
                               _score, _strand, _phase, _source, attributes)
         except (AssertionError, ValueError):
-            raise ValueError("Could not interpret string as a Gff3Record: %s" % s)
-
+            raise ValueError(
+                "Could not interpret string as a Gff3Record: %s" % s)
 
     @staticmethod
     def _formatField(field):
@@ -99,7 +102,7 @@ class Gff3Record(object):
     def __str__(self):
         formattedAttributes = ";".join(
             ("%s=%s" % (k, self._formatField(v))
-             for (k, v) in self.attributes.iteritems()))
+             for (k, v) in self.attributes.items()))
         formattedFixedColumns = "\t".join(
             self._formatField(getattr(self, k))
             for k in self._GFF_COLUMNS[:-1])
@@ -113,7 +116,9 @@ class Gff3Record(object):
     # not found.
     #
     def __getattr__(self, name):
-        if name in self.attributes:
+        if name == "__setstate__":
+            raise AttributeError
+        elif name in self.attributes:
             return self.attributes[name]
         else:
             raise AttributeError
@@ -136,13 +141,18 @@ class Gff3Record(object):
     def put(self, name, value):
         setattr(self, name, value)
 
-    def __cmp__(self, other):
-        return cmp((self.seqid, self.start), (other.seqid, other.start))
+    def __eq__(self, other):
+        return ((self.seqid, self.start) == (other.seqid, other.start))
+
+    def __lt__(self, other):
+        return ((self.seqid, self.start) < (other.seqid, other.start))
+
 
 class GffReader(ReaderBase):
     """
     A GFF file reader class
     """
+
     def _readHeaders(self):
         headers = []
         firstLine = None
@@ -155,7 +165,7 @@ class GffReader(ReaderBase):
         return headers, firstLine
 
     def __init__(self, f):
-        super(GffReader, self).__init__(f)
+        super().__init__(f)
         self.headers, self.firstLine = self._readHeaders()
 
     def __iter__(self):
@@ -170,8 +180,9 @@ class GffWriter(WriterBase):
     """
     A GFF file writer class
     """
+
     def __init__(self, f):
-        super(GffWriter, self).__init__(f)
+        super().__init__(f)
         self.writeHeader("##gff-version 3")
 
     def writeHeader(self, headerLine):
@@ -187,24 +198,30 @@ class GffWriter(WriterBase):
 # Utility functions
 #
 
+
 def floatValue(s):
     try:
         return float(s)
-    except:
+    except ValueError:
         return None
+
 
 def integerValue(s):
     try:
         return int(s)
-    except:
+    except ValueError:
         return None
+
 
 def grok(s):
     iv = integerValue(s)
-    if iv is not None: return iv
+    if iv is not None:
+        return iv
     fv = floatValue(s)
-    if fv is not None: return fv
+    if fv is not None:
+        return fv
     return s
+
 
 def tupleFromGffAttribute(s):
     k, v = s.split("=")
@@ -218,17 +235,18 @@ def sort_gff(file_name, output_file_name=None):
     if output_file_name is None:
         output_file_name = os.path.splitext(file_name)[0] + "_sorted.gff"
     with GffReader(file_name) as f:
-        records = [ rec for rec in f ]
+        records = [rec for rec in f]
         records.sort()
         with open(output_file_name, "w") as out:
             gff_out = GffWriter(out)
-            map(gff_out.writeHeader, f.headers)
+            for h in f.headers:
+                gff_out.writeHeader(h)
             for rec in records:
                 gff_out.writeRecord(rec)
     return output_file_name
 
 
-def merge_gffs (gff_files, output_file):
+def merge_gffs(gff_files, output_file):
     """
     Merge a sequence of GFF files, preserving unique headers (except for the
     source commandline, which will usually vary).
@@ -249,6 +267,7 @@ def merge_gffs (gff_files, output_file):
 
 def _merge_gff_headers(gff_files):
     ignore_fields = set(["source-commandline", "gff-version", "date"])
+
     def _get_headers(f):
         with GffReader(f) as reader:
             for h in reader.headers:
@@ -269,6 +288,7 @@ def _merge_gff_headers(gff_files):
 
 GffHead = namedtuple("GffHead", ("file_name", "record", "headers"))
 
+
 def merge_gffs_sorted(gff_files, output_file_name):
     """
     Utility function to combine a set of N (>= 2) GFF files, with records
@@ -285,7 +305,7 @@ def merge_gffs_sorted(gff_files, output_file_name):
                 break
             else:
                 empty_files.append(file_name)
-    first_records.sort(lambda a,b: cmp(a.record, b.record))
+    first_records.sort(key=lambda rec: rec.record)
     gff_files = [f.file_name for f in first_records]
     gff_files.extend(empty_files)
     headers, header_keys = _merge_gff_headers(gff_files)

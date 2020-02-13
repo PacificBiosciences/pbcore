@@ -1,27 +1,6 @@
-from __future__ import absolute_import
-from __future__ import print_function
-
-try:
-    import h5py
-except ImportError:
-    from pbcore.util import h5py_dummy
-    h5py = h5py_dummy()
+from io import StringIO
 
 import numpy as np
-from cStringIO import StringIO
-
-
-def arrayFromDataset(ds, offsetBegin, offsetEnd):
-    """
-    Extract a one-dimensional array from an HDF5 dataset.
-    """
-    shape = (offsetEnd - offsetBegin,)
-    a = np.ndarray(shape=shape, dtype=ds.dtype)
-    mspace = h5py.h5s.create_simple(shape)
-    fspace = ds.id.get_space()
-    fspace.select_hyperslab((offsetBegin,), shape, (1,))
-    ds.id.read(mspace, fspace, a)
-    return a
 
 
 def splitFileContents(f, delimiter, BLOCKSIZE=8192):
@@ -32,6 +11,8 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
     remainder = StringIO()
     while True:
         block = f.read(BLOCKSIZE)
+        if not isinstance(block, str):
+            block = block.decode("utf-8")
         if not block:
             break
         parts = block.split(delimiter)
@@ -43,7 +24,6 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
     yield remainder.getvalue()
 
 
-
 # For reasons that are obscure to me, the recarray outer join
 # functionality in numpy's lib.recfunctions is broken as of numpy
 # 1.6.1.  Here is the implementation I found in matplotlib (BSD
@@ -53,16 +33,20 @@ def splitFileContents(f, delimiter, BLOCKSIZE=8192):
 
 def is_string_like(obj):
     'Return True if *obj* looks like a string'
-    if isinstance(obj, (str, unicode)): return True
+    if isinstance(obj, str):
+        return True
     # numpy strings are subclass of str, ma strings are not
     if np.ma.isMaskedArray(obj):
         if obj.ndim == 0 and obj.dtype.kind in 'SU':
             return True
         else:
             return False
-    try: obj + ''
-    except: return False
+    try:
+        obj + ''
+    except TypeError:
+        return False
     return True
+
 
 def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2postfix='2'):
     """
@@ -90,18 +74,18 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
 
     for name in key:
         if name not in r1.dtype.names:
-            raise ValueError('r1 does not have key field %s'%name)
+            raise ValueError('r1 does not have key field %s' % name)
         if name not in r2.dtype.names:
-            raise ValueError('r2 does not have key field %s'%name)
+            raise ValueError('r2 does not have key field %s' % name)
 
     def makekey(row):
         return tuple([row[name] for name in key])
 
-    r1d = dict([(makekey(row),i) for i,row in enumerate(r1)])
-    r2d = dict([(makekey(row),i) for i,row in enumerate(r2)])
+    r1d = dict([(makekey(row), i) for i, row in enumerate(r1)])
+    r2d = dict([(makekey(row), i) for i, row in enumerate(r2)])
 
-    r1keys = set(r1d.keys())
-    r2keys = set(r2d.keys())
+    r1keys = set(r1d)
+    r2keys = set(r2d)
 
     common_keys = r1keys & r2keys
 
@@ -126,12 +110,11 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
             return (name, dt1.descr[0][1])
 
         dt2 = r1.dtype[name]
-        assert dt2==dt1
-        if dt1.num>dt2.num:
+        assert dt2 == dt1
+        if dt1.num > dt2.num:
             return (name, dt1.descr[0][1])
         else:
             return (name, dt2.descr[0][1])
-
 
     keydesc = [key_desc(name) for name in key]
 
@@ -139,18 +122,24 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
         """
         The column name in *newrec* that corresponds to the column in *r1*.
         """
-        if name in key or name not in r2.dtype.names: return name
-        else: return name + r1postfix
+        if name in key or name not in r2.dtype.names:
+            return name
+        else:
+            return name + r1postfix
 
     def mapped_r2field(name):
         """
         The column name in *newrec* that corresponds to the column in *r2*.
         """
-        if name in key or name not in r1.dtype.names: return name
-        else: return name + r2postfix
+        if name in key or name not in r1.dtype.names:
+            return name
+        else:
+            return name + r2postfix
 
-    r1desc = [(mapped_r1field(desc[0]), desc[1]) for desc in r1.dtype.descr if desc[0] not in key]
-    r2desc = [(mapped_r2field(desc[0]), desc[1]) for desc in r2.dtype.descr if desc[0] not in key]
+    r1desc = [(mapped_r1field(desc[0]), desc[1])
+              for desc in r1.dtype.descr if desc[0] not in key]
+    r2desc = [(mapped_r2field(desc[0]), desc[1])
+              for desc in r2.dtype.descr if desc[0] not in key]
     newdtype = np.dtype(keydesc + r1desc + r2desc)
 
     newrec = np.recarray((common_len + left_len + right_len,), dtype=newdtype)
@@ -159,7 +148,7 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
         for thiskey in defaults:
             if thiskey not in newdtype.names:
                 import warnings
-                warnings.warn('rec_join defaults key="%s" not in new dtype names "%s"'%(
+                warnings.warn('rec_join defaults key="%s" not in new dtype names "%s"' % (
                     thiskey, newdtype.names))
 
     for name in newdtype.names:
@@ -167,9 +156,9 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
         if dt.kind in ('f', 'i'):
             newrec[name] = 0
 
-    if jointype != 'inner' and defaults is not None: # fill in the defaults enmasse
-        newrec_fields = newrec.dtype.fields.keys()
-        for k, v in defaults.items():
+    if jointype != 'inner' and defaults is not None:  # fill in the defaults enmasse
+        newrec_fields = list(newrec.dtype.fields)
+        for (k, v) in defaults.items():
             if k in newrec_fields:
                 newrec[k] = v
 
@@ -178,7 +167,8 @@ def rec_join(key, r1, r2, jointype='inner', defaults=None, r1postfix='1', r2post
         if common_len:
             newrec[newfield][:common_len] = r1[field][r1ind]
         if (jointype == "outer" or jointype == "leftouter") and left_len:
-            newrec[newfield][common_len:(common_len+left_len)] = r1[field][left_ind]
+            newrec[newfield][common_len:(
+                common_len+left_len)] = r1[field][left_ind]
 
     for field in r2.dtype.names:
         newfield = mapped_r2field(field)
@@ -201,13 +191,14 @@ def drop_fields(rec, names):
     Nr = len(rec)
 
     newdtype = np.dtype([(name, rec.dtype[name]) for name in rec.dtype.names
-                       if name not in names])
+                         if name not in names])
 
     newrec = np.recarray(rec.shape, dtype=newdtype)
     for field in newdtype.names:
         newrec[field] = rec[field]
 
     return newrec
+
 
 def print_rec_array(rec):
     """
@@ -216,10 +207,7 @@ def print_rec_array(rec):
     print("foo")
 
 
-class CommonEqualityMixin(object):
+class CommonEqualityMixin:
     def __eq__(self, other):
         return (isinstance(other, self.__class__)
-            and self.__dict__ == other.__dict__)
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
+                and self.__dict__ == other.__dict__)

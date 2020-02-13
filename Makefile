@@ -15,7 +15,11 @@ install:
 	@pip install ./
 
 pylint:
-	pylint --errors-only --ignore=pyxb pbcore/
+	pylint --errors-only --ignore=pyxb --enable=C0411,W0702,W0401,W0611 pbcore/
+
+autopep8:
+	find pbcore -name "*.py" | xargs autopep8 -i
+	find tests -name "*.py" | xargs autopep8 -i
 
 clean: doc-clean
 	rm -rf build/;\
@@ -33,8 +37,7 @@ doctest:
 	cd doc && make doctest
 
 unit-test:
-	#nosetests --with-coverage --cover-xml-file=coverage.xml --cover-package=pbcore --cover-xml --with-xunit -v tests
-	pytest -v -n auto --dist=loadscope --durations=20 --junitxml=nosetests.xml --cov=./pbcore --cov-report=xml:coverage.xml tests/test_*.py
+	python setup.py test
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
 test: doctest unit-test

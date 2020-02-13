@@ -1,29 +1,24 @@
 # Author: David Alexander
 
-from __future__ import absolute_import
+__all__ = ["AlignmentReaderMixin",
+           "AlignmentRecordMixin",
+           "IndexedAlignmentReaderMixin"]
 
-__all__ = [ "AlignmentReaderMixin",
-            "AlignmentRecordMixin",
-            "IndexedAlignmentReaderMixin" ]
-
-from pbcore.io import BasH5Collection
 import numpy as np
 
-class AlignmentReaderMixin(object):
+
+class AlignmentReaderMixin:
     """
     Mixin class for higher-level functionality of alignment file
     readers.
     """
+
     def attach(self, fofnFilename):
-        """
-        Attach the actual movie data files that were used to create this
-        alignment file.
-        """
-        self.basH5Collection = BasH5Collection(fofnFilename)
+        raise NotImplementedError()
 
     @property
     def moviesAttached(self):
-        return (hasattr(self, "basH5Collection") and self.basH5Collection is not None)
+        raise NotImplementedError()
 
 
 class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
@@ -31,6 +26,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
     Mixin class for alignment readers that have access to an alignment
     index.
     """
+
     def readsByName(self, query):
         """
         Identifies reads by name query.  The name query is interpreted as follows:
@@ -43,7 +39,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
         """
         def rgIDs(movieName):
             return self.readGroupTable.ID[self.readGroupTable.MovieName == movieName]
-            #return self.movieInfoTable.ID[self.movieInfoTable.Name == movieName]
+            # return self.movieInfoTable.ID[self.movieInfoTable.Name == movieName]
 
         def rangeOverlap(w1, w2):
             s1, e1 = w1
@@ -58,23 +54,24 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             elif readName.endswith("ccs"):
                 return False
             else:
-                q = map(int, rQuery.split("_"))
-                r = map(int, readName.split("/")[-1].split("_"))
+                q = list(map(int, rQuery.split("_")))
+                r = list(map(int, readName.split("/")[-1].split("_")))
                 return rangeOverlap(q, r)
 
         fields = query.split("/")
         movieName = fields[0]
         holeNumber = int(fields[1])
-        if len(fields) > 2: rQuery = fields[2]
-        else:               rQuery = "*"
+        if len(fields) > 2:
+            rQuery = fields[2]
+        else:
+            rQuery = "*"
 
         rgs = rgIDs(movieName)
         rns = np.flatnonzero(np.in1d(self.qId, rgs) &
                              (self.holeNumber == holeNumber))
-        alns = [ a for a in self[rns]
-                 if rQueryMatch(a.readName, rQuery) ]
+        alns = [a for a in self[rns]
+                if rQueryMatch(a.readName, rQuery)]
         return sorted(alns, key=lambda a: a.readStart)
-
 
     def readsByHoleNumber(self, hn):
         """
@@ -89,7 +86,7 @@ class IndexedAlignmentReaderMixin(AlignmentReaderMixin):
             return self.readsByName(movieNames[0] + "/" + str(hn))
 
 
-class AlignmentRecordMixin(object):
+class AlignmentRecordMixin:
     """
     Mixin class providing some higher-level functionality for
     alignment records.
@@ -123,14 +120,14 @@ class AlignmentRecordMixin(object):
     @property
     def readStart(self):
         """
-        The left bound of the alignment, in read coordinates (from the BAS.H5 file).
+        The left bound of the alignment, in read coordinates.
         """
         return self.aStart
 
     @property
     def readEnd(self):
         """
-        The right bound of the alignment, in read coordinates (from the BAS.H5 file).
+        The right bound of the alignment, in read coordinates.
         """
         return self.aEnd
 
