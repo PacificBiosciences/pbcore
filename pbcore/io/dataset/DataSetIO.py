@@ -2233,6 +2233,16 @@ class ReadSet(DataSet):
             else:
                 raise
 
+    @property
+    def numBarcodes(self):
+        self.assertIndexed()
+        self.assertBarcoded()
+        barcodes = set([])
+        for bcTuple in zip(self.index.bcForward,
+                           self.index.bcReverse):
+            barcodes.add(bcTuple)
+        return len(barcodes)
+
     def _split_barcodes(self, chunks=0):
         """Split a readset into chunks by barcodes.
 

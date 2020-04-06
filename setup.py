@@ -16,7 +16,7 @@ test_deps = [
 
 setup(
     name='pbcore',
-    version='2.0.2',
+    version='2.0.3',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',
