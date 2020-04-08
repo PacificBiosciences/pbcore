@@ -1189,6 +1189,12 @@ class TestDataSet:
             assert ds.isIndexed
             assert not ds.isMapped
 
+    def test_numbarcodes(self):
+        import pbtestdata
+        inp = pbtestdata.get_file("barcoded-subreadset")
+        ds = SubreadSet(inp, strict=True)
+        assert ds.numBarcodes == 3
+
     @pytest.mark.internal_data
     @pytest.mark.constools
     def test_copyTo_same_base_names(self):
