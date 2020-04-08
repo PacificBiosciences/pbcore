@@ -26,3 +26,12 @@ def accuracy_as_phred_qv(accuracy, max_qv=Constants.MAX_QV):
         zero_error = error_rate < min_error_rate
         error_rate[zero_error] = min_error_rate
         return -10 * np.log10(error_rate)
+
+
+def phred_qv_as_accuracy(qv):
+    if qv == 0:
+        return 0
+    elif qv < 0:
+        raise ValueError("Negative Phred scores not allowed")
+    else:
+        return 1.0 - 10**(-qv/10)
