@@ -5,6 +5,9 @@ import numpy as np
 
 class Constants:
     MAX_QV = 60
+    # (identical) cutoffs for RQ and QV for "High-Fidelity" reads
+    HIFI_QV = 20
+    HIFI_RQ = 0.99
 
 
 def accuracy_as_phred_qv(accuracy, max_qv=Constants.MAX_QV):
