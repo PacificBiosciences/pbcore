@@ -1,7 +1,7 @@
 # pbcore/io/dataset/pyxb/_pbmeta.py
 # -*- coding: utf-8 -*-
 # PyXB bindings for NM:9efc6641c22b876b2d5ab7b8523f84c3396b188b
-# Generated 2020-04-08 13:50:29.482514 by PyXB version 1.2.6 using Python 3.7.3.final.0
+# Generated 2020-04-28 14:07:08.830043 by PyXB version 1.2.6 using Python 3.7.3.final.0
 # Namespace http://pacificbiosciences.com/PacBioCollectionMetadata.xsd [xmlns:pbmeta]
 
 from __future__ import unicode_literals
@@ -14,7 +14,7 @@ import pyxb.utils.domutils
 import sys
 import pyxb.utils.six as _six
 # Unique identifier for bindings created at the same time
-_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:94817b88-79da-11ea-a8e0-005056871a22')
+_GenerationUID = pyxb.utils.utility.UniqueIdentifier('urn:uuid:3866d522-8994-11ea-9798-005056871a22')
 
 # Version of PyXB used to generate the bindings
 _PyXBVersion = '1.2.6'
@@ -89,7 +89,7 @@ class STD_ANON (pyxb.binding.datatypes.string):
     """An atomic simple type."""
 
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 54, 22)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 54, 22)
     _Documentation = None
 STD_ANON._CF_length = pyxb.binding.facets.CF_length(value=pyxb.binding.datatypes.nonNegativeInteger(36))
 STD_ANON._CF_pattern = pyxb.binding.facets.CF_pattern()
@@ -104,7 +104,7 @@ class STD_ANON_ (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeration_m
     """An atomic simple type."""
 
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 503, 16)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 483, 16)
     _Documentation = None
 STD_ANON_._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=STD_ANON_, enum_prefix=None)
 STD_ANON_.Pulses = STD_ANON_._CF_enumeration.addEnumeration(unicode_value='Pulses', tag='Pulses')
@@ -119,7 +119,7 @@ class STD_ANON_2 (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeration_
     """An atomic simple type."""
 
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 515, 16)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 495, 16)
     _Documentation = None
 STD_ANON_2._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=STD_ANON_2, enum_prefix=None)
 STD_ANON_2.Minimal = STD_ANON_2._CF_enumeration.addEnumeration(unicode_value='Minimal', tag='Minimal')
@@ -134,7 +134,7 @@ class STD_ANON_3 (pyxb.binding.datatypes.string):
     """An atomic simple type."""
 
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 533, 22)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 513, 22)
     _Documentation = None
 STD_ANON_3._CF_pattern = pyxb.binding.facets.CF_pattern()
 STD_ANON_3._CF_pattern.addPattern(pattern='([a-zA-Z0-9_\\-])*')
@@ -147,7 +147,7 @@ class STD_ANON_4 (pyxb.binding.datatypes.string, pyxb.binding.basis.enumeration_
     """An atomic simple type."""
 
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 543, 22)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 523, 22)
     _Documentation = None
 STD_ANON_4._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=STD_ANON_4, enum_prefix=None)
 STD_ANON_4.RSYNC = STD_ANON_4._CF_enumeration.addEnumeration(unicode_value='RSYNC', tag='RSYNC')
@@ -162,7 +162,7 @@ class PapOutputFile (pyxb.binding.datatypes.string, pyxb.binding.basis.enumerati
     """Defines a list of available file output types from primary output that can be copied out to the CollectionPathUri. The types Pulse, Base, Fasta, and Fastq are for legacy use only."""
 
     _ExpandedName = pyxb.namespace.ExpandedName(Namespace, 'PapOutputFile')
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 637, 2)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 617, 2)
     _Documentation = 'Defines a list of available file output types from primary output that can be copied out to the CollectionPathUri. The types Pulse, Base, Fasta, and Fastq are for legacy use only.'
 PapOutputFile._CF_enumeration = pyxb.binding.facets.CF_enumeration(value_datatype=PapOutputFile, enum_prefix=None)
 PapOutputFile.None_ = PapOutputFile._CF_enumeration.addEnumeration(unicode_value='None', tag='None_')
@@ -184,13 +184,13 @@ class CTD_ANON (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 14, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 14, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CollectionMetadata uses Python identifier CollectionMetadata
-    __CollectionMetadata = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), 'CollectionMetadata', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionMetadata', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 30, 2), )
+    __CollectionMetadata = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), 'CollectionMetadata', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionMetadata', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 30, 2), )
 
     
     CollectionMetadata = property(__CollectionMetadata.value, __CollectionMetadata.set, None, 'Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ')
@@ -211,13 +211,13 @@ class CTD_ANON_ (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 24, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 24, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CollectionMetadata uses Python identifier CollectionMetadata
-    __CollectionMetadata = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), 'CollectionMetadata', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON__httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionMetadata', True, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 30, 2), )
+    __CollectionMetadata = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), 'CollectionMetadata', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON__httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionMetadata', True, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 30, 2), )
 
     
     CollectionMetadata = property(__CollectionMetadata.value, __CollectionMetadata.set, None, 'Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ')
@@ -238,13 +238,13 @@ class CTD_ANON_2 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 171, 14)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 171, 14)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}VersionInfo uses Python identifier VersionInfo
-    __VersionInfo = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo'), 'VersionInfo', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioCollectionMetadata_xsdVersionInfo', True, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 173, 18), )
+    __VersionInfo = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo'), 'VersionInfo', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_2_httppacificbiosciences_comPacBioCollectionMetadata_xsdVersionInfo', True, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 173, 18), )
 
     
     VersionInfo = property(__VersionInfo.value, __VersionInfo.set, None, 'Each component should list its name and version attribute')
@@ -265,55 +265,55 @@ class CTD_ANON_3 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 206, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 206, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TimeStampedName uses Python identifier TimeStampedName
-    __TimeStampedName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName'), 'TimeStampedName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdTimeStampedName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 208, 8), )
+    __TimeStampedName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName'), 'TimeStampedName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdTimeStampedName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 208, 8), )
 
     
     TimeStampedName = property(__TimeStampedName.value, __TimeStampedName.set, None, 'A unique identifier for this run.  Format is r[sid]_[iname]_[ts]. Where [id] is a system generated id and [iname] is the instrument name and [ts] is a timestamp YYMMDD Example:  r000123_00117_100713 ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Name uses Python identifier Name
-    __Name = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Name'), 'Name', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 213, 8), )
+    __Name = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Name'), 'Name', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 213, 8), )
 
     
     Name = property(__Name.value, __Name.set, None, 'Assigned name for a run, which consists of multiple wells. There is no constraint on the uniqueness of this data. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CreatedBy uses Python identifier CreatedBy
-    __CreatedBy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy'), 'CreatedBy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdCreatedBy', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 218, 8), )
+    __CreatedBy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy'), 'CreatedBy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdCreatedBy', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 218, 8), )
 
     
     CreatedBy = property(__CreatedBy.value, __CreatedBy.set, None, 'Who created the run. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WhenCreated uses Python identifier WhenCreated
-    __WhenCreated = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated'), 'WhenCreated', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenCreated', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 223, 8), )
+    __WhenCreated = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated'), 'WhenCreated', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenCreated', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 223, 8), )
 
     
     WhenCreated = property(__WhenCreated.value, __WhenCreated.set, None, 'Date and time of when the overall run was created in the system. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}StartedBy uses Python identifier StartedBy
-    __StartedBy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'StartedBy'), 'StartedBy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdStartedBy', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 228, 8), )
+    __StartedBy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'StartedBy'), 'StartedBy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdStartedBy', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 228, 8), )
 
     
     StartedBy = property(__StartedBy.value, __StartedBy.set, None, 'Who started the run. Could be different from who created it. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WhenStarted uses Python identifier WhenStarted
-    __WhenStarted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), 'WhenStarted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenStarted', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 233, 8), )
+    __WhenStarted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), 'WhenStarted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenStarted', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 233, 8), )
 
     
     WhenStarted = property(__WhenStarted.value, __WhenStarted.set, None, 'Date and time of when the overall run was started. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WhenCompleted uses Python identifier WhenCompleted
-    __WhenCompleted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted'), 'WhenCompleted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenCompleted', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 238, 8), )
+    __WhenCompleted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted'), 'WhenCompleted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_3_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenCompleted', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 238, 8), )
 
     
     WhenCompleted = property(__WhenCompleted.value, __WhenCompleted.set, None, 'Date and time of when the overall run was completed. ')
@@ -340,27 +340,27 @@ class CTD_ANON_4 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 250, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 250, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WhenStarted uses Python identifier WhenStarted
-    __WhenStarted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), 'WhenStarted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenStarted', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 252, 8), )
+    __WhenStarted = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), 'WhenStarted', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdWhenStarted', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 252, 8), )
 
     
     WhenStarted = property(__WhenStarted.value, __WhenStarted.set, None, 'Date and time of when this movie acquisition started. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}DurationInSec uses Python identifier DurationInSec
-    __DurationInSec = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec'), 'DurationInSec', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdDurationInSec', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 257, 8), )
+    __DurationInSec = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec'), 'DurationInSec', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdDurationInSec', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 257, 8), )
 
     
     DurationInSec = property(__DurationInSec.value, __DurationInSec.set, None, 'The actual length of the movie acquisition (in seconds), irrespective of the movie duration specified by an automation parameter. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Number uses Python identifier Number
-    __Number = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Number'), 'Number', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdNumber', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 262, 8), )
+    __Number = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Number'), 'Number', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_4_httppacificbiosciences_comPacBioCollectionMetadata_xsdNumber', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 262, 8), )
 
     
     Number = property(__Number.value, __Number.set, None, "The number of this movie within the set (i.e., look).  This is unique when combined with the 'SetNumber'. ")
@@ -383,48 +383,48 @@ class CTD_ANON_5 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 274, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 274, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TemplatePrepKitPastExpiration uses Python identifier TemplatePrepKitPastExpiration
-    __TemplatePrepKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration'), 'TemplatePrepKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdTemplatePrepKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 276, 8), )
+    __TemplatePrepKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration'), 'TemplatePrepKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdTemplatePrepKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 276, 8), )
 
     
     TemplatePrepKitPastExpiration = property(__TemplatePrepKitPastExpiration.value, __TemplatePrepKitPastExpiration.set, None, 'Number of days past expiration the template prep kit was (if at all). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}BindingKitPastExpiration uses Python identifier BindingKitPastExpiration
-    __BindingKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration'), 'BindingKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdBindingKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 281, 8), )
+    __BindingKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration'), 'BindingKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdBindingKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 281, 8), )
 
     
     BindingKitPastExpiration = property(__BindingKitPastExpiration.value, __BindingKitPastExpiration.set, None, 'Number of days past expiration the binding kit was (if at all). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CellPacPastExpiration uses Python identifier CellPacPastExpiration
-    __CellPacPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration'), 'CellPacPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellPacPastExpiration', True, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 286, 8), )
+    __CellPacPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration'), 'CellPacPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellPacPastExpiration', True, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 286, 8), )
 
     
     CellPacPastExpiration = property(__CellPacPastExpiration.value, __CellPacPastExpiration.set, None, 'Number of days past expiration the cell pac was (if at all). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SequencingKitPastExpiration uses Python identifier SequencingKitPastExpiration
-    __SequencingKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration'), 'SequencingKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 296, 8), )
+    __SequencingKitPastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration'), 'SequencingKitPastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingKitPastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 296, 8), )
 
     
     SequencingKitPastExpiration = property(__SequencingKitPastExpiration.value, __SequencingKitPastExpiration.set, None, 'Number of days past expiration the reagent kit was (if at all). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SequencingTube0PastExpiration uses Python identifier SequencingTube0PastExpiration
-    __SequencingTube0PastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration'), 'SequencingTube0PastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingTube0PastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 301, 8), )
+    __SequencingTube0PastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration'), 'SequencingTube0PastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingTube0PastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 301, 8), )
 
     
     SequencingTube0PastExpiration = property(__SequencingTube0PastExpiration.value, __SequencingTube0PastExpiration.set, None, 'Number of days past expiration the reagent tube 0 was (if at all). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SequencingTube1PastExpiration uses Python identifier SequencingTube1PastExpiration
-    __SequencingTube1PastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration'), 'SequencingTube1PastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingTube1PastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 306, 8), )
+    __SequencingTube1PastExpiration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration'), 'SequencingTube1PastExpiration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_5_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingTube1PastExpiration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 306, 8), )
 
     
     SequencingTube1PastExpiration = property(__SequencingTube1PastExpiration.value, __SequencingTube1PastExpiration.set, None, 'Number of days past expiration the reagent tube 1 was (if at all). ')
@@ -450,48 +450,48 @@ class CTD_ANON_6 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 408, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 408, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SampleTrace uses Python identifier SampleTrace
-    __SampleTrace = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace'), 'SampleTrace', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleTrace', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 410, 8), )
+    __SampleTrace = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace'), 'SampleTrace', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleTrace', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 410, 8), )
 
     
     SampleTrace = property(__SampleTrace.value, __SampleTrace.set, None, 'Tag to indicate that the trace file will be sampled. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}AutomationName uses Python identifier AutomationName
-    __AutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), 'AutomationName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 429, 8), )
+    __AutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), 'AutomationName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 429, 8), )
 
     
     AutomationName = property(__AutomationName.value, __AutomationName.set, None, 'Name of primary analysis protocol. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ConfigFileName uses Python identifier ConfigFileName
-    __ConfigFileName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName'), 'ConfigFileName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdConfigFileName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 434, 8), )
+    __ConfigFileName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName'), 'ConfigFileName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdConfigFileName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 434, 8), )
 
     
     ConfigFileName = property(__ConfigFileName.value, __ConfigFileName.set, None, 'Name of primary analysis config file. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SequencingCondition uses Python identifier SequencingCondition
-    __SequencingCondition = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition'), 'SequencingCondition', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingCondition', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 439, 8), )
+    __SequencingCondition = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition'), 'SequencingCondition', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingCondition', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 439, 8), )
 
     
     SequencingCondition = property(__SequencingCondition.value, __SequencingCondition.set, None, 'A sequencing condition tag to be used by primary analysis, e.g., to select basecaller calibration or training parameters. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CCSOptions uses Python identifier CCSOptions
-    __CCSOptions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions'), 'CCSOptions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdCCSOptions', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 444, 8), )
+    __CCSOptions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions'), 'CCSOptions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdCCSOptions', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 444, 8), )
 
     
     CCSOptions = property(__CCSOptions.value, __CCSOptions.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}OutputOptions uses Python identifier OutputOptions
-    __OutputOptions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions'), 'OutputOptions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdOutputOptions', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 475, 8), )
+    __OutputOptions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions'), 'OutputOptions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_6_httppacificbiosciences_comPacBioCollectionMetadata_xsdOutputOptions', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 455, 8), )
 
     
     OutputOptions = property(__OutputOptions.value, __OutputOptions.set, None, None)
@@ -517,20 +517,20 @@ class CTD_ANON_7 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 414, 10)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 414, 10)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TraceSamplingFactor uses Python identifier TraceSamplingFactor
-    __TraceSamplingFactor = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor'), 'TraceSamplingFactor', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_7_httppacificbiosciences_comPacBioCollectionMetadata_xsdTraceSamplingFactor', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 416, 14), )
+    __TraceSamplingFactor = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor'), 'TraceSamplingFactor', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_7_httppacificbiosciences_comPacBioCollectionMetadata_xsdTraceSamplingFactor', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 416, 14), )
 
     
     TraceSamplingFactor = property(__TraceSamplingFactor.value, __TraceSamplingFactor.set, None, 'Percentage of traces to sample. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}FullPulseFile uses Python identifier FullPulseFile
-    __FullPulseFile = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile'), 'FullPulseFile', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_7_httppacificbiosciences_comPacBioCollectionMetadata_xsdFullPulseFile', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 421, 14), )
+    __FullPulseFile = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile'), 'FullPulseFile', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_7_httppacificbiosciences_comPacBioCollectionMetadata_xsdFullPulseFile', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 421, 14), )
 
     
     FullPulseFile = property(__FullPulseFile.value, __FullPulseFile.set, None, 'Whether full or sampled pulse file is transferred if requested. ')
@@ -552,51 +552,19 @@ class CTD_ANON_8 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 445, 10)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 445, 10)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ExecutionMode uses Python identifier ExecutionMode
-    __ExecutionMode = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode'), 'ExecutionMode', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdExecutionMode', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 447, 14), )
+    __ExecutionMode = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode'), 'ExecutionMode', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdExecutionMode', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 447, 14), )
 
     
     ExecutionMode = property(__ExecutionMode.value, __ExecutionMode.set, None, 'If set to OnInstrument, turns on CCS as part of Post-Primary Analysis and transfers the resulting ConsensusReadSet off-instrument. Not supported on Sequel I instruments.')
 
-    
-    # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MinPasses uses Python identifier MinPasses
-    __MinPasses = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MinPasses'), 'MinPasses', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdMinPasses', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 452, 14), )
-
-    
-    MinPasses = property(__MinPasses.value, __MinPasses.set, None, 'Minimum number of passes (complete subreads)')
-
-    
-    # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MaxPasses uses Python identifier MaxPasses
-    __MaxPasses = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MaxPasses'), 'MaxPasses', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdMaxPasses', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 457, 14), )
-
-    
-    MaxPasses = property(__MaxPasses.value, __MaxPasses.set, None, 'Maximum number of passes (complete subreads)')
-
-    
-    # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MaxInsertSize uses Python identifier MaxInsertSize
-    __MaxInsertSize = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MaxInsertSize'), 'MaxInsertSize', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdMaxInsertSize', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 462, 14), )
-
-    
-    MaxInsertSize = property(__MaxInsertSize.value, __MaxInsertSize.set, None, 'Maximum insert size')
-
-    
-    # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MinPredictedAccuracy uses Python identifier MinPredictedAccuracy
-    __MinPredictedAccuracy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MinPredictedAccuracy'), 'MinPredictedAccuracy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_8_httppacificbiosciences_comPacBioCollectionMetadata_xsdMinPredictedAccuracy', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 467, 14), )
-
-    
-    MinPredictedAccuracy = property(__MinPredictedAccuracy.value, __MinPredictedAccuracy.set, None, 'Minimum predicted accuracy on a scale of 0 to 1.0')
-
     _ElementMap.update({
-        __ExecutionMode.name() : __ExecutionMode,
-        __MinPasses.name() : __MinPasses,
-        __MaxPasses.name() : __MaxPasses,
-        __MaxInsertSize.name() : __MaxInsertSize,
-        __MinPredictedAccuracy.name() : __MinPredictedAccuracy
+        __ExecutionMode.name() : __ExecutionMode
     })
     _AttributeMap.update({
         
@@ -611,48 +579,48 @@ class CTD_ANON_9 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 476, 10)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 456, 10)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ResultsFolder uses Python identifier ResultsFolder
-    __ResultsFolder = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder'), 'ResultsFolder', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdResultsFolder', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 478, 14), )
+    __ResultsFolder = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder'), 'ResultsFolder', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdResultsFolder', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 458, 14), )
 
     
     ResultsFolder = property(__ResultsFolder.value, __ResultsFolder.set, None, "NOTE: not for customers. A sub-folder under the CollectionPath created by Primary Analysis. This is a field that will be updated by the primary analysis pipeline.  The default (as created by homer) should be set to 'Reports_Sms' for now.  Consumers of the data should be aware that they will find collection metadata (and trace files if acquisition is so-configured) at the CollectionPathUri, and all primary analysis results in the sub-folder PrimaryResultsFolder. ")
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CollectionPathUri uses Python identifier CollectionPathUri
-    __CollectionPathUri = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri'), 'CollectionPathUri', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionPathUri', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 483, 14), )
+    __CollectionPathUri = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri'), 'CollectionPathUri', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionPathUri', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 463, 14), )
 
     
     CollectionPathUri = property(__CollectionPathUri.value, __CollectionPathUri.set, None, 'User-specified location of where the results should be copied after an analysis has been completed. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CopyFiles uses Python identifier CopyFiles
-    __CopyFiles = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles'), 'CopyFiles', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdCopyFiles', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 488, 14), )
+    __CopyFiles = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles'), 'CopyFiles', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdCopyFiles', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 468, 14), )
 
     
     CopyFiles = property(__CopyFiles.value, __CopyFiles.set, None, None)
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Readout uses Python identifier Readout
-    __Readout = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Readout'), 'Readout', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdReadout', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 499, 14), )
+    __Readout = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Readout'), 'Readout', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdReadout', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 479, 14), )
 
     
     Readout = property(__Readout.value, __Readout.set, None, 'BazIO Readout option; valid values are Bases (default) and Pulses')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MetricsVerbosity uses Python identifier MetricsVerbosity
-    __MetricsVerbosity = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity'), 'MetricsVerbosity', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdMetricsVerbosity', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 511, 14), )
+    __MetricsVerbosity = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity'), 'MetricsVerbosity', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdMetricsVerbosity', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 491, 14), )
 
     
     MetricsVerbosity = property(__MetricsVerbosity.value, __MetricsVerbosity.set, None, 'BazIO MetricsVerbosity option; valid values are Minimal (default), High, and None')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TransferResource uses Python identifier TransferResource
-    __TransferResource = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TransferResource'), 'TransferResource', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdTransferResource', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 523, 14), )
+    __TransferResource = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TransferResource'), 'TransferResource', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_9_httppacificbiosciences_comPacBioCollectionMetadata_xsdTransferResource', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 503, 14), )
 
     
     TransferResource = property(__TransferResource.value, __TransferResource.set, None, 'Transfer Resource (optional for now, but will be made required when ICS implements this)')
@@ -678,13 +646,13 @@ class CTD_ANON_10 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 489, 16)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 469, 16)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CollectionFileCopy uses Python identifier CollectionFileCopy
-    __CollectionFileCopy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy'), 'CollectionFileCopy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_10_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionFileCopy', True, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 491, 20), )
+    __CollectionFileCopy = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy'), 'CollectionFileCopy', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_10_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionFileCopy', True, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 471, 20), )
 
     
     CollectionFileCopy = property(__CollectionFileCopy.value, __CollectionFileCopy.set, None, 'Defines the set of files to be copied to the CollectionPathUri. 1 or more. ')
@@ -705,48 +673,48 @@ class CTD_ANON_11 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 527, 16)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 507, 16)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Id uses Python identifier Id
-    __Id = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Id'), 'Id', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdId', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 529, 20), )
+    __Id = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Id'), 'Id', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdId', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 509, 20), )
 
     
     Id = property(__Id.value, __Id.set, None, 'Id of the Transfer Resource that is unique to the Scheme Type. A tuple of (TransferScheme, Id) will be globally unique')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TransferScheme uses Python identifier TransferScheme
-    __TransferScheme = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme'), 'TransferScheme', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdTransferScheme', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 539, 20), )
+    __TransferScheme = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme'), 'TransferScheme', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdTransferScheme', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 519, 20), )
 
     
     TransferScheme = property(__TransferScheme.value, __TransferScheme.set, None, 'Transfer Scheme type (this should be an enum Scheme of rsync, srs or nfs)')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Name uses Python identifier Name
-    __Name = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Name'), 'Name', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 551, 20), )
+    __Name = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Name'), 'Name', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 531, 20), )
 
     
     Name = property(__Name.value, __Name.set, None, 'Display Name of the Transfer Resource')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Description uses Python identifier Description
-    __Description = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Description'), 'Description', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdDescription', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 556, 20), )
+    __Description = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Description'), 'Description', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdDescription', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 536, 20), )
 
     
     Description = property(__Description.value, __Description.set, None, 'Description of the Transfer Resource')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}DestPath uses Python identifier DestPath
-    __DestPath = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DestPath'), 'DestPath', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdDestPath', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 561, 20), )
+    __DestPath = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DestPath'), 'DestPath', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdDestPath', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 541, 20), )
 
     
     DestPath = property(__DestPath.value, __DestPath.set, None, 'Remote Root Destination Path of the Transfer Resource')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}RelativePath uses Python identifier RelativePath
-    __RelativePath = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'RelativePath'), 'RelativePath', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdRelativePath', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 566, 20), )
+    __RelativePath = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'RelativePath'), 'RelativePath', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_11_httppacificbiosciences_comPacBioCollectionMetadata_xsdRelativePath', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 546, 20), )
 
     
     RelativePath = property(__RelativePath.value, __RelativePath.set, None, 'Remote Relative Path of the Transfer Resource')
@@ -772,27 +740,27 @@ class CTD_ANON_12 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 585, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 565, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}AutomationName uses Python identifier AutomationName
-    __AutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), 'AutomationName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 587, 8), )
+    __AutomationName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), 'AutomationName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 567, 8), )
 
     
     AutomationName = property(__AutomationName.value, __AutomationName.set, None, 'The secondary analysis protocol name specified in the sample sheet. Ignored by secondary. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}AutomationParameters uses Python identifier AutomationParameters
-    __AutomationParameters = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters'), 'AutomationParameters', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationParameters', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 592, 8), )
+    __AutomationParameters = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters'), 'AutomationParameters', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationParameters', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 572, 8), )
 
     
     AutomationParameters = property(__AutomationParameters.value, __AutomationParameters.set, None, 'The parameters for secondary analysis specified in the sample sheet. Ignored by secondary. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CellCountInJob uses Python identifier CellCountInJob
-    __CellCountInJob = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob'), 'CellCountInJob', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellCountInJob', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 606, 8), )
+    __CellCountInJob = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob'), 'CellCountInJob', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_12_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellCountInJob', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 586, 8), )
 
     
     CellCountInJob = property(__CellCountInJob.value, __CellCountInJob.set, None, "The number of cells in this secondary analysis job, identified by the secondary analysis parameter 'JobName'.  Supports automated secondary analysis. ")
@@ -815,13 +783,13 @@ class CTD_ANON_13 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 596, 10)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 576, 10)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.anyType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}AutomationParameter uses Python identifier AutomationParameter
-    __AutomationParameter = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter'), 'AutomationParameter', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_13_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationParameter', True, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 598, 14), )
+    __AutomationParameter = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter'), 'AutomationParameter', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_13_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomationParameter', True, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 578, 14), )
 
     
     AutomationParameter = property(__AutomationParameter.value, __AutomationParameter.set, None, 'One or more secondary analysis parameters, such as JobName, Workflow, etc..')
@@ -842,23 +810,23 @@ class CTD_ANON_14 (pyxb.binding.basis.complexTypeDefinition):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_SIMPLE
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 624, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 604, 4)
     _ElementMap = {}
     _AttributeMap = {}
     # Base type is pyxb.binding.datatypes.string
     
     # Attribute key uses Python identifier key
     __key = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'key'), 'key', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_14_key', pyxb.binding.datatypes.string, required=True)
-    __key._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 627, 10)
-    __key._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 627, 10)
+    __key._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 607, 10)
+    __key._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 607, 10)
     
     key = property(__key.value, __key.set, None, 'Key (attribute) and Value (element content). ')
 
     
     # Attribute label uses Python identifier label
     __label = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'label'), 'label', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_14_label', pyxb.binding.datatypes.string)
-    __label._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 632, 10)
-    __label._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 632, 10)
+    __label._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 612, 10)
+    __label._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 612, 10)
     
     label = property(__label.value, __label.set, None, None)
 
@@ -879,7 +847,7 @@ class CTD_ANON_15 (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 47, 14)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 47, 14)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -904,8 +872,8 @@ class CTD_ANON_15 (_ImportedBinding__pbbase.BaseEntityType):
     
     # Attribute UniqueId uses Python identifier UniqueId
     __UniqueId = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'UniqueId'), 'UniqueId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_15_UniqueId', _module_typeBindings.STD_ANON)
-    __UniqueId._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 50, 20)
-    __UniqueId._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 50, 20)
+    __UniqueId._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 50, 20)
+    __UniqueId._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 50, 20)
     
     UniqueId = property(__UniqueId.value, __UniqueId.set, None, 'UUID for the ConsensusReadSet generated by the instrument or SMRT Link (in pre-analysis mode).')
 
@@ -925,7 +893,7 @@ class CTD_ANON_16 (_ImportedBinding__pbbase.BaseEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 318, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 318, 4)
     _ElementMap = _ImportedBinding__pbbase.BaseEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.BaseEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.BaseEntityType
@@ -933,112 +901,112 @@ class CTD_ANON_16 (_ImportedBinding__pbbase.BaseEntityType):
     # Element Extensions ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Extensions) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WellName uses Python identifier WellName
-    __WellName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WellName'), 'WellName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdWellName', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 322, 12), )
+    __WellName = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WellName'), 'WellName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdWellName', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 322, 12), )
 
     
     WellName = property(__WellName.value, __WellName.set, None, 'Identifies which well this sample came from (e.g., coordinate on a plate). ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Concentration uses Python identifier Concentration
-    __Concentration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Concentration'), 'Concentration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdConcentration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 327, 12), )
+    __Concentration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Concentration'), 'Concentration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdConcentration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 327, 12), )
 
     
     Concentration = property(__Concentration.value, __Concentration.set, None, 'Sample input concentration. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}OnPlateLoadingConcentration uses Python identifier OnPlateLoadingConcentration
-    __OnPlateLoadingConcentration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration'), 'OnPlateLoadingConcentration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdOnPlateLoadingConcentration', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 332, 12), )
+    __OnPlateLoadingConcentration = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration'), 'OnPlateLoadingConcentration', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdOnPlateLoadingConcentration', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 332, 12), )
 
     
     OnPlateLoadingConcentration = property(__OnPlateLoadingConcentration.value, __OnPlateLoadingConcentration.set, None, 'On plate loading concentration. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}InsertSize uses Python identifier InsertSize
-    __InsertSize = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'InsertSize'), 'InsertSize', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdInsertSize', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 337, 12), )
+    __InsertSize = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'InsertSize'), 'InsertSize', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdInsertSize', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 337, 12), )
 
     
     InsertSize = property(__InsertSize.value, __InsertSize.set, None, 'Length of the sheared template, e.g. 500, 2000, 30000')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}IsoSeq uses Python identifier IsoSeq
-    __IsoSeq = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq'), 'IsoSeq', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdIsoSeq', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 342, 12), )
+    __IsoSeq = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq'), 'IsoSeq', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdIsoSeq', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 342, 12), )
 
     
     IsoSeq = property(__IsoSeq.value, __IsoSeq.set, None, 'Whether or not this is an Iso-Seq experiment (optional; defaults to false).')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}IsCCS uses Python identifier IsCCS
-    __IsCCS = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'IsCCS'), 'IsCCS', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdIsCCS', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 347, 12), )
+    __IsCCS = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'IsCCS'), 'IsCCS', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdIsCCS', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 347, 12), )
 
     
     IsCCS = property(__IsCCS.value, __IsCCS.set, None, 'Whether or not the read type is CCS, true, or CLR, false.')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}LoadingTarget uses Python identifier LoadingTarget
-    __LoadingTarget = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget'), 'LoadingTarget', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdLoadingTarget', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 352, 12), )
+    __LoadingTarget = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget'), 'LoadingTarget', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdLoadingTarget', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 352, 12), )
 
     
     LoadingTarget = property(__LoadingTarget.value, __LoadingTarget.set, None, 'Dynamic Loading Target')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MaxLoadingTime uses Python identifier MaxLoadingTime
-    __MaxLoadingTime = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime'), 'MaxLoadingTime', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdMaxLoadingTime', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 357, 12), )
+    __MaxLoadingTime = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime'), 'MaxLoadingTime', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdMaxLoadingTime', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 357, 12), )
 
     
     MaxLoadingTime = property(__MaxLoadingTime.value, __MaxLoadingTime.set, None, 'Dynamic Loading Maximum Loading Time')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SampleReuseEnabled uses Python identifier SampleReuseEnabled
-    __SampleReuseEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled'), 'SampleReuseEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleReuseEnabled', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 362, 12), )
+    __SampleReuseEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled'), 'SampleReuseEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleReuseEnabled', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 362, 12), )
 
     
     SampleReuseEnabled = property(__SampleReuseEnabled.value, __SampleReuseEnabled.set, None, 'Whether or not complex reuse is enabled for this well. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}StageHotstartEnabled uses Python identifier StageHotstartEnabled
-    __StageHotstartEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled'), 'StageHotstartEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdStageHotstartEnabled', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 367, 12), )
+    __StageHotstartEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled'), 'StageHotstartEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdStageHotstartEnabled', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 367, 12), )
 
     
     StageHotstartEnabled = property(__StageHotstartEnabled.value, __StageHotstartEnabled.set, None, 'Whether or not hotstart at the stage is enabled for this well. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SizeSelectionEnabled uses Python identifier SizeSelectionEnabled
-    __SizeSelectionEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled'), 'SizeSelectionEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSizeSelectionEnabled', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 372, 12), )
+    __SizeSelectionEnabled = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled'), 'SizeSelectionEnabled', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSizeSelectionEnabled', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 372, 12), )
 
     
     SizeSelectionEnabled = property(__SizeSelectionEnabled.value, __SizeSelectionEnabled.set, None, 'Whether or not size selection is enabled for this well. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}UseCount uses Python identifier UseCount
-    __UseCount = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'UseCount'), 'UseCount', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdUseCount', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 377, 12), )
+    __UseCount = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'UseCount'), 'UseCount', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdUseCount', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 377, 12), )
 
     
     UseCount = property(__UseCount.value, __UseCount.set, None, 'Count of usages for this batch of complex. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}DNAControlComplex uses Python identifier DNAControlComplex
-    __DNAControlComplex = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex'), 'DNAControlComplex', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdDNAControlComplex', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 382, 12), )
+    __DNAControlComplex = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex'), 'DNAControlComplex', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdDNAControlComplex', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 382, 12), )
 
     
     DNAControlComplex = property(__DNAControlComplex.value, __DNAControlComplex.set, None, 'Indicating what kind (if any) control was used. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SampleSetupId uses Python identifier SampleSetupId
-    __SampleSetupId = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId'), 'SampleSetupId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleSetupId', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 387, 12), )
+    __SampleSetupId = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId'), 'SampleSetupId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdSampleSetupId', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 387, 12), )
 
     
     SampleSetupId = property(__SampleSetupId.value, __SampleSetupId.set, None, 'Optional pointer to a Sample Setup record in SMRT Link')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}BioSamplesCsv uses Python identifier BioSamplesCsv
-    __BioSamplesCsv = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv'), 'BioSamplesCsv', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdBioSamplesCsv', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 393, 12), )
+    __BioSamplesCsv = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv'), 'BioSamplesCsv', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioCollectionMetadata_xsdBioSamplesCsv', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 393, 12), )
 
     
     BioSamplesCsv = property(__BioSamplesCsv.value, __BioSamplesCsv.set, None, 'The name of the biosamples CSV.')
 
     
     # Element {http://pacificbiosciences.com/PacBioSampleInfo.xsd}BioSamples uses Python identifier BioSamples
-    __BioSamples = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples'), 'BioSamples', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioSampleInfo_xsdBioSamples', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioSampleInfo.xsd', 126, 2), )
+    __BioSamples = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples'), 'BioSamples', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_16_httppacificbiosciences_comPacBioSampleInfo_xsdBioSamples', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioSampleInfo.xsd', 126, 2), )
 
     
     BioSamples = property(__BioSamples.value, __BioSamples.set, None, 'List of biological samples.')
@@ -1090,7 +1058,7 @@ class CTD_ANON_17 (_ImportedBinding__pbbase.StrictEntityType):
     _ContentTypeTag = pyxb.binding.basis.complexTypeDefinition._CT_ELEMENT_ONLY
     _Abstract = False
     _ExpandedName = None
-    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 34, 4)
+    _XSDLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 34, 4)
     _ElementMap = _ImportedBinding__pbbase.StrictEntityType._ElementMap.copy()
     _AttributeMap = _ImportedBinding__pbbase.StrictEntityType._AttributeMap.copy()
     # Base type is _ImportedBinding__pbbase.StrictEntityType
@@ -1098,161 +1066,161 @@ class CTD_ANON_17 (_ImportedBinding__pbbase.StrictEntityType):
     # Element Extensions ({http://pacificbiosciences.com/PacBioBaseDataModel.xsd}Extensions) inherited from {http://pacificbiosciences.com/PacBioBaseDataModel.xsd}BaseEntityType
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}MultiJobId uses Python identifier MultiJobId
-    __MultiJobId = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId'), 'MultiJobId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdMultiJobId', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 38, 12), )
+    __MultiJobId = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId'), 'MultiJobId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdMultiJobId', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 38, 12), )
 
     
     MultiJobId = property(__MultiJobId.value, __MultiJobId.set, None, 'Id of the SMRT Link MultiJob that will create Jobs to process the Demuxed SubreadSets of this Collection, if it is Barcoded.')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ConsensusReadSetRef uses Python identifier ConsensusReadSetRef
-    __ConsensusReadSetRef = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef'), 'ConsensusReadSetRef', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdConsensusReadSetRef', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 43, 12), )
+    __ConsensusReadSetRef = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef'), 'ConsensusReadSetRef', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdConsensusReadSetRef', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 43, 12), )
 
     
     ConsensusReadSetRef = property(__ConsensusReadSetRef.value, __ConsensusReadSetRef.set, None, 'Contains information on the CCS dataset of the Collection')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}InstCtrlVer uses Python identifier InstCtrlVer
-    __InstCtrlVer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer'), 'InstCtrlVer', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdInstCtrlVer', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 65, 12), )
+    __InstCtrlVer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer'), 'InstCtrlVer', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdInstCtrlVer', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 65, 12), )
 
     
     InstCtrlVer = property(__InstCtrlVer.value, __InstCtrlVer.set, None, 'Instrument control software version. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SigProcVer uses Python identifier SigProcVer
-    __SigProcVer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer'), 'SigProcVer', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSigProcVer', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 70, 12), )
+    __SigProcVer = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer'), 'SigProcVer', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSigProcVer', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 70, 12), )
 
     
     SigProcVer = property(__SigProcVer.value, __SigProcVer.set, None, 'Signal processing software version. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Automation uses Python identifier Automation
-    __Automation = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automation'), 'Automation', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomation', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 92, 12), )
+    __Automation = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Automation'), 'Automation', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdAutomation', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 92, 12), )
 
     
     Automation = property(__Automation.value, __Automation.set, None, 'Defines the collection workflow (e.g., robotic movement, movie acquisition) for a particular cell. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CollectionNumber uses Python identifier CollectionNumber
-    __CollectionNumber = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber'), 'CollectionNumber', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionNumber', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 97, 12), )
+    __CollectionNumber = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber'), 'CollectionNumber', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCollectionNumber', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 97, 12), )
 
     
     CollectionNumber = property(__CollectionNumber.value, __CollectionNumber.set, None, 'Collection number for this plate well. Sample from one plate well or tube can be distributed to more than one cell. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CellIndex uses Python identifier CellIndex
-    __CellIndex = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellIndex'), 'CellIndex', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellIndex', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 102, 12), )
+    __CellIndex = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellIndex'), 'CellIndex', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellIndex', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 102, 12), )
 
     
     CellIndex = property(__CellIndex.value, __CellIndex.set, None, 'The zero-based index of this particular cell within the cell tray.  Likely to be in the range of [0-3]')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SetNumber uses Python identifier SetNumber
-    __SetNumber = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SetNumber'), 'SetNumber', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSetNumber', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 107, 12), )
+    __SetNumber = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SetNumber'), 'SetNumber', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSetNumber', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 107, 12), )
 
     
     SetNumber = property(__SetNumber.value, __SetNumber.set, None, 'Formerly known as the look number.  1 - N.  Defaults to 1. 0 if the look is unknown. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}CellPac uses Python identifier CellPac
-    __CellPac = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellPac'), 'CellPac', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellPac', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 112, 12), )
+    __CellPac = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'CellPac'), 'CellPac', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdCellPac', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 112, 12), )
 
     
     CellPac = property(__CellPac.value, __CellPac.set, None, 'The SMRT cell packaging supply information. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ControlKit uses Python identifier ControlKit
-    __ControlKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ControlKit'), 'ControlKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdControlKit', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 117, 12), )
+    __ControlKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ControlKit'), 'ControlKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdControlKit', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 117, 12), )
 
     
     ControlKit = property(__ControlKit.value, __ControlKit.set, None, 'Defines the DNA control used for this experiment. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}TemplatePrepKit uses Python identifier TemplatePrepKit
-    __TemplatePrepKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit'), 'TemplatePrepKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdTemplatePrepKit', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 122, 12), )
+    __TemplatePrepKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit'), 'TemplatePrepKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdTemplatePrepKit', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 122, 12), )
 
     
     TemplatePrepKit = property(__TemplatePrepKit.value, __TemplatePrepKit.set, None, 'Defines the template (sample) prep kit used for this experiment. Can be used to get back to the primary and adapter used. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}BindingKit uses Python identifier BindingKit
-    __BindingKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BindingKit'), 'BindingKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdBindingKit', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 127, 12), )
+    __BindingKit = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'BindingKit'), 'BindingKit', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdBindingKit', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 127, 12), )
 
     
     BindingKit = property(__BindingKit.value, __BindingKit.set, None, 'The binding kit supply information. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}SequencingKitPlate uses Python identifier SequencingKitPlate
-    __SequencingKitPlate = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate'), 'SequencingKitPlate', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingKitPlate', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 132, 12), )
+    __SequencingKitPlate = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate'), 'SequencingKitPlate', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSequencingKitPlate', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 132, 12), )
 
     
     SequencingKitPlate = property(__SequencingKitPlate.value, __SequencingKitPlate.set, None, 'The sequencing kit supply information. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WashKitPlate uses Python identifier WashKitPlate
-    __WashKitPlate = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate'), 'WashKitPlate', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdWashKitPlate', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 137, 12), )
+    __WashKitPlate = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate'), 'WashKitPlate', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdWashKitPlate', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 137, 12), )
 
     
     WashKitPlate = property(__WashKitPlate.value, __WashKitPlate.set, None, 'The wash kit supply information. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}PPAConfig uses Python identifier PPAConfig
-    __PPAConfig = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig'), 'PPAConfig', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdPPAConfig', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 147, 12), )
+    __PPAConfig = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig'), 'PPAConfig', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdPPAConfig', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 147, 12), )
 
     
     PPAConfig = property(__PPAConfig.value, __PPAConfig.set, None, 'The post-primary analysis-specific information. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ComponentVersions uses Python identifier ComponentVersions
-    __ComponentVersions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions'), 'ComponentVersions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdComponentVersions', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 167, 12), )
+    __ComponentVersions = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions'), 'ComponentVersions', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdComponentVersions', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 167, 12), )
 
     
     ComponentVersions = property(__ComponentVersions.value, __ComponentVersions.set, None, 'Subcomponents involved in the generation of the data')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}RunDetails uses Python identifier RunDetails
-    __RunDetails = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), 'RunDetails', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdRunDetails', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 202, 2), )
+    __RunDetails = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), 'RunDetails', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdRunDetails', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 202, 2), )
 
     
     RunDetails = property(__RunDetails.value, __RunDetails.set, None, 'Information related to an instrument run.  A run can contain multiple chips, wells, and movies. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Movie uses Python identifier Movie
-    __Movie = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Movie'), 'Movie', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdMovie', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 246, 2), )
+    __Movie = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Movie'), 'Movie', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdMovie', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 246, 2), )
 
     
     Movie = property(__Movie.value, __Movie.set, None, 'A movie corresponds to one acquisition for a chip, one set (look) and one strobe. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}ExpirationData uses Python identifier ExpirationData
-    __ExpirationData = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), 'ExpirationData', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdExpirationData', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 270, 2), )
+    __ExpirationData = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), 'ExpirationData', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdExpirationData', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 270, 2), )
 
     
     ExpirationData = property(__ExpirationData.value, __ExpirationData.set, None, 'Container for the expired consumable data. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}WellSample uses Python identifier WellSample
-    __WellSample = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), 'WellSample', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdWellSample', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 314, 2), )
+    __WellSample = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), 'WellSample', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdWellSample', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 314, 2), )
 
     
     WellSample = property(__WellSample.value, __WellSample.set, None, 'Container for the sample related data. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Primary uses Python identifier Primary
-    __Primary = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Primary'), 'Primary', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdPrimary', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 404, 2), )
+    __Primary = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Primary'), 'Primary', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdPrimary', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 404, 2), )
 
     
     Primary = property(__Primary.value, __Primary.set, None, 'Container for the primary analysis related data. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}Secondary uses Python identifier Secondary
-    __Secondary = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), 'Secondary', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSecondary', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 581, 2), )
+    __Secondary = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), 'Secondary', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdSecondary', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 561, 2), )
 
     
     Secondary = property(__Secondary.value, __Secondary.set, None, 'Container for the primary analysis related data. ')
 
     
     # Element {http://pacificbiosciences.com/PacBioCollectionMetadata.xsd}UserDefinedFields uses Python identifier UserDefinedFields
-    __UserDefinedFields = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), 'UserDefinedFields', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdUserDefinedFields', False, pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 615, 2), )
+    __UserDefinedFields = pyxb.binding.content.ElementDeclaration(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), 'UserDefinedFields', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_httppacificbiosciences_comPacBioCollectionMetadata_xsdUserDefinedFields', False, pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 595, 2), )
 
     
     UserDefinedFields = property(__UserDefinedFields.value, __UserDefinedFields.set, None, 'A set of key-value pairs specified by a user via the run input mechanism. Note that uniqueness of keys is not enforced here and so may contain duplicate keys. ')
@@ -1282,32 +1250,32 @@ class CTD_ANON_17 (_ImportedBinding__pbbase.StrictEntityType):
     
     # Attribute Context uses Python identifier Context
     __Context = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Context'), 'Context', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_Context', pyxb.binding.datatypes.string)
-    __Context._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 182, 10)
-    __Context._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 182, 10)
+    __Context._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 182, 10)
+    __Context._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 182, 10)
     
     Context = property(__Context.value, __Context.set, None, 'Replace with TimeStampedName')
 
     
     # Attribute Status uses Python identifier Status
     __Status = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'Status'), 'Status', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_Status', _ImportedBinding__pbbase.SupportedAcquisitionStates)
-    __Status._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 187, 10)
-    __Status._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 187, 10)
+    __Status._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 187, 10)
+    __Status._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 187, 10)
     
     Status = property(__Status.value, __Status.set, None, None)
 
     
     # Attribute InstrumentId uses Python identifier InstrumentId
     __InstrumentId = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'InstrumentId'), 'InstrumentId', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_InstrumentId', pyxb.binding.datatypes.string)
-    __InstrumentId._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 188, 10)
-    __InstrumentId._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 188, 10)
+    __InstrumentId._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 188, 10)
+    __InstrumentId._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 188, 10)
     
     InstrumentId = property(__InstrumentId.value, __InstrumentId.set, None, 'World unique id assigned by PacBio. ')
 
     
     # Attribute InstrumentName uses Python identifier InstrumentName
     __InstrumentName = pyxb.binding.content.AttributeUse(pyxb.namespace.ExpandedName(None, 'InstrumentName'), 'InstrumentName', '__httppacificbiosciences_comPacBioCollectionMetadata_xsd_CTD_ANON_17_InstrumentName', pyxb.binding.datatypes.string)
-    __InstrumentName._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 193, 10)
-    __InstrumentName._UseLocation = pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 193, 10)
+    __InstrumentName._DeclarationLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 193, 10)
+    __InstrumentName._UseLocation = pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 193, 10)
     
     InstrumentName = property(__InstrumentName.value, __InstrumentName.set, None, 'Friendly name assigned by customer')
 
@@ -1345,42 +1313,42 @@ class CTD_ANON_17 (_ImportedBinding__pbbase.StrictEntityType):
 _module_typeBindings.CTD_ANON_17 = CTD_ANON_17
 
 
-PacBioCollectionMetadata = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PacBioCollectionMetadata'), CTD_ANON, documentation='Root element of a standalone CollectionMetadata file.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 10, 2))
+PacBioCollectionMetadata = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PacBioCollectionMetadata'), CTD_ANON, documentation='Root element of a standalone CollectionMetadata file.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 10, 2))
 Namespace.addCategoryObject('elementBinding', PacBioCollectionMetadata.name().localName(), PacBioCollectionMetadata)
 
-Collections = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Collections'), CTD_ANON_, documentation='A set of acquisition definitions', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 20, 2))
+Collections = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Collections'), CTD_ANON_, documentation='A set of acquisition definitions', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 20, 2))
 Namespace.addCategoryObject('elementBinding', Collections.name().localName(), Collections)
 
-RunDetails = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), CTD_ANON_3, documentation='Information related to an instrument run.  A run can contain multiple chips, wells, and movies. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 202, 2))
+RunDetails = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), CTD_ANON_3, documentation='Information related to an instrument run.  A run can contain multiple chips, wells, and movies. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 202, 2))
 Namespace.addCategoryObject('elementBinding', RunDetails.name().localName(), RunDetails)
 
-Movie = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Movie'), CTD_ANON_4, documentation='A movie corresponds to one acquisition for a chip, one set (look) and one strobe. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 246, 2))
+Movie = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Movie'), CTD_ANON_4, documentation='A movie corresponds to one acquisition for a chip, one set (look) and one strobe. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 246, 2))
 Namespace.addCategoryObject('elementBinding', Movie.name().localName(), Movie)
 
-ExpirationData = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), CTD_ANON_5, documentation='Container for the expired consumable data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 270, 2))
+ExpirationData = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), CTD_ANON_5, documentation='Container for the expired consumable data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 270, 2))
 Namespace.addCategoryObject('elementBinding', ExpirationData.name().localName(), ExpirationData)
 
-Primary = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Primary'), CTD_ANON_6, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 404, 2))
+Primary = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Primary'), CTD_ANON_6, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 404, 2))
 Namespace.addCategoryObject('elementBinding', Primary.name().localName(), Primary)
 
-Secondary = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), CTD_ANON_12, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 581, 2))
+Secondary = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), CTD_ANON_12, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 561, 2))
 Namespace.addCategoryObject('elementBinding', Secondary.name().localName(), Secondary)
 
-UserDefinedFields = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), _ImportedBinding__pbbase.UserDefinedFieldsType, documentation='A set of key-value pairs specified by a user via the run input mechanism. Note that uniqueness of keys is not enforced here and so may contain duplicate keys. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 615, 2))
+UserDefinedFields = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), _ImportedBinding__pbbase.UserDefinedFieldsType, documentation='A set of key-value pairs specified by a user via the run input mechanism. Note that uniqueness of keys is not enforced here and so may contain duplicate keys. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 595, 2))
 Namespace.addCategoryObject('elementBinding', UserDefinedFields.name().localName(), UserDefinedFields)
 
-KeyValue = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'KeyValue'), CTD_ANON_14, documentation='One custom, possibly non-unique, key-value pair. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 620, 2))
+KeyValue = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'KeyValue'), CTD_ANON_14, documentation='One custom, possibly non-unique, key-value pair. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 600, 2))
 Namespace.addCategoryObject('elementBinding', KeyValue.name().localName(), KeyValue)
 
-WellSample = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), CTD_ANON_16, documentation='Container for the sample related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 314, 2))
+WellSample = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), CTD_ANON_16, documentation='Container for the sample related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 314, 2))
 Namespace.addCategoryObject('elementBinding', WellSample.name().localName(), WellSample)
 
-CollectionMetadata = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 30, 2))
+CollectionMetadata = pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 30, 2))
 Namespace.addCategoryObject('elementBinding', CollectionMetadata.name().localName(), CollectionMetadata)
 
 
 
-CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, scope=CTD_ANON, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 30, 2)))
+CTD_ANON._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, scope=CTD_ANON, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 30, 2)))
 
 def _BuildAutomaton ():
     # Remove this helper function from the namespace after it is invoked
@@ -1391,7 +1359,7 @@ def _BuildAutomaton ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 16, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 16, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1402,7 +1370,7 @@ CTD_ANON._Automaton = _BuildAutomaton()
 
 
 
-CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, scope=CTD_ANON_, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 30, 2)))
+CTD_ANON_._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata'), CTD_ANON_17, scope=CTD_ANON_, documentation='Root-level element for the metadata.  The purpose of which is to contain pertinent instrument information related to the conditions present during a movie acquisition.  It also serves to provide key pieces of information for integration with primary and secondary analysis.  This file is associated with 1 movie. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 30, 2)))
 
 def _BuildAutomaton_ ():
     # Remove this helper function from the namespace after it is invoked
@@ -1413,7 +1381,7 @@ def _BuildAutomaton_ ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 26, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionMetadata')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 26, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1426,7 +1394,7 @@ CTD_ANON_._Automaton = _BuildAutomaton_()
 
 
 
-CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo'), _ImportedBinding__pbbase.BaseEntityType, scope=CTD_ANON_2, documentation='Each component should list its name and version attribute', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 173, 18)))
+CTD_ANON_2._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo'), _ImportedBinding__pbbase.BaseEntityType, scope=CTD_ANON_2, documentation='Each component should list its name and version attribute', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 173, 18)))
 
 def _BuildAutomaton_2 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1437,7 +1405,7 @@ def _BuildAutomaton_2 ():
     counters = set()
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 173, 18))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_2._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'VersionInfo')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 173, 18))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -1450,19 +1418,19 @@ CTD_ANON_2._Automaton = _BuildAutomaton_2()
 
 
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='A unique identifier for this run.  Format is r[sid]_[iname]_[ts]. Where [id] is a system generated id and [iname] is the instrument name and [ts] is a timestamp YYMMDD Example:  r000123_00117_100713 ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 208, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='A unique identifier for this run.  Format is r[sid]_[iname]_[ts]. Where [id] is a system generated id and [iname] is the instrument name and [ts] is a timestamp YYMMDD Example:  r000123_00117_100713 ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 208, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Name'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Assigned name for a run, which consists of multiple wells. There is no constraint on the uniqueness of this data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 213, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Name'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Assigned name for a run, which consists of multiple wells. There is no constraint on the uniqueness of this data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 213, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Who created the run. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 218, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Who created the run. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 218, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was created in the system. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 223, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was created in the system. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 223, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'StartedBy'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Who started the run. Could be different from who created it. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 228, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'StartedBy'), pyxb.binding.datatypes.string, scope=CTD_ANON_3, documentation='Who started the run. Could be different from who created it. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 228, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was started. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 233, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was started. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 233, 8)))
 
-CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was completed. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 238, 8)))
+CTD_ANON_3._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_3, documentation='Date and time of when the overall run was completed. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 238, 8)))
 
 def _BuildAutomaton_3 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1471,51 +1439,51 @@ def _BuildAutomaton_3 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 213, 8))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 213, 8))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 218, 8))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 218, 8))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 223, 8))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 223, 8))
     counters.add(cc_2)
-    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 228, 8))
+    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 228, 8))
     counters.add(cc_3)
-    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 233, 8))
+    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 233, 8))
     counters.add(cc_4)
-    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 238, 8))
+    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 238, 8))
     counters.add(cc_5)
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 208, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TimeStampedName')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 208, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Name')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 213, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Name')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 213, 8))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 218, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CreatedBy')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 218, 8))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_2, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 223, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenCreated')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 223, 8))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_3, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'StartedBy')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 228, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'StartedBy')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 228, 8))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_4, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 233, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 233, 8))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_5, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 238, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_3._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenCompleted')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 238, 8))
     st_6 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     transitions = []
@@ -1592,11 +1560,11 @@ CTD_ANON_3._Automaton = _BuildAutomaton_3()
 
 
 
-CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_4, documentation='Date and time of when this movie acquisition started. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 252, 8)))
+CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted'), pyxb.binding.datatypes.dateTime, scope=CTD_ANON_4, documentation='Date and time of when this movie acquisition started. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 252, 8)))
 
-CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec'), pyxb.binding.datatypes.int, scope=CTD_ANON_4, documentation='The actual length of the movie acquisition (in seconds), irrespective of the movie duration specified by an automation parameter. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 257, 8), unicode_default='0'))
+CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec'), pyxb.binding.datatypes.int, scope=CTD_ANON_4, documentation='The actual length of the movie acquisition (in seconds), irrespective of the movie duration specified by an automation parameter. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 257, 8), unicode_default='0'))
 
-CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Number'), pyxb.binding.datatypes.int, scope=CTD_ANON_4, documentation="The number of this movie within the set (i.e., look).  This is unique when combined with the 'SetNumber'. ", location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 262, 8), unicode_default='0'))
+CTD_ANON_4._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Number'), pyxb.binding.datatypes.int, scope=CTD_ANON_4, documentation="The number of this movie within the set (i.e., look).  This is unique when combined with the 'SetNumber'. ", location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 262, 8), unicode_default='0'))
 
 def _BuildAutomaton_4 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1607,15 +1575,15 @@ def _BuildAutomaton_4 ():
     counters = set()
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 252, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WhenStarted')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 252, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 257, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DurationInSec')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 257, 8))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Number')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 262, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_4._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Number')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 262, 8))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     transitions = []
@@ -1634,17 +1602,17 @@ CTD_ANON_4._Automaton = _BuildAutomaton_4()
 
 
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the template prep kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 276, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the template prep kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 276, 8)))
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the binding kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 281, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the binding kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 281, 8)))
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the cell pac was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 286, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the cell pac was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 286, 8)))
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 296, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent kit was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 296, 8)))
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent tube 0 was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 301, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent tube 0 was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 301, 8)))
 
-CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent tube 1 was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 306, 8)))
+CTD_ANON_5._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration'), pyxb.binding.datatypes.int, scope=CTD_ANON_5, documentation='Number of days past expiration the reagent tube 1 was (if at all). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 306, 8)))
 
 def _BuildAutomaton_5 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1655,31 +1623,31 @@ def _BuildAutomaton_5 ():
     counters = set()
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 276, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 276, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 281, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BindingKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 281, 8))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 286, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 286, 8))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 291, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPacPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 291, 8))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 296, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 296, 8))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 301, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube0PastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 301, 8))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 306, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_5._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingTube1PastExpiration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 306, 8))
     st_6 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     transitions = []
@@ -1714,17 +1682,17 @@ CTD_ANON_5._Automaton = _BuildAutomaton_5()
 
 
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace'), CTD_ANON_7, scope=CTD_ANON_6, documentation='Tag to indicate that the trace file will be sampled. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 410, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace'), CTD_ANON_7, scope=CTD_ANON_6, documentation='Tag to indicate that the trace file will be sampled. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 410, 8)))
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='Name of primary analysis protocol. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 429, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='Name of primary analysis protocol. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 429, 8)))
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='Name of primary analysis config file. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 434, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='Name of primary analysis config file. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 434, 8)))
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='A sequencing condition tag to be used by primary analysis, e.g., to select basecaller calibration or training parameters. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 439, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition'), pyxb.binding.datatypes.string, scope=CTD_ANON_6, documentation='A sequencing condition tag to be used by primary analysis, e.g., to select basecaller calibration or training parameters. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 439, 8)))
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions'), CTD_ANON_8, scope=CTD_ANON_6, location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 444, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions'), CTD_ANON_8, scope=CTD_ANON_6, location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 444, 8)))
 
-CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions'), CTD_ANON_9, scope=CTD_ANON_6, location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 475, 8)))
+CTD_ANON_6._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions'), CTD_ANON_9, scope=CTD_ANON_6, location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 455, 8)))
 
 def _BuildAutomaton_6 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1733,35 +1701,35 @@ def _BuildAutomaton_6 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 410, 8))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 410, 8))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 434, 8))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 434, 8))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 444, 8))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 444, 8))
     counters.add(cc_2)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 410, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleTrace')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 410, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationName')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 429, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationName')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 429, 8))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 434, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ConfigFileName')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 434, 8))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 439, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingCondition')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 439, 8))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 444, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CCSOptions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 444, 8))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 475, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_6._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'OutputOptions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 455, 8))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     transitions = []
@@ -1802,9 +1770,9 @@ CTD_ANON_6._Automaton = _BuildAutomaton_6()
 
 
 
-CTD_ANON_7._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor'), pyxb.binding.datatypes.float, scope=CTD_ANON_7, documentation='Percentage of traces to sample. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 416, 14)))
+CTD_ANON_7._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor'), pyxb.binding.datatypes.float, scope=CTD_ANON_7, documentation='Percentage of traces to sample. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 416, 14)))
 
-CTD_ANON_7._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_7, documentation='Whether full or sampled pulse file is transferred if requested. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 421, 14)))
+CTD_ANON_7._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_7, documentation='Whether full or sampled pulse file is transferred if requested. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 421, 14)))
 
 def _BuildAutomaton_7 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1815,11 +1783,11 @@ def _BuildAutomaton_7 ():
     counters = set()
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_7._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 416, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_7._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TraceSamplingFactor')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 416, 14))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_7._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 421, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_7._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'FullPulseFile')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 421, 14))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     transitions = []
@@ -1834,15 +1802,7 @@ CTD_ANON_7._Automaton = _BuildAutomaton_7()
 
 
 
-CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode'), _ImportedBinding__pbbase.SupportedCcsModes, scope=CTD_ANON_8, documentation='If set to OnInstrument, turns on CCS as part of Post-Primary Analysis and transfers the resulting ConsensusReadSet off-instrument. Not supported on Sequel I instruments.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 447, 14), unicode_default='None'))
-
-CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MinPasses'), pyxb.binding.datatypes.integer, scope=CTD_ANON_8, documentation='Minimum number of passes (complete subreads)', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 452, 14)))
-
-CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MaxPasses'), pyxb.binding.datatypes.integer, scope=CTD_ANON_8, documentation='Maximum number of passes (complete subreads)', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 457, 14)))
-
-CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MaxInsertSize'), pyxb.binding.datatypes.integer, scope=CTD_ANON_8, documentation='Maximum insert size', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 462, 14)))
-
-CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MinPredictedAccuracy'), pyxb.binding.datatypes.float, scope=CTD_ANON_8, documentation='Minimum predicted accuracy on a scale of 0 to 1.0', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 467, 14)))
+CTD_ANON_8._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode'), _ImportedBinding__pbbase.SupportedCcsModes, scope=CTD_ANON_8, documentation='If set to OnInstrument, turns on CCS as part of Post-Primary Analysis and transfers the resulting ConsensusReadSet off-instrument. Not supported on Sequel I instruments.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 447, 14), unicode_default='None'))
 
 def _BuildAutomaton_8 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1851,94 +1811,30 @@ def _BuildAutomaton_8 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 452, 14))
-    counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 457, 14))
-    counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 462, 14))
-    counters.add(cc_2)
-    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 467, 14))
-    counters.add(cc_3)
     states = []
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 447, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ExecutionMode')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 447, 14))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MinPasses')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 452, 14))
-    st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_1)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_1, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MaxPasses')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 457, 14))
-    st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_2)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_2, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MaxInsertSize')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 462, 14))
-    st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_3)
-    final_update = set()
-    final_update.add(fac.UpdateInstruction(cc_3, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_8._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MinPredictedAccuracy')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 467, 14))
-    st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
-    states.append(st_4)
     transitions = []
-    transitions.append(fac.Transition(st_1, [
-         ]))
-    transitions.append(fac.Transition(st_2, [
-         ]))
-    transitions.append(fac.Transition(st_3, [
-         ]))
-    transitions.append(fac.Transition(st_4, [
-         ]))
     st_0._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_1, [
-        fac.UpdateInstruction(cc_0, True) ]))
-    transitions.append(fac.Transition(st_2, [
-        fac.UpdateInstruction(cc_0, False) ]))
-    transitions.append(fac.Transition(st_3, [
-        fac.UpdateInstruction(cc_0, False) ]))
-    transitions.append(fac.Transition(st_4, [
-        fac.UpdateInstruction(cc_0, False) ]))
-    st_1._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_2, [
-        fac.UpdateInstruction(cc_1, True) ]))
-    transitions.append(fac.Transition(st_3, [
-        fac.UpdateInstruction(cc_1, False) ]))
-    transitions.append(fac.Transition(st_4, [
-        fac.UpdateInstruction(cc_1, False) ]))
-    st_2._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_3, [
-        fac.UpdateInstruction(cc_2, True) ]))
-    transitions.append(fac.Transition(st_4, [
-        fac.UpdateInstruction(cc_2, False) ]))
-    st_3._set_transitionSet(transitions)
-    transitions = []
-    transitions.append(fac.Transition(st_4, [
-        fac.UpdateInstruction(cc_3, True) ]))
-    st_4._set_transitionSet(transitions)
     return fac.Automaton(states, counters, False, containing_state=None)
 CTD_ANON_8._Automaton = _BuildAutomaton_8()
 
 
 
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder'), pyxb.binding.datatypes.string, scope=CTD_ANON_9, documentation="NOTE: not for customers. A sub-folder under the CollectionPath created by Primary Analysis. This is a field that will be updated by the primary analysis pipeline.  The default (as created by homer) should be set to 'Reports_Sms' for now.  Consumers of the data should be aware that they will find collection metadata (and trace files if acquisition is so-configured) at the CollectionPathUri, and all primary analysis results in the sub-folder PrimaryResultsFolder. ", location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 478, 14)))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder'), pyxb.binding.datatypes.string, scope=CTD_ANON_9, documentation="NOTE: not for customers. A sub-folder under the CollectionPath created by Primary Analysis. This is a field that will be updated by the primary analysis pipeline.  The default (as created by homer) should be set to 'Reports_Sms' for now.  Consumers of the data should be aware that they will find collection metadata (and trace files if acquisition is so-configured) at the CollectionPathUri, and all primary analysis results in the sub-folder PrimaryResultsFolder. ", location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 458, 14)))
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri'), pyxb.binding.datatypes.anyURI, scope=CTD_ANON_9, documentation='User-specified location of where the results should be copied after an analysis has been completed. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 483, 14)))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri'), pyxb.binding.datatypes.anyURI, scope=CTD_ANON_9, documentation='User-specified location of where the results should be copied after an analysis has been completed. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 463, 14)))
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles'), CTD_ANON_10, scope=CTD_ANON_9, location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 488, 14)))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles'), CTD_ANON_10, scope=CTD_ANON_9, location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 468, 14)))
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Readout'), STD_ANON_, scope=CTD_ANON_9, documentation='BazIO Readout option; valid values are Bases (default) and Pulses', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 499, 14), unicode_default='Bases'))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Readout'), STD_ANON_, scope=CTD_ANON_9, documentation='BazIO Readout option; valid values are Bases (default) and Pulses', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 479, 14), unicode_default='Bases'))
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity'), STD_ANON_2, scope=CTD_ANON_9, documentation='BazIO MetricsVerbosity option; valid values are Minimal (default), High, and None', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 511, 14), unicode_default='Minimal'))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity'), STD_ANON_2, scope=CTD_ANON_9, documentation='BazIO MetricsVerbosity option; valid values are Minimal (default), High, and None', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 491, 14), unicode_default='Minimal'))
 
-CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TransferResource'), CTD_ANON_11, scope=CTD_ANON_9, documentation='Transfer Resource (optional for now, but will be made required when ICS implements this)', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 523, 14)))
+CTD_ANON_9._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TransferResource'), CTD_ANON_11, scope=CTD_ANON_9, documentation='Transfer Resource (optional for now, but will be made required when ICS implements this)', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 503, 14)))
 
 def _BuildAutomaton_9 ():
     # Remove this helper function from the namespace after it is invoked
@@ -1947,32 +1843,32 @@ def _BuildAutomaton_9 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 523, 14))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 503, 14))
     counters.add(cc_0)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 478, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ResultsFolder')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 458, 14))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 483, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionPathUri')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 463, 14))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 488, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CopyFiles')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 468, 14))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Readout')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 499, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Readout')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 479, 14))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 511, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MetricsVerbosity')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 491, 14))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TransferResource')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 523, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_9._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TransferResource')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 503, 14))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     transitions = []
@@ -2005,7 +1901,7 @@ CTD_ANON_9._Automaton = _BuildAutomaton_9()
 
 
 
-CTD_ANON_10._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy'), PapOutputFile, scope=CTD_ANON_10, documentation='Defines the set of files to be copied to the CollectionPathUri. 1 or more. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 491, 20)))
+CTD_ANON_10._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy'), PapOutputFile, scope=CTD_ANON_10, documentation='Defines the set of files to be copied to the CollectionPathUri. 1 or more. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 471, 20)))
 
 def _BuildAutomaton_10 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2014,12 +1910,12 @@ def _BuildAutomaton_10 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 491, 20))
+    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 471, 20))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_10._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 491, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_10._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionFileCopy')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 471, 20))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -2032,17 +1928,17 @@ CTD_ANON_10._Automaton = _BuildAutomaton_10()
 
 
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Id'), STD_ANON_3, scope=CTD_ANON_11, documentation='Id of the Transfer Resource that is unique to the Scheme Type. A tuple of (TransferScheme, Id) will be globally unique', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 529, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Id'), STD_ANON_3, scope=CTD_ANON_11, documentation='Id of the Transfer Resource that is unique to the Scheme Type. A tuple of (TransferScheme, Id) will be globally unique', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 509, 20)))
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme'), STD_ANON_4, scope=CTD_ANON_11, documentation='Transfer Scheme type (this should be an enum Scheme of rsync, srs or nfs)', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 539, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme'), STD_ANON_4, scope=CTD_ANON_11, documentation='Transfer Scheme type (this should be an enum Scheme of rsync, srs or nfs)', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 519, 20)))
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Name'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Display Name of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 551, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Name'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Display Name of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 531, 20)))
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Description'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Description of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 556, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Description'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Description of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 536, 20)))
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DestPath'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Remote Root Destination Path of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 561, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DestPath'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Remote Root Destination Path of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 541, 20)))
 
-CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RelativePath'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Remote Relative Path of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 566, 20)))
+CTD_ANON_11._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RelativePath'), pyxb.binding.datatypes.string, scope=CTD_ANON_11, documentation='Remote Relative Path of the Transfer Resource', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 546, 20)))
 
 def _BuildAutomaton_11 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2051,32 +1947,32 @@ def _BuildAutomaton_11 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 566, 20))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 546, 20))
     counters.add(cc_0)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Id')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 529, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Id')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 509, 20))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 539, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TransferScheme')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 519, 20))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Name')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 551, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Name')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 531, 20))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Description')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 556, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Description')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 536, 20))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DestPath')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 561, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DestPath')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 541, 20))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'RelativePath')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 566, 20))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_11._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'RelativePath')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 546, 20))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     transitions = []
@@ -2109,11 +2005,11 @@ CTD_ANON_11._Automaton = _BuildAutomaton_11()
 
 
 
-CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), pyxb.binding.datatypes.string, scope=CTD_ANON_12, documentation='The secondary analysis protocol name specified in the sample sheet. Ignored by secondary. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 587, 8)))
+CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationName'), pyxb.binding.datatypes.string, scope=CTD_ANON_12, documentation='The secondary analysis protocol name specified in the sample sheet. Ignored by secondary. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 567, 8)))
 
-CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters'), CTD_ANON_13, scope=CTD_ANON_12, documentation='The parameters for secondary analysis specified in the sample sheet. Ignored by secondary. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 592, 8)))
+CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters'), CTD_ANON_13, scope=CTD_ANON_12, documentation='The parameters for secondary analysis specified in the sample sheet. Ignored by secondary. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 572, 8)))
 
-CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob'), pyxb.binding.datatypes.int, scope=CTD_ANON_12, documentation="The number of cells in this secondary analysis job, identified by the secondary analysis parameter 'JobName'.  Supports automated secondary analysis. ", location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 606, 8)))
+CTD_ANON_12._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob'), pyxb.binding.datatypes.int, scope=CTD_ANON_12, documentation="The number of cells in this secondary analysis job, identified by the secondary analysis parameter 'JobName'.  Supports automated secondary analysis. ", location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 586, 8)))
 
 def _BuildAutomaton_12 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2122,19 +2018,19 @@ def _BuildAutomaton_12 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 592, 8))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 572, 8))
     counters.add(cc_0)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationName')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 587, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationName')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 567, 8))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 592, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameters')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 572, 8))
     st_1 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 606, 8))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_12._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellCountInJob')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 586, 8))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     transitions = []
@@ -2157,7 +2053,7 @@ CTD_ANON_12._Automaton = _BuildAutomaton_12()
 
 
 
-CTD_ANON_13._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter'), _ImportedBinding__pbbase.DataEntityType, scope=CTD_ANON_13, documentation='One or more secondary analysis parameters, such as JobName, Workflow, etc..', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 598, 14)))
+CTD_ANON_13._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter'), _ImportedBinding__pbbase.DataEntityType, scope=CTD_ANON_13, documentation='One or more secondary analysis parameters, such as JobName, Workflow, etc..', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 578, 14)))
 
 def _BuildAutomaton_13 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2166,12 +2062,12 @@ def _BuildAutomaton_13 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 598, 14))
+    cc_0 = fac.CounterCondition(min=0, max=None, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 578, 14))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_13._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 598, 14))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_13._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'AutomationParameter')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 578, 14))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -2191,12 +2087,12 @@ def _BuildAutomaton_14 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     counters.add(cc_0)
     states = []
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_0, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_15._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_15._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     transitions = []
@@ -2209,37 +2105,37 @@ CTD_ANON_15._Automaton = _BuildAutomaton_14()
 
 
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellName'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Identifies which well this sample came from (e.g., coordinate on a plate). ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 322, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellName'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Identifies which well this sample came from (e.g., coordinate on a plate). ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 322, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Concentration'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Sample input concentration. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 327, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Concentration'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Sample input concentration. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 327, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='On plate loading concentration. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 332, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='On plate loading concentration. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 332, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'InsertSize'), pyxb.binding.datatypes.int, scope=CTD_ANON_16, documentation='Length of the sheared template, e.g. 500, 2000, 30000', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 337, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'InsertSize'), pyxb.binding.datatypes.int, scope=CTD_ANON_16, documentation='Length of the sheared template, e.g. 500, 2000, 30000', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 337, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not this is an Iso-Seq experiment (optional; defaults to false).', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 342, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not this is an Iso-Seq experiment (optional; defaults to false).', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 342, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'IsCCS'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not the read type is CCS, true, or CLR, false.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 347, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'IsCCS'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not the read type is CCS, true, or CLR, false.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 347, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Dynamic Loading Target', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 352, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Dynamic Loading Target', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 352, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Dynamic Loading Maximum Loading Time', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 357, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime'), pyxb.binding.datatypes.double, scope=CTD_ANON_16, documentation='Dynamic Loading Maximum Loading Time', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 357, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not complex reuse is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 362, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not complex reuse is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 362, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not hotstart at the stage is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 367, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not hotstart at the stage is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 367, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not size selection is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 372, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled'), pyxb.binding.datatypes.boolean, scope=CTD_ANON_16, documentation='Whether or not size selection is enabled for this well. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 372, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UseCount'), pyxb.binding.datatypes.int, scope=CTD_ANON_16, documentation='Count of usages for this batch of complex. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 377, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UseCount'), pyxb.binding.datatypes.int, scope=CTD_ANON_16, documentation='Count of usages for this batch of complex. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 377, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Indicating what kind (if any) control was used. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 382, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Indicating what kind (if any) control was used. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 382, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Optional pointer to a Sample Setup record in SMRT Link', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 387, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId'), pyxb.binding.datatypes.string, scope=CTD_ANON_16, documentation='Optional pointer to a Sample Setup record in SMRT Link', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 387, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv'), _ImportedBinding__pbbase.InputOutputDataType, scope=CTD_ANON_16, documentation='The name of the biosamples CSV.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 393, 12)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv'), _ImportedBinding__pbbase.InputOutputDataType, scope=CTD_ANON_16, documentation='The name of the biosamples CSV.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 393, 12)))
 
-CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples'), _ImportedBinding__pbsample.CTD_ANON_2, scope=CTD_ANON_16, documentation='List of biological samples.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioSampleInfo.xsd', 126, 2)))
+CTD_ANON_16._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples'), _ImportedBinding__pbsample.CTD_ANON_2, scope=CTD_ANON_16, documentation='List of biological samples.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioSampleInfo.xsd', 126, 2)))
 
 def _BuildAutomaton_15 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2248,97 +2144,97 @@ def _BuildAutomaton_15 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 332, 12))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 332, 12))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 342, 12))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 342, 12))
     counters.add(cc_2)
-    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 347, 12))
+    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 347, 12))
     counters.add(cc_3)
-    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 352, 12))
+    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 352, 12))
     counters.add(cc_4)
-    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 357, 12))
+    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 357, 12))
     counters.add(cc_5)
-    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 382, 12))
+    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 382, 12))
     counters.add(cc_6)
-    cc_7 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 387, 12))
+    cc_7 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 387, 12))
     counters.add(cc_7)
-    cc_8 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 392, 12))
+    cc_8 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 392, 12))
     counters.add(cc_8)
-    cc_9 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 393, 12))
+    cc_9 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 393, 12))
     counters.add(cc_9)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WellName')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 322, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WellName')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 322, 12))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Concentration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 327, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Concentration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 327, 12))
     st_2 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 332, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'OnPlateLoadingConcentration')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 332, 12))
     st_3 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'InsertSize')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 337, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'InsertSize')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 337, 12))
     st_4 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 342, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'IsoSeq')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 342, 12))
     st_5 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'IsCCS')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 347, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'IsCCS')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 347, 12))
     st_6 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 352, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'LoadingTarget')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 352, 12))
     st_7 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_7)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 357, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MaxLoadingTime')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 357, 12))
     st_8 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_8)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 362, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleReuseEnabled')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 362, 12))
     st_9 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_9)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 367, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'StageHotstartEnabled')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 367, 12))
     st_10 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_10)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 372, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SizeSelectionEnabled')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 372, 12))
     st_11 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_11)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'UseCount')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 377, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'UseCount')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 377, 12))
     st_12 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_12)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_6, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 382, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'DNAControlComplex')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 382, 12))
     st_13 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_13)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_7, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 387, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SampleSetupId')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 387, 12))
     st_14 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_14)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_8, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 392, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbsample, 'BioSamples')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 392, 12))
     st_15 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_15)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_9, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 393, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_16._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BioSamplesCsv')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 393, 12))
     st_16 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_16)
     transitions = []
@@ -2467,51 +2363,51 @@ CTD_ANON_16._Automaton = _BuildAutomaton_15()
 
 
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId'), pyxb.binding.datatypes.unsignedInt, scope=CTD_ANON_17, documentation='Id of the SMRT Link MultiJob that will create Jobs to process the Demuxed SubreadSets of this Collection, if it is Barcoded.', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 38, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId'), pyxb.binding.datatypes.unsignedInt, scope=CTD_ANON_17, documentation='Id of the SMRT Link MultiJob that will create Jobs to process the Demuxed SubreadSets of this Collection, if it is Barcoded.', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 38, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef'), CTD_ANON_15, scope=CTD_ANON_17, documentation='Contains information on the CCS dataset of the Collection', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 43, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef'), CTD_ANON_15, scope=CTD_ANON_17, documentation='Contains information on the CCS dataset of the Collection', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 43, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='Instrument control software version. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 65, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='Instrument control software version. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 65, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='Signal processing software version. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 70, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='Signal processing software version. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 70, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automation'), _ImportedBinding__pbbase.AutomationType, scope=CTD_ANON_17, documentation='Defines the collection workflow (e.g., robotic movement, movie acquisition) for a particular cell. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 92, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Automation'), _ImportedBinding__pbbase.AutomationType, scope=CTD_ANON_17, documentation='Defines the collection workflow (e.g., robotic movement, movie acquisition) for a particular cell. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 92, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber'), pyxb.binding.datatypes.int, scope=CTD_ANON_17, documentation='Collection number for this plate well. Sample from one plate well or tube can be distributed to more than one cell. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 97, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber'), pyxb.binding.datatypes.int, scope=CTD_ANON_17, documentation='Collection number for this plate well. Sample from one plate well or tube can be distributed to more than one cell. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 97, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellIndex'), pyxb.binding.datatypes.int, scope=CTD_ANON_17, documentation='The zero-based index of this particular cell within the cell tray.  Likely to be in the range of [0-3]', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 102, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellIndex'), pyxb.binding.datatypes.int, scope=CTD_ANON_17, documentation='The zero-based index of this particular cell within the cell tray.  Likely to be in the range of [0-3]', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 102, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SetNumber'), pyxb.binding.datatypes.unsignedShort, scope=CTD_ANON_17, documentation='Formerly known as the look number.  1 - N.  Defaults to 1. 0 if the look is unknown. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 107, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SetNumber'), pyxb.binding.datatypes.unsignedShort, scope=CTD_ANON_17, documentation='Formerly known as the look number.  1 - N.  Defaults to 1. 0 if the look is unknown. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 107, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellPac'), _ImportedBinding__pbbase.SupplyKitCellPack, scope=CTD_ANON_17, documentation='The SMRT cell packaging supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 112, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'CellPac'), _ImportedBinding__pbbase.SupplyKitCellPack, scope=CTD_ANON_17, documentation='The SMRT cell packaging supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 112, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ControlKit'), _ImportedBinding__pbbase.SupplyKitControl, scope=CTD_ANON_17, documentation='Defines the DNA control used for this experiment. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 117, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ControlKit'), _ImportedBinding__pbbase.SupplyKitControl, scope=CTD_ANON_17, documentation='Defines the DNA control used for this experiment. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 117, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit'), _ImportedBinding__pbbase.SupplyKitTemplate, scope=CTD_ANON_17, documentation='Defines the template (sample) prep kit used for this experiment. Can be used to get back to the primary and adapter used. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 122, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit'), _ImportedBinding__pbbase.SupplyKitTemplate, scope=CTD_ANON_17, documentation='Defines the template (sample) prep kit used for this experiment. Can be used to get back to the primary and adapter used. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 122, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BindingKit'), _ImportedBinding__pbbase.SupplyKitBinding, scope=CTD_ANON_17, documentation='The binding kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 127, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'BindingKit'), _ImportedBinding__pbbase.SupplyKitBinding, scope=CTD_ANON_17, documentation='The binding kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 127, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate'), _ImportedBinding__pbrk.SupplyKitSequencing, scope=CTD_ANON_17, documentation='The sequencing kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 132, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate'), _ImportedBinding__pbrk.SupplyKitSequencing, scope=CTD_ANON_17, documentation='The sequencing kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 132, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate'), _ImportedBinding__pbrk.SupplyKitSequencing, scope=CTD_ANON_17, documentation='The wash kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 137, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate'), _ImportedBinding__pbrk.SupplyKitSequencing, scope=CTD_ANON_17, documentation='The wash kit supply information. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 137, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='The post-primary analysis-specific information. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 147, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig'), pyxb.binding.datatypes.string, scope=CTD_ANON_17, documentation='The post-primary analysis-specific information. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 147, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions'), CTD_ANON_2, nillable=pyxb.binding.datatypes.boolean(1), scope=CTD_ANON_17, documentation='Subcomponents involved in the generation of the data', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 167, 12)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions'), CTD_ANON_2, nillable=pyxb.binding.datatypes.boolean(1), scope=CTD_ANON_17, documentation='Subcomponents involved in the generation of the data', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 167, 12)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), CTD_ANON_3, scope=CTD_ANON_17, documentation='Information related to an instrument run.  A run can contain multiple chips, wells, and movies. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 202, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'RunDetails'), CTD_ANON_3, scope=CTD_ANON_17, documentation='Information related to an instrument run.  A run can contain multiple chips, wells, and movies. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 202, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Movie'), CTD_ANON_4, scope=CTD_ANON_17, documentation='A movie corresponds to one acquisition for a chip, one set (look) and one strobe. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 246, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Movie'), CTD_ANON_4, scope=CTD_ANON_17, documentation='A movie corresponds to one acquisition for a chip, one set (look) and one strobe. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 246, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), CTD_ANON_5, scope=CTD_ANON_17, documentation='Container for the expired consumable data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 270, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData'), CTD_ANON_5, scope=CTD_ANON_17, documentation='Container for the expired consumable data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 270, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), CTD_ANON_16, scope=CTD_ANON_17, documentation='Container for the sample related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 314, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'WellSample'), CTD_ANON_16, scope=CTD_ANON_17, documentation='Container for the sample related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 314, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Primary'), CTD_ANON_6, scope=CTD_ANON_17, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 404, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Primary'), CTD_ANON_6, scope=CTD_ANON_17, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 404, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), CTD_ANON_12, scope=CTD_ANON_17, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 581, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'Secondary'), CTD_ANON_12, scope=CTD_ANON_17, documentation='Container for the primary analysis related data. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 561, 2)))
 
-CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), _ImportedBinding__pbbase.UserDefinedFieldsType, scope=CTD_ANON_17, documentation='A set of key-value pairs specified by a user via the run input mechanism. Note that uniqueness of keys is not enforced here and so may contain duplicate keys. ', location=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 615, 2)))
+CTD_ANON_17._AddElement(pyxb.binding.basis.element(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields'), _ImportedBinding__pbbase.UserDefinedFieldsType, scope=CTD_ANON_17, documentation='A set of key-value pairs specified by a user via the run input mechanism. Note that uniqueness of keys is not enforced here and so may contain duplicate keys. ', location=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 595, 2)))
 
 def _BuildAutomaton_16 ():
     # Remove this helper function from the namespace after it is invoked
@@ -2520,160 +2416,160 @@ def _BuildAutomaton_16 ():
     import pyxb.utils.fac as fac
 
     counters = set()
-    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    cc_0 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     counters.add(cc_0)
-    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 38, 12))
+    cc_1 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 38, 12))
     counters.add(cc_1)
-    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 43, 12))
+    cc_2 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 43, 12))
     counters.add(cc_2)
-    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 65, 12))
+    cc_3 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 65, 12))
     counters.add(cc_3)
-    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 70, 12))
+    cc_4 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 70, 12))
     counters.add(cc_4)
-    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 75, 12))
+    cc_5 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 75, 12))
     counters.add(cc_5)
-    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 80, 12))
+    cc_6 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 80, 12))
     counters.add(cc_6)
-    cc_7 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 97, 12))
+    cc_7 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 97, 12))
     counters.add(cc_7)
-    cc_8 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 102, 12))
+    cc_8 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 102, 12))
     counters.add(cc_8)
-    cc_9 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 107, 12))
+    cc_9 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 107, 12))
     counters.add(cc_9)
-    cc_10 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 112, 12))
+    cc_10 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 112, 12))
     counters.add(cc_10)
-    cc_11 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 117, 12))
+    cc_11 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 117, 12))
     counters.add(cc_11)
-    cc_12 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 122, 12))
+    cc_12 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 122, 12))
     counters.add(cc_12)
-    cc_13 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 127, 12))
+    cc_13 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 127, 12))
     counters.add(cc_13)
-    cc_14 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 132, 12))
+    cc_14 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 132, 12))
     counters.add(cc_14)
-    cc_15 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 137, 12))
+    cc_15 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 137, 12))
     counters.add(cc_15)
-    cc_16 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 142, 12))
+    cc_16 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 142, 12))
     counters.add(cc_16)
-    cc_17 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 147, 12))
+    cc_17 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 147, 12))
     counters.add(cc_17)
-    cc_18 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 152, 12))
+    cc_18 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 152, 12))
     counters.add(cc_18)
-    cc_19 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 157, 12))
+    cc_19 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 157, 12))
     counters.add(cc_19)
-    cc_20 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 162, 12))
+    cc_20 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 162, 12))
     counters.add(cc_20)
-    cc_21 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 167, 12))
+    cc_21 = fac.CounterCondition(min=0, max=1, metadata=pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 167, 12))
     counters.add(cc_21)
     states = []
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioBaseDataModel.xsd', 98, 6))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(_Namespace_pbbase, 'Extensions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioBaseDataModel.xsd', 98, 6))
     st_0 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_0)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 38, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'MultiJobId')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 38, 12))
     st_1 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_1)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 43, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ConsensusReadSetRef')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 43, 12))
     st_2 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_2)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 65, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'InstCtrlVer')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 65, 12))
     st_3 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_3)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 70, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SigProcVer')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 70, 12))
     st_4 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_4)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'RunDetails')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 75, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'RunDetails')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 75, 12))
     st_5 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_5)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Movie')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 80, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Movie')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 80, 12))
     st_6 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_6)
     final_update = None
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WellSample')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 85, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WellSample')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 85, 12))
     st_7 = fac.State(symbol, is_initial=True, final_update=final_update, is_unordered_catenation=False)
     states.append(st_7)
     final_update = set()
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automation')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 92, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Automation')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 92, 12))
     st_8 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_8)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_7, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 97, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CollectionNumber')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 97, 12))
     st_9 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_9)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_8, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellIndex')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 102, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellIndex')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 102, 12))
     st_10 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_10)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_9, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SetNumber')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 107, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SetNumber')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 107, 12))
     st_11 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_11)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_10, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPac')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 112, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'CellPac')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 112, 12))
     st_12 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_12)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_11, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ControlKit')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 117, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ControlKit')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 117, 12))
     st_13 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_13)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_12, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 122, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'TemplatePrepKit')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 122, 12))
     st_14 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_14)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_13, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BindingKit')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 127, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'BindingKit')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 127, 12))
     st_15 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_15)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_14, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 132, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'SequencingKitPlate')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 132, 12))
     st_16 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_16)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_15, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 137, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'WashKitPlate')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 137, 12))
     st_17 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_17)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_16, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Primary')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 142, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Primary')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 142, 12))
     st_18 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_18)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_17, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 147, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'PPAConfig')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 147, 12))
     st_19 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_19)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_18, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Secondary')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 152, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'Secondary')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 152, 12))
     st_20 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_20)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_19, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 157, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'UserDefinedFields')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 157, 12))
     st_21 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_21)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_20, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 162, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ExpirationData')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 162, 12))
     st_22 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_22)
     final_update = set()
     final_update.add(fac.UpdateInstruction(cc_21, False))
-    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions')), pyxb.utils.utility.Location('/tmp/tmpez6980_gxsds/PacBioCollectionMetadata.xsd', 167, 12))
+    symbol = pyxb.binding.content.ElementUse(CTD_ANON_17._UseForTag(pyxb.namespace.ExpandedName(Namespace, 'ComponentVersions')), pyxb.utils.utility.Location('/tmp/tmpr3ccwhurxsds/PacBioCollectionMetadata.xsd', 167, 12))
     st_23 = fac.State(symbol, is_initial=False, final_update=final_update, is_unordered_catenation=False)
     states.append(st_23)
     transitions = []
