@@ -1646,7 +1646,9 @@ class ExternalResource(RecordWrapper):
         if current:
             return FileIndices(current[0])
         else:
-            return FileIndices()
+            idx = FileIndices()
+            self.append(idx)
+            return idx
 
     @indices.setter
     def indices(self, indexList):
