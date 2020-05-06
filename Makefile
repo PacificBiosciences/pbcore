@@ -37,7 +37,7 @@ doctest:
 	cd doc && make doctest
 
 unit-test:
-	python setup.py test
+	pytest
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
 test: doctest unit-test
