@@ -1044,3 +1044,17 @@ class TestDataSet:
         fn = upstreamData.getEmptyBam2()
         ds = AlignmentSet(fn)
         assert len(ds) == 0
+
+    @pytest.mark.constools
+    def test_generate_indices(self):
+        import pbtestdata
+        tmp_bam = tempfile.NamedTemporaryFile(suffix=".subreads.bam").name
+        tmp_pbi = tmp_bam + ".pbi"
+        tmp_bai = tmp_bam + ".bai"
+        shutil.copyfile(pbtestdata.get_file("subreads-bam"), tmp_bam)
+        ds = openDataFile(tmp_bam, strict=False, generateIndices=True)
+        assert ds.externalResources[0].pbi == tmp_pbi
+        assert ds.externalResources[0].bai == tmp_bai
+        assert os.path.isfile(tmp_pbi)
+        assert os.path.isfile(tmp_bai)
+        assert len(ds) == 117

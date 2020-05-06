@@ -544,16 +544,15 @@ class DataSet:
 
         # update counts
         if files:
+            # generate indices if requested and needed
+            if _induceIndices:
+                self.induceIndices()
             if not self.totalLength or not self.numRecords:
                 self.updateCounts()
             elif self.totalLength <= 0 or self.numRecords <= 0:
                 self.updateCounts()
             elif len(files) > 1:
                 self.updateCounts()
-
-        # generate indices if requested and needed
-        if _induceIndices:
-            self.induceIndices()
 
     def induceIndices(self, force=False):
         """Generate indices for ExternalResources.
