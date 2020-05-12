@@ -33,19 +33,6 @@ class PbIndexBase:
                 "This PBI file is incompatible with this API "
                 "(only PacBio PBI files version >= 3.0.1 are supported)")
 
-
-class PacBioBamIndex(PbIndexBase):
-    """
-    The PacBio BAM index is a companion file allowing modest
-    *semantic* queries on PacBio BAM files without iterating over the
-    entire file.  By convention, the PacBio BAM index has extension
-    "bam.pbi".
-    """
-
-    @property
-    def isChunk(self):
-        return self._chunk_start is not None and self._chunk_size is not None
-
     @property
     def hasMappingInfo(self):
         # N.B.: Or'ing in (nReads==0) is HACKish fix for issue with
@@ -65,6 +52,19 @@ class PacBioBamIndex(PbIndexBase):
     @property
     def hasBarcodeInfo(self):
         return (self.pbiFlags & PBI_FLAGS_BARCODE)
+
+
+class PacBioBamIndex(PbIndexBase):
+    """
+    The PacBio BAM index is a companion file allowing modest
+    *semantic* queries on PacBio BAM files without iterating over the
+    entire file.  By convention, the PacBio BAM index has extension
+    "bam.pbi".
+    """
+
+    @property
+    def isChunk(self):
+        return self._chunk_start is not None and self._chunk_size is not None
 
     def _loadMainIndex(self, f, to_virtual_offset=None, zmw_only=False):
         # Main index holds basic, mapping, and barcode info
@@ -359,3 +359,26 @@ class StreamingBamIndex(PacBioBamIndex):
     @property
     def nchunks(self):
         return len(self._chunks)
+
+
+
+class PbiHeaderOnly(PbIndexBase):
+    def __init__(self, pbiFilename):
+        pbiFilename = abspath(expanduser(pbiFilename))
+        with BgzfReader(pbiFilename, mode='rb') as f:
+            self._loadHeader(f)
+
+    def get_index_size(self):
+        nbytes = 29
+        if self.hasBarcodeInfo:
+            nbytes += 5
+        if self.hasMappingInfo:
+            nbytes += 38
+        elif self.hasCoordinateSortedInfo:
+            # see note above, this is buggy
+            nbytes += 12
+        return nbytes * self.nReads
+
+
+def get_index_size_bytes(pbi_file):
+    return PbiHeaderOnly(pbi_file).get_index_size()
