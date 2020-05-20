@@ -16,7 +16,7 @@ test_deps = [
 
 setup(
     name='pbcore',
-    version='2.1.0',
+    version='2.1.3',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',
@@ -26,15 +26,12 @@ setup(
     exclude_package_data={'pbcore.data': ['Makefile']},
     zip_safe=False,
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
-    setup_requires=[
-        'pytest-runner',
-    ],
     install_requires=[
         'biopython >= 1.74',
         'numpy >= 1.17',
         'pysam >= 0.15.1',
     ],
-    test_requires=test_deps,
+    tests_require=test_deps,
     extras_require={'test': test_deps},
     python_requires='>=3.7',
 )
