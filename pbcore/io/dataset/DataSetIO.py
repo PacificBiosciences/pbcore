@@ -2510,6 +2510,14 @@ class ReadSet(DataSet):
         cached in the pbi.
 
         """
+        no_filters = not self._filters or self.noFiltering
+        # shortcut for single BAM with no filters
+        if len(self.externalResources) == 1 and no_filters:
+            index = self.resourceReaders()[0].pbi._tbl
+            self._indexMap = np.fromiter(((0, i) for i in range(len(index))),
+                                         dtype=[('reader', 'uint64'),
+                                                ('index', 'uint64')])
+            return index
         recArrays = []
         _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
@@ -2517,7 +2525,7 @@ class ReadSet(DataSet):
 
             self._fixQIds(indices, rr)
 
-            if not self._filters or self.noFiltering:
+            if no_filters:
                 recArrays.append(indices._tbl)
                 _indexMap.extend([(rrNum, i) for i in
                                   range(len(indices._tbl))])
