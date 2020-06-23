@@ -10,13 +10,13 @@ test_deps = [
     'pytest',
     'pytest-cov',
     'pytest-xdist',
-    'pyxb == 1.2.6',
     'sphinx',
+    'xmlschema',
 ]
 
 setup(
     name='pbcore',
-    version='2.1.4',
+    version='2.2.0',
     author='Pacific Biosciences',
     author_email='devnet@pacificbiosciences.com',
     description='A Python library for reading and writing PacBio® data files',

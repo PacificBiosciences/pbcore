@@ -6,10 +6,12 @@
 from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
+import os.path as op
 import os
 import re
 
 XMLNS = "http://pacificbiosciences.com/PacBioDataModel.xsd"
+XSD_FILE = os.environ.get("PB_DATASET_XSD", None)
 
 log = logging.getLogger(__name__)
 
@@ -65,36 +67,34 @@ def validateMiniXsv(xml_fn, xsd_fn):
         log.debug('minixsv not found, validation disabled')
 
 
+def validateXmlschema(xml_src, xsd_file):
+    try:
+        import xmlschema
+        schema = xmlschema.XMLSchema(xsd_file)
+        schema.validate(xml_src)
+    except ImportError:
+        log.debug("xmlschema not found, validation disabled")
+
+
 def validateXml(xmlroot, skipResources=False, relTo='.'):
 
     if not skipResources:
         validateResources(xmlroot, relTo)
 
-    # Conceal the first characters of UniqueIds if they are legal numbers that
-    # would for some odd reason be considered invalid. Let all illegal
-    # characters fall through to the validator.
-    try:
-        from pbcore.io.dataset.pyxb import DataSetXsd
-        log.debug('Validating with PyXb')
-        fixedString = re.sub('UniqueId="[0-9]', 'UniqueId="f',
-                             ET.tostring(xmlroot))
-        fixedString = re.sub('Barcode="[0-9]', 'Barcode="f',
-                             fixedString)
-        fixedString = re.sub('Pointer>[0-9]', 'Pointer>f',
-                             fixedString)
-        DataSetXsd.CreateFromDocument(fixedString)
-    except ImportError:
-        log.info('PyXb not found, validation disabled')
 
-
-def validateFile(xmlfn, skipResources=False):
+def validateFile(xmlfn, skipResources=False, xsd_file=XSD_FILE):
     if ':' in xmlfn:
         xmlfn = urlparse(xmlfn).path.strip()
     with open(xmlfn, 'r') as xmlfile:
         root = ET.parse(xmlfile).getroot()
-        return validateXml(root, skipResources=skipResources,
-                           relTo=os.path.dirname(xmlfn))
+        validateXml(root,
+                    skipResources=skipResources,
+                    relTo=os.path.dirname(xmlfn))
+        if xsd_file is not None:
+            validateXmlschema(xmlString, xsd_file)
 
 
-def validateString(xmlString, skipResources=False, relTo='.'):
+def validateString(xmlString, skipResources=False, relTo='.', xsd_file=XSD_FILE):
     validateXml(ET.fromstring(xmlString), skipResources, relTo)
+    if xsd_file is not None:
+        validateXmlschema(xmlString, xsd_file)

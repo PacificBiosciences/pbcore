@@ -15,7 +15,7 @@ install:
 	@pip install ./
 
 pylint:
-	pylint --errors-only --ignore=pyxb --enable=C0411,W0702,W0401,W0611 pbcore/
+	pylint --errors-only --enable=C0411,W0702,W0401,W0611 pbcore/
 
 autopep8:
 	find pbcore -name "*.py" | xargs autopep8 -i
@@ -68,10 +68,6 @@ publish-to-pypi:
 	@echo "I'm not going to do this for you, but you can do it by:"
 	@echo "    % python setup.py sdist upload -r pypi"
 
-
-xsd-codegen:
-	rm -f pbcore/io/dataset/pyxb/DataSetXsd.py
-	./bin/updateXSDs.py ../xsd-datamodels/PacBioDatasets.xsd pbcore/io/dataset/pyxb/
 
 validate-metadata:
 	xmllint --schema ../xsd-datamodels/PacBioCollectionMetadata.xsd pbcore/data/datasets/CollectionMetadata.xml
