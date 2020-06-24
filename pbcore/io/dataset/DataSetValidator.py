@@ -91,7 +91,7 @@ def validateFile(xmlfn, skipResources=False, xsd_file=XSD_FILE):
                     skipResources=skipResources,
                     relTo=os.path.dirname(xmlfn))
         if xsd_file is not None:
-            validateXmlschema(xmlString, xsd_file)
+            validateXmlschema(xmlfn, xsd_file)
 
 
 def validateString(xmlString, skipResources=False, relTo='.', xsd_file=XSD_FILE):
