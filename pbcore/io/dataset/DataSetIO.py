@@ -387,7 +387,8 @@ class DataSet:
                  skipCounts=False,
                  skipMissing=False,
                  trustCounts=False,
-                 generateIndices=False):
+                 generateIndices=False,
+                 **kwargs):
         """DataSet constructor
 
         Initialize representations of the ExternalResources, MetaData,
