@@ -381,7 +381,13 @@ class DataSet:
 
     datasetType = DataSetMetaTypes.ALL
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False):
         """DataSet constructor
 
         Initialize representations of the ExternalResources, MetaData,
@@ -445,11 +451,10 @@ class DataSet:
 
         """
         files = [str(fn) for fn in files]
-        self._strict = kwargs.get('strict', False)
-        skipMissing = kwargs.get('skipMissing', False)
-        self._skipCounts = kwargs.get('skipCounts', False)
-        self._trustCounts = kwargs.get('trustCounts', False)
-        _induceIndices = kwargs.get('generateIndices', False)
+        self._strict = strict
+        self._skipCounts = skipCounts
+        self._trustCounts = trustCounts
+        _induceIndices = generateIndices
 
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
@@ -2727,7 +2732,14 @@ class AlignmentSet(ReadSet):
 
     datasetType = DataSetMetaTypes.ALIGNMENT
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False,
+                 referenceFastaFname=None):
         """ An AlignmentSet
 
         Args:
@@ -2738,10 +2750,14 @@ class AlignmentSet(ReadSet):
             :skipCounts=False: see base class
             :trustCounts=False: see base class
         """
-        super().__init__(*files, **kwargs)
-        fname = kwargs.get('referenceFastaFname', None)
-        if fname:
-            self.addReference(fname)
+        super().__init__(*files,
+                         strict=strict,
+                         skipCounts=skipCounts,
+                         skipMissing=skipMissing,
+                         trustCounts=trustCounts,
+                         generateIndices=generateIndices)
+        if referenceFastaFname:
+            self.addReference(referenceFastaFname)
         self.__referenceIdMap = None
 
     @property
