@@ -381,7 +381,14 @@ class DataSet:
 
     datasetType = DataSetMetaTypes.ALL
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False,
+                 **kwargs):
         """DataSet constructor
 
         Initialize representations of the ExternalResources, MetaData,
@@ -391,6 +398,8 @@ class DataSet:
             :files: one or more filenames or uris to read
             :strict=False: strictly require all index files
             :skipCounts=False: skip updating counts for faster opening
+            :trustCounts=False: skip updating counts but rely on counts in
+                                input dataset XMLs
 
         Doctest:
             >>> import os, tempfile
@@ -443,10 +452,10 @@ class DataSet:
 
         """
         files = [str(fn) for fn in files]
-        self._strict = kwargs.get('strict', False)
-        skipMissing = kwargs.get('skipMissing', False)
-        self._skipCounts = kwargs.get('skipCounts', False)
-        _induceIndices = kwargs.get('generateIndices', False)
+        self._strict = strict
+        self._skipCounts = skipCounts
+        self._trustCounts = trustCounts
+        _induceIndices = generateIndices
 
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
@@ -2639,7 +2648,14 @@ class ReadSet(DataSet):
         self._populateMetaTypes()
 
     def updateCounts(self):
-        if self._skipCounts:
+        if self._trustCounts and len(self.subdatasets) > 0:
+            log.info("Using record counts from subdatasets")
+            numRecords = sum(ds.numRecords for ds in self.subdatasets)
+            totalLength = sum(ds.totalLength for ds in self.subdatasets)
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+            return
+        elif self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
             self.metadata.numRecords = -1
@@ -2717,7 +2733,14 @@ class AlignmentSet(ReadSet):
 
     datasetType = DataSetMetaTypes.ALIGNMENT
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False,
+                 referenceFastaFname=None):
         """ An AlignmentSet
 
         Args:
@@ -2726,11 +2749,16 @@ class AlignmentSet(ReadSet):
                                        alignment.
             :strict=False: see base class
             :skipCounts=False: see base class
+            :trustCounts=False: see base class
         """
-        super().__init__(*files, **kwargs)
-        fname = kwargs.get('referenceFastaFname', None)
-        if fname:
-            self.addReference(fname)
+        super().__init__(*files,
+                         strict=strict,
+                         skipCounts=skipCounts,
+                         skipMissing=skipMissing,
+                         trustCounts=trustCounts,
+                         generateIndices=generateIndices)
+        if referenceFastaFname:
+            self.addReference(referenceFastaFname)
         self.__referenceIdMap = None
 
     @property

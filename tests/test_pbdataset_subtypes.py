@@ -1058,3 +1058,14 @@ class TestDataSet:
         assert os.path.isfile(tmp_pbi)
         assert os.path.isfile(tmp_bai)
         assert len(ds) == 117
+
+    def test_trust_counts(self):
+        import pbtestdata
+        f1 = pbtestdata.get_file("aligned-xml")
+        f2 = pbtestdata.get_file("aligned-ds-2")
+        ds = openDataFile(f1, f2, trustCounts=True)
+        assert ds.numRecords == 133
+        assert len(ds) == 133
+        assert ds.totalLength == 274217
+        assert ds._index is None
+        assert len(ds._openReaders) == 0
