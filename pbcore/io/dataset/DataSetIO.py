@@ -43,8 +43,9 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (_infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     consolidateXml,
-                                     getTimeStampedName, getCreatedAt)
+                                     consolidateXml, divideKeys, splitKeys,
+                                     getTimeStampedName, getCreatedAt,
+                                     split_keys_around_read_groups)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
@@ -260,7 +261,11 @@ def _uniqueRecords(recArray):
 
 def _fieldsView(recArray, fields):
     vdtype = np.dtype({fi: recArray.dtype.fields[fi] for fi in fields})
-    return np.ndarray(recArray.shape, vdtype, recArray, 0, recArray.strides)
+    return np.recarray(shape=recArray.shape,
+                      dtype=vdtype,
+                      buf=recArray,
+                      offset=0,
+                      strides=recArray.strides)
 
 
 def _renameField(recArray, current, new):
@@ -282,41 +287,6 @@ def _ranges_in_list(alist):
     unique, indices, counts = np.unique(np.array(alist), return_index=True,
                                         return_counts=True)
     return {u: (i, i + c) for u, i, c in zip(unique, indices, counts)}
-
-
-def divideKeys(keys, chunks):
-    """Returns all of the keys in a list of lists, corresponding to evenly
-    sized chunks of the original keys"""
-    if chunks < 1:
-        return []
-    if chunks > len(keys):
-        chunks = len(keys)
-    chunksize = len(keys)//chunks
-    key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
-                  range(chunks-1)]
-    key_chunks.append(keys[((chunks - 1) * chunksize):])
-    return key_chunks
-
-
-def splitKeys(keys, chunks):
-    """Returns key pairs for each chunk defining the bounds of each chunk"""
-    if chunks < 1:
-        return []
-    if chunks > len(keys):
-        chunks = len(keys)
-    chunksize = len(keys)//chunks
-    chunksizes = [chunksize] * chunks
-    i = 0
-    while sum(chunksizes) < len(keys):
-        chunksizes[i] += 1
-        i += 1
-        i %= chunks
-    key_chunks = []
-    start = 0
-    for cs in chunksizes:
-        key_chunks.append((keys[start], keys[start + cs - 1]))
-        start += cs
-    return key_chunks
 
 
 class MissingFileError(InvalidDataSetIOError):
@@ -928,7 +898,8 @@ class DataSet:
 
     def split(self, chunks=0, ignoreSubDatasets=True, contigs=False,
               maxChunks=0, breakContigs=False, targetSize=5000, zmws=False,
-              barcodes=False, byRecords=False, updateCounts=True):
+              barcodes=False, byRecords=False, updateCounts=True,
+              breakReadGroups=True):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -1032,7 +1003,10 @@ class DataSet:
                                  int(round(np.true_divide(
                                      len(set(self.index.holeNumber)),
                                      targetSize))))
-            return _yield_chunks(self._split_zmws(chunks, targetSize=targetSize))
+            return _yield_chunks(self._split_zmws(
+                chunks,
+                targetSize=targetSize,
+                breakReadGroups=breakReadGroups))
         elif barcodes:
             if maxChunks and not chunks:
                 chunks = maxChunks
@@ -2340,7 +2314,10 @@ class ReadSet(DataSet):
             result.newUuid()
             yield result
 
-    def _split_zmws(self, chunks, targetSize=None):
+    def _split_zmws(self,
+                    chunks,
+                    targetSize=None,
+                    breakReadGroups=True):
         """The combination of <movie>_<holenumber> is assumed to refer to a
         unique ZMW"""
 
@@ -2351,6 +2328,7 @@ class ReadSet(DataSet):
         rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
 
         active_holenumbers = self.index
+        qIds = np.unique(self.index.qId)
 
         # lower limit on the  number of chunks
         n_chunks = min(len(active_holenumbers), chunks)
@@ -2360,6 +2338,8 @@ class ReadSet(DataSet):
                 chunks > 1):
             # we want at least two if we can swing it
             desired = max(2, len(active_holenumbers)//targetSize)
+            if not breakReadGroups and len(qIds) > 0:
+                desired = max(desired, len(qIds))
             n_chunks = min(n_chunks, desired)
 
         if n_chunks != chunks:
@@ -2370,7 +2350,10 @@ class ReadSet(DataSet):
         view = _fieldsView(self.index, ['qId', 'holeNumber'])
         keys = np.unique(view)
         # Find the beginning and end keys of each chunk
-        ranges = splitKeys(keys, n_chunks)
+        if not breakReadGroups:
+            ranges = split_keys_around_read_groups(keys, n_chunks)
+        else:
+            ranges = splitKeys(keys, n_chunks)
 
         # The above ranges can include hidden, unrepresented movienames that
         # are sandwiched between those identified by the range bounds. In
