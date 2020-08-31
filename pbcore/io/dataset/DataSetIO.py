@@ -2328,6 +2328,7 @@ class ReadSet(DataSet):
         rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
 
         active_holenumbers = self.index
+        qIds = np.unique(self.index.qId)
 
         # lower limit on the  number of chunks
         n_chunks = min(len(active_holenumbers), chunks)
@@ -2337,6 +2338,8 @@ class ReadSet(DataSet):
                 chunks > 1):
             # we want at least two if we can swing it
             desired = max(2, len(active_holenumbers)//targetSize)
+            if not breakReadGroups and len(qIds) > 0:
+                desired = max(desired, len(qIds))
             n_chunks = min(n_chunks, desired)
 
         if n_chunks != chunks:
@@ -2348,7 +2351,7 @@ class ReadSet(DataSet):
         keys = np.unique(view)
         # Find the beginning and end keys of each chunk
         if not breakReadGroups:
-            ranges = split_keys_around_read_groups(keys, chunks)
+            ranges = split_keys_around_read_groups(keys, n_chunks)
         else:
             ranges = splitKeys(keys, n_chunks)
 

@@ -778,9 +778,14 @@ class TestDataSetSplit:
         assert len(chunks[1]) == 117
         assert np.all(chunks[0].index.qId == -2081539485)
         assert np.all(chunks[1].index.qId == -1197849594)
+        chunks = list(ds.split(chunks=4, targetSize=1, zmws=True, breakReadGroups=False))
+        assert [len(c) for c in chunks] == [8, 12, 54, 63]
+        assert np.all(chunks[0].index.qId == -2081539485)
+        assert np.all(chunks[1].index.qId == -2081539485)
+        assert np.all(chunks[2].index.qId == -1197849594)
+        assert np.all(chunks[3].index.qId == -1197849594)
         # control: single-movie dataset
         ds = SubreadSet(ds1)
-        for x in range(1, 6):
-            for y in [False, True]:
-                chunks = list(ds.split(chunks=x, zmws=True, breakReadGroups=y))
-                assert len(chunks) == x
+        chunks1 = list(ds.split(chunks=4, zmws=True, breakReadGroups=False))
+        chunks2 = list(ds.split(chunks=4, zmws=True, breakReadGroups=True))
+        assert [len(x) for x in chunks1] == [len(y) for y in chunks2]
