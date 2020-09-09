@@ -1,11 +1,17 @@
 import logging
 import tempfile
 
+import pytest
+import numpy as np
+
 from pbcore.io.dataset.DataSetMetaTypes import dsIdToSuffix
-from pbcore.io import (DataSetMetaTypes, divideKeys,
+from pbcore.io import (DataSetMetaTypes, divideKeys, splitKeys,
                        SubreadSet, getDataSetUuid, getDataSetMetaType)
+from pbcore.io.dataset.utils import split_keys_around_read_groups
 
 import pbcore.data as upstreamdata
+
+import pbtestdata
 
 log = logging.getLogger(__name__)
 
@@ -111,3 +117,20 @@ class TestDataSetUtils:
         res = keysToRanges(res)
         assert res == [[0, 0], [1, 1], [2, 2], [2, 2], [3, 3],
                        [5, 5], [8, 8], [50, 50], [50, 50]]
+
+    def test_splitKeys(self):
+        keys = [(0, 1234), (0, 5678), (0, 9876), (1, 2468)]
+        assert splitKeys(keys, 2) == [((0, 1234), (0, 5678)),
+                                      ((0, 9876), (1, 2468))]
+
+    def test_split_keys_around_read_groups(self):
+        def to_py(a):
+            return [(tuple(b), tuple(c)) for b, c in a]
+        keys = np.rec.fromrecords([(0, 1234), (0, 5678), (0, 9876), (1, 2468)],
+                                  names=["qId", "holeNumber"])
+        chunks = to_py(split_keys_around_read_groups(keys, 2))
+        assert chunks == [((0, 1234), (0, 9876)), ((1, 2468), (1, 2468))]
+        chunks = to_py(split_keys_around_read_groups(keys, 3))
+        assert chunks == [((0, 1234), (0, 9876)), ((1, 2468), (1, 2468))]
+        with pytest.raises(RuntimeError):
+            chunks = split_keys_around_read_groups(keys, 1)

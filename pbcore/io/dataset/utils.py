@@ -11,6 +11,8 @@ import tempfile
 import logging
 import shutil
 import datetime
+
+import numpy as np
 import pysam
 
 log = logging.getLogger(__name__)
@@ -186,3 +188,60 @@ def hash_combine_zmw(zmw):
 
 def hash_combine_zmws(zmws):
     return [hash_combine_zmw(zmw) for zmw in zmws]
+
+
+def divideKeys(keys, chunks):
+    """Returns all of the keys in a list of lists, corresponding to evenly
+    sized chunks of the original keys"""
+    if chunks < 1:
+        return []
+    if chunks > len(keys):
+        chunks = len(keys)
+    chunksize = len(keys)//chunks
+    key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
+                  range(chunks-1)]
+    key_chunks.append(keys[((chunks - 1) * chunksize):])
+    return key_chunks
+
+
+def splitKeys(keys, chunks):
+    """
+    Returns key pairs for each chunk defining the bounds of each chunk.
+    """
+    if chunks < 1:
+        return []
+    if chunks > len(keys):
+        chunks = len(keys)
+    chunksize = len(keys)//chunks
+    chunksizes = [chunksize] * chunks
+    i = 0
+    while sum(chunksizes) < len(keys):
+        chunksizes[i] += 1
+        i += 1
+        i %= chunks
+    key_chunks = []
+    start = 0
+    for cs in chunksizes:
+        key_chunks.append((keys[start], keys[start + cs - 1]))
+        start += cs
+    return key_chunks
+
+
+def split_keys_around_read_groups(keys, chunks):
+    """
+    Wrapper for splitKeys that avoids grouping multiple movies in the same
+    chunk if possible.
+    """
+    qids = np.unique(keys.qId)
+    sub_chunks = []
+    if len(qids) > 1:
+        n_sub_chunks = chunks // len(qids)
+        if n_sub_chunks == 0:
+            raise RuntimeError("{c} chunks requested but there are {g} read groups present in the dataset".format(c=chunks, g=len(qids)))
+        for qId in qids:
+            sub_keys = keys[keys.qId == qId]
+            sub_chunks.extend(splitKeys(sub_keys, n_sub_chunks))
+        assert len(sub_chunks) <= chunks
+        return sub_chunks
+    else:
+        return splitKeys(keys, chunks)
