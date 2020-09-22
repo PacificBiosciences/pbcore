@@ -11,6 +11,8 @@ from pbcore.io import (DataSet, SubreadSet, ReferenceSet, AlignmentSet,
 import pbcore.data.datasets as data
 import pbcore.data as upstreamdata
 
+import pbtestdata
+
 log = logging.getLogger(__name__)
 
 
@@ -760,3 +762,30 @@ class TestDataSetSplit:
         assert len(ds) == 30
         ds_rgs = ds._split_read_groups()
         assert sorted([len(ds_rg) for ds_rg in ds_rgs]) == [9, 10, 11]
+
+    def test_split_zmws_around_read_groups(self):
+        ds1 = pbtestdata.get_file("subreads-xml")
+        ds2 = pbtestdata.get_file("subreads-sequel")
+        ds = SubreadSet(ds1, ds2)
+        assert len(ds) == 137
+        # this is still the default behavior
+        chunks = list(ds.split(chunks=2, zmws=True, breakReadGroups=True))
+        assert len(chunks[0]) == 72
+        assert len(chunks[1]) == 65
+        # don't break up movies
+        chunks = list(ds.split(chunks=2, zmws=True, breakReadGroups=False))
+        assert len(chunks[0]) == 20
+        assert len(chunks[1]) == 117
+        assert np.all(chunks[0].index.qId == -2081539485)
+        assert np.all(chunks[1].index.qId == -1197849594)
+        chunks = list(ds.split(chunks=4, targetSize=1, zmws=True, breakReadGroups=False))
+        assert [len(c) for c in chunks] == [8, 12, 54, 63]
+        assert np.all(chunks[0].index.qId == -2081539485)
+        assert np.all(chunks[1].index.qId == -2081539485)
+        assert np.all(chunks[2].index.qId == -1197849594)
+        assert np.all(chunks[3].index.qId == -1197849594)
+        # control: single-movie dataset
+        ds = SubreadSet(ds1)
+        chunks1 = list(ds.split(chunks=4, zmws=True, breakReadGroups=False))
+        chunks2 = list(ds.split(chunks=4, zmws=True, breakReadGroups=True))
+        assert [len(x) for x in chunks1] == [len(y) for y in chunks2]

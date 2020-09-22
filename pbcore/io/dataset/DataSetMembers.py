@@ -1646,7 +1646,9 @@ class ExternalResource(RecordWrapper):
         if current:
             return FileIndices(current[0])
         else:
-            return FileIndices()
+            idx = FileIndices()
+            self.append(idx)
+            return idx
 
     @indices.setter
     def indices(self, indexList):
@@ -2361,6 +2363,7 @@ class ContinuousDistribution(RecordWrapper):
     sampleMode = subaccs('SampleMode', asType=float)
     sampleStd = subaccs('SampleStd', asType=float)
     sample95thPct = subaccs('Sample95thPct', asType=float)
+    sampleN50 = subaccs('SampleN50', asType=float)
     binWidth = subaccs('BinWidth', asType=float)
     minOutlierValue = subaccs('MinOutlierValue', asType=float)
     maxOutlierValue = subaccs('MaxOutlierValue', asType=float)

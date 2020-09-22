@@ -43,8 +43,9 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (_infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
-                                     consolidateXml,
-                                     getTimeStampedName, getCreatedAt)
+                                     consolidateXml, divideKeys, splitKeys,
+                                     getTimeStampedName, getCreatedAt,
+                                     split_keys_around_read_groups)
 from pbcore.io.dataset.DataSetErrors import (InvalidDataSetIOError,
                                              ResourceMismatchError)
 from pbcore.io.dataset.DataSetMetaTypes import (DataSetMetaTypes, toDsId,
@@ -260,7 +261,11 @@ def _uniqueRecords(recArray):
 
 def _fieldsView(recArray, fields):
     vdtype = np.dtype({fi: recArray.dtype.fields[fi] for fi in fields})
-    return np.ndarray(recArray.shape, vdtype, recArray, 0, recArray.strides)
+    return np.recarray(shape=recArray.shape,
+                      dtype=vdtype,
+                      buf=recArray,
+                      offset=0,
+                      strides=recArray.strides)
 
 
 def _renameField(recArray, current, new):
@@ -282,41 +287,6 @@ def _ranges_in_list(alist):
     unique, indices, counts = np.unique(np.array(alist), return_index=True,
                                         return_counts=True)
     return {u: (i, i + c) for u, i, c in zip(unique, indices, counts)}
-
-
-def divideKeys(keys, chunks):
-    """Returns all of the keys in a list of lists, corresponding to evenly
-    sized chunks of the original keys"""
-    if chunks < 1:
-        return []
-    if chunks > len(keys):
-        chunks = len(keys)
-    chunksize = len(keys)//chunks
-    key_chunks = [keys[(i * chunksize):((i + 1) * chunksize)] for i in
-                  range(chunks-1)]
-    key_chunks.append(keys[((chunks - 1) * chunksize):])
-    return key_chunks
-
-
-def splitKeys(keys, chunks):
-    """Returns key pairs for each chunk defining the bounds of each chunk"""
-    if chunks < 1:
-        return []
-    if chunks > len(keys):
-        chunks = len(keys)
-    chunksize = len(keys)//chunks
-    chunksizes = [chunksize] * chunks
-    i = 0
-    while sum(chunksizes) < len(keys):
-        chunksizes[i] += 1
-        i += 1
-        i %= chunks
-    key_chunks = []
-    start = 0
-    for cs in chunksizes:
-        key_chunks.append((keys[start], keys[start + cs - 1]))
-        start += cs
-    return key_chunks
 
 
 class MissingFileError(InvalidDataSetIOError):
@@ -381,7 +351,14 @@ class DataSet:
 
     datasetType = DataSetMetaTypes.ALL
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False,
+                 **kwargs):
         """DataSet constructor
 
         Initialize representations of the ExternalResources, MetaData,
@@ -391,6 +368,8 @@ class DataSet:
             :files: one or more filenames or uris to read
             :strict=False: strictly require all index files
             :skipCounts=False: skip updating counts for faster opening
+            :trustCounts=False: skip updating counts but rely on counts in
+                                input dataset XMLs
 
         Doctest:
             >>> import os, tempfile
@@ -443,10 +422,10 @@ class DataSet:
 
         """
         files = [str(fn) for fn in files]
-        self._strict = kwargs.get('strict', False)
-        skipMissing = kwargs.get('skipMissing', False)
-        self._skipCounts = kwargs.get('skipCounts', False)
-        _induceIndices = kwargs.get('generateIndices', False)
+        self._strict = strict
+        self._skipCounts = skipCounts
+        self._trustCounts = trustCounts
+        _induceIndices = generateIndices
 
         # The metadata concerning the DataSet or subtype itself (e.g.
         # name, version, UniqueId)
@@ -544,16 +523,15 @@ class DataSet:
 
         # update counts
         if files:
+            # generate indices if requested and needed
+            if _induceIndices:
+                self.induceIndices()
             if not self.totalLength or not self.numRecords:
                 self.updateCounts()
             elif self.totalLength <= 0 or self.numRecords <= 0:
                 self.updateCounts()
             elif len(files) > 1:
                 self.updateCounts()
-
-        # generate indices if requested and needed
-        if _induceIndices:
-            self.induceIndices()
 
     def induceIndices(self, force=False):
         """Generate indices for ExternalResources.
@@ -920,7 +898,8 @@ class DataSet:
 
     def split(self, chunks=0, ignoreSubDatasets=True, contigs=False,
               maxChunks=0, breakContigs=False, targetSize=5000, zmws=False,
-              barcodes=False, byRecords=False, updateCounts=True):
+              barcodes=False, byRecords=False, updateCounts=True,
+              breakReadGroups=True):
         """Deep copy the DataSet into a number of new DataSets containing
         roughly equal chunks of the ExternalResources or subdatasets.
 
@@ -1024,7 +1003,10 @@ class DataSet:
                                  int(round(np.true_divide(
                                      len(set(self.index.holeNumber)),
                                      targetSize))))
-            return _yield_chunks(self._split_zmws(chunks, targetSize=targetSize))
+            return _yield_chunks(self._split_zmws(
+                chunks,
+                targetSize=targetSize,
+                breakReadGroups=breakReadGroups))
         elif barcodes:
             if maxChunks and not chunks:
                 chunks = maxChunks
@@ -2233,6 +2215,16 @@ class ReadSet(DataSet):
             else:
                 raise
 
+    @property
+    def numBarcodes(self):
+        self.assertIndexed()
+        self.assertBarcoded()
+        barcodes = set([])
+        for bcTuple in zip(self.index.bcForward,
+                           self.index.bcReverse):
+            barcodes.add(bcTuple)
+        return len(barcodes)
+
     def _split_barcodes(self, chunks=0):
         """Split a readset into chunks by barcodes.
 
@@ -2322,7 +2314,10 @@ class ReadSet(DataSet):
             result.newUuid()
             yield result
 
-    def _split_zmws(self, chunks, targetSize=None):
+    def _split_zmws(self,
+                    chunks,
+                    targetSize=None,
+                    breakReadGroups=True):
         """The combination of <movie>_<holenumber> is assumed to refer to a
         unique ZMW"""
 
@@ -2333,6 +2328,7 @@ class ReadSet(DataSet):
         rgIdMovieNameMap = {rg[0]: rg[1] for rg in self.readGroupTable}
 
         active_holenumbers = self.index
+        qIds = np.unique(self.index.qId)
 
         # lower limit on the  number of chunks
         n_chunks = min(len(active_holenumbers), chunks)
@@ -2342,6 +2338,8 @@ class ReadSet(DataSet):
                 chunks > 1):
             # we want at least two if we can swing it
             desired = max(2, len(active_holenumbers)//targetSize)
+            if not breakReadGroups and len(qIds) > 0:
+                desired = max(desired, len(qIds))
             n_chunks = min(n_chunks, desired)
 
         if n_chunks != chunks:
@@ -2352,7 +2350,10 @@ class ReadSet(DataSet):
         view = _fieldsView(self.index, ['qId', 'holeNumber'])
         keys = np.unique(view)
         # Find the beginning and end keys of each chunk
-        ranges = splitKeys(keys, n_chunks)
+        if not breakReadGroups:
+            ranges = split_keys_around_read_groups(keys, n_chunks)
+        else:
+            ranges = splitKeys(keys, n_chunks)
 
         # The above ranges can include hidden, unrepresented movienames that
         # are sandwiched between those identified by the range bounds. In
@@ -2501,6 +2502,14 @@ class ReadSet(DataSet):
         cached in the pbi.
 
         """
+        no_filters = not self._filters or self.noFiltering
+        # shortcut for single BAM with no filters
+        if len(self.externalResources) == 1 and no_filters:
+            index = self.resourceReaders()[0].pbi._tbl
+            self._indexMap = np.fromiter(((0, i) for i in range(len(index))),
+                                         dtype=[('reader', 'uint64'),
+                                                ('index', 'uint64')])
+            return index
         recArrays = []
         _indexMap = []
         for rrNum, rr in enumerate(self.resourceReaders()):
@@ -2508,7 +2517,7 @@ class ReadSet(DataSet):
 
             self._fixQIds(indices, rr)
 
-            if not self._filters or self.noFiltering:
+            if no_filters:
                 recArrays.append(indices._tbl)
                 _indexMap.extend([(rrNum, i) for i in
                                   range(len(indices._tbl))])
@@ -2622,7 +2631,14 @@ class ReadSet(DataSet):
         self._populateMetaTypes()
 
     def updateCounts(self):
-        if self._skipCounts:
+        if self._trustCounts and len(self.subdatasets) > 0:
+            log.info("Using record counts from subdatasets")
+            numRecords = sum(ds.numRecords for ds in self.subdatasets)
+            totalLength = sum(ds.totalLength for ds in self.subdatasets)
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+            return
+        elif self._skipCounts:
             log.debug("SkipCounts is true, skipping updateCounts()")
             self.metadata.totalLength = -1
             self.metadata.numRecords = -1
@@ -2700,7 +2716,14 @@ class AlignmentSet(ReadSet):
 
     datasetType = DataSetMetaTypes.ALIGNMENT
 
-    def __init__(self, *files, **kwargs):
+    def __init__(self,
+                 *files,
+                 strict=False,
+                 skipCounts=False,
+                 skipMissing=False,
+                 trustCounts=False,
+                 generateIndices=False,
+                 referenceFastaFname=None):
         """ An AlignmentSet
 
         Args:
@@ -2709,11 +2732,16 @@ class AlignmentSet(ReadSet):
                                        alignment.
             :strict=False: see base class
             :skipCounts=False: see base class
+            :trustCounts=False: see base class
         """
-        super().__init__(*files, **kwargs)
-        fname = kwargs.get('referenceFastaFname', None)
-        if fname:
-            self.addReference(fname)
+        super().__init__(*files,
+                         strict=strict,
+                         skipCounts=skipCounts,
+                         skipMissing=skipMissing,
+                         trustCounts=trustCounts,
+                         generateIndices=generateIndices)
+        if referenceFastaFname:
+            self.addReference(referenceFastaFname)
         self.__referenceIdMap = None
 
     @property
