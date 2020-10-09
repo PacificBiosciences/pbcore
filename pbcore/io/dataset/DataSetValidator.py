@@ -6,7 +6,6 @@
 from urllib.parse import urlparse, unquote
 import xml.etree.ElementTree as ET
 import logging
-import os.path as op
 import os
 import re
 
