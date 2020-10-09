@@ -112,6 +112,7 @@ class TestPbiIdentity(ExpectedValues):
     def test_pbi_blast_identity(self):
         _compare_identity(self._get_pbi().blast_identity[0:2], self.BLAST_IDENTITY)
 
-    # FIXME this will not work with this version .pbi
-    #def test_pbi_pb_identity(self):
-    #    _compare_identity(_get_pbi().pb_identity, self.GC_IDENTITY)
+    def test_pbi_gc_identity(self):
+        pbi = self._get_pbi()
+        assert pbi.hasMappingEventInfo
+        _compare_identity(pbi.gap_compressed_identity[0:2], self.GC_IDENTITY)
