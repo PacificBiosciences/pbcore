@@ -1,3 +1,5 @@
+# see also test_mapped_sequence_identity.py
+
 import pytest
 import sys
 
