@@ -6,6 +6,9 @@ from struct import unpack
 import numpy as np
 from Bio.bgzf import BgzfReader, BgzfBlocks, make_virtual_offset
 
+from pbcore.util.statistics import (pb_identity,
+                                    blast_identity,
+                                    gap_compressed_identity)
 from ._BamSupport import IncompatibleFile
 
 __all__ = ["PacBioBamIndex"]
@@ -44,6 +47,10 @@ class PbIndexBase:
         # suppose
         return ((self.nReads == 0) or
                 (self.pbiFlags & PBI_FLAGS_MAPPED))
+
+    @property
+    def hasMappingEventInfo(self):
+        return self.hasMappingInfo and (self.vMajor >= 4)
 
     @property
     def hasCoordinateSortedInfo(self):
@@ -87,6 +94,12 @@ class PacBioBamIndex(PbIndexBase):
             ("nM", "u4"),
             ("nMM", "u4"),
             ("mapQV", "u1")]
+
+        if self.hasMappingEventInfo:
+            MAPPING_INDEX_DTYPE.extend([
+                ("nInsOps", "u4"),
+                ("nDelOps", "u4")
+            ])
 
         COORDINATE_SORTED_DTYPE = [
             ("tId", "u4"),
@@ -241,9 +254,23 @@ class PacBioBamIndex(PbIndexBase):
 
     @property
     def identity(self):
+        return self.pb_identity
+
+    @property
+    def pb_identity(self):
         assert (self.pbiFlags & PBI_FLAGS_MAPPED)
-        return 1 - ((self.nMM + self.nIns + self.nDel) /
-                    (self.aEnd.astype(float) - self.aStart.astype(float)))
+        return pb_identity(self.nMM, self.nIns, self.nDel,
+                           self.aEnd - self.aStart)
+
+    @property
+    def blast_identity(self):
+        assert (self.pbiFlags & PBI_FLAGS_MAPPED)
+        return blast_identity(self.nM, self.nMM, self.nIns, self.nDel)
+
+    @property
+    def gap_compressed_identity(self):
+        assert self.hasMappingEventInfo
+        return gap_compressed_identity(self.nM, self.nMM, self.nInsOps, self.nDelOps)
 
 
 class StreamingBamIndex(PacBioBamIndex):

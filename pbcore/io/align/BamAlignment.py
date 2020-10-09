@@ -6,6 +6,7 @@ from bisect import bisect_right, bisect_left
 import numpy as np
 
 from pbcore.sequence import reverseComplement
+from pbcore.util import statistics
 from ._BamSupport import (UnavailableFeature,
                           Unimplemented,
                           IncompatibleFile,
@@ -294,25 +295,74 @@ class BamAlignment(AlignmentRecordMixin):
     def queryName(self):
         return self.peer.qname
 
-    @property
     @requiresMapping
-    def identity(self):
+    def _to_identity(self, fx_pbi, fx_bam):
         if self.hasPbi:
             # Fast (has pbi)
             if self.readLength == 0:
                 return 0.
             else:
-                return 1. - (self.nMM + self.nIns + self.nDel)/self.readLength
+                return fx_pbi()
         else:
             # Slow (no pbi);
             if self.readLength == 0:
                 return 0.
             else:
-                x = self.transcript()
-                nMM = x.count("R")
-                nIns = x.count("I")
-                nDel = x.count("D")
-                return 1. - (nMM + nIns + nDel)/self.readLength
+                return fx_bam()
+
+    @property
+    def pb_identity(self):
+        """
+        Compute sequence identity using the old PacBio SMRT Analysis formula
+        """
+        def pbi_pb_identity():
+            return statistics.pb_identity(self.nMM, self.nIns, self.nDel, self.readLength)
+        def bam_pb_identity():
+            x = self.transcript()
+            nMM = x.count("R")
+            nIns = x.count("I")
+            nDel = x.count("D")
+            return statistics.pb_identity(nMM, nIns, nDel, self.readLength)
+        return self._to_identity(pbi_pb_identity, bam_pb_identity)
+
+    @property
+    def identity(self):
+        return self.pb_identity
+
+    @property
+    def blast_identity(self):
+        """
+        Compute sequence identity using the BLAST formula
+        """
+        def pbi_blast_identity():
+            return statistics.blast_identity(self.nM, self.nMM, self.nIns, self.nDel)
+        def bam_blast_identity():
+            x = self.transcript()
+            nM = x.count("M")
+            nMM = x.count("R")
+            nIns = x.count("I")
+            nDel = x.count("D")
+            return statistics.blast_identity(nM, nMM, nIns, nDel)
+        return self._to_identity(pbi_blast_identity, bam_blast_identity)
+
+    @property
+    def gap_compressed_identity(self):
+        """
+        Compute gap-compressed sequence identity
+        """
+        def bam_gc_identity():
+            x = self.transcript()
+            nM = x.count("M")
+            nMM = x.count("R")
+            nInsOps = self.peer.cigarstring.count("I")
+            nDelOps = self.peer.cigarstring.count("D")
+            return statistics.gap_compressed_identity(nM, nMM, nInsOps, nDelOps)
+        def pbi_gc_identity():
+            if self.bam.pbi.hasMappingEventInfo:
+                return statistics.gap_compressed_identity(self.nM, self.nMM, self.nInsOps, self.nDelOps)
+            else:  # fallback for pre-v4 .pbi files
+                return bam_gc_identity()
+        return self._to_identity(pbi_gc_identity, bam_gc_identity)
 
     @property
     def mapQV(self):
