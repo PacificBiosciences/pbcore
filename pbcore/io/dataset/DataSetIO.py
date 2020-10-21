@@ -1066,7 +1066,7 @@ class DataSet:
     def _split_barcodes(self, chunks):
         raise TypeError("Only ReadSets may be split by contigs")
 
-    def _split_zmws(self, chunks, targetSize=None):
+    def _split_zmws(self, chunks, targetSize=None, breakReadGroups=True):
         raise TypeError("Only ReadSets may be split by ZMWs")
 
     def _split_atoms(self, atoms, num_chunks):
@@ -3136,7 +3136,7 @@ class AlignmentSet(ReadSet):
                                                         refNames))
                      if count != 0]
 
-            def balanceKey(x): return self.countRecords(*x)
+            balanceKey = lambda x: self.countRecords(*x)
         else:
             # if there are that many references, on average they will probably
             # be distributed pretty evenly. Checking the counts will also be
@@ -3147,7 +3147,7 @@ class AlignmentSet(ReadSet):
             else:
                 atoms = [(rn, 0, refLens[rn]) for rn in refNames]
 
-            def balanceKey(x): return x[2] - x[1]
+            balanceKey = lambda x: x[2] - x[1]
         log.debug("{i} contigs found".format(i=len(atoms)))
 
         # By providing maxChunks and not chunks, this combination will set
@@ -3236,7 +3236,7 @@ class AlignmentSet(ReadSet):
         # indicates byRecords with no sub atom splits: (the fourth spot is
         # countrecords in that window)
         if len(atoms[0]) == 4:
-            def balanceKey(x): return x[3]
+            balanceKey = lambda x: x[3]
         log.debug("Distributing chunks")
         # if we didn't have to split atoms and are doing it byRecords, the
         # original counts are still valid:
