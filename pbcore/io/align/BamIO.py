@@ -189,7 +189,7 @@ class _BamReaderBase(ReaderBase):
     def __init__(self, fname, referenceFastaFname=None):
         self.filename = fname = abspath(expanduser(fname))
         # XXX https://github.com/pysam-developers/pysam/issues/939
-        pysam.set_verbosity(0)
+        pysam.set_verbosity(0)  # pylint: disable=no-member
         self.peer = AlignmentFile(fname, "rb", check_sq=False)
         self._checkFileCompatibility()
 

@@ -1,3 +1,6 @@
+# NOTE: sequence identity functions are tested in
+#   tests/est_mapped_sequence_identity.py
+
 import math
 
 import numpy as np
@@ -38,3 +41,37 @@ def phred_qv_as_accuracy(qv):
         raise ValueError("Negative Phred scores not allowed")
     else:
         return 1.0 - 10**(-qv/10)
+
+
+def pb_identity(n_mismatches, n_ins, n_del, read_length):
+    """
+    Old PacBio sequence identity computation used in SMRT Link v10 and
+    earlier (but not elsewhere): 1 - (X + I + D) / L
+    This also corresponds to the 'mc' tag output by pbmm2.
+    Arguments can be either scalars or numpy arrays.
+    """
+    x = 1 - ((n_mismatches + n_ins + n_del) / read_length)
+    if isinstance(x, float):
+        return max(0, x)
+    else:  # numpy arrays
+        x[x < 0] = 0
+        return x
+
+
+def blast_identity(n_matches, n_mismatches, n_ins, n_del):
+    """
+    Sequence identity formula used in BLAST: M/(M+X+I+D)
+    This also corresponds to the 'mi' tag output by pbmm2, and is now the
+    primary user-facing metric in the mapping stats report.
+    Arguments can be either scalars or numpy arrays.
+    """
+    return n_matches / (n_matches + n_mismatches + n_ins + n_del)
+
+
+def gap_compressed_identity(n_matches, n_mismatches, n_ins_ops, n_del_ops):
+    """
+    Gap-compressed sequence identity, which simply counts insertion and
+    deletion operations instead of alignment columns: M/(M+X+iOps+dOps)
+    Arguments can be either scalars or numpy arrays.
+    """
+    return blast_identity(n_matches, n_mismatches, n_ins_ops, n_del_ops)
