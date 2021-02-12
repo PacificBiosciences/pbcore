@@ -15,6 +15,7 @@ from ._BamSupport import (UnavailableFeature,
                           BAM_CMATCH,
                           BAM_CINS,
                           BAM_CDEL,
+                          BAM_CREF_SKIP,
                           BAM_CSOFT_CLIP,
                           BAM_CHARD_CLIP,
                           codeToFrames,
@@ -569,12 +570,12 @@ class BamAlignment(AlignmentRecordMixin):
             return self._gapifyRead(ungapped, orientation)
 
     def _gapifyRead(self, data, orientation):
-        return self._gapify(data, orientation, BAM_CDEL)
+        return self._gapify(data, orientation, BAM_CDEL, BAM_CREF_SKIP)
 
     def _gapifyRef(self, data, orientation):
         return self._gapify(data, orientation, BAM_CINS)
 
-    def _gapify(self, data, orientation, gapOp):
+    def _gapify(self, data, orientation, gapOp, gapOp2=None):
         if self.isUnmapped:
             return data
 
@@ -586,6 +587,8 @@ class BamAlignment(AlignmentRecordMixin):
         uc = self.unrolledCigar(orientation=orientation)
         alnData = np.repeat(np.array(gapCode, dtype=data.dtype), len(uc))
         gapMask = (uc == gapOp)
+        if (gapOp2 is not None):
+            gapMask |= (uc == gapOp2)
         alnData[~gapMask] = data
         return alnData
 
