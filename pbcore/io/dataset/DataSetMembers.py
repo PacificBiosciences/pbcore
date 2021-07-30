@@ -318,11 +318,14 @@ class PbiFlags:
 
 
 def subgetter(key, container='text', default=None, asType=(lambda x: x),
-              attrib=None):
+              attrib=None, setter=None):
     def get(self):
         return self.getMemberV(key, container=container, default=default,
                                asType=asType, attrib=attrib)
-    return property(get)
+    if not setter:
+        return property(get)
+    else:
+        return property(get, setter)
 
 
 def subsetter(key, container='text', attrib=None):
@@ -334,19 +337,23 @@ def subsetter(key, container='text', attrib=None):
 
 def subaccs(key, container='text', default=None, asType=(lambda x: x),
             attrib=None):
+    mysetter = subsetter(key, container=container, attrib=attrib)
     get = subgetter(key, container=container, default=default, asType=asType,
-                    attrib=attrib)
-    get = get.setter(subsetter(key, container=container, attrib=attrib))
+                    attrib=attrib, setter=mysetter)
     return get
 
 
-def getter(key, container='attrib', asType=(lambda x: x), parent=False):
+def getter(key, container='attrib', asType=(lambda x: x), parent=False,
+           setter=None):
     def get(self):
         if parent:
             return asType(self.getV(container, key), parent=self)
         else:
             return asType(self.getV(container, key))
-    return property(get)
+    if not setter:
+        return property(get)
+    else:
+        return property(get, setter)
 
 
 def setter(key, container='attrib'):
@@ -357,8 +364,8 @@ def setter(key, container='attrib'):
 
 
 def accs(key, container='attrib', asType=(lambda x: x), parent=False):
-    get = getter(key, container, asType, parent=parent)
-    get = get.setter(setter(key, container))
+    mysetter = setter(key, container)
+    get = getter(key, container, asType, parent=parent, setter=mysetter)
     return get
 
 
