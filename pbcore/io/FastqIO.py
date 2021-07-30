@@ -236,4 +236,4 @@ def qvsFromAscii(s):
 
 
 def asciiFromQvs(a):
-    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tostring().decode("ascii")
+    return (np.clip(a, 0, 93).astype(np.uint8) + 33).tobytes().decode("ascii")

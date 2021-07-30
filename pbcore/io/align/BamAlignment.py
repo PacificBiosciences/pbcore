@@ -404,7 +404,7 @@ class BamAlignment(AlignmentRecordMixin):
         elif style == "cigar":
             return _cigarTrans[uc].tostring().decode("ascii")
         else:
-            return _gusfieldTrans[uc].tostring().decode("ascii")
+            return _gusfieldTrans[uc].tobytes().decode("ascii")
 
     @requiresReference
     def reference(self, aligned=True, orientation="native"):
@@ -416,7 +416,7 @@ class BamAlignment(AlignmentRecordMixin):
         if aligned:
             x = np.frombuffer(tSeqOriented.encode("utf-8"), dtype=np.int8)
             y = self._gapifyRef(x, orientation)
-            return y.tostring().decode("ascii")
+            return y.tobytes().decode("ascii")
         else:
             return tSeqOriented
 
@@ -633,7 +633,7 @@ class BamAlignment(AlignmentRecordMixin):
             r = self._gapifyRead(ungapped, orientation)
         else:
             r = ungapped
-        return r.tostring().decode("ascii")
+        return r.tobytes().decode("ascii")
 
     def __repr__(self):
         if self.isUnmapped:
