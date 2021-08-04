@@ -398,11 +398,11 @@ class BamAlignment(AlignmentRecordMixin):
         _gusfieldTrans = np.frombuffer(b"ZIDZZZZMR", dtype=np.int8)
 
         if style == "exonerate+":
-            return _exoneratePlusTrans[uc].tostring().decode("ascii")
+            return _exoneratePlusTrans[uc].tobytes().decode("ascii")
         elif style == "exonerate":
-            return _exonerateTrans[uc].tostring().decode("ascii")
+            return _exonerateTrans[uc].tobytes().decode("ascii")
         elif style == "cigar":
-            return _cigarTrans[uc].tostring().decode("ascii")
+            return _cigarTrans[uc].tobytes().decode("ascii")
         else:
             return _gusfieldTrans[uc].tobytes().decode("ascii")
 
