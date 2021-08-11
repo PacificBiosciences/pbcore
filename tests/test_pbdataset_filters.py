@@ -80,15 +80,25 @@ class TestDataSetFilters:
         filtstr = '( Uint32Cast(zm) % 8 = 0 )'
         assert str(ds2.filters) == filtstr
 
-        filtxmlstr = ('<pbbase:Property Hash="Uint32Cast" Modulo="8" '
-                      'Name="zm" Operator="=" Value="0"/>')
+        # <pbbase:Property Name="zm" Operator="=" Value="0" Modulo="8" Hash="Uint32Cast"/>
+        # But the order can vary.
+        filtxmltype = '<pbbase:Property'
+        filtxmlfields = (
+            'Hash="Uint32Cast"',
+            'Modulo="8"',
+            'Name="zm"',
+            'Operator="="',
+            'Value="0"',
+        )
         fn = tempfile.NamedTemporaryFile(suffix="alignmentset.xml").name
         ds2.write(fn)
         with open(fn, 'r') as ifh:
             found = False
             for line in ifh:
-                if filtxmlstr in line:
-                    found = True
+                if filtxmltype in line:
+                    print(line)
+                    if all((field in line) for field in filtxmlfields):
+                        found = True
         assert found
 
     def test_mapqv_filter(self):
