@@ -15,6 +15,7 @@ from ._BamSupport import (UnavailableFeature,
                           BAM_CMATCH,
                           BAM_CINS,
                           BAM_CDEL,
+                          BAM_CREF_SKIP,
                           BAM_CSOFT_CLIP,
                           BAM_CHARD_CLIP,
                           codeToFrames,
@@ -397,13 +398,13 @@ class BamAlignment(AlignmentRecordMixin):
         _gusfieldTrans = np.frombuffer(b"ZIDZZZZMR", dtype=np.int8)
 
         if style == "exonerate+":
-            return _exoneratePlusTrans[uc].tostring().decode("ascii")
+            return _exoneratePlusTrans[uc].tobytes().decode("ascii")
         elif style == "exonerate":
-            return _exonerateTrans[uc].tostring().decode("ascii")
+            return _exonerateTrans[uc].tobytes().decode("ascii")
         elif style == "cigar":
-            return _cigarTrans[uc].tostring().decode("ascii")
+            return _cigarTrans[uc].tobytes().decode("ascii")
         else:
-            return _gusfieldTrans[uc].tostring().decode("ascii")
+            return _gusfieldTrans[uc].tobytes().decode("ascii")
 
     @requiresReference
     def reference(self, aligned=True, orientation="native"):
@@ -415,7 +416,7 @@ class BamAlignment(AlignmentRecordMixin):
         if aligned:
             x = np.frombuffer(tSeqOriented.encode("utf-8"), dtype=np.int8)
             y = self._gapifyRef(x, orientation)
-            return y.tostring().decode("ascii")
+            return y.tobytes().decode("ascii")
         else:
             return tSeqOriented
 
@@ -569,12 +570,12 @@ class BamAlignment(AlignmentRecordMixin):
             return self._gapifyRead(ungapped, orientation)
 
     def _gapifyRead(self, data, orientation):
-        return self._gapify(data, orientation, BAM_CDEL)
+        return self._gapify(data, orientation, BAM_CDEL, BAM_CREF_SKIP)
 
     def _gapifyRef(self, data, orientation):
         return self._gapify(data, orientation, BAM_CINS)
 
-    def _gapify(self, data, orientation, gapOp):
+    def _gapify(self, data, orientation, gapOp, gapOp2=None):
         if self.isUnmapped:
             return data
 
@@ -586,6 +587,8 @@ class BamAlignment(AlignmentRecordMixin):
         uc = self.unrolledCigar(orientation=orientation)
         alnData = np.repeat(np.array(gapCode, dtype=data.dtype), len(uc))
         gapMask = (uc == gapOp)
+        if (gapOp2 is not None):
+            gapMask |= (uc == gapOp2)
         alnData[~gapMask] = data
         return alnData
 
@@ -630,7 +633,7 @@ class BamAlignment(AlignmentRecordMixin):
             r = self._gapifyRead(ungapped, orientation)
         else:
             r = ungapped
-        return r.tostring().decode("ascii")
+        return r.tobytes().decode("ascii")
 
     def __repr__(self):
         if self.isUnmapped:

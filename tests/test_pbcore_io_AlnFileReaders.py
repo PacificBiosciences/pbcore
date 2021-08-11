@@ -537,3 +537,10 @@ class TestBarcodedBam:
         fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/demultiplex.lbc1--lbc1.bam"
         bam = IndexedBamReader(fn)
         assert str(bam[0]) == "Unmapped BAM record: m54008_160219_003234/74056024/1184_3910"
+
+    @pytest.mark.internal_data
+    def test_mapped_bam_cigar_cref_skip(self):
+        fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/ITG-2283-cref-skip.subreads.bam"
+        bam = BamReader(fn)
+        for rec in bam:
+            assert rec.read(aligned=True) is not None
