@@ -9,6 +9,8 @@ import shutil
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
+import pysam
+
 from pbcore.io.dataset.utils import _infixFname, consolidateXml
 from pbcore.io import (SubreadSet, ConsensusReadSet,
                        ReferenceSet, ContigSet, AlignmentSet, BarcodeSet,
@@ -1069,3 +1071,13 @@ class TestDataSet:
         assert ds.totalLength == 274217
         assert ds._index is None
         assert len(ds._openReaders) == 0
+
+    def test_referenceset_fsa_extension(self):
+        tmp_fsa = tempfile.NamedTemporaryFile(suffix=".fsa").name
+        with open(tmp_fsa, "wt") as fsa_out:
+            fsa_out.write(">chr1\nacgt")
+        pysam.faidx(tmp_fsa)
+        ds = openDataFile(tmp_fsa, strict=True)
+        assert isinstance(ds, ReferenceSet)
+        assert ds.numRecords == 1
+        assert ds.totalLength == 4
