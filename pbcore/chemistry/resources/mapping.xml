@@ -180,7 +180,7 @@
   <Mapping>
     <SequencingChemistry>S/P4-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-789-500</BindingKit>
-    <SequencingKit>101-186-000</SequencingKit>
+    <SequencingKit>102-186-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
@@ -188,7 +188,7 @@
   <Mapping>
     <SequencingChemistry>S/P4-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-789-500</BindingKit>
-    <SequencingKit>101-186-100</SequencingKit>
+    <SequencingKit>102-186-100</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
@@ -212,7 +212,7 @@
   <Mapping>
     <SequencingChemistry>S/P4.1-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-820-500</BindingKit>
-    <SequencingKit>101-186-000</SequencingKit>
+    <SequencingKit>102-186-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
@@ -220,7 +220,7 @@
   <Mapping>
     <SequencingChemistry>S/P4.1-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-820-500</BindingKit>
-    <SequencingKit>101-186-100</SequencingKit>
+    <SequencingKit>102-186-100</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
@@ -260,7 +260,7 @@
   <Mapping>
     <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-894-200</BindingKit>
-    <SequencingKit>101-186-000</SequencingKit>
+    <SequencingKit>102-186-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
@@ -268,7 +268,7 @@
   <Mapping>
     <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
     <BindingKit>101-894-200</BindingKit>
-    <SequencingKit>101-186-100</SequencingKit>
+    <SequencingKit>102-186-100</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
