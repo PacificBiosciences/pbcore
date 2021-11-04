@@ -40,6 +40,7 @@ from pbcore.io.dataset.DataSetMembers import (DataSetMetadata,
                                               ContigSetMetadata,
                                               BarcodeSetMetadata,
                                               ExternalResources,
+                                              SupplementalResources,
                                               ExternalResource, Filters)
 from pbcore.io.dataset.utils import (_infixFname, _pbindexBam,
                                      _indexBam, _indexFasta, _fileCopy,
@@ -436,6 +437,7 @@ class DataSet:
         self._metadata = DataSetMetadata()
 
         self.externalResources = ExternalResources()
+        self.supplementalResources = SupplementalResources()
         self._filters = Filters()
 
         # list of DataSet objects representing subsets
@@ -637,6 +639,7 @@ class DataSet:
             # date
             result.addExternalResources(other.externalResources,
                                         updateCount=False)
+            result.addSupplementalResources(other.supplementalResources)
 
             # DataSets may only be merged if they have identical filters,
             # So there is nothing new to add.
@@ -689,6 +692,7 @@ class DataSet:
         tbr.objMetadata = copy.deepcopy(self.objMetadata, memo)
         tbr.metadata = copy.deepcopy(self._metadata, memo)
         tbr.externalResources = copy.deepcopy(self.externalResources, memo)
+        tbr.supplementalResources = copy.deepcopy(self.supplementalResources, memo)
         tbr.filters = copy.deepcopy(self._filters, memo)
         tbr.subdatasets = copy.deepcopy(self.subdatasets, memo)
         tbr.fileNames = copy.deepcopy(self.fileNames, memo)
@@ -1317,23 +1321,24 @@ class DataSet:
         """Execute some function 'func' on each external resource in the
         dataset and each subdataset"""
         # check all ExternalResources
-        stack = list(self.externalResources)
-        while stack:
-            item = stack.pop()
-            resId = item.resourceId
-            if not resId:
-                continue
-            func(item)
-            try:
-                stack.extend(list(item.indices))
-            except AttributeError:
-                # some members have no indices
-                pass
-            try:
-                stack.extend(list(item.externalResources))
-            except AttributeError:
-                # some members have no externalResources
-                pass
+        for stack in [list(self.externalResources),
+                      list(self.supplementalResources)]:
+            while stack:
+                item = stack.pop()
+                resId = item.resourceId
+                if not resId:
+                    continue
+                func(item)
+                try:
+                    stack.extend(list(item.indices))
+                except AttributeError:
+                    # some members have no indices
+                    pass
+                try:
+                    stack.extend(list(item.externalResources))
+                except AttributeError:
+                    # some members have no externalResources
+                    pass
 
         if subdatasets:
             # check all SubDatasets
@@ -1569,6 +1574,17 @@ class DataSet:
         if updateCount:
             self._openFiles()
             self.updateCounts()
+
+    def addSupplementalResources(self, newSuppResources):
+        if not isinstance(newSuppResources, SupplementalResources):
+            tmp = SupplementalResources()
+            # have to wrap them here, as wrapNewResource does quite a bit and
+            # importing into members would create a circular inport
+            tmp.addResources([wrapNewResource(res)
+                              if not isinstance(res, ExternalResource) else res
+                              for res in newSuppResources])
+            newSuppResources = tmp
+        self.supplementalResources.merge(newSuppResources)
 
     def addDatasets(self, otherDataSet):
         """Add subsets to a DataSet object using other DataSets.

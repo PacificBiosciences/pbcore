@@ -149,6 +149,7 @@ def _toElementTree(dataSet, root=None, core=False):
         root = ET.Element(rootType, attribs)
 
     _addExternalResourcesElement(dataSet, root, core)
+    _addSupplementalResourcesElement(dataSet, root, core)
     _addFiltersElement(dataSet, root, core)
     _addDataSetsElement(dataSet, root, core)
     _addDataSetMetadataElement(dataSet, root, core)
@@ -203,6 +204,17 @@ def _addExternalResourcesElement(dataSet, root, core=False):
     """
     if dataSet.externalResources:
         root.append(_eleFromDictList(dataSet.externalResources.record, core))
+
+
+def _addSupplementalResourcesElement(dataSet, root, core=False):
+    """Add supplemental fileas as ExternalResource Elements
+
+    Args:
+        root: The root ElementTree object. Extended here using SubElement
+        core=False: T/F strip out user editable attributes
+    """
+    if dataSet.supplementalResources:
+        root.append(_eleFromDictList(dataSet.supplementalResources.record, core))
 
 
 def _addDataSetMetadataElement(dataSet, root, core=False):

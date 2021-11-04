@@ -10,6 +10,7 @@ import os.path
 
 from pbcore.io.dataset.DataSetMembers import (ExternalResource,
                                               ExternalResources,
+                                              SupplementalResources,
                                               DataSetMetadata,
                                               CollectionMetadata,
                                               Filters,
@@ -179,6 +180,8 @@ def _parseXml(dsetType, element):
     for child in element:
         if child.tag.endswith('ExternalResources'):
             result.externalResources = _parseXmlExtResources(child)
+        elif child.tag.endswith('SupplementalResources'):
+            result.supplementalResources = _parseXmlSuppResources(child)
         elif child.tag.endswith('DataSets'):
             result.subdatasets = _parseXmls(dsetType, child)
         elif child.tag.endswith('Filters'):
@@ -262,6 +265,12 @@ def _parseXmlExtResources(element):
     """Parse the ExternalResources tag, populating a list of
     ExternalResource objects"""
     return ExternalResources(_eleToDictList(element))
+
+
+def _parseXmlSuppResources(element):
+    """Parse the SupplementalResources tag, populating a list of
+    ExternalResource objects"""
+    return SupplementalResources(_eleToDictList(element))
 
 
 def _parseXmlDataSetMetadata(element):

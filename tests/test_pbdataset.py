@@ -2,6 +2,7 @@ from functools import partial, reduce
 from itertools import zip_longest
 import subprocess
 import pytest
+import os.path as op
 import os
 import sys
 import re
@@ -2574,3 +2575,31 @@ class TestDataSet:
     def test_load_mock_collection_metadata(self):
         md = loadMockCollectionMetadata()
         assert md.wellSample.name == "unknown"
+
+    def test_supplemental_resources(self):
+        ds_file1 = op.join(op.dirname(__file__), "data",
+            "supplemental_resources.consensusreadset.xml")
+        ds_file2 = op.join(op.dirname(__file__), "data",
+            "supplemental_resources2.consensusreadset.xml")
+        ds1 = ConsensusReadSet(ds_file1, strict=True)
+        ds2 = ConsensusReadSet(ds_file2, strict=True)
+        assert len(ds1.supplementalResources) == 1
+        assert ds1.supplementalResources[0].metaType == "PacBio.FileTypes.txt"
+        assert op.isabs(ds1.supplementalResources[0].resourceId)
+        assert op.basename(ds1.supplementalResources[0].resourceId) == "report.txt"
+        ds3 = ds1.merge(ds2)
+        assert len(ds3.supplementalResources) == 2
+        # write/read recycle
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".consensusreadset.xml").name
+        ds3.write(tmp_file)
+        ds4 = ConsensusReadSet(tmp_file)
+        assert len(ds4.supplementalResources) == 2
+        # XXX this will also modify ds3!
+        ds2.makePathsRelative(op.dirname(ds_file2))
+        assert ds2.supplementalResources[0].resourceId == "report2.txt"
+        # add supplemental resource to dataset that didn't have any
+        ds5 = ConsensusReadSet(ds1.externalResources[0].bam)
+        ds5.supplementalResources.append(ds1.supplementalResources[0])
+        ds5.write(tmp_file)
+        ds6 = ConsensusReadSet(tmp_file)
+        assert len(ds6.supplementalResources) == 1
