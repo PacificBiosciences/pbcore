@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pbds:ConsensusReadSet xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" UniqueId="95de1cbe-6dec-40d9-8aaa-33148e72cc13" Tags="" MetaType="PacBio.DataSet.ConsensusReadSet" TimeStampedName="pacbio_dataset_consensusreadset-211104_043224331" Name="pacbio_dataset_consensusreadset-211104_043224331" CreatedAt="2021-11-03T21:32:24" Version="3.0.1" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource UniqueId="36044dcf-a1c2-48f7-b4cc-45d680cc64da" TimeStampedName="pacbio_consensusreadfile_consensusreadbamfile-211104_043224329" ResourceId="../../pbcore/data/m130727_114215_42211_c100569412550000001823090301191423_s1_p0.ccs.bam" MetaType="PacBio.ConsensusReadFile.ConsensusReadBamFile">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex UniqueId="301938a5-f67f-45bd-bb5b-b092829e0acf" TimeStampedName="pacbio_index_pacbioindex-211104_043224325" ResourceId="../../pbcore/data/m130727_114215_42211_c100569412550000001823090301191423_s1_p0.ccs.bam.pbi" MetaType="PacBio.Index.PacBioIndex"/>
+				<pbbase:FileIndex UniqueId="ca027028-4eb4-43c8-a05d-59bd789a93aa" TimeStampedName="pacbio_index_bamindex-211104_043224325" ResourceId="../../pbcore/data/m130727_114215_42211_c100569412550000001823090301191423_s1_p0.ccs.bam.bai" MetaType="PacBio.Index.BamIndex"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+  <pbbase:SupplementalResources>
+    <pbbase:ExternalResource UniqueId="e8acfc10-8659-4c4d-97e2-d7ae8c593243" TimeStampedName="pacbio_filetype_txt-211104_043224326" ResourceId="report2.txt" MetaType="PacBio.FileTypes.txt"/>
+  </pbbase:SupplementalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>85803</pbds:TotalLength>
+		<pbds:NumRecords>18</pbds:NumRecords>
+	</pbds:DataSetMetadata>
+</pbds:ConsensusReadSet>
