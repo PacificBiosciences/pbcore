@@ -272,4 +272,12 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
+  <!-- Future PN placeholder; SequencingChemistry and SoftwareVersion need to be reviewed/updated prior to integration/release -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
+    <BindingKit>102-894-200</BindingKit>
+    <SequencingKit>102-118-800</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+  
 </MappingTable>
