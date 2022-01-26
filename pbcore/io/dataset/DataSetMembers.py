@@ -1414,6 +1414,13 @@ class ExternalResources(RecordWrapper):
         return self._resourceIds
 
 
+class SupplementalResources(ExternalResources):
+    """
+    This behaves identically to ExternalResources although it is treated
+    differently in the actual dataset object
+    """
+
+
 class ExternalResource(RecordWrapper):
     NS = 'pbbase'
 
