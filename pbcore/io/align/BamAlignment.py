@@ -10,6 +10,7 @@ from pbcore.util import statistics
 from ._BamSupport import (UnavailableFeature,
                           Unimplemented,
                           IncompatibleFile,
+                          MultipleReadGroups,
                           BASE_FEATURE_TAGS,
                           rgAsInt,
                           BAM_CMATCH,
@@ -234,8 +235,19 @@ class BamAlignment(AlignmentRecordMixin):
         return self.readGroupInfo.MovieName
 
     @property
+    def readGroupName(self):
+        return self.peer.opt("RG")
+
+    @property
+    def readGroupId(self):
+        return rgAsInt(self.readGroupName)
+
+    @property
     def readGroupInfo(self):
-        return self.bam.readGroupInfo(rgAsInt(self.peer.opt("RG")))
+        try:
+            return self.bam.readGroupInfo(self.readGroupId)
+        except MultipleReadGroups:
+            return self.bam.readGroupInfo(self.readGroupName)
 
     @property
     def readScore(self):

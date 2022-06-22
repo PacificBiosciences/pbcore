@@ -19,6 +19,10 @@ class IncompatibleFile(Exception):
     pass
 
 
+class MultipleReadGroups(ValueError):
+    pass
+
+
 BASE_FEATURE_TAGS = {"InsertionQV": ("iq", "qv",      np.uint8),
                      "DeletionQV": ("dq", "qv",      np.uint8),
                      "DeletionTag": ("dt", "base",    np.int8),

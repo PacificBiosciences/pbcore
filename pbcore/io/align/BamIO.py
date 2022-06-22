@@ -2,7 +2,9 @@
 
 __all__ = ["BamReader", "IndexedBamReader"]
 
+from collections import defaultdict
 from functools import wraps
+import warnings
 from os.path import abspath, expanduser, exists
 
 import numpy as np
@@ -21,7 +23,8 @@ from ._BamSupport import (BASE_FEATURE_TAGS,
                           UnavailableFeature,
                           Unimplemented,
                           IncompatibleFile,
-                          ReferenceMismatch)
+                          ReferenceMismatch,
+                          MultipleReadGroups)
 from ._AlignmentMixin import AlignmentReaderMixin, IndexedAlignmentReaderMixin
 
 
@@ -122,7 +125,7 @@ class _BamReaderBase(ReaderBase):
 
             readGroupTable_.append(
                 (rgID, rgName, rgReadType, rgChem, rgFrameRate, rgSample,
-                 rgLibrary, frozenset(baseFeatureNameMapping)))
+                 rgLibrary, frozenset(baseFeatureNameMapping), rg["ID"]))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -133,12 +136,19 @@ class _BamReaderBase(ReaderBase):
                    ("FrameRate",           float),
                    ("SampleName",          "O"),
                    ("LibraryName",         "O"),
-                   ("BaseFeatures",        "O")])
-        assert len(set(self._readGroupTable.ID)) == len(self._readGroupTable), \
-            "First 8 chars of read group IDs must be unique!"
+                   ("BaseFeatures",        "O"),
+                   ("StringID", "O")])
+        if len(set(self._readGroupTable.ID)) != len(self._readGroupTable):
+            warnings.warn("Non-unique read group integer IDs found - some features may be restricted", RuntimeWarning)
 
-        self._readGroupDict = {rg.ID: rg
-                               for rg in self._readGroupTable}
+        # In our modern barcoded BAM files the read groups take the form
+        # '0123456/0--0', '0123456/1--1', etc., but the barcode pairs are not
+        # included in the conversion to integer ID.  this means we need to
+        # track the full ID string separately
+        self._readGroupUniqueDict = {rg.StringID:rg for rg in self._readGroupTable}
+        self._readGroupDict = defaultdict(list)
+        for rg in self._readGroupTable:
+            self._readGroupDict[rg.ID].append(rg)
 
         # The base/pulse features "available" to clients of this file are the intersection
         # of features available from each read group.
@@ -241,6 +251,18 @@ class _BamReaderBase(ReaderBase):
         return self._readGroupTable
 
     def readGroupInfo(self, readGroupId):
+        if isinstance(readGroupId, str):
+            return self._readGroupUniqueDict[readGroupId]
+        else:
+            rgs = self._readGroupDict[readGroupId]
+            if len(rgs) == 1:
+                return rgs[0]
+            elif len(rgs) > 1:
+                raise MultipleReadGroups("There are multiple read groups with ID {}: {}".format(readGroupId, ", ".join([rg.StringID for rg in rgs])))
+            else:
+                return KeyError("No read group with ID {}".format(readGroupId))
+
+    def readGroupInfos(self, readGroupId):
         return self._readGroupDict[readGroupId]
 
     @property

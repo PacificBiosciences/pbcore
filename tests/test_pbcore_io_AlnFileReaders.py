@@ -284,7 +284,8 @@ class _BasicAlnFileReaderTests:
             ('FrameRate', '<f8'),
             ('SampleName', 'O'),
             ('LibraryName', 'O'),
-            ('BaseFeatures', 'O')] == rgFwd.dtype
+            ('BaseFeatures', 'O'),
+            ('StringID', 'O')] == rgFwd.dtype
         assert isinstance(rgFwd.BaseFeatures, frozenset)
         assert 'S/P4-C2/5.0-8M' == rgFwd.SequencingChemistry
         assert "m140905_042212_sidney_c100564852550000001823085912221377_s1_X0" == rgFwd.MovieName
@@ -544,3 +545,14 @@ class TestBarcodedBam:
         bam = BamReader(fn)
         for rec in bam:
             assert rec.read(aligned=True) is not None
+
+    @pytest.mark.internal_data
+    def test_mapped_bam_multiple_barcodes(self):
+        fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/multi_bc_bam/mapped.bam"
+        bam = IndexedBamReader(fn)
+        assert len(bam.readGroupTable) == 4
+        for rec in bam:
+            assert rec.readType == "CCS"
+            rg = rec.readGroupInfo
+            assert rg.StringID == rec.peer.get_tag("RG")
+            break

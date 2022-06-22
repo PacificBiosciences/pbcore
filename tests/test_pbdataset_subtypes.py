@@ -1081,3 +1081,10 @@ class TestDataSet:
         assert isinstance(ds, ReferenceSet)
         assert ds.numRecords == 1
         assert ds.totalLength == 4
+
+    @pytest.mark.internal_data
+    def test_bams_multiple_barcodes_one_movie(self):
+        DATA = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/multi_bc_bam/mapped.consensusalignmentset.xml"
+        ds = ConsensusAlignmentSet(DATA)
+        assert len(ds.resourceReaders()) == 1
+        assert len(ds.readGroupTable) == 4

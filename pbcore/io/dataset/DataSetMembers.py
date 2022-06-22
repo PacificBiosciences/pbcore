@@ -47,11 +47,11 @@ serve two pruposes:
     - bioSamplePointer = (DataSet("test.xml")\
                           .metadata.collections[0]\
                           .wellSample.bioSamplePointers[0])
-    - Though users can still access novel metadata types the hard way e.g.:
-        - bioSamplePointer = (DataSet("test.xml")\
-                              .metadata.collections[0]\
-                              ['WellSample']['BioSamplePointers']\
-                              ['BioSamplePointer'].record['text'])
+- Though users can still access novel metadata types the hard way e.g.:
+    - bioSamplePointer = (DataSet("test.xml")\
+                          .metadata.collections[0]\
+                           ['WellSample']['BioSamplePointers']\
+                           ['BioSamplePointer'].record['text'])
 
 Notes:
     - If you want temporary children to be retained for a classes's children,
