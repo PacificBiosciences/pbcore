@@ -23,13 +23,12 @@ class DataSetMetaTypes:
     CCS_ALIGNMENT = toDsId("ConsensusAlignmentSet")
     CCS = toDsId("ConsensusReadSet")
     REFERENCE = toDsId("ReferenceSet")
-    GMAPREFERENCE = toDsId("GmapReferenceSet")
     CONTIG = toDsId("ContigSet")
     TRANSCRIPT = toDsId("TranscriptSet")
     TRANSCRIPT_ALIGNMENT = toDsId("TranscriptAlignmentSet")
 
     ALL = (SUBREAD, ALIGNMENT,
-           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG, GMAPREFERENCE,
+           BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG,
            TRANSCRIPT, TRANSCRIPT_ALIGNMENT)
 
     @classmethod

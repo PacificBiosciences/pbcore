@@ -1479,16 +1479,6 @@ class ExternalResource(RecordWrapper):
         self._setIndResByMetaType('PacBio.Index.BamIndex', value)
 
     @property
-    def gmap(self):
-        """Unusual: returns the gmap external resource instead of the resId"""
-        return self._getSubExtResByMetaType('PacBio.GmapDB.GmapDBPath')
-
-    @gmap.setter
-    def gmap(self, value):
-        """Sets the resourceId"""
-        self._setSubResByMetaType('PacBio.GmapDB.GmapDBPath', value)
-
-    @property
     def sts(self):
         return self._getSubResByMetaType('PacBio.SubreadFile.ChipStatsFile')
 

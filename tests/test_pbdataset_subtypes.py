@@ -17,7 +17,7 @@ from pbcore.io import (SubreadSet, ConsensusReadSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        ConsensusAlignmentSet,
                        openDataFile, FastqReader,
-                       GmapReferenceSet, TranscriptSet)
+                       TranscriptSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -141,31 +141,6 @@ class TestDataSet:
         for r in refs:
             obs_n_contigs += len(r)
         assert obs_n_contigs == exp_n_contigs
-
-    @pytest.mark.internal_data
-    def test_gmapreferenceset_len(self):
-        fas = ('/pbi/dept/secondary/siv/testdata/isoseq/'
-               'lexigoen-ground-truth/reference/SIRV_150601a.fasta')
-        ref = GmapReferenceSet(fas)
-        fn = '/pbi/dept/secondary/siv/testdata/isoseq/gmap_db'
-        ver = '2014-12-19'
-        name = 'SIRV'
-        ref.gmap = fn
-        assert ref.gmap.resourceId == fn
-        ref.gmap.version = ver
-        assert ref.gmap.version == ver
-        ref.gmap.name = name
-        assert ref.gmap.name == name
-        fn = tempfile.NamedTemporaryFile(suffix=".gmapreferenceset.xml")
-        # TODO: Turn validation back on when xsd sync happens
-        ref.write(fn.name, validate=False)
-        log.debug(fn.name)
-        gref = GmapReferenceSet(fn.name)
-        gref.gmap.resourceId
-        gref.gmap.version
-        gref.gmap.name
-        gref.gmap.timeStampedName
-        fn.close()
 
     def test_ccsread_build(self):
         ds1 = ConsensusReadSet(data.getXml(2), strict=False, skipMissing=True)

@@ -1796,7 +1796,6 @@ class DataSet:
                 'ConsensusReadSet': ConsensusReadSet,
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
-                'GmapReferenceSet': GmapReferenceSet,
                 'BarcodeSet': BarcodeSet,
                 'TranscriptSet': TranscriptSet,
                 'TranscriptAlignmentSet': TranscriptAlignmentSet}
@@ -4343,35 +4342,6 @@ class ReferenceSet(ContigSet):
                 'contig.index': 'PacBio.Index.FastaContigIndex',
                 'index': 'PacBio.Index.Indexer',
                 'sa': 'PacBio.Index.SaWriterIndex',
-                }
-
-
-class GmapReferenceSet(ReferenceSet):
-    """DataSet type specific to GMAP References"""
-
-    datasetType = DataSetMetaTypes.GMAPREFERENCE
-
-    def __init__(self, *files, **kwargs):
-        super().__init__(*files, **kwargs)
-
-    @property
-    def gmap(self):
-        return self.externalResources[0].gmap
-
-    @gmap.setter
-    def gmap(self, value):
-        self.externalResources[0].gmap = value
-
-    @staticmethod
-    def _metaTypeMapping():
-        return {'fasta': 'PacBio.ContigFile.ContigFastaFile',
-                'fa': 'PacBio.ContigFile.ContigFastaFile',
-                'fas': 'PacBio.ContigFile.ContigFastaFile',
-                'fai': 'PacBio.Index.SamIndex',
-                'contig.index': 'PacBio.Index.FastaContigIndex',
-                'index': 'PacBio.Index.Indexer',
-                'sa': 'PacBio.Index.SaWriterIndex',
-                'gmap': 'PacBio.GmapDB.GmapDBPath',
                 }
 
 
