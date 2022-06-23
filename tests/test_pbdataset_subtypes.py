@@ -1088,3 +1088,8 @@ class TestDataSet:
         ds = ConsensusAlignmentSet(DATA)
         assert len(ds.resourceReaders()) == 1
         assert len(ds.readGroupTable) == 4
+
+    def test_reference_fasta_meta_type(self):
+        fasta = upstreamData.getLambdaFasta()
+        ds = ReferenceSet(fasta)
+        assert ds.externalResources[0].metaType == "PacBio.ReferenceFile.ReferenceFastaFile"

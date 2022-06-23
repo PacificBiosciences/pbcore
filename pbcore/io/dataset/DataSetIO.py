@@ -4335,10 +4335,10 @@ class ReferenceSet(ContigSet):
 
     @staticmethod
     def _metaTypeMapping():
-        return {'fasta': 'PacBio.ContigFile.ContigFastaFile',
-                'fa': 'PacBio.ContigFile.ContigFastaFile',
-                'fas': 'PacBio.ContigFile.ContigFastaFile',
-                'fsa': 'PacBio.ContigFile.ContigFastaFile',
+        return {'fasta': 'PacBio.ReferenceFile.ReferenceFastaFile',
+                'fa': 'PacBio.ReferenceFile.ReferenceFastaFile',
+                'fas': 'PacBio.ReferenceFile.ReferenceFastaFile',
+                'fsa': 'PacBio.ReferenceFile.ReferenceFastaFile',
                 'fai': 'PacBio.Index.SamIndex',
                 'contig.index': 'PacBio.Index.FastaContigIndex',
                 'index': 'PacBio.Index.Indexer',
