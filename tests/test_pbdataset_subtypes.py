@@ -6,6 +6,7 @@ import tempfile
 import time
 import uuid
 import shutil
+import numpy as np
 from urllib.parse import urlparse
 import xml.etree.ElementTree as ET
 
@@ -1056,6 +1057,20 @@ class TestDataSet:
         assert isinstance(ds, ReferenceSet)
         assert ds.numRecords == 1
         assert ds.totalLength == 4
+
+    @pytest.mark.internal_data
+    def test_different_references(self):
+        lambda_alnset = ('/pbi/dept/secondary/siv/testdata/pbcore-unittest/'
+                         'data/lambda/2372215/0007_tiny/Alignment_Results/'
+                         'm150404_101626_42267_c10080792080000000182317411'
+                         '0291514_s1_p0.1.aligned.bam')
+        ecoli_alnset = ('/pbi/dept/secondary/siv/testdata/pbcore-unittest/'
+                        'data/ecoli/2590953/0001/Alignment_Results/'
+                        'm140913_005018_42139_c100713652400000001823152404'
+                        '301534_s1_p0.1.aligned.bam')
+        combined = AlignmentSet(lambda_alnset, ecoli_alnset)
+        assert len(combined.referenceInfoTable) == 2
+        assert isinstance(combined.referenceInfoTable, np.recarray)
 
     @pytest.mark.internal_data
     def test_bams_multiple_barcodes_one_movie(self):

@@ -3673,6 +3673,7 @@ class AlignmentSet(ReadSet):
             except ResourceMismatchError:
                 table = np.concatenate(responses)
                 table = np.unique(table)
+                table = table.view(np.recarray)
                 for i, rec in enumerate(table):
                     rec.ID = i
                     rec.RefInfoID = i
