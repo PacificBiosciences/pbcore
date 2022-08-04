@@ -30,7 +30,7 @@ setup(
     entry_points={'console_scripts': ['.open = pbcore.io.opener:entryPoint']},
     install_requires=[
         'biopython >= 1.76',
-        'numpy >= 1.21.0',
+        'numpy >= 1.21.0, <= 1.22.4',
         'pysam >= 0.16.0.1',
     ],
     tests_require=test_deps,
