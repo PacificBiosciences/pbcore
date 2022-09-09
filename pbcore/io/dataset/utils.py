@@ -5,8 +5,10 @@
 Utils that support fringe DataSet features.
 """
 
+import warnings
 import subprocess
 import os
+import re
 import tempfile
 import logging
 import shutil
@@ -245,3 +247,49 @@ def split_keys_around_read_groups(keys, chunks):
         return sub_chunks
     else:
         return splitKeys(keys, chunks)
+
+
+def collection_file_resolver(start_path, extension):
+    """
+    Given a path to a PacBio instrument output, for example the main dataset
+    XML payload, determine the path for a related resource file by extension,
+    taking into account differences in directory layout between software
+    versions and products.  This is mainly intended as a workaround for
+    internal uses where we generate additional files not declared in the
+    primary consensusreadset.xml delivered by the production instruments.
+    """
+    # XXX this should not be used anywhere in the SMRT Link code
+    if "SMRT_CHEMISTRY_BUNDLE_DIR" in os.environ:
+        warnings.warn(FutureWarning, "This function should not be used in customer-facing production code.")
+    DATASET_SUBDIRS = ["pb_internal", "pb_formats", "metadata", "statistics", "hifi_reads"]
+    if not os.path.isfile(os.path.realpath(start_path)):
+        raise ValueError(f"{start_path} is not a valid file")
+    base_dir = os.path.dirname(os.path.realpath(start_path))
+    if not extension.startswith(".") or extension.startswith("_"):
+        extension = "." + extension
+    base_file_name = os.path.basename(start_path)
+    base_name, base_ext = os.path.splitext(base_file_name)
+    base_ext2 = ""
+    movie_context = base_name.split(".")[0]
+    if base_ext in {".xml", ".h5", ".bam"}:
+        base_name, base_ext2 = os.path.splitext(base_name)
+    base_ext = f"{base_ext2}{base_ext}"
+    target_file_name = base_file_name[0:-len(base_ext)] + extension
+    candidate_path_1 = os.path.join(base_dir, target_file_name)
+    if os.path.isfile(candidate_path_1):
+        log.debug(f"Found {extension} file at {candidate_path_1}")
+        return candidate_path_1
+    else:
+        log.debug(f"Path {candidate_path_1} is not a valid file")
+    base_subdir = os.path.basename(base_dir)
+    if base_subdir in DATASET_SUBDIRS:
+        dataset_root_dir = os.path.dirname(base_dir)
+        log.info(f"New dataset contents found, looking under {dataset_root_dir}")
+        for subdir in DATASET_SUBDIRS:
+            candidate_path_2 = os.path.join(dataset_root_dir, subdir, target_file_name)
+            if os.path.isfile(candidate_path_2):
+                log.debug(f"Found {extension} file at {candidate_path_2}")
+                return candidate_path_2
+    contents = " ".join(os.listdir(base_dir))
+    log.warn(f"Can't find file matching '{extension}' in directory {base_dir}: {contents}")
+    raise IOError(f"Can't find instrument file with extension {extension} associated with {start_path}")
