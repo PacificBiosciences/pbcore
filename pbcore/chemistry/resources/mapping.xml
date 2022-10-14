@@ -272,14 +272,6 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- Future PN placeholder; SequencingChemistry and SoftwareVersion need to be reviewed/updated prior to integration/release -->
-  <Mapping>
-    <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
-    <BindingKit>102-894-200</BindingKit>
-    <SequencingKit>102-118-800</SequencingKit>
-    <SoftwareVersion>5.0</SoftwareVersion>
-  </Mapping>
-  
   <!-- Sequel® II Binding Kit 3.1; Sequel® II Sequencing Plate 2.0EA (4 Rxn)-->
   <Mapping>
     <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
@@ -357,6 +349,54 @@
     <SequencingChemistry>S/P5-C2/5.0-8M</SequencingChemistry>
     <BindingKit>102-194-100</BindingKit>
     <SequencingKit>101-820-300</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Development Kits -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>101-894-200</BindingKit>
+    <SequencingKit>102-118-800</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (4 rxn) -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>102-739-100</BindingKit>
+    <SequencingKit>102-118-800</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>102-739-100</BindingKit>
+    <SequencingKit>102-412-400</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>102-739-100</BindingKit>
+    <SequencingKit>102-412-400</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate QC - Internal -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>102-739-100</BindingKit>
+    <SequencingKit>102-118-900</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate R&D - Internal -->
+  <Mapping>
+    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <BindingKit>102-739-100</BindingKit>
+    <SequencingKit>102-171-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 </MappingTable>
