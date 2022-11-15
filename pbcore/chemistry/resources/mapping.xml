@@ -352,49 +352,49 @@
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Development Kits -->
+  <!-- Revio Development Kits -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>101-894-200</BindingKit>
     <SequencingKit>102-118-800</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (4 rxn) -->
+  <!-- Revio Polymerase Kit; Sequencing Plate 1.0 (4 rxn) -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>102-739-100</BindingKit>
     <SequencingKit>102-118-800</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
+  <!-- Revio Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>102-739-100</BindingKit>
     <SequencingKit>102-412-400</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
+  <!-- Revio Polymerase Kit; Sequencing Plate 1.0 (1 rxn) - Internal -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>102-739-100</BindingKit>
     <SequencingKit>102-412-400</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate QC - Internal -->
+  <!-- Revio Polymerase Kit; Sequencing Plate QC - Internal -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>102-739-100</BindingKit>
     <SequencingKit>102-118-900</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
 
-  <!-- 2023 Platform; Polymerase Kit; Sequencing Plate R&D - Internal -->
+  <!-- Revio Polymerase Kit; Sequencing Plate R&D - Internal -->
   <Mapping>
-    <SequencingChemistry>S/P5-C3/5.0-25M</SequencingChemistry>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
     <BindingKit>102-739-100</BindingKit>
     <SequencingKit>102-171-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>

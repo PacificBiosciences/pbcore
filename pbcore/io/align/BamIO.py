@@ -102,7 +102,7 @@ class _BamReaderBase(ReaderBase):
                     pass
                 else:
                     raise IOError(
-                        "This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
+                        "This does not appear to be a valid PacBio BAM file. Only datasets from RS II, Sequel, and Revio instruments are supported by this program.")
                 rgFrameRate = ds["FRAMERATEHZ"]
                 basecallerVersion = ".".join(
                     ds["BASECALLERVERSION"].split(".")[0:2])
@@ -303,7 +303,7 @@ class _BamReaderBase(ReaderBase):
             return self.peer.header["HD"]["pb"]
         except KeyError:
             raise IOError(
-                "This does not appear to be a valid PacBio BAM file. Only datasets from RS II and Sequel instruments are supported by this program.")
+                "This does not appear to be a valid PacBio BAM file. Only datasets from RS II, Sequel, and Revio instruments are supported by this program.")
 
     def versionAtLeast(self, minimalVersion):
         raise Unimplemented()
