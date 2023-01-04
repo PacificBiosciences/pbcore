@@ -61,14 +61,19 @@ def _addFile(dset, filename):
 
 
 def checksts(dset, subdatasets=False):
+    def _load_file(fn):
+        try:
+            dset.loadStats(fn)
+        except IOError as e:
+            log.warning("Sts.xml file {f} unopenable".format(f=fn))
     if not dset.metadata.summaryStats:
         for extres in dset.externalResources:
             if extres.sts:
-                try:
-                    dset.loadStats(extres.sts)
-                except IOError as e:
-                    log.info("Sts.xml file {f} "
-                             "unopenable".format(f=extres.sts))
+                _load_file(extres.sts)
+    if not dset.metadata.summaryStats:
+        for rsrc in dset.supplementalResources:
+            if rsrc.metaType == "PacBio.SubreadFile.ChipStatsFile":
+                _load_file(rsrc.resourceId)
     if subdatasets:
         for sds in dset.subdatasets:
             checksts(sds)

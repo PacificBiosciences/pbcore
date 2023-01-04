@@ -1083,3 +1083,9 @@ class TestDataSet:
         fasta = upstreamData.getLambdaFasta()
         ds = ReferenceSet(fasta)
         assert ds.externalResources[0].metaType == "PacBio.ReferenceFile.ReferenceFastaFile"
+
+    def test_load_supplemental_stats(self):
+        DATA = "/pbi/dept/secondary/siv/testdata/smrtlink-functional/rhino-demux/m64000e_211108_120000.consensusreadset.xml"
+        ds = ConsensusReadSet(DATA)
+        ds.loadStats()
+        assert ds.metadata.summaryStats
