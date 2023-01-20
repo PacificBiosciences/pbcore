@@ -260,7 +260,7 @@ def collection_file_resolver(start_path, extension):
     """
     # XXX this should not be used anywhere in the SMRT Link code
     if "SMRT_CHEMISTRY_BUNDLE_DIR" in os.environ:
-        warnings.warn(FutureWarning, "This function should not be used in customer-facing production code.")
+        warnings.warn("This function should not be used in customer-facing production code.", FutureWarning)
     DATASET_SUBDIRS = ["pb_internal", "pb_formats", "metadata", "statistics", "hifi_reads"]
     if not os.path.isfile(os.path.realpath(start_path)):
         raise ValueError(f"{start_path} is not a valid file")
@@ -274,7 +274,7 @@ def collection_file_resolver(start_path, extension):
     if base_ext in {".xml", ".h5", ".bam"}:
         base_name, base_ext2 = os.path.splitext(base_name)
     base_ext = f"{base_ext2}{base_ext}"
-    target_file_name = base_file_name[0:-len(base_ext)] + extension
+    target_file_name = f"{movie_context}{extension}"
     candidate_path_1 = os.path.join(base_dir, target_file_name)
     if os.path.isfile(candidate_path_1):
         log.debug(f"Found {extension} file at {candidate_path_1}")
