@@ -108,6 +108,10 @@ class _BamReaderBase(ReaderBase):
                     ds["BASECALLERVERSION"].split(".")[0:2])
                 triple = ds["BINDINGKIT"], ds["SEQUENCINGKIT"], basecallerVersion
                 rgChem = decodeTriple(*triple)
+            rgSmrtCellID = ds.get("SMRTCELLID", "")
+            rgSmrtCellKit = ds.get("SMRTCELLKIT", "")
+            rgIcsVersion = ds.get("ICSVERSION", "")
+            rgRunID = ds.get("RUNID", "")
 
             # Look for the features manifest entries within the DS tag,
             # and build an "indirection layer", i.e. to get from
@@ -125,7 +129,8 @@ class _BamReaderBase(ReaderBase):
 
             readGroupTable_.append(
                 (rgID, rgName, rgReadType, rgChem, rgFrameRate, rgSample,
-                 rgLibrary, frozenset(baseFeatureNameMapping), rg["ID"]))
+                 rgLibrary, frozenset(baseFeatureNameMapping), rg["ID"], 
+                 rgSmrtCellID, rgSmrtCellKit, rgIcsVersion, rgRunID))
 
         self._readGroupTable = np.rec.fromrecords(
             readGroupTable_,
@@ -137,7 +142,11 @@ class _BamReaderBase(ReaderBase):
                    ("SampleName",          "O"),
                    ("LibraryName",         "O"),
                    ("BaseFeatures",        "O"),
-                   ("StringID", "O")])
+                   ("StringID",            "O"),
+                   ("SmrtCellID",          "O"),
+                   ("SmrtCellKit",         "O"),
+                   ("IcsVersion",          "O"),
+                   ("RunID",               "O")])
         if len(set(self._readGroupTable.ID)) != len(self._readGroupTable):
             warnings.warn("Non-unique read group integer IDs found - some features may be restricted", RuntimeWarning)
 
