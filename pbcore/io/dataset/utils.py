@@ -117,7 +117,7 @@ def file_size(path):
 
 
 def _pbindexBam(fname):
-    args = ["pbindex", fname]
+    args = ["pbindex", "-j", "1", fname]
     log.info(" ".join(args))
     subprocess.check_call(args)
     return fname + ".pbi"
@@ -134,7 +134,7 @@ def _indexFasta(fname):
 
 
 def _pbmergeXML(indset, outbam):
-    args = ["pbmerge", "-o", outbam, indset]
+    args = ["pbmerge", "-j", "1", "-o", outbam, indset]
     log.info(" ".join(args))
     subprocess.check_call(args)
     return outbam
