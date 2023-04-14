@@ -289,7 +289,8 @@ class _BasicAlnFileReaderTests:
             ('SmrtCellID', 'O'),
             ('SmrtCellKit', 'O'),
             ('IcsVersion', 'O'),
-            ('RunID', 'O')
+            ('RunID', 'O'),
+            ('MovieLength', 'O'),
             ] == rgFwd.dtype
         assert isinstance(rgFwd.BaseFeatures, frozenset)
         assert 'S/P4-C2/5.0-8M' == rgFwd.SequencingChemistry
@@ -572,7 +573,7 @@ class TestSmrtCellReadGroupDescriptions:
 @HD\tVN:1.5\tSO:coordinate\tpb:3.0.7
 @SQ\tSN:ecoliK12_pbi_March2013_2955000_to_2980000\tLN:25000\tM5:734d5f3b2859595f4bd87a2fe6b7389b
 @RG\tID:19d45c63\tPL:PACBIO\tDS:READTYPE=SUBREAD;Ipd:CodecV1=ip;PulseWidth:CodecV1=pw;BINDINGKIT=101-789-500;SEQUENCINGKIT=101-789-300;BASECALLERVERSION=5.0.0;FRAMERATEHZ=100.000000\tPU:movie1\tPM:SEQUELII\tSM:test_sample1
-@RG\tID:69995355\tPL:PACBIO\tDS:READTYPE=SUBREAD;Ipd:CodecV1=ip;PulseWidth:CodecV1=pw;BINDINGKIT=101-789-500;SEQUENCINGKIT=101-789-300;BASECALLERVERSION=5.0.0;FRAMERATEHZ=100.000000;SMRTCELLKIT=102-202-200;SMRTCELLID=EA008011;RUNID=r84029_20230127_224717;ICSVERSION=12.0.0.172107\tPU:m64012_181222_192540\tPM:SEQUELII\tSM:test_sample2
+@RG\tID:69995355\tPL:PACBIO\tDS:READTYPE=SUBREAD;Ipd:CodecV1=ip;PulseWidth:CodecV1=pw;BINDINGKIT=101-789-500;SEQUENCINGKIT=101-789-300;BASECALLERVERSION=5.0.0;FRAMERATEHZ=100.000000;SMRTCELLKIT=102-202-200;SMRTCELLID=EA008011;RUNID=r84029_20230127_224717;ICSVERSION=12.0.0.172107;MOVIELENGTH=12345\tPU:m64012_181222_192540\tPM:SEQUELII\tSM:test_sample2
 movie1/54130/0_10\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t2\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:19d45c63\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:10\tqs:i:0\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2
 m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t10\t10=\t*\t0\t0\tAATGAGGAGA\t*\tRG:Z:69995355\tdq:Z:2222'$22'2\tdt:Z:NNNNAGNNGN\tip:B:C,255,2,0,10,22,34,0,2,3,0,16\tiq:Z:(+#1'$#*1&\tmq:Z:&1~51*5&~2\tnp:i:1\tqe:i:20\tqs:i:10\trq:f:0.854\tsn:B:f,2,2,2,2\tsq:Z:<32<4<<<<3\tzm:i:54130\tAS:i:-3020\tNM:i:134\tcx:i:2"""
 
@@ -597,6 +598,7 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
                     assert rg.SmrtCellKit == ""
                     assert rg.IcsVersion == ""
                     assert rg.RunID == ""
+                    assert rg.MovieLength == ""
                 else: 
                     # with new fields
                     assert rg.StringID == "69995355"
@@ -604,3 +606,4 @@ m64012_181222_192540/1/10_20\t2\tecoliK12_pbi_March2013_2955000_to_2980000\t12\t
                     assert rg.SmrtCellKit == "102-202-200"
                     assert rg.IcsVersion == "12.0.0.172107"
                     assert rg.RunID == "r84029_20230127_224717"
+                    assert rg.MovieLength == "12345"
