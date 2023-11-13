@@ -1012,6 +1012,7 @@ class TestDataSet:
         uuid = ds.metadata.collections[0].consensusReadSetRef.uuid
         assert uuid == "5416f525-d3c7-496b-ba8c-18d7ec1b4499"
 
+    @pytest.mark.skip(reason="Missing BAM resource")
     @pytest.mark.internal_data
     def test_subreads_sts_xml_merge_zero_division(self):
         fn = "/pbi/dept/secondary/siv/testdata/pbcore-unittest/data/merged.dataset.xml"
