@@ -26,10 +26,11 @@ class DataSetMetaTypes:
     CONTIG = toDsId("ContigSet")
     TRANSCRIPT = toDsId("TranscriptSet")
     TRANSCRIPT_ALIGNMENT = toDsId("TranscriptAlignmentSet")
+    BED = toDsId("BedSet")
 
     ALL = (SUBREAD, ALIGNMENT,
            BARCODE, CCS, CCS_ALIGNMENT, REFERENCE, CONTIG,
-           TRANSCRIPT, TRANSCRIPT_ALIGNMENT)
+           TRANSCRIPT, TRANSCRIPT_ALIGNMENT, BED)
 
     @classmethod
     def isValid(cls, dsId):
