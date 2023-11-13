@@ -18,7 +18,7 @@ from pbcore.io import (SubreadSet, ConsensusReadSet,
                        FastaReader, FastaWriter, IndexedFastaReader,
                        ConsensusAlignmentSet,
                        openDataFile, FastqReader,
-                       TranscriptSet)
+                       TranscriptSet, BedSet)
 import pbcore.data as upstreamData
 import pbcore.data.datasets as data
 from pbcore.io.dataset.DataSetValidator import validateXml
@@ -1084,8 +1084,18 @@ class TestDataSet:
         ds = ReferenceSet(fasta)
         assert ds.externalResources[0].metaType == "PacBio.ReferenceFile.ReferenceFastaFile"
 
+    @pytest.mark.internal_data
     def test_load_supplemental_stats(self):
         DATA = "/pbi/dept/secondary/siv/testdata/smrtlink-functional/rhino-demux/m64000e_211108_120000.consensusreadset.xml"
         ds = ConsensusReadSet(DATA)
         ds.loadStats()
         assert ds.metadata.summaryStats
+
+    @pytest.mark.constools
+    def test_bedset(self):
+        import pbtestdata
+        bed_xml = pbtestdata.get_file("bedset")
+        ds = BedSet(bed_xml)
+        assert os.path.isfile(ds.externalResources[0].resourceId)
+        records = ds.resourceReaders()[0]
+        assert len(records) == 2

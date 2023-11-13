@@ -8,7 +8,6 @@ Utils that support fringe DataSet features.
 import warnings
 import subprocess
 import os
-import re
 import tempfile
 import logging
 import shutil

@@ -28,6 +28,7 @@ from pbcore.io.FastaIO import splitFastaHeader, FastaWriter
 from pbcore.io.FastqIO import FastqReader, FastqWriter, qvsFromAscii
 from pbcore.io import (FastaReader, IndexedFastaReader,
                        IndexedBamReader, BamReader)
+from pbcore.io.bedfile import parse_bed
 from pbcore.io.align._BamSupport import UnavailableFeature
 from pbcore.io.dataset.DataSetReader import (parseStats, populateDataSet,
                                              resolveLocation, xmlRootType,
@@ -4400,3 +4401,25 @@ class BarcodeSet(ContigSet):
                 'fai': 'PacBio.Index.SamIndex',
                 'sa': 'PacBio.Index.SaWriterIndex',
                 }
+
+
+class BedSet(DataSet):
+    datasetType = DataSetMetaTypes.BED
+
+    @staticmethod
+    def _metaTypeMapping():
+        return {'bed': 'PacBio.FileTypes.bed'}
+
+    def _openFile(self, location):
+        return parse_bed(location)
+
+    def _openFiles(self):
+        self._openReaders = []
+        for resource in self.externalResources:
+            self._openReaders.append(self._openFile(resource.resourceId))
+
+    def resourceReaders(self):
+        """Open the files in this ReadSet"""
+        if not self._openReaders:
+            self._openFiles()
+        return self._openReaders
