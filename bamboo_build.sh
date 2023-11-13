@@ -21,6 +21,8 @@ fi
 
 rm -rf build
 mkdir -p build/bin build/lib build/include build/share
+$PIP install urllib3==1.21.1
+$PIP install requests==2.29.0
 $PIP install --user --no-index --find-link $WHEELHOUSE --no-compile -e '.[test]'
 
 pytest --trace-config --collect-only
