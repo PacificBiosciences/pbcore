@@ -11,7 +11,7 @@ test_deps = [
     'pytest-cov',
     'pytest-xdist == 1.34.0',
     'sphinx==1.8.5',
-    'jinja2==2.11.1',
+    'jinja2==2.11.3',
     'markupsafe==2.0.1',
     'xmlschema',
 ]
