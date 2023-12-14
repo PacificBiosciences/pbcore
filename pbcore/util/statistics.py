@@ -16,10 +16,14 @@ class Constants:
 def accuracy_as_phred_qv(accuracy, max_qv=Constants.MAX_QV):
     """
     Convert fractional accuracy to Phred QV: 0.999 --> 30
+    Negative accuracy is not allowed except for the value -1, which is output
+    by CCS for unpolished reads, and is treated as Q0.
 
     returns: float or numpy array
     """
     if isinstance(accuracy, (float, int)):
+        if accuracy == -1:
+            return 0
         assert 0 <= accuracy <= 1.0
         if accuracy == 1:
             return max_qv
@@ -27,6 +31,7 @@ def accuracy_as_phred_qv(accuracy, max_qv=Constants.MAX_QV):
     else:
         if isinstance(accuracy, (tuple, list)):
             accuracy = np.array(accuracy)
+        accuracy[accuracy == -1] = 0.0
         error_rate = 1.0 - accuracy
         min_error_rate = 10 ** (-max_qv / 10.0)
         zero_error = error_rate < min_error_rate
