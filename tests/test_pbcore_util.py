@@ -16,6 +16,7 @@ class TestStatistics:
         qv = accuracy_as_phred_qv([0.95, 1.0, 0.99999])
         qvs = [int(round(x)) for x in qv]
         assert qvs == [13, 60, 50]
+        assert accuracy_as_phred_qv(-1) == 0
 
     def test_phred_qv_as_accuracy(self):
         assert phred_qv_as_accuracy(20) == 0.99
