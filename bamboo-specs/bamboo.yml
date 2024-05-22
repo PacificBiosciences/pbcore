@@ -1,0 +1,107 @@
+---
+version: 2
+plan:
+  project-key: SL
+  key: PBCORE
+  name: pbcore
+stages:
+- Default Stage:
+    manual: false
+    final: false
+    jobs:
+    - Default Job
+Default Job:
+  key: JOB1
+  tasks:
+  - checkout:
+      force-clean-build: true
+      description: Checkout Default Repository
+  - checkout:
+      repository: pacbiotestdata
+      path: repos/PacBioTestData
+      force-clean-build: true
+      description: Checkout Default Repository
+  - script:
+      interpreter: SHELL
+      file: bamboo_build.sh
+      description: Build
+  final-tasks:
+  - test-parser:
+      type: junit
+      ignore-time: false
+      test-results: '**/nosetests.xml'
+      description: parse test results
+  requirements:
+  - system.dist: redhat
+  artifact-subscriptions: []
+repositories:
+- pbcore:
+    scope: project
+- pacbiotestdata:
+    scope: project
+triggers:
+- bitbucket-server-trigger
+branches:
+  create: for-new-branch
+  delete:
+    after-deleted-days: 3
+    after-inactive-days: 14
+  link-to-jira: true
+labels:
+- python
+dependencies:
+  require-all-stages-passing: true
+  enabled-for-branches: true
+  block-strategy: block_if_parent_has_changes
+  plans:
+  - SL-PBREPORTS
+other:
+  concurrent-build-plugin: system-default
+  all-other-apps:
+    custom:
+      com.atlassian.bamboo.plugin.hungbuildkiller:
+        stopped.enabled: 'true'
+        add_comment_when_hung.enabled: 'true'
+      artifactHandlers.useCustomArtifactHandlers: 'false'
+      buildExpiryConfig:
+        period: days
+        enabled: 'true'
+        duration: '60'
+        expiryTypeResult: 'true'
+        buildsToKeep: '10'
+---
+version: 2
+plan:
+  key: SL-PBCORE
+plan-permissions:
+- roles:
+  - logged-in
+  permissions:
+  - view
+  - build
+- users:
+  - nechols
+  - dseifert
+  - mdsmith
+  - cstruble
+  - jhelmert
+  permissions:
+  - view
+  - edit
+  - build
+  - clone
+  - admin
+  - view-configuration
+- groups:
+  - tag_team
+  permissions:
+  - view
+  - edit
+  - build
+  - view-configuration
+- roles:
+  - anonymous
+  permissions:
+  - view
+...
+
