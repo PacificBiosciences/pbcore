@@ -2603,3 +2603,9 @@ class TestDataSet:
         ds5.write(tmp_file)
         ds6 = ConsensusReadSet(tmp_file)
         assert len(ds6.supplementalResources) == 1
+
+    def test_dataset_metadata_transfer_scheme(self):
+        DS = "/pbi/dept/secondary/siv/testdata/programs/phoenix/fail-reads-hg002/r84024_20231204_181235/1_A01/pb_formats/m84024_231204_181728_s3.hifi_reads.consensusreadset.xml"
+        ds1 = ConsensusReadSet(DS, strict=False, skipCounts=True)
+        md = ds1.metadata.collections[0]
+        assert md.primary.outputOptions.transferResource.transferScheme == "S5CMD"
