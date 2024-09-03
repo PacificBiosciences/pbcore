@@ -2552,6 +2552,11 @@ class CopyFilesMetadata(RecordWrapper):
     TAG = 'CopyFiles'
 
 
+class TransferResource(RecordWrapper):
+    TAG = "TransferResource"
+    transferScheme = subaccs("TransferScheme")
+
+
 class OutputOptions(RecordWrapper):
     NS = 'pbmeta'
 
@@ -2559,6 +2564,8 @@ class OutputOptions(RecordWrapper):
     collectionPathUri = subaccs('CollectionPathUri')
     copyFiles = accs('CopyFiles', container='children',
                      asType=CopyFilesMetadata)
+    transferResource = accs("TransferResource", container="children",
+                            asType=TransferResource)
 
 
 class SecondaryMetadata(RecordWrapper):
