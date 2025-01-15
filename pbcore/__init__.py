@@ -1,6 +1,6 @@
-import pkg_resources
+from importlib.metadata import Distribution, PackageNotFoundError
 
 try:
-    __VERSION__ = pkg_resources.get_distribution('pbcore').version
-except Exception:
+    __VERSION__ = Distribution.from_name('pbcore').version
+except PackageNotFoundError:
     __VERSION__ = 'unknown'

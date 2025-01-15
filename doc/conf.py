@@ -11,12 +11,13 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import pkg_resources
 import sys, os
 
+from importlib.metadata import Distribution, PackageNotFoundError
+
 try:
-    __VERSION__ = pkg_resources.get_distribution('pbcore').version
-except Exception:
+    __VERSION__ = Distribution.from_name('pbcore').version
+except PackageNotFoundError:
     __VERSION__ = 'unknown'
 
 

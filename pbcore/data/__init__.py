@@ -1,4 +1,4 @@
-from pkg_resources import Requirement, resource_filename
+from importlib import resources
 
 MOVIE_NAME_14 = "m110818_075520_42141_c100129202555500000315043109121112_s1_p0"
 MOVIE_NAME_20 = "m130522_092457_42208_c100497142550000001823078008081323_s1_p0"
@@ -9,7 +9,10 @@ MOVIE_NAME_BC = "m140307_221913_42203_c100626172550000001823119008061414_s1_p0"
 
 
 def _getAbsPath(fname):
-    return resource_filename(Requirement.parse('pbcore'), 'pbcore/data/%s' % fname)
+    with resources.as_file(
+       resources.files('pbcore') /
+            'data' / fname) as ret:
+        return str(ret)
 
 
 def getCCSBAM():
