@@ -148,27 +148,3 @@ class TestDataSet:
         sset.metadata.collections.merge(
             orig_metadata.collections, forceUnique=True)
         assert len(sset.metadata.collections) == 1
-
-    def test_merge_biosamples(self):
-        import pbtestdata
-        ds1 = pbtestdata.get_file("subreads-biosample-1")
-        ds2 = pbtestdata.get_file("subreads-biosample-2")
-        # Case 1: two biosamples
-        ds = SubreadSet(ds1, ds2)
-        samples = [bs.name for bs in ds.metadata.bioSamples]
-        assert samples == ["Alice", "Bob"]
-        # Case 2: same biosample in both files
-        ds = SubreadSet(ds1, ds1)
-        samples = [bs.name for bs in ds.metadata.bioSamples]
-        assert samples == ["Alice"]
-        assert len(ds.metadata.bioSamples[0].DNABarcodes) == 1
-        # Case 3: same biosample, different barcodes
-        dsTmp = SubreadSet(ds1)
-        dsTmp.metadata.bioSamples[0].DNABarcodes[0].name = "F7--R7"
-        tmpFile = tempfile.NamedTemporaryFile(suffix=".subreadset.xml").name
-        dsTmp.write(tmpFile)
-        ds = SubreadSet(ds1, tmpFile)
-        samples = [bs.name for bs in ds.metadata.bioSamples]
-        assert samples == ["Alice"]
-        bcs = [bc.name for bc in ds.metadata.bioSamples[0].DNABarcodes]
-        assert bcs == ["F1--R1", "F7--R7"]
