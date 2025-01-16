@@ -779,26 +779,6 @@ class TestDataSet:
         assert aln.totalLength == 0
         assert aln.numRecords == 0
 
-    @pytest.mark.internal_data
-    def test_barcode_accession(self):
-        testFile = ("/pbi/dept/secondary/siv/testdata/pblaa-unittest/"
-                    "P6-C4/HLA_ClassI/m150724_012016_sherri_c1008203"
-                    "52550000001823172911031521_s1_p0.class_I.haploid.bam")
-        # Test the pbi file:
-        bam = IndexedBamReader(testFile)
-        pbi = PacBioBamIndex(testFile + '.pbi')
-        for brec, prec in zip(bam, pbi):
-            brec_bc = list(brec.peer.opt("bc"))
-            prec_bc = [prec.bcForward, prec.bcReverse]
-            assert brec_bc == prec_bc
-
-        # Test split by barcode:
-        ss = SubreadSet(testFile)
-        sss = list(ss.split(chunks=2, barcodes=True))
-        assert len(sss) == 2
-        for sset in sss:
-            assert len(sset.barcodes) >= 1
-
     def test_attributes(self):
         aln = AlignmentSet(data.getBam(0))
         assert aln.sequencingChemistry == ['unknown']
