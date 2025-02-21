@@ -415,4 +415,20 @@
     <SequencingKit>103-508-000</SequencingKit>
     <SoftwareVersion>5.0</SoftwareVersion>
   </Mapping>
+
+  <!-- Vega polymerase kit; Vega sequencing plate -->
+  <Mapping>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
+    <BindingKit>103-426-500</BindingKit>
+    <SequencingKit>103-274-400</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
+
+  <!-- Vega polymerase kit; Vega sequencing plate, internal -->
+  <Mapping>
+    <SequencingChemistry>R/P1-C1/5.0-25M</SequencingChemistry>
+    <BindingKit>103-426-500</BindingKit>
+    <SequencingKit>103-536-400</SequencingKit>
+    <SoftwareVersion>5.0</SoftwareVersion>
+  </Mapping>
 </MappingTable>
