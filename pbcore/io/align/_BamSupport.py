@@ -1,6 +1,7 @@
 # Author: David Alexander
 
 import numpy as np
+import re
 
 
 class UnavailableFeature(Exception):
@@ -67,7 +68,8 @@ BAM_CDIFF = 8
 # qId calculation from RG ID string
 #
 def rgAsInt(rgIdString):
-    return np.int32(int(rgIdString.split("/")[0], 16))
+    return np.int32(int(re.sub("-", "", rgIdString.split("/")[0]), 16)
+                    % (np.iinfo(np.int32).max+1))
 
 #
 # Kinetics: decode the scheme we are using to encode approximate frame

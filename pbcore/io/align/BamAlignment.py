@@ -595,7 +595,11 @@ class BamAlignment(AlignmentRecordMixin):
         if data.dtype == np.int8:
             gapCode = ord("-")
         else:
-            gapCode = data.dtype.type(-1)
+            try:
+                gapCode = data.dtype.type(-1)
+            except OverflowError:
+                # FIXME: workaround unsigned types overflow with numpy 2+.
+                gapCode = data.dtype.type(np.iinfo(data.dtype).max)
         uc = self.unrolledCigar(orientation=orientation)
         alnData = np.repeat(np.array(gapCode, dtype=data.dtype), len(uc))
         gapMask = (uc == gapOp)
