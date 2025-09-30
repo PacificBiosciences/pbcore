@@ -32,7 +32,7 @@ Default Job:
       test-results: '**/nosetests.xml'
       description: parse test results
   requirements:
-  - system.dist: redhat
+  - system.dist: Rocky
   artifact-subscriptions: []
 repositories:
 - pbcore:
