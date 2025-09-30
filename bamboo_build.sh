@@ -12,7 +12,7 @@ mkdir -p build/bin build/lib build/include build/share
 
 python3 -m venv venv
 . venv/bin/activate
-$PIP install --no-compile -e repos/PacBioTestData -e '.[test]'
+$PIP install --constraint constraint.lock --index-url="https://artifactory.pacificbiosciences.com/artifactory/api/pypi/sl-pypi-local/simple" --no-compile -e repos/PacBioTestData -e '.[test]'
 
 pytest --trace-config --collect-only
 
