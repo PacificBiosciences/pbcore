@@ -14,6 +14,7 @@ test_deps = [
     'jinja2==2.11.1',
     'markupsafe==2.0.1',
     'xmlschema',
+    'roman',
 ]
 
 setup(
