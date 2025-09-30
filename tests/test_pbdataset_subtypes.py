@@ -836,6 +836,7 @@ class TestDataSet:
         # assert ds1.externalResources[0]._getSubExtResByMetaType(
         #            'PacBio.ReferenceFile.ReferenceFastaFile').uniqueId == rs1.uuid
 
+    @pytest.mark.skip(reason="Missing BAM resource")
     @pytest.mark.internal_data
     def test_adapters_resource(self):
         ifn = ("/pbi/dept/secondary/siv/testdata/BlasrTestData/ctest/data/"
