@@ -12,7 +12,7 @@ install:
 	@pip freeze|grep 'pbcore=='>/dev/null \
       && pip uninstall -y pbcore \
       || echo -n ''
-	@pip install ./
+	@pip install -c constraint.lock ./
 
 pylint:
 	pylint --errors-only --enable=C0411,W0702,W0401,W0611 pbcore/
@@ -37,6 +37,7 @@ doctest:
 	cd doc && make doctest
 
 unit-test:
+	@pip install -c constraint.lock .[test]
 	pytest
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
@@ -61,7 +62,7 @@ pip-install:
 	@pip freeze|grep 'pbcore=='>/dev/null \
       && pip uninstall -y pbcore \
       || echo -n ''
-	@pip install --no-index ./
+	@pip install -c constraint.lock --no-index ./
 
 
 publish-to-pypi:
