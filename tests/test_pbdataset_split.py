@@ -662,6 +662,7 @@ class TestDataSetSplit:
 
     @pytest.mark.internal_data
     @pytest.mark.constools
+    @pytest.mark.skip(reason="Lost source data")
     def test_isBarcoded(self):
         empty = upstreamdata.getEmptyBam()
         nonempty = ('/pbi/dept/secondary/siv/testdata/'
