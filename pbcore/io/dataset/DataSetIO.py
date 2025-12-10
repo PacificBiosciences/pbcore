@@ -1798,6 +1798,7 @@ class DataSet:
                 'ConsensusAlignmentSet': ConsensusAlignmentSet,
                 'ReferenceSet': ReferenceSet,
                 'BarcodeSet': BarcodeSet,
+                'BedSet': BedSet,
                 'TranscriptSet': TranscriptSet,
                 'TranscriptAlignmentSet': TranscriptAlignmentSet}
 
@@ -4423,3 +4424,35 @@ class BedSet(DataSet):
         if not self._openReaders:
             self._openFiles()
         return self._openReaders
+
+    def updateCounts(self):
+        """Update the TotalLength and NumRecords for this BedSet.
+
+        Iterates through all BED records in all resource files to count
+        the total number of records and sum the total length of all regions.
+        """
+        if self._skipCounts:
+            if not self.metadata.totalLength:
+                self.metadata.totalLength = -1
+            if not self.metadata.numRecords:
+                self.metadata.numRecords = -1
+            return
+        try:
+            log.debug("Updating counts")
+            readers = self.resourceReaders()
+            numRecords = 0
+            totalLength = 0
+            for reader in readers:
+                for record in reader:
+                    numRecords += 1
+                    totalLength += len(record)
+            self.metadata.totalLength = totalLength
+            self.metadata.numRecords = numRecords
+            self._countsUpdated = True
+        except (IOError, UnavailableFeature):
+            if not self._strict:
+                log.debug("File problem, metadata not populated")
+                self.metadata.totalLength = 0
+                self.metadata.numRecords = 0
+            else:
+                raise

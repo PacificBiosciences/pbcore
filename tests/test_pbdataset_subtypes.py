@@ -1101,3 +1101,26 @@ class TestDataSet:
         assert os.path.isfile(ds.externalResources[0].resourceId)
         records = ds.resourceReaders()[0]
         assert len(records) == 2
+
+    @pytest.mark.constools
+    def test_bedset_updateCounts(self):
+        import pbtestdata
+        bed_xml = pbtestdata.get_file("bedset")
+        ds = BedSet(bed_xml)
+        ds.updateCounts()
+        readers = ds.resourceReaders()
+        expected_numRecords = sum(len(reader) for reader in readers)
+        expected_totalLength = sum(len(record) for reader in readers
+                                   for record in reader)
+        assert ds.metadata.numRecords == expected_numRecords
+        assert ds.metadata.totalLength == expected_totalLength
+
+        # Test creating a new dataset directly from the BED file
+        bed_file = ds.externalResources[0].resourceId
+        assert os.path.isfile(bed_file)
+        ds2 = BedSet(bed_file)
+        ds2.updateCounts()
+        assert ds2.metadata.numRecords == expected_numRecords
+        assert ds2.metadata.totalLength == expected_totalLength
+        assert ds2.metadata.numRecords == ds.metadata.numRecords
+        assert ds2.metadata.totalLength == ds.metadata.totalLength
