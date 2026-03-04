@@ -1,5 +1,7 @@
 # Author: David Alexander
 
+import re
+
 import numpy as np
 
 
@@ -67,7 +69,13 @@ BAM_CDIFF = 8
 # qId calculation from RG ID string
 #
 def rgAsInt(rgIdString):
-    return np.int32(int(rgIdString.split("/")[0], 16))
+    numericId = int(rgIdString.split("/")[0].split("-")[0], 16)
+    # Identifiers may exceed the 32-bit range, so compensate manually
+    # the overflow, otherwise numpy 2 and later raises OverflowError.
+    overflownId = (numericId + np.iinfo(np.int32).min) \
+                  % (2 * (np.iinfo(np.int32).max + 1)) \
+                  + np.iinfo(np.int32).min
+    return np.int32(overflownId)
 
 #
 # Kinetics: decode the scheme we are using to encode approximate frame

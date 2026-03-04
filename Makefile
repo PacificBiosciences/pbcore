@@ -38,7 +38,7 @@ doctest:
 
 unit-test:
 	@pip install -c constraint.lock .[test]
-	pytest
+	pytest tests/
 	sed -i -e 's@filename="@filename="./@g' coverage.xml
 
 test: doctest unit-test

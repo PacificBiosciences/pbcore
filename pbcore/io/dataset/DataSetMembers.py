@@ -834,7 +834,7 @@ class Filters(RecordWrapper):
                 'mapqv': (lambda x: x.mapQV),
                 'accuracy': (
                     lambda x: (np.ones(len(x.nMM), dtype='f4') -
-                               (x.nMM + x.nIns + x.nDel).astype(np.float) /
+                               (x.nMM + x.nIns + x.nDel).astype(np.float32) /
                                (x.nM + x.nMM + x.nIns)))
                 }
         base = self._pbiVecAccMap()

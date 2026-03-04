@@ -15,3 +15,6 @@ coverage.xml
 
 .vagrant
 .DS_Store
+venv
+.venv
+repos
