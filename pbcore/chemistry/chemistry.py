@@ -6,7 +6,7 @@ from collections import OrderedDict
 import xml.etree.ElementTree as ET
 import os.path
 
-from pkg_resources import Requirement, resource_filename
+from importlib import resources
 
 
 class ChemistryLookupError(Exception):
@@ -34,18 +34,20 @@ def _loadBarcodeMappingsFromFile(mapFile):
 
 
 def _loadBarcodeMappings():
-    mappingFname = resource_filename(Requirement.parse(
-        'pbcore'), 'pbcore/chemistry/resources/mapping.xml')
-    mappings = _loadBarcodeMappingsFromFile(mappingFname)
-    updMappingDir = os.getenv("SMRT_CHEMISTRY_BUNDLE_DIR")
-    if updMappingDir:
-        import logging
-        from os.path import join
-        logging.info(
-            "Loading updated chemistry mapping XML from {}".format(updMappingDir))
-        mappings.update(_loadBarcodeMappingsFromFile(
-            join(updMappingDir, 'chemistry.xml')))
-    return mappings
+    mappingFnameContext = resources.as_file(
+            resources.files('pbcore') /
+                'chemistry/resources/mapping.xml')
+    with mappingFnameContext as mappingFname:
+        mappings = _loadBarcodeMappingsFromFile(mappingFname)
+        updMappingDir = os.getenv("SMRT_CHEMISTRY_BUNDLE_DIR")
+        if updMappingDir:
+            import logging
+            from os.path import join
+            logging.info(
+                "Loading updated chemistry mapping XML from {}".format(updMappingDir))
+            mappings.update(_loadBarcodeMappingsFromFile(
+                join(updMappingDir, 'chemistry.xml')))
+        return mappings
 
 
 _BARCODE_MAPPINGS = _loadBarcodeMappings()

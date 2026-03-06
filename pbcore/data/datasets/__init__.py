@@ -1,7 +1,7 @@
 """Doctest resources"""
 
 import os
-from pkg_resources import Requirement, resource_filename
+from importlib import resources
 
 XML_FILES = ["alignment.dataset.xml",  # 0
              "barcode.dataset.xml",
@@ -33,8 +33,10 @@ FOFN_FILES = ["fofn.fofn"]
 
 
 def _getAbsPath(fname):
-    return resource_filename(Requirement.parse('pbcore'),
-                             'pbcore/data/datasets/%s' % fname)
+    with resources.as_file(
+        resources.files('pbcore') /
+            'data/datasets' / fname) as ret:
+        return str(ret)
 
 
 def getXml(no=0):
